@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.models.usermgmt;
+package io.appform.conductor.model.usermgmt;
 
 import lombok.Value;
 
-import java.util.Set;
+import java.util.Date;
 
 /**
- * A detailed view of a user in the system
+ * A user for the system. This includes operators, administrators etc
  */
 @Value
-public class User {
-    UserSummary summary;
-    Set<Group> groups;
-    Set<Skill> skills;
+public class UserSummary {
+    String id;
+    String email;
+    boolean available;
+    UserState state;
+    Date created;
+    Date updated;
 }

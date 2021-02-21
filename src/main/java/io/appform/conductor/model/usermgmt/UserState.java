@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.models.usermgmt;
+package io.appform.conductor.model.usermgmt;
 
 import lombok.Getter;
 
