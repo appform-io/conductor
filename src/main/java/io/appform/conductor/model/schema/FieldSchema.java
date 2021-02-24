@@ -22,7 +22,7 @@ import lombok.Data;
 import java.util.Date;
 
 /**
- * Definition for a field in the schema. Will be used to render and validate inputs/outputs
+ * Definition for a field in the ticket. Will be used to render and validate inputs/outputs
  */
 @Data
 @AllArgsConstructor

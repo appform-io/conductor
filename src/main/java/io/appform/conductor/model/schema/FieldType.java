@@ -28,7 +28,7 @@ public enum FieldType {
      */
     STRING("String") {
         @Override
-        <T> T accept(FieldTypeVisitor<T> visitor) {
+        public <T> T accept(FieldTypeVisitor<T> visitor) {
             return visitor.visitString();
         }
     },
@@ -37,7 +37,7 @@ public enum FieldType {
      */
     CHOICE("Choice") {
         @Override
-        <T> T accept(FieldTypeVisitor<T> visitor) {
+        public <T> T accept(FieldTypeVisitor<T> visitor) {
             return visitor.visitChoice();
         }
     },
@@ -46,7 +46,7 @@ public enum FieldType {
      */
     BOOLEAN("Boolean") {
         @Override
-        <T> T accept(FieldTypeVisitor<T> visitor) {
+        public <T> T accept(FieldTypeVisitor<T> visitor) {
             return visitor.visitBoolean();
         }
     },
@@ -55,7 +55,7 @@ public enum FieldType {
      */
     NUMBER("Number") {
         @Override
-        <T> T accept(FieldTypeVisitor<T> visitor) {
+        public <T> T accept(FieldTypeVisitor<T> visitor) {
             return visitor.visitNumber();
         }
     },
@@ -64,7 +64,7 @@ public enum FieldType {
      */
     LOCATION("Location") {
         @Override
-        <T> T accept(FieldTypeVisitor<T> visitor) {
+        public <T> T accept(FieldTypeVisitor<T> visitor) {
             return visitor.visitLocation();
         }
     },
@@ -73,7 +73,7 @@ public enum FieldType {
      */
     DATE("Date") {
         @Override
-        <T> T accept(FieldTypeVisitor<T> visitor) {
+        public <T> T accept(FieldTypeVisitor<T> visitor) {
             return visitor.visitDate();
         }
     };
@@ -94,7 +94,7 @@ public enum FieldType {
      * @param <T> Return type of the visitor
      * @return The result of processing in the visitor
      */
-    abstract <T> T accept(FieldTypeVisitor<T> visitor);
+    public abstract <T> T accept(FieldTypeVisitor<T> visitor);
 
     /**
      * To be implemented to handle type specific validations, creation and operations etc

@@ -28,7 +28,7 @@ public enum SchemaState {
      */
     ACTIVE("Active") {
         @Override
-        <T> T accept(SchemaStateVisitor<T> visitor) {
+        public <T> T accept(SchemaStateVisitor<T> visitor) {
             return visitor.visitActive();
         }
     },
@@ -38,7 +38,7 @@ public enum SchemaState {
      */
     INACTIVE("Inactive") {
         @Override
-        <T> T accept(SchemaStateVisitor<T> visitor) {
+        public <T> T accept(SchemaStateVisitor<T> visitor) {
             return visitor.visitInactive();
         }
     };
@@ -56,7 +56,7 @@ public enum SchemaState {
      * @param <T> Return type for implementation
      * @return Rerult of processing
      */
-    abstract <T> T accept(final SchemaStateVisitor<T> visitor);
+    public abstract <T> T accept(final SchemaStateVisitor<T> visitor);
 
     /**
      * Visitor can be implemented to handle validations and transitions etc.

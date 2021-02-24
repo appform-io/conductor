@@ -17,8 +17,8 @@
 package io.appform.conductor.model.schema.fields;
 
 import io.appform.conductor.model.schema.FieldSchema;
-import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.schema.FieldSchemaVisitor;
+import io.appform.conductor.model.schema.FieldType;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
