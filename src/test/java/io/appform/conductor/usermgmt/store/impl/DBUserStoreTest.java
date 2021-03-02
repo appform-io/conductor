@@ -16,11 +16,9 @@
 
 package io.appform.conductor.usermgmt.store.impl;
 
-import com.google.inject.Inject;
 import io.appform.conductor.DBTestBase;
 import io.appform.conductor.error.ConductorErrorCode;
 import io.appform.conductor.error.ConductorException;
-import io.appform.conductor.usermgmt.store.UserStore;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -33,11 +31,6 @@ import static org.mockito.Mockito.*;
  * Tests for {@link DBUserStore}
  */
 public class DBUserStoreTest extends DBTestBase {
-
-    @Inject
-    private LookupDao<UserStore> userStore;
-
-
 
     @Test
     public void testCreate() {
@@ -55,7 +48,7 @@ public class DBUserStoreTest extends DBTestBase {
     public void testCreateFailure() {
         final LookupDao<DBUserStore.StoredUser> userDao = createMockserDao();
         val userStore = new DBUserStore(userDao);
-        when(userDao.save(any(DBUserStore.StoredUser.class))).thenThrow(NullPointerException.class);
+        doThrow(NullPointerException.class).when(userDao).save(any(DBUserStore.StoredUser.class));
 
         try {
             userStore.create("Test", "test@test.com", "TestPassword");
@@ -72,6 +65,7 @@ public class DBUserStoreTest extends DBTestBase {
         return bundle.createParentObjectDao(DBUserStore.StoredUser.class);
     }
 
+    @SuppressWarnings("unchecked")
     private LookupDao<DBUserStore.StoredUser> createMockserDao() {
         return (LookupDao<DBUserStore.StoredUser>)mock(LookupDao.class);
     }
