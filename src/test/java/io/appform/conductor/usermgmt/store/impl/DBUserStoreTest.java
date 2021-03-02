@@ -46,7 +46,7 @@ public class DBUserStoreTest extends DBTestBase {
     @Test
     @SneakyThrows
     public void testCreateFailure() {
-        final LookupDao<DBUserStore.StoredUser> userDao = createMockserDao();
+        final LookupDao<DBUserStore.StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
         doThrow(NullPointerException.class).when(userDao).save(any(DBUserStore.StoredUser.class));
 
@@ -66,7 +66,7 @@ public class DBUserStoreTest extends DBTestBase {
     }
 
     @SuppressWarnings("unchecked")
-    private LookupDao<DBUserStore.StoredUser> createMockserDao() {
+    private LookupDao<DBUserStore.StoredUser> createMockUserDao() {
         return (LookupDao<DBUserStore.StoredUser>)mock(LookupDao.class);
     }
 }
