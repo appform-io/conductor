@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.usermgmt;
+package io.appform.conductor.usermgmt.model;
 
 import lombok.Value;
 
 import java.util.Date;
 
 /**
- * A user for the system. This includes operators, administrators etc
+ * A group of users in the system. Ticket routing will be done to groups or users.
  */
 @Value
-public class UserSummary {
+public class Group {
     String id;
-    String email;
-    boolean available;
-    UserState state;
+    String name;
+    String description;
+    boolean deleted;
     Date created;
     Date updated;
 }

@@ -16,7 +16,7 @@
 
 package io.appform.conductor.model.schema;
 
-import io.appform.conductor.model.usermgmt.UserSummary;
+import io.appform.conductor.usermgmt.model.UserSummary;
 import lombok.Value;
 
 import java.util.Date;

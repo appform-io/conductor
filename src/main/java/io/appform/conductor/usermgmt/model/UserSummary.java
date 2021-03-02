@@ -14,52 +14,21 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket.comments;
+package io.appform.conductor.usermgmt.model;
 
-import io.appform.conductor.usermgmt.model.UserSummary;
 import lombok.Value;
 
 import java.util.Date;
-import java.util.List;
 
 /**
- * Represents comment type in a ticket
+ * A user for the system. This includes operators, administrators etc
  */
 @Value
-public class Comment {
-
-    /**
-     * Global comment ID
-     */
+public class UserSummary {
     String id;
-
-    /**
-     *  Author of the comment
-     */
-    UserSummary author;
-
-    /**
-     * The text content
-     */
-    String content;
-
-    /**
-     * Attachments for this comment. For example pictures, test results etc
-     */
-    List<Attachment> attachments;
-
-    /**
-     * True if comment has been deleted
-     */
-    boolean deleted;
-
-    /**
-     * Date when comment was created
-     */
+    String name;
+    String email;
+    UserState state;
     Date created;
-
-    /**
-     * Date when comment was last updated
-     */
     Date updated;
 }

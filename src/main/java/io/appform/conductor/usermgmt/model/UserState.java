@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.usermgmt;
+package io.appform.conductor.usermgmt.model;
 
 import lombok.Getter;
 
@@ -39,6 +39,16 @@ public enum UserState {
         @Override
         <T> T visit(UserStateVisitor<T> visitor) {
             return visitor.visitActive();
+        }
+    },
+
+    /**
+     * User has been active on the system
+     */
+    LOCKED("Locked") {
+        @Override
+        <T> T visit(UserStateVisitor<T> visitor) {
+            return visitor.visitLocked();
         }
     },
 
@@ -105,6 +115,8 @@ public enum UserState {
         T visitCreated();
 
         T visitActive();
+
+        T visitLocked();
 
         T visitExited();
 

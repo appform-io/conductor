@@ -18,8 +18,9 @@ package io.appform.conductor.model.ticket;
 
 import io.appform.conductor.model.schema.State;
 import io.appform.conductor.model.subject.Subject;
-import io.appform.conductor.model.usermgmt.Group;
-import io.appform.conductor.model.usermgmt.UserSummary;
+import io.appform.conductor.usermgmt.model.Group;
+import io.appform.conductor.usermgmt.model.User;
+import io.appform.conductor.usermgmt.model.UserSummary;
 import io.appform.conductor.model.workflow.Workflow;
 import lombok.Value;
 
@@ -57,12 +58,12 @@ public class TicketSummary {
     UserSummary createdBy;
 
     /**
-     * Currently assigned {@link io.appform.conductor.model.usermgmt.Group}
+     * Currently assigned {@link Group}
      */
     Group assignedToGroup;
 
     /**
-     * Currently assigned {@link io.appform.conductor.model.usermgmt.User}
+     * Currently assigned {@link User}
      */
     UserSummary assignedToUser;
 

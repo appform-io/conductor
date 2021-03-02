@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.usermgmt;
-
-import lombok.Value;
-
-import java.util.Set;
+package io.appform.conductor.model.events;
 
 /**
- * A detailed view of a user in the system
+ *
  */
-@Value
-public class User {
-    UserSummary summary;
-    Set<Group> groups;
-    Set<Skill> skills;
+public class Event {
 }

@@ -19,6 +19,7 @@ package io.appform.conductor.model.actions.impl;
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
+import io.appform.conductor.usermgmt.model.Group;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
@@ -26,7 +27,7 @@ import lombok.Value;
 import java.util.Date;
 
 /**
- * Change ticket assignment and move it to the specified {@link io.appform.conductor.model.usermgmt.Group}
+ * Change ticket assignment and move it to the specified {@link Group}
  */
 @Value
 @EqualsAndHashCode(callSuper = true)

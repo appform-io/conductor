@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.usermgmt;
+package io.appform.conductor.utils;
 
-import lombok.Value;
+import lombok.experimental.UtilityClass;
 
+import java.util.Calendar;
 import java.util.Date;
 
 /**
- * Represents a [articular skill. For example language proficiency. A {@link User} can have multiple skills.
+ * Utility functions for date manipulation
  */
-@Value
-public class Skill {
-    String id;
-    String name;
-    boolean deleted;
-    Date created;
-    Date updated;
+@UtilityClass
+public class DateUtils {
+    public static int currentWeek() {
+        Calendar c = Calendar.getInstance();
+        c.setTime(new Date());
+        return c.getWeekYear();
+    }
 }
