@@ -19,11 +19,16 @@ package io.appform.conductor.usermgmt.store.impl;
 import io.appform.conductor.DBTestBase;
 import io.appform.conductor.error.ConductorErrorCode;
 import io.appform.conductor.error.ConductorException;
+import io.appform.conductor.usermgmt.store.UserStore;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.mockito.Mockito.*;
 
@@ -41,6 +46,59 @@ public class DBUserStoreTest extends DBTestBase {
         Assert.assertEquals("Test", createdUser.getName());
         Assert.assertEquals("test@test.com", createdUser.getEmail());
         Assert.assertEquals("TestPassword", createdUser.getPassword());
+    }
+
+    @Test
+    public void testGetById(){
+        val userStore = new DBUserStore(createRealUserDao());
+        val newUser = userStore.create("Test", "test@test.com", "testpassword")
+                .orElse(null);
+        Assert.assertNotNull(newUser);
+        val newId = newUser.getId();
+        val returnedUser = userStore.getById(newId).orElse(null);
+        Assert.assertNotNull(returnedUser);
+        Assert.assertEquals(newUser, returnedUser);
+    }
+
+    @Test
+    public void testGetByIds(){
+        val numOfUsers = 10;
+        val userStore = new DBUserStore(createRealUserDao());
+        List<String> queryIds = new ArrayList<>();
+        val users = new ArrayList<UserStore.UserDetails>();
+        IntStream.range(0, numOfUsers).forEach(
+                i -> {
+                    val newUser = userStore.create("Test"+i, "test"+i+"@gmail.com", "testpassword"+i)
+                            .orElse(null);
+                    Assert.assertNotNull(newUser);
+                    val newId = newUser.getId();
+                    users.add(newUser);
+                    queryIds.add(newId);
+                }
+        );
+
+        val returnedUsers = userStore.getByIds(queryIds);
+        Assert.assertEquals(numOfUsers, queryIds.size());
+        Assert.assertEquals(numOfUsers, returnedUsers.size());
+        IntStream.range(0, numOfUsers).forEach(
+                i-> Assert.assertTrue(returnedUsers.contains(users.get(i)))
+        );
+    }
+
+    @Test
+    @SneakyThrows
+    public void testGetByIdFailed(){
+        final LookupDao<DBUserStore.StoredUser> userDao = createMockUserDao();
+        val userStore = new DBUserStore(userDao);
+        doThrow(NullPointerException.class).when(userDao).get(any(String.class));
+        try{
+            userStore.getById("testUserId");
+            Assert.fail("Should have thrown exception.");
+        }
+        catch (Exception e){
+            Assert.assertTrue( e instanceof ConductorException);
+            Assert.assertEquals(ConductorErrorCode.STORE_READ_ERROR, ((ConductorException)e).getErrorCode());
+        }
     }
 
     @Test
