@@ -87,6 +87,26 @@ public class DBUserStoreTest extends DBTestBase {
 
     @Test
     @SneakyThrows
+    public void testGetByIdsFailed(){
+        final LookupDao<DBUserStore.StoredUser> userDao = createMockUserDao();
+        val userStore = new DBUserStore(userDao);
+        doThrow(NullPointerException.class).when(userDao).get(anyListOf(String.class));
+        try{
+            List<String> idList = new ArrayList<>();
+            val length = 5;
+            IntStream.range(0, length).forEach(i ->
+                    idList.add("userId" + i));
+            userStore.getByIds(idList);
+            Assert.fail("Should have thrown exception.");
+        }
+        catch (Exception e){
+            Assert.assertTrue( e instanceof ConductorException);
+            Assert.assertEquals(ConductorErrorCode.STORE_LIST_ERROR, ((ConductorException)e).getErrorCode());
+        }
+    }
+
+    @Test
+    @SneakyThrows
     public void testGetByIdFailed(){
         final LookupDao<DBUserStore.StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
