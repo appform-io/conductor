@@ -23,6 +23,7 @@ import io.appform.conductor.usermgmt.store.UserStore;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import lombok.SneakyThrows;
 import lombok.val;
+import org.hibernate.criterion.DetachedCriteria;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -49,7 +50,7 @@ public class DBUserStoreTest extends DBTestBase {
     }
 
     @Test
-    public void testGetById(){
+    public void testGetById() {
         val userStore = new DBUserStore(createRealUserDao());
         val newUser = userStore.create("Test", "test@test.com", "testpassword")
                 .orElse(null);
@@ -61,7 +62,7 @@ public class DBUserStoreTest extends DBTestBase {
     }
 
     @Test
-    public void testGetByIds(){
+    public void testGetByIds() {
         val numOfUsers = 10;
         val userStore = new DBUserStore(createRealUserDao());
         List<String> queryIds = new ArrayList<>();
@@ -86,8 +87,32 @@ public class DBUserStoreTest extends DBTestBase {
     }
 
     @Test
+    public void testGetByEmailFailed() {
+        //User not found
+        val userDao = createMockUserDao();
+        val userStore = new DBUserStore(userDao);
+        val emptyList = new ArrayList<UserStore.UserDetails>();
+        doReturn(emptyList).when(userDao).scatterGather(any(DetachedCriteria.class));
+        val user = userStore.getByEmail("testMail").orElse(null);
+        Assert.assertNull(user);
+
+        //scatterGather throws exception
+        val userDao2 = createMockUserDao();
+        val userStore2 = new DBUserStore(userDao2);
+        doThrow(NullPointerException.class).when(userDao2).scatterGather(any(DetachedCriteria.class));
+        try {
+            userStore2.getByEmail("testMail");
+            Assert.fail("Should have thrown exception.");
+        }
+        catch (Exception e) {
+            Assert.assertTrue( e instanceof ConductorException);
+            Assert.assertEquals(ConductorErrorCode.STORE_READ_ERROR, ((ConductorException)e).getErrorCode());
+        }
+    }
+
+    @Test
     @SneakyThrows
-    public void testGetByIdsFailed(){
+    public void testGetByIdsFailed() {
         final LookupDao<DBUserStore.StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
         doThrow(NullPointerException.class).when(userDao).get(anyListOf(String.class));
@@ -107,7 +132,7 @@ public class DBUserStoreTest extends DBTestBase {
 
     @Test
     @SneakyThrows
-    public void testGetByIdFailed(){
+    public void testGetByIdFailed() {
         final LookupDao<DBUserStore.StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
         doThrow(NullPointerException.class).when(userDao).get(any(String.class));
