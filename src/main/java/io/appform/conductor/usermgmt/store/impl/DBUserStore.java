@@ -176,12 +176,24 @@ public class DBUserStore implements UserStore {
 
     @Override
     public Optional<UserDetails> getByEmail(String email) {
-        return userDao.scatterGather(
-                DetachedCriteria.forClass(StoredUser.class)
-                        .add(Restrictions.eq("email", email)))
-                .stream()
-                .findAny()
-                .map(DBUserStore::toWire);
+        try {
+            return userDao.scatterGather(
+                    DetachedCriteria.forClass(StoredUser.class)
+                            .add(Restrictions.eq("email", email)))
+                    .stream()
+                    .findAny()
+                    .map(DBUserStore::toWire);
+        }
+        catch(Exception e) {
+            throw ConductorException.builder()
+                    .errorCode(ConductorErrorCode.STORE_READ_ERROR)
+                    .context(ImmutableMap.<String, Object>builder()
+                            .put("type", TABLE_NAME)
+                            .build())
+                    .cause(e)
+                    .build();
+        }
+
     }
 
     @Override
