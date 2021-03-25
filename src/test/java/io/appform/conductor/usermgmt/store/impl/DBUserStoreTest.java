@@ -19,6 +19,7 @@ package io.appform.conductor.usermgmt.store.impl;
 import io.appform.conductor.DBTestBase;
 import io.appform.conductor.error.ConductorErrorCode;
 import io.appform.conductor.error.ConductorException;
+import io.appform.conductor.usermgmt.model.UserState;
 import io.appform.conductor.usermgmt.store.UserStore;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import lombok.SneakyThrows;
@@ -108,6 +109,69 @@ public class DBUserStoreTest extends DBTestBase {
             Assert.assertTrue( e instanceof ConductorException);
             Assert.assertEquals(ConductorErrorCode.STORE_READ_ERROR, ((ConductorException)e).getErrorCode());
         }
+    }
+  
+    @Test
+    public void testGetByEmail(){
+        val userStore = new DBUserStore(createRealUserDao());
+        val newUser = userStore.create("Test", "test@test.com", "testpassword")
+                .orElse(null);
+        Assert.assertNotNull(newUser);
+        val newEmail = newUser.getEmail();
+        val returnedUser = userStore.getByEmail(newEmail).orElse(null);
+        Assert.assertNotNull(returnedUser);
+        Assert.assertEquals(newUser, returnedUser);
+    }
+
+    @Test
+    public void testUpdate(){
+        val userStore = new DBUserStore(createRealUserDao());
+        val newUser1 = userStore.create("Test1", "test1@test.com", "testPassword1").orElse(null);
+        val newUser2 =userStore.create("Test2", "test2@test.com", "testPassword2").orElse(null);
+        Assert.assertNotNull(newUser1);
+        Assert.assertNotNull(newUser2);
+        val newId1 = newUser1.getId();
+        val newId2 = newUser2.getId();
+        val returnedUser1 = userStore.getById(newId1).orElse(null);
+        val returnedUser2 = userStore.getById(newId2).orElse(null);
+        Assert.assertNotNull(returnedUser1);
+        Assert.assertNotNull(returnedUser2);
+        //Check Correct users are created
+        Assert.assertEquals("Test1", returnedUser1.getName());
+        Assert.assertEquals("test1@test.com", returnedUser1.getEmail());
+        Assert.assertEquals("testPassword1", returnedUser1.getPassword());
+
+        Assert.assertEquals("Test2", returnedUser2.getName());
+        Assert.assertEquals("test2@test.com", returnedUser2.getEmail());
+        Assert.assertEquals("testPassword2", returnedUser2.getPassword());
+        val updatedUser = userStore.update(newId2, myUser -> {
+            myUser.setEmail("newTest@test.com");
+            myUser.setName("newTest");
+            myUser.setPassword("newTestPassword");
+            myUser.setFailedPasswordAttempts(newUser2.getFailedPasswordAttempts() + 1);
+            myUser.setState(UserState.INACTIVE);
+        }).orElse(null);
+        Assert.assertNotNull(updatedUser);
+        val returnedAgainUser1 = userStore.getById(newId1).orElse(null);
+        val returnedAgainUser2 = userStore.getById(newId2).orElse(null);
+        Assert.assertNotNull(returnedAgainUser1);
+        Assert.assertNotNull(returnedAgainUser2);
+
+        Assert.assertEquals("Test1", returnedAgainUser1.getName());
+        Assert.assertEquals("test1@test.com", returnedAgainUser1.getEmail());
+        Assert.assertEquals("testPassword1", returnedAgainUser1.getPassword());
+
+        Assert.assertEquals("newTest", returnedAgainUser2.getName());
+        Assert.assertEquals("newTest@test.com", returnedAgainUser2.getEmail());
+        Assert.assertEquals("newTestPassword", returnedAgainUser2.getPassword());
+        Assert.assertEquals(newUser2.getFailedPasswordAttempts() + 1, returnedAgainUser2.getFailedPasswordAttempts());
+        Assert.assertEquals(UserState.INACTIVE, returnedAgainUser2.getState());
+
+        Assert.assertEquals("newTest", updatedUser.getName());
+        Assert.assertEquals("newTest@test.com", updatedUser.getEmail());
+        Assert.assertEquals("newTestPassword", updatedUser.getPassword());
+        Assert.assertEquals(newUser2.getFailedPasswordAttempts() + 1, updatedUser.getFailedPasswordAttempts());
+        Assert.assertEquals(UserState.INACTIVE, updatedUser.getState());
     }
 
     @Test

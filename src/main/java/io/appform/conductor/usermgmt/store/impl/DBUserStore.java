@@ -206,6 +206,7 @@ public class DBUserStore implements UserStore {
             }
             val updatedUser = toWire(user);
             handler.accept(updatedUser);
+            user.setEmail(updatedUser.getEmail());
             user.setName(updatedUser.getName());
             user.setPassword(updatedUser.getPassword());
             user.setState(updatedUser.getState());
