@@ -25,6 +25,7 @@ import lombok.Getter;
 public enum ConductorErrorCode {
     STORE_READ_ERROR(1001, "Error reading database for type ${type} with ${id}"),
     STORE_WRITE_ERROR(1002, "Error saving to database for type ${type} with ${id}"),
+    STORE_UPDATE_ERROR(1003, "Error updating database for type ${type} with id ${id}"),
     STORE_LIST_ERROR(1004, "Error reading object list of type ${type}"),
     ;
 

@@ -112,7 +112,7 @@ public class DBUserStoreTest extends DBTestBase {
     }
   
     @Test
-    public void testGetByEmail(){
+    public void testGetByEmail() {
         val userStore = new DBUserStore(createRealUserDao());
         val newUser = userStore.create("Test", "test@test.com", "testpassword")
                 .orElse(null);
@@ -124,7 +124,7 @@ public class DBUserStoreTest extends DBTestBase {
     }
 
     @Test
-    public void testUpdate(){
+    public void testUpdate() {
         val userStore = new DBUserStore(createRealUserDao());
         val newUser1 = userStore.create("Test1", "test1@test.com", "testPassword1").orElse(null);
         val newUser2 =userStore.create("Test2", "test2@test.com", "testPassword2").orElse(null);
@@ -176,6 +176,25 @@ public class DBUserStoreTest extends DBTestBase {
 
     @Test
     @SneakyThrows
+    public void testUpdateFailed() {
+        final LookupDao<DBUserStore.StoredUser> userDao = createMockUserDao();
+        val userStore = new DBUserStore(userDao);
+        doThrow(NullPointerException.class).when(userDao).update(any(String.class), any());
+        try {
+            val result = userStore.update("test_user_id", updateUser -> {
+                updateUser.setEmail("newemail@test.com");
+                updateUser.setName("newTest");
+            }).orElse(null);
+            Assert.fail("Should have thrown exception.");
+        }
+        catch (Exception e) {
+            Assert.assertTrue( e instanceof ConductorException);
+            Assert.assertEquals(ConductorErrorCode.STORE_UPDATE_ERROR, ((ConductorException)e).getErrorCode());
+        }
+    }
+
+    @Test
+    @SneakyThrows
     public void testGetByIdsFailed() {
         final LookupDao<DBUserStore.StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
@@ -188,7 +207,7 @@ public class DBUserStoreTest extends DBTestBase {
             userStore.getByIds(idList);
             Assert.fail("Should have thrown exception.");
         }
-        catch (Exception e){
+        catch (Exception e) {
             Assert.assertTrue( e instanceof ConductorException);
             Assert.assertEquals(ConductorErrorCode.STORE_LIST_ERROR, ((ConductorException)e).getErrorCode());
         }
@@ -204,8 +223,8 @@ public class DBUserStoreTest extends DBTestBase {
             userStore.getById("testUserId");
             Assert.fail("Should have thrown exception.");
         }
-        catch (Exception e){
-            Assert.assertTrue( e instanceof ConductorException);
+        catch (Exception e) {
+            Assert.assertTrue(e instanceof ConductorException);
             Assert.assertEquals(ConductorErrorCode.STORE_READ_ERROR, ((ConductorException)e).getErrorCode());
         }
     }

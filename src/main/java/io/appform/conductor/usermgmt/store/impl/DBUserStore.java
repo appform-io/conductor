@@ -199,22 +199,34 @@ public class DBUserStore implements UserStore {
     @Override
     public Optional<UserDetails> update(
             String userId, Consumer<UserDetails> handler) {
-        boolean updatedResult = userDao.update(userId, userOptional -> {
-            val user = userOptional.orElse(null);
-            if (user == null) {
-                return null;
-            }
-            val updatedUser = toWire(user);
-            handler.accept(updatedUser);
-            user.setEmail(updatedUser.getEmail());
-            user.setName(updatedUser.getName());
-            user.setPassword(updatedUser.getPassword());
-            user.setState(updatedUser.getState());
-            user.setFailedPasswordAttempts(updatedUser.getFailedPasswordAttempts());
-            return user;
-        });
-        log.info("Update result for user: {} is: {}", userId, updatedResult);
-        return getById(userId);
+        try {
+            boolean updatedResult = userDao.update(userId, userOptional -> {
+                val user = userOptional.orElse(null);
+                if (user == null) {
+                    return null;
+                }
+                val updatedUser = toWire(user);
+                handler.accept(updatedUser);
+                user.setEmail(updatedUser.getEmail());
+                user.setName(updatedUser.getName());
+                user.setPassword(updatedUser.getPassword());
+                user.setState(updatedUser.getState());
+                user.setFailedPasswordAttempts(updatedUser.getFailedPasswordAttempts());
+                return user;
+            });
+            log.info("Update result for user: {} is: {}", userId, updatedResult);
+            return getById(userId);
+        }
+        catch (Exception e) {
+            throw ConductorException.builder()
+                    .errorCode(ConductorErrorCode.STORE_UPDATE_ERROR)
+                    .context(ImmutableMap.<String, Object>builder()
+                            .put("type", TABLE_NAME)
+                            .put("id", userId)
+                            .build())
+                    .cause(e)
+                    .build();
+        }
     }
 
     private static UserDetails toWire(StoredUser user) {
