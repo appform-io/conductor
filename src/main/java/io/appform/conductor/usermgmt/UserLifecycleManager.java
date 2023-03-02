@@ -174,6 +174,12 @@ public class UserLifecycleManager {
         return createSession(user);
     }
 
+    /**
+     * Login a user and create a new session.
+     * @param userId Userid for the user
+     * @param password Password for the user
+     * @return A new user session
+     */
     public Optional<UserSession> loginUser(String userId, String password) {
         //Get a validated user
         val user = validateUser(userId, password).orElse(null);
@@ -188,23 +194,46 @@ public class UserLifecycleManager {
         return createSession(user);
     }
 
+    /**
+     * This will validate the session for a user
+     * @param sessionId The id for the session that needs to be validated
+     * @param userId the user id for which this session is present
+     * @return True if a valid session, false otherwise
+     */
     public boolean validateSession(String sessionId, String userId) {
         //TODO:: IMPLEMENT
         return false;
     }
 
+    /**
+     * Create a new {@link Group}
+     * @param name name of the group
+     * @param description description of the group
+     * @return The newly created group
+     */
     public Optional<Group> createGroup(String name, String description) {
         return groupStore.get()
                 .create(name, description)
                 .map(UserLifecycleManager::toGroup);
     }
 
+    /**
+     * Delete an existing {@link Group}
+     * @param groupId ID for the existing group
+     * @return The updated group with {@link Group#isDeleted()} set to true
+     */
     public Optional<Group> deleteGroup(String groupId) {
         return groupStore.get()
                 .delete(groupId)
                 .map(UserLifecycleManager::toGroup);
     }
 
+    /**
+     * Add an {@link User} to a {@link Group}. A user can belong to multiple groups.
+     * @param groupId ID for an existing group
+     * @param userId ID for an existing user
+     * @return Group information
+     */
     public Optional<Group> addUserToGroup(String groupId, String userId) {
         val status = groupStore.get()
                 .addUserToGroup(groupId, userId);
@@ -214,8 +243,20 @@ public class UserLifecycleManager {
                 .map(UserLifecycleManager::toGroup);
     }
 
+    /**
+     * Return a paginated list of users in the group
+     * @param groupId ID for an existing group
+     * @param start Start offset of the page
+     * @param limit Number oif records to return
+     * @return List of users in the group
+     */
     public List<UserSummary> findUsersForGroup(String groupId, int start, int limit) {
-        val userIds = groupStore.get()
+        val groupStoreImpl = this.groupStore.get();
+        val group = groupStoreImpl.get(groupId).orElse(null);
+        if(null == group || group.isDeleted()) {
+            return Collections.emptyList();
+        }
+        val userIds = groupStoreImpl
                 .findUsersForGroup(groupId, start, limit);
         return userStore.get()
                 .getByIds(userIds)
@@ -224,12 +265,17 @@ public class UserLifecycleManager {
                 .collect(Collectors.toList());
     }
 
-    public Optional<Skill> createSkill() {
+    /**
+     * Create a {@link Skill}
+     * @param value The skill value
+     * @return created Skill object
+     */
+    public Optional<Skill> createSkill(String value) {
         //TODO::IMPLEMENT
         return Optional.empty();
     }
 
-    public Optional<Skill> deleteSkill() {
+    public Optional<Skill> deleteSkill(String skillId) {
         //TODO::IMPLEMENT
         return Optional.empty();
     }

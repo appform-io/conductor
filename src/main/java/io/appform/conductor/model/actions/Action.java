@@ -38,12 +38,12 @@ public abstract class Action {
     private final String id;
 
     /**
-     * Human readable name for the action
+     * Human-readable name for the action
      */
     private final String name;
 
     /**
-     * Human readable description of what the action does
+     * Human-readable description of what the action does
      */
     private final String description;
 

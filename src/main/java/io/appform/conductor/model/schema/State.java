@@ -32,12 +32,12 @@ public class State {
     String id;
 
     /**
-     * Human readable name
+     * Human-readable name
      */
     String displayName;
 
     /**
-     * Human readable description for the state
+     * Human-readable description for the state
      */
     String description;
 

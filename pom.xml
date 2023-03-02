@@ -27,36 +27,62 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <lombok.version>1.18.12</lombok.version>
-        <dropwizard.version>1.3.20</dropwizard.version>
-        <junit.version>4.13</junit.version>
-        <hibernate-validator.version>5.2.4.Final</hibernate-validator.version>
-        <mockito.version>1.10.19</mockito.version>
-        <guava.version>24.1.1-jre</guava.version>
-        <caffeine.version>2.6.2</caffeine.version>
-        <guice.version>4.2.0</guice.version>
-        <dropwizard.swagger.version>1.3.7-1</dropwizard.swagger.version>
-        <dropwizard.riemann.version>1.3.12-1</dropwizard.riemann.version>
-        <dropwizard.sharding.version>1.3.13-9</dropwizard.sharding.version>
-        <mariadb.driver.version>2.2.0</mariadb.driver.version>
-        <function-metrics.version>1.0.6</function-metrics.version>
-        <handlebars.version>4.1.2</handlebars.version>
-        <jose4j.version>0.7.0</jose4j.version>
-        <bcrypt.version>0.9.0</bcrypt.version>
-        <h2.version>1.4.200</h2.version>
+        <lombok.version>1.18.24</lombok.version>
+        <dropwizard.version>2.1.4</dropwizard.version>
+        <dropwizard.sharding.version>2.0.28-5</dropwizard.sharding.version>
+        <dropwizard.swagger.version>2.1.4-1</dropwizard.swagger.version>
+        <handlebars.version>4.3.1</handlebars.version>
+        <mariadb.driver.version>3.1.2</mariadb.driver.version>
+        <slf4j-api.version>1.7.32</slf4j-api.version>
+        <jose4j.version>0.9.3</jose4j.version>
+        <bcrypt.version>0.10.2</bcrypt.version>
+        <signals.version>1.4</signals.version>
+        <function-metrics.version>1.0.13</function-metrics.version>
+        <awaitility.version>4.2.0</awaitility.version>
+        <guice.version>5.1.0</guice.version>
+        <dw-guicey.version>5.6.1</dw-guicey.version>
+        <curator.version>5.4.0</curator.version>
+        <metrics-core.version>4.2.13</metrics-core.version>
+        <logback.version>1.2.11</logback.version>
+        <httpclient.version>5.2.1</httpclient.version>
+        <failsafe.version>2.4.4</failsafe.version>
+        <aspectj.version>1.9.9.1</aspectj.version>
+        <junit.version>5.8.2</junit.version>
+        <mockito.version>4.4.0</mockito.version>
+        <wiremock.version>2.33.2</wiremock.version>
+        <h2.version>2.1.214</h2.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
+                <groupId>io.dropwizard</groupId>
+                <artifactId>dropwizard-dependencies</artifactId>
+                <version>${dropwizard.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.validator</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>6.0.17.Final</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents.client5</groupId>
+                <artifactId>httpclient5</artifactId>
+                <version>${httpclient.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
                 <artifactId>metrics-core</artifactId>
-                <version>4.1.5</version>
+                <version>4.2.17</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -76,7 +102,7 @@
         <dependency>
             <groupId>ru.vyarus</groupId>
             <artifactId>dropwizard-guicey</artifactId>
-            <version>${guice.version}</version>
+            <version>${dw-guicey.version}</version>
         </dependency>
         <dependency>
             <groupId>ru.vyarus.guicey</groupId>
@@ -141,33 +167,39 @@
         </dependency>
         <!--Testing Dependencies -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.mockito/mockito-all -->
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>${mockito.version}</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>${awaitility.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock-jre8</artifactId>
-            <version>2.26.3</version>
+            <version>${wiremock.version}</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.eclipse.jetty</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.mockito/mockito-all -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -184,10 +216,15 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.0</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>17</source>
+                    <target>17</target>
                     <compilerArgument>-parameters</compilerArgument>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M5</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

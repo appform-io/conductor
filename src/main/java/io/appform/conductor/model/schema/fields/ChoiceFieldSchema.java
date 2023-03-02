@@ -38,7 +38,12 @@ public class ChoiceFieldSchema extends FieldSchema {
     /**
      * List of available choices
      */
-    List<String> choices;
+    @Value
+    public static class Option {
+        String id;
+        String displayText;
+    }
+    List<Option> choices;
 
     /**
      * Is multiple selection allowed
@@ -61,7 +66,7 @@ public class ChoiceFieldSchema extends FieldSchema {
             String editableCondition,
             Date created,
             Date updated,
-            List<String> choices,
+            List<Option> choices,
             boolean allowMultiple,
             String defaultValue) {
         super(FieldType.CHOICE,

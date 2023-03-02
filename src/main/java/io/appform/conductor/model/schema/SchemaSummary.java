@@ -33,12 +33,12 @@ public class SchemaSummary {
     String id;
 
     /**
-     * Human readable name of the schema
+     * Human-readable name of the schema
      */
     String name;
 
     /**
-     * Human readable description of the schema
+     * Human-readable description of the schema
      */
     String description;
 

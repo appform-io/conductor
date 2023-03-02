@@ -29,7 +29,7 @@ import io.dropwizard.setup.AdminEnvironment;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.util.Map;
 
@@ -42,13 +42,13 @@ import static org.mockito.Mockito.when;
 @Slf4j
 public abstract class DBTestBase {
 
-    private TestConfig testConfig = new TestConfig();
-    private HealthCheckRegistry healthChecks = mock(HealthCheckRegistry.class);
-    private JerseyEnvironment jerseyEnvironment = mock(JerseyEnvironment.class);
-    private LifecycleEnvironment lifecycleEnvironment = mock(LifecycleEnvironment.class);
-    private Environment environment = mock(Environment.class);
+    private final TestConfig testConfig = new TestConfig();
+    private final HealthCheckRegistry healthChecks = mock(HealthCheckRegistry.class);
+    private final JerseyEnvironment jerseyEnvironment = mock(JerseyEnvironment.class);
+    private final LifecycleEnvironment lifecycleEnvironment = mock(LifecycleEnvironment.class);
+    private final Environment environment = mock(Environment.class);
     protected final AdminEnvironment adminEnvironment = mock(AdminEnvironment.class);
-    private Bootstrap<?> bootstrap = mock(Bootstrap.class);
+    private final Bootstrap<?> bootstrap = mock(Bootstrap.class);
 
     protected BalancedDBShardingBundle<TestConfig> bundle
             = new BalancedDBShardingBundle<TestConfig>("io.appform.conductor.usermgmt.store.impl") {
@@ -57,6 +57,26 @@ public abstract class DBTestBase {
             return config.shards;
         }
     };
+
+    /**
+     * This member will be called by JUnit before every test and will create a pristine in-memory db and setup the store
+     */
+    @BeforeEach
+    public void setupBundle() {
+        testConfig.shards.setShards(ImmutableList.of(createConfig("1"), createConfig("2")));
+        when(jerseyEnvironment.getResourceConfig()).thenReturn(new DropwizardResourceConfig());
+        when(environment.jersey()).thenReturn(jerseyEnvironment);
+        when(environment.lifecycle()).thenReturn(lifecycleEnvironment);
+        when(environment.healthChecks()).thenReturn(healthChecks);
+        when(environment.admin()).thenReturn(adminEnvironment);
+        when(bootstrap.getHealthCheckRegistry()).thenReturn(new HealthCheckRegistry());
+        bundle.initialize(bootstrap);
+        bundle.initBundles(bootstrap);
+        bundle.runBundles(testConfig, environment);
+        bundle.run(testConfig, environment);
+
+        log.debug("DB sharding bundle initialized...");
+    }
 
     private static DataSourceFactory createConfig(String dbName) {
         Map<String, String> properties = Maps.newHashMap();
@@ -72,25 +92,5 @@ public abstract class DBTestBase {
         shard.setProperties(properties);
 
         return shard;
-    }
-
-    /**
-     * This member will be called by JUnit before every test and will create a pristine in-memory db and setup the store
-     */
-    @Before
-    public void setupBundle() {
-        testConfig.shards.setShards(ImmutableList.of(createConfig("1"), createConfig("2")));
-        when(jerseyEnvironment.getResourceConfig()).thenReturn(new DropwizardResourceConfig());
-        when(environment.jersey()).thenReturn(jerseyEnvironment);
-        when(environment.lifecycle()).thenReturn(lifecycleEnvironment);
-        when(environment.healthChecks()).thenReturn(healthChecks);
-        when(environment.admin()).thenReturn(adminEnvironment);
-        when(bootstrap.getHealthCheckRegistry()).thenReturn(new HealthCheckRegistry());
-        bundle.initialize(bootstrap);
-        bundle.initBundles(bootstrap);
-        bundle.runBundles(testConfig, environment);
-        bundle.run(testConfig, environment);
-
-        log.debug("DB sharding bundle initialized...");
     }
 }

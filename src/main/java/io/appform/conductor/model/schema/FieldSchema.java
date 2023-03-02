@@ -48,7 +48,7 @@ public abstract class FieldSchema {
     private final String displayName;
 
     /**
-     * Human readable description for the field
+     * Human-readable description for the field
      */
     private final String description;
 
@@ -61,6 +61,8 @@ public abstract class FieldSchema {
      * This is possible if field is child of another field (TODO)
      */
     private final FieldSchema parent;
+
+    //TODO::HINT
 
     /**
      * Rule to configure when the field is visible
@@ -83,7 +85,7 @@ public abstract class FieldSchema {
     private final Date updated;
 
     /**
-     * Accept an implementation of {@link FieldSchemaVisitor} for type sepcific handling like validations, rendering etc
+     * Accept an implementation of {@link FieldSchemaVisitor} for type specific handling like validations, rendering etc
      * @param visitor The actual implementation
      * @param <T> Return type of processing
      * @return The result of processing

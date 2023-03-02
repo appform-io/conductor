@@ -44,6 +44,11 @@ public class Comment {
     String content;
 
     /**
+     * This message id to which this is a reply to
+     */
+    String replyToId;
+
+    /**
      * Attachments for this comment. For example pictures, test results etc
      */
     List<Attachment> attachments;

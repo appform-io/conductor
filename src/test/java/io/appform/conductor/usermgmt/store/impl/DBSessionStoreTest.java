@@ -7,38 +7,38 @@ import io.appform.conductor.usermgmt.store.SessionStore;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import lombok.SneakyThrows;
 import lombok.val;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link DBSessionStore}
  */
-public class DBSessionStoreTest extends DBTestBase {
+class DBSessionStoreTest extends DBTestBase {
 
     @Test
-    public void testCreate() {
+    void testCreate() {
         val userStore = new DBSessionStore(createRealUserDao());
         val newUserSession = userStore.create("user_id").orElse(null);
-        Assert.assertNotNull(newUserSession);
-        Assert.assertEquals("user_id", newUserSession.getUserId());
-        Assert.assertEquals(SessionStore.SessionState.ACTIVE, newUserSession.getState());
+        assertNotNull(newUserSession);
+        assertEquals("user_id", newUserSession.getUserId());
+        assertEquals(SessionStore.SessionState.ACTIVE, newUserSession.getState());
     }
 
     @Test
     @SneakyThrows
-    public void testCreateFailed() {
+    void testCreateFailed() {
         val userDao = createMockUserDao();
         val mockUserDao = new DBSessionStore(userDao);
         doThrow(NullPointerException.class).when(userDao).save(anyString(), any(DBSessionStore.StoredUserSessionDetails.class));
         try {
             mockUserDao.create("user_id");
-            Assert.fail("Should have thrown exception");
+            fail("Should have thrown exception");
         }
         catch (Exception e) {
-            Assert.assertTrue(e instanceof ConductorException);
-            Assert.assertEquals(ConductorErrorCode.STORE_WRITE_ERROR, ((ConductorException) e).getErrorCode());
+            assertTrue(e instanceof ConductorException);
+            assertEquals(ConductorErrorCode.STORE_WRITE_ERROR, ((ConductorException) e).getErrorCode());
         }
     }
 

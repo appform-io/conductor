@@ -25,29 +25,29 @@ import io.appform.dropwizard.sharding.dao.LookupDao;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link DBUserStore}
  */
-public class DBUserStoreTest extends DBTestBase {
+class DBUserStoreTest extends DBTestBase {
 
     @Test
     public void testCreate() {
         val userStore = new DBUserStore(createRealUserDao());
         val createdUser = userStore.create("Test", "test@test.com", "TestPassword")
                 .orElse(null);
-        Assert.assertNotNull(createdUser);
-        Assert.assertEquals("Test", createdUser.getName());
-        Assert.assertEquals("test@test.com", createdUser.getEmail());
-        Assert.assertEquals("TestPassword", createdUser.getPassword());
+        assertNotNull(createdUser);
+        assertEquals("Test", createdUser.getName());
+        assertEquals("test@test.com", createdUser.getEmail());
+        assertEquals("TestPassword", createdUser.getPassword());
     }
 
     @Test
@@ -55,11 +55,11 @@ public class DBUserStoreTest extends DBTestBase {
         val userStore = new DBUserStore(createRealUserDao());
         val newUser = userStore.create("Test", "test@test.com", "testpassword")
                 .orElse(null);
-        Assert.assertNotNull(newUser);
+        assertNotNull(newUser);
         val newId = newUser.getId();
         val returnedUser = userStore.getById(newId).orElse(null);
-        Assert.assertNotNull(returnedUser);
-        Assert.assertEquals(newUser, returnedUser);
+        assertNotNull(returnedUser);
+        assertEquals(newUser, returnedUser);
     }
 
     @Test
@@ -72,7 +72,7 @@ public class DBUserStoreTest extends DBTestBase {
                 i -> {
                     val newUser = userStore.create("Test"+i, "test"+i+"@gmail.com", "testpassword"+i)
                             .orElse(null);
-                    Assert.assertNotNull(newUser);
+                    assertNotNull(newUser);
                     val newId = newUser.getId();
                     users.add(newUser);
                     queryIds.add(newId);
@@ -80,10 +80,10 @@ public class DBUserStoreTest extends DBTestBase {
         );
 
         val returnedUsers = userStore.getByIds(queryIds);
-        Assert.assertEquals(numOfUsers, queryIds.size());
-        Assert.assertEquals(numOfUsers, returnedUsers.size());
+        assertEquals(numOfUsers, queryIds.size());
+        assertEquals(numOfUsers, returnedUsers.size());
         IntStream.range(0, numOfUsers).forEach(
-                i-> Assert.assertTrue(returnedUsers.contains(users.get(i)))
+                i-> assertTrue(returnedUsers.contains(users.get(i)))
         );
     }
 
@@ -95,7 +95,7 @@ public class DBUserStoreTest extends DBTestBase {
         val emptyList = new ArrayList<UserStore.UserDetails>();
         doReturn(emptyList).when(userDao).scatterGather(any(DetachedCriteria.class));
         val user = userStore.getByEmail("testMail").orElse(null);
-        Assert.assertNull(user);
+        assertNull(user);
 
         //scatterGather throws exception
         val userDao2 = createMockUserDao();
@@ -103,11 +103,11 @@ public class DBUserStoreTest extends DBTestBase {
         doThrow(NullPointerException.class).when(userDao2).scatterGather(any(DetachedCriteria.class));
         try {
             userStore2.getByEmail("testMail");
-            Assert.fail("Should have thrown exception.");
+            fail("Should have thrown exception.");
         }
         catch (Exception e) {
-            Assert.assertTrue( e instanceof ConductorException);
-            Assert.assertEquals(ConductorErrorCode.STORE_READ_ERROR, ((ConductorException)e).getErrorCode());
+            assertTrue( e instanceof ConductorException);
+            assertEquals(ConductorErrorCode.STORE_READ_ERROR, ((ConductorException)e).getErrorCode());
         }
     }
   
@@ -116,11 +116,11 @@ public class DBUserStoreTest extends DBTestBase {
         val userStore = new DBUserStore(createRealUserDao());
         val newUser = userStore.create("Test", "test@test.com", "testpassword")
                 .orElse(null);
-        Assert.assertNotNull(newUser);
+        assertNotNull(newUser);
         val newEmail = newUser.getEmail();
         val returnedUser = userStore.getByEmail(newEmail).orElse(null);
-        Assert.assertNotNull(returnedUser);
-        Assert.assertEquals(newUser, returnedUser);
+        assertNotNull(returnedUser);
+        assertEquals(newUser, returnedUser);
     }
 
     @Test
@@ -128,22 +128,22 @@ public class DBUserStoreTest extends DBTestBase {
         val userStore = new DBUserStore(createRealUserDao());
         val newUser1 = userStore.create("Test1", "test1@test.com", "testPassword1").orElse(null);
         val newUser2 =userStore.create("Test2", "test2@test.com", "testPassword2").orElse(null);
-        Assert.assertNotNull(newUser1);
-        Assert.assertNotNull(newUser2);
+        assertNotNull(newUser1);
+        assertNotNull(newUser2);
         val newId1 = newUser1.getId();
         val newId2 = newUser2.getId();
         val returnedUser1 = userStore.getById(newId1).orElse(null);
         val returnedUser2 = userStore.getById(newId2).orElse(null);
-        Assert.assertNotNull(returnedUser1);
-        Assert.assertNotNull(returnedUser2);
+        assertNotNull(returnedUser1);
+        assertNotNull(returnedUser2);
         //Check Correct users are created
-        Assert.assertEquals("Test1", returnedUser1.getName());
-        Assert.assertEquals("test1@test.com", returnedUser1.getEmail());
-        Assert.assertEquals("testPassword1", returnedUser1.getPassword());
+        assertEquals("Test1", returnedUser1.getName());
+        assertEquals("test1@test.com", returnedUser1.getEmail());
+        assertEquals("testPassword1", returnedUser1.getPassword());
 
-        Assert.assertEquals("Test2", returnedUser2.getName());
-        Assert.assertEquals("test2@test.com", returnedUser2.getEmail());
-        Assert.assertEquals("testPassword2", returnedUser2.getPassword());
+        assertEquals("Test2", returnedUser2.getName());
+        assertEquals("test2@test.com", returnedUser2.getEmail());
+        assertEquals("testPassword2", returnedUser2.getPassword());
         val updatedUser = userStore.update(newId2, myUser -> {
             myUser.setEmail("newTest@test.com");
             myUser.setName("newTest");
@@ -151,27 +151,27 @@ public class DBUserStoreTest extends DBTestBase {
             myUser.setFailedPasswordAttempts(newUser2.getFailedPasswordAttempts() + 1);
             myUser.setState(UserState.INACTIVE);
         }).orElse(null);
-        Assert.assertNotNull(updatedUser);
+        assertNotNull(updatedUser);
         val returnedAgainUser1 = userStore.getById(newId1).orElse(null);
         val returnedAgainUser2 = userStore.getById(newId2).orElse(null);
-        Assert.assertNotNull(returnedAgainUser1);
-        Assert.assertNotNull(returnedAgainUser2);
+        assertNotNull(returnedAgainUser1);
+        assertNotNull(returnedAgainUser2);
 
-        Assert.assertEquals("Test1", returnedAgainUser1.getName());
-        Assert.assertEquals("test1@test.com", returnedAgainUser1.getEmail());
-        Assert.assertEquals("testPassword1", returnedAgainUser1.getPassword());
+        assertEquals("Test1", returnedAgainUser1.getName());
+        assertEquals("test1@test.com", returnedAgainUser1.getEmail());
+        assertEquals("testPassword1", returnedAgainUser1.getPassword());
 
-        Assert.assertEquals("newTest", returnedAgainUser2.getName());
-        Assert.assertEquals("newTest@test.com", returnedAgainUser2.getEmail());
-        Assert.assertEquals("newTestPassword", returnedAgainUser2.getPassword());
-        Assert.assertEquals(newUser2.getFailedPasswordAttempts() + 1, returnedAgainUser2.getFailedPasswordAttempts());
-        Assert.assertEquals(UserState.INACTIVE, returnedAgainUser2.getState());
+        assertEquals("newTest", returnedAgainUser2.getName());
+        assertEquals("newTest@test.com", returnedAgainUser2.getEmail());
+        assertEquals("newTestPassword", returnedAgainUser2.getPassword());
+        assertEquals(newUser2.getFailedPasswordAttempts() + 1, returnedAgainUser2.getFailedPasswordAttempts());
+        assertEquals(UserState.INACTIVE, returnedAgainUser2.getState());
 
-        Assert.assertEquals("newTest", updatedUser.getName());
-        Assert.assertEquals("newTest@test.com", updatedUser.getEmail());
-        Assert.assertEquals("newTestPassword", updatedUser.getPassword());
-        Assert.assertEquals(newUser2.getFailedPasswordAttempts() + 1, updatedUser.getFailedPasswordAttempts());
-        Assert.assertEquals(UserState.INACTIVE, updatedUser.getState());
+        assertEquals("newTest", updatedUser.getName());
+        assertEquals("newTest@test.com", updatedUser.getEmail());
+        assertEquals("newTestPassword", updatedUser.getPassword());
+        assertEquals(newUser2.getFailedPasswordAttempts() + 1, updatedUser.getFailedPasswordAttempts());
+        assertEquals(UserState.INACTIVE, updatedUser.getState());
     }
 
     @Test
@@ -185,11 +185,11 @@ public class DBUserStoreTest extends DBTestBase {
                 updateUser.setEmail("newemail@test.com");
                 updateUser.setName("newTest");
             }).orElse(null);
-            Assert.fail("Should have thrown exception.");
+            fail("Should have thrown exception.");
         }
         catch (Exception e) {
-            Assert.assertTrue( e instanceof ConductorException);
-            Assert.assertEquals(ConductorErrorCode.STORE_UPDATE_ERROR, ((ConductorException)e).getErrorCode());
+            assertTrue( e instanceof ConductorException);
+            assertEquals(ConductorErrorCode.STORE_UPDATE_ERROR, ((ConductorException)e).getErrorCode());
         }
     }
 
@@ -198,18 +198,18 @@ public class DBUserStoreTest extends DBTestBase {
     public void testGetByIdsFailed() {
         final LookupDao<DBUserStore.StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
-        doThrow(NullPointerException.class).when(userDao).get(anyListOf(String.class));
+        doThrow(NullPointerException.class).when(userDao).get(anyList());
         try{
             List<String> idList = new ArrayList<>();
             val length = 5;
             IntStream.range(0, length).forEach(i ->
                     idList.add("userId" + i));
             userStore.getByIds(idList);
-            Assert.fail("Should have thrown exception.");
+            fail("Should have thrown exception.");
         }
         catch (Exception e) {
-            Assert.assertTrue( e instanceof ConductorException);
-            Assert.assertEquals(ConductorErrorCode.STORE_LIST_ERROR, ((ConductorException)e).getErrorCode());
+            assertTrue( e instanceof ConductorException);
+            assertEquals(ConductorErrorCode.STORE_LIST_ERROR, ((ConductorException)e).getErrorCode());
         }
     }
 
@@ -221,11 +221,11 @@ public class DBUserStoreTest extends DBTestBase {
         doThrow(NullPointerException.class).when(userDao).get(any(String.class));
         try{
             userStore.getById("testUserId");
-            Assert.fail("Should have thrown exception.");
+            fail("Should have thrown exception.");
         }
         catch (Exception e) {
-            Assert.assertTrue(e instanceof ConductorException);
-            Assert.assertEquals(ConductorErrorCode.STORE_READ_ERROR, ((ConductorException)e).getErrorCode());
+            assertTrue(e instanceof ConductorException);
+            assertEquals(ConductorErrorCode.STORE_READ_ERROR, ((ConductorException)e).getErrorCode());
         }
     }
 
@@ -238,11 +238,11 @@ public class DBUserStoreTest extends DBTestBase {
 
         try {
             userStore.create("Test", "test@test.com", "TestPassword");
-            Assert.fail("Should have thrown exception");
+            fail("Should have thrown exception");
         }
         catch (Exception e) {
-            Assert.assertTrue( e instanceof ConductorException);
-            Assert.assertEquals(ConductorErrorCode.STORE_WRITE_ERROR, ((ConductorException)e).getErrorCode());
+            assertTrue( e instanceof ConductorException);
+            assertEquals(ConductorErrorCode.STORE_WRITE_ERROR, ((ConductorException)e).getErrorCode());
         }
     }
 
