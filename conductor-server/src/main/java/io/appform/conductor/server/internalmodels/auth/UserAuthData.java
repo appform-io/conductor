@@ -14,27 +14,20 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.usermgmt;
+package io.appform.conductor.server.internalmodels.auth;
 
+import io.appform.conductor.model.usermgmt.UserAuthType;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Value;
-
-import java.util.Date;
+import lombok.Data;
 
 /**
  *
  */
-@Value
-@AllArgsConstructor
-public
-class UserSessionDetails {
-    String id;
-    String userId;
-    SessionState state;
-    SessionType type;
+@Data
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public abstract class UserAuthData {
+    protected final UserAuthType type;
 
-    Date expiry;
-
-    Date created;
-    Date lastActive;
+    public abstract <T> T accept(final UserAuthDataVisitor<T> visitor);
 }

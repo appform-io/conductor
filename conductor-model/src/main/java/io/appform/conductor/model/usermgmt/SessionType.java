@@ -16,25 +16,29 @@
 
 package io.appform.conductor.model.usermgmt;
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
-
-import java.util.Date;
-
 /**
  *
  */
-@Value
-@AllArgsConstructor
-public
-class UserSessionDetails {
-    String id;
-    String userId;
-    SessionState state;
-    SessionType type;
+public enum SessionType {
+    DYNAMIC {
+        @Override
+        public <T> T accept(SessionTypeVisitor<T> visitor) {
+            return visitor.visitDynamic();
+        }
+    },
+    STATIC {
+        @Override
+        public <T> T accept(SessionTypeVisitor<T> visitor) {
+            return visitor.visitStatic();
+        }
+    },
+    ;
 
-    Date expiry;
+    public static interface SessionTypeVisitor<T> {
+        T visitDynamic();
+        T visitStatic();
+    }
 
-    Date created;
-    Date lastActive;
+    public abstract <T> T accept(final SessionTypeVisitor<T> visitor);
+
 }

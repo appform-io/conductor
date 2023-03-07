@@ -20,9 +20,8 @@ import com.google.common.collect.ImmutableMap;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.usermgmt.Group;
-import io.appform.conductor.model.usermgmt.GroupDetails;
 import io.appform.conductor.server.store.GroupStore;
-import io.appform.conductor.server.utils.StringUtils;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
@@ -43,7 +42,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * Implementation for {@link Group} that stores information on a DB
@@ -140,8 +138,8 @@ public class DBGroupStore implements GroupStore {
     }
 
     @Override
-    public Optional<GroupDetails> create(String name, String description) {
-        final String groupId = StringUtils.normalize(name);
+    public Optional<Group> create(String name, String description) {
+        final String groupId = ConductorServerUtils.normalize(name);
         try {
             return groupDao.save(new StoredGroup(groupId, name, description))
                     .map(DBGroupStore::toWire);
@@ -159,19 +157,19 @@ public class DBGroupStore implements GroupStore {
     }
 
     @Override
-    public Optional<GroupDetails> get(String groupId) {
+    public Optional<Group> get(String groupId) {
         return get(Collections.singletonList(groupId))
                 .stream()
                 .findAny();
     }
 
     @Override
-    public List<GroupDetails> get(List<String> groupIds) {
+    public List<Group> get(List<String> groupIds) {
         try {
             return groupDao.get(groupIds)
                     .stream()
                     .map(DBGroupStore::toWire)
-                    .collect(Collectors.toList());
+                    .toList();
         }
         catch (Exception e) {
             throw ConductorException.builder()
@@ -186,13 +184,13 @@ public class DBGroupStore implements GroupStore {
     }
 
     @Override
-    public Optional<GroupDetails> delete(String groupId) {
+    public Optional<Group> delete(String groupId) {
         return update(groupId, groupDetails -> groupDetails.setDeleted(true));
     }
 
     @Override
-    public Optional<GroupDetails> update(
-            String groupId, Consumer<GroupDetails> handler) {
+    public Optional<Group> update(
+            String groupId, Consumer<Group> handler) {
         try {
             boolean status = groupDao.update(groupId, groupOpt -> {
                 val group = groupOpt.orElse(null);
@@ -273,7 +271,7 @@ public class DBGroupStore implements GroupStore {
                             limit)
                     .stream()
                     .map(StoredGroupUserMapping::getUserId)
-                    .collect(Collectors.toList());
+                    .toList();
         }
         catch (Exception e) {
             throw ConductorException.builder()
@@ -288,7 +286,7 @@ public class DBGroupStore implements GroupStore {
     }
 
     @Override
-    public List<GroupDetails> findGroupsForUser(String userId) {
+    public List<Group> findGroupsForUser(String userId) {
         try {
             return get(groupUsersDao.scatterGather(
                             DetachedCriteria.forClass(StoredGroupUserMapping.class)
@@ -297,7 +295,7 @@ public class DBGroupStore implements GroupStore {
                             Integer.MAX_VALUE)
                                .stream()
                                .map(StoredGroupUserMapping::getUserId)
-                               .collect(Collectors.toList()));
+                               .toList());
         }
         catch (Exception e) {
             throw ConductorException.builder()
@@ -310,8 +308,8 @@ public class DBGroupStore implements GroupStore {
         }
     }
 
-    private static GroupDetails toWire(@NonNull final StoredGroup group) {
-        return new GroupDetails(
+    private static Group toWire(@NonNull final StoredGroup group) {
+        return new Group(
                 group.getGroupId(),
                 group.getName(),
                 group.getDescription(),

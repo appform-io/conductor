@@ -4,11 +4,16 @@ import io.appform.conductor.DBTestBase;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.usermgmt.SessionState;
+import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.server.store.impl.DBSessionStore;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.junit.jupiter.api.Test;
+
+import java.sql.Date;
+import java.time.Duration;
+import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -21,7 +26,7 @@ class DBSessionStoreTest extends DBTestBase {
     @Test
     void testCreate() {
         val userStore = new DBSessionStore(createRealUserDao());
-        val newUserSession = userStore.create("user_id").orElse(null);
+        val newUserSession = userStore.create("user_id", SessionType.DYNAMIC, Date.from(Instant.now().plus(Duration.ofDays(7)))).orElse(null);
         assertNotNull(newUserSession);
         assertEquals("user_id", newUserSession.getUserId());
         assertEquals(SessionState.ACTIVE, newUserSession.getState());
@@ -34,7 +39,7 @@ class DBSessionStoreTest extends DBTestBase {
         val mockUserDao = new DBSessionStore(userDao);
         doThrow(NullPointerException.class).when(userDao).save(anyString(), any(DBSessionStore.StoredUserSessionDetails.class));
         try {
-            mockUserDao.create("user_id");
+            mockUserDao.create("user_id", SessionType.DYNAMIC, Date.from(Instant.now().plus(Duration.ofDays(7))));
             fail("Should have thrown exception");
         }
         catch (Exception e) {

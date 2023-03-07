@@ -16,20 +16,33 @@
 
 package io.appform.conductor.server.store;
 
-import io.appform.conductor.model.usermgmt.UserDetails;
+import io.appform.conductor.model.usermgmt.UserState;
+import io.appform.conductor.model.usermgmt.UserSummary;
+import io.appform.conductor.model.usermgmt.UserType;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 /**
  *
  */
 public interface UserStore {
 
-    Optional<UserDetails> create(String name, String email, String password);
-    Optional<UserDetails> getById(String userId);
-    List<UserDetails> getByIds(List<String> userIds);
-    Optional<UserDetails> getByEmail(String userId);
-    Optional<UserDetails> update(String userId, Consumer<UserDetails> handler);
+    Optional<UserSummary> create(String name, UserType type, String email);
+    Optional<UserSummary> getById(String userId);
+    List<UserSummary> getByIds(List<String> userIds);
+    Optional<UserSummary> getByEmail(String email);
+    Optional<UserSummary> update(String userId, UnaryOperator<UserSummary> handler);
+
+    default Optional<UserSummary> updateState(final String userId, final UserState state) {
+        return update(userId, existing -> new UserSummary(existing.getId(),
+                                              existing.getType(),
+                                              existing.getName(),
+                                              existing.getEmail(),
+                                              state,
+                                              existing.getCreated(),
+                                              new Date()));
+    }
 }

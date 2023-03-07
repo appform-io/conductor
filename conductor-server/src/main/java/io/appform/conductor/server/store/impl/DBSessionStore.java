@@ -20,9 +20,10 @@ import com.google.common.collect.ImmutableMap;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.usermgmt.SessionState;
+import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.model.usermgmt.UserSessionDetails;
 import io.appform.conductor.server.store.SessionStore;
-import io.appform.conductor.server.utils.DateUtils;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -71,6 +72,13 @@ public class DBSessionStore implements SessionStore {
         @Enumerated(EnumType.STRING)
         private SessionState state;
 
+        @Column
+        @Enumerated(EnumType.STRING)
+        private SessionType type;
+
+        @Column
+        private Date expiry;
+
         @Column(name = "last_active", nullable = false)
         private Date lastActive;
 
@@ -89,12 +97,17 @@ public class DBSessionStore implements SessionStore {
         public StoredUserSessionDetails(
                 String sessionId,
                 String userId,
-                SessionState state, Date lastActive) {
+                SessionState state,
+                SessionType type,
+                Date expiry,
+                Date lastActive) {
             this.sessionId = sessionId;
             this.userId = userId;
             this.state = state;
+            this.type = type;
+            this.expiry = expiry;
             this.lastActive = lastActive;
-            this.partitionId = DateUtils.currentWeek();
+            this.partitionId = ConductorServerUtils.currentWeek();
         }
     }
 
@@ -106,13 +119,15 @@ public class DBSessionStore implements SessionStore {
     }
 
     @Override
-    public Optional<UserSessionDetails> create(String userId) {
+    public Optional<UserSessionDetails> create(String userId, SessionType type, Date expiry) {
         try {
             return sessionDetailsDao.save(userId,
                                           new StoredUserSessionDetails(
                                                   UUID.randomUUID().toString(),
                                                   userId,
                                                   SessionState.ACTIVE,
+                                                  type,
+                                                  expiry,
                                                   new Date()))
                     .map(DBSessionStore::toWire);
         }
@@ -190,6 +205,8 @@ public class DBSessionStore implements SessionStore {
                 session.getSessionId(),
                 session.getUserId(),
                 session.getState(),
+                session.getType(),
+                session.getExpiry(),
                 session.getLastActive(),
                 session.getCreated());
     }

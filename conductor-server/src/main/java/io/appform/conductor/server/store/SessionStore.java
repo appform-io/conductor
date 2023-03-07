@@ -16,8 +16,10 @@
 
 package io.appform.conductor.server.store;
 
+import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.model.usermgmt.UserSessionDetails;
 
+import java.util.Date;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -26,7 +28,7 @@ import java.util.function.Consumer;
  */
 public interface SessionStore {
 
-    Optional<UserSessionDetails> create(String userId);
+    Optional<UserSessionDetails> create(String userId, SessionType type, Date expiry);
     Optional<UserSessionDetails> getById(String userId, String sessionId);
     Optional<UserSessionDetails> update(String userId, String sessionId, Consumer<UserSessionDetails> handler);
 }

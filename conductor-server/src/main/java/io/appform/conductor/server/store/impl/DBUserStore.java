@@ -19,10 +19,11 @@ package io.appform.conductor.server.store.impl;
 import com.google.common.collect.ImmutableMap;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
-import io.appform.conductor.model.usermgmt.UserDetails;
 import io.appform.conductor.model.usermgmt.UserState;
+import io.appform.conductor.model.usermgmt.UserSummary;
+import io.appform.conductor.model.usermgmt.UserType;
 import io.appform.conductor.server.store.UserStore;
-import io.appform.conductor.server.utils.StringUtils;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Data;
@@ -39,8 +40,8 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import java.util.function.UnaryOperator;
+
 /**
  * RDBMS backend for {@link UserStore}
  */
@@ -49,7 +50,7 @@ public class DBUserStore implements UserStore {
     private static final String TABLE_NAME = "users";
 
     /**
-     * DB model object corresponding to {@link UserDetails}
+     * DB model object corresponding to {@link UserSummary}
      */
     @Entity
     @Table(name = TABLE_NAME)
@@ -64,21 +65,18 @@ public class DBUserStore implements UserStore {
         @Column(name = "user_id", unique = true, nullable = false, length = 45)
         private String userId;
 
+        @Column(name = "user_type", unique = false, nullable = false, length = 45)
+        private UserType userType;
+
         @Column(name = "name", nullable = false)
         private String name;
 
         @Column(name = "email", unique = true, nullable = false)
         private String email;
 
-        @Column(name = "password", nullable = false)
-        private String password;
-
         @Column
         @Enumerated(EnumType.STRING)
         private UserState state;
-
-        @Column(name = "failed_password_attempt")
-        private int failedPasswordAttempts;
 
         @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
         @Generated(value = GenerationTime.INSERT)
@@ -91,20 +89,18 @@ public class DBUserStore implements UserStore {
 
         public StoredUser(
                 String userId,
+                UserType userType,
                 String name,
                 String email,
-                String password,
-                UserState state,
-                int failedPasswordAttempts) {
+                UserState state) {
             this.userId = userId;
+            this.userType = userType;
             this.name = name;
             this.email = email;
-            this.password = password;
             this.state = state;
-            this.failedPasswordAttempts = failedPasswordAttempts;
         }
     }
-
+    
     private final LookupDao<StoredUser> userDao;
 
     @Inject
@@ -113,17 +109,16 @@ public class DBUserStore implements UserStore {
     }
 
     @Override
-    public Optional<UserDetails> create(String name, String email, String password) {
-        final String userId = StringUtils.normalize(name);
+    public Optional<UserSummary> create(String name, UserType userType, String email) {
+        final String userId = ConductorServerUtils.normalize(name);
         try {
             return userDao.save(
                     new StoredUser(
                             userId,
+                            userType,
                             name,
                             email,
-                            password,
-                            UserState.CREATED,
-                            0))
+                            UserState.CREATED))
                     .map(DBUserStore::toWire);
         }
         catch (Exception e) {
@@ -139,7 +134,7 @@ public class DBUserStore implements UserStore {
     }
 
     @Override
-    public Optional<UserDetails> getById(String userId) {
+    public Optional<UserSummary> getById(String userId) {
         try {
             return userDao.get(userId)
                     .map(DBUserStore::toWire);
@@ -157,12 +152,12 @@ public class DBUserStore implements UserStore {
     }
 
     @Override
-    public List<UserDetails> getByIds(List<String> userIds) {
+    public List<UserSummary> getByIds(List<String> userIds) {
         try {
             return userDao.get(userIds)
                     .stream()
                     .map(DBUserStore::toWire)
-                    .collect(Collectors.toList());
+                    .toList();
         }
         catch (Exception e) {
             throw ConductorException.builder()
@@ -175,7 +170,7 @@ public class DBUserStore implements UserStore {
         }    }
 
     @Override
-    public Optional<UserDetails> getByEmail(String email) {
+    public Optional<UserSummary> getByEmail(String email) {
         try {
             return userDao.scatterGather(
                     DetachedCriteria.forClass(StoredUser.class)
@@ -197,21 +192,18 @@ public class DBUserStore implements UserStore {
     }
 
     @Override
-    public Optional<UserDetails> update(
-            String userId, Consumer<UserDetails> handler) {
+    public Optional<UserSummary> update(
+            String userId, UnaryOperator<UserSummary> handler) {
         try {
             boolean updatedResult = userDao.update(userId, userOptional -> {
                 val user = userOptional.orElse(null);
                 if (user == null) {
                     return null;
                 }
-                val updatedUser = toWire(user);
-                handler.accept(updatedUser);
+                val updatedUser = handler.apply(toWire(user));
                 user.setEmail(updatedUser.getEmail())
                         .setName(updatedUser.getName())
-                        .setPassword(updatedUser.getPassword())
-                        .setState(updatedUser.getState())
-                        .setFailedPasswordAttempts(updatedUser.getFailedPasswordAttempts());
+                        .setState(updatedUser.getState());
                 return user;
             });
             log.info("Update result for user: {} is: {}", userId, updatedResult);
@@ -229,14 +221,13 @@ public class DBUserStore implements UserStore {
         }
     }
 
-    private static UserDetails toWire(StoredUser user) {
-        return new UserDetails(
+    private static UserSummary toWire(StoredUser user) {
+        return new UserSummary(
                 user.getUserId(),
+                user.getUserType(),
                 user.getName(),
                 user.getEmail(),
-                user.getPassword(),
                 user.getState(),
-                user.getFailedPasswordAttempts(),
                 user.getCreated(),
                 user.getUpdated());
     }

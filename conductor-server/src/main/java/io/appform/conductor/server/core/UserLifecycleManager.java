@@ -17,21 +17,22 @@
 package io.appform.conductor.server.core;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.usermgmt.*;
+import io.appform.conductor.server.internalmodels.auth.PasswordAuthData;
+import io.appform.conductor.server.internalmodels.auth.UserAuthenticator;
+import io.appform.conductor.server.internalmodels.auth.UserTokenAuthData;
 import io.appform.conductor.server.store.*;
-import io.appform.conductor.server.utils.StringUtils;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * User lifecycle manager
@@ -52,23 +53,25 @@ public class UserLifecycleManager {
     /**
      * Once a user is in the following states, they cannot be reverted back or made actionable in any way
      */
-    private static final EnumSet<UserState> TERMINAL_USER_STATES
-            = EnumSet.of(UserState.BLACKLISTED, UserState.EXITED, UserState.DELETED);
+
 
     private final Provider<UserStore> userStore;
+    private final Provider<UserPasswordAuthStore> passwordAuthStore;
     private final Provider<UserActivationTokenStore> userActivationTokenStore;
-    private final Provider<SessionStore> sessionStore;
+    private final UserAuthenticator userAuthenticator;
     private final Provider<GroupStore> groupStore;
 
     @Inject
     public UserLifecycleManager(
             Provider<UserStore> userStore,
+            Provider<UserPasswordAuthStore> passwordAuthStore,
             Provider<UserActivationTokenStore> userActivationTokenStore,
-            Provider<SessionStore> sessionStore,
+            UserAuthenticator userAuthenticator,
             Provider<GroupStore> groupStore) {
         this.userStore = userStore;
+        this.passwordAuthStore = passwordAuthStore;
         this.userActivationTokenStore = userActivationTokenStore;
-        this.sessionStore = sessionStore;
+        this.userAuthenticator = userAuthenticator;
         this.groupStore = groupStore;
     }
 
@@ -83,15 +86,16 @@ public class UserLifecycleManager {
      * @return Materialized user details.
      */
     public Optional<UserSummary> createUser(String name, String email, String password) {
-        final String userId = StringUtils.normalize(name);
+        final String userId = ConductorServerUtils.normalize(name);
         try {
             val userDetails = userStore.get()
-                    .create(name, email, hash(password))
+                    .create(name, UserType.HUMAN, email)
                     .orElse(null);
             if (null == userDetails) {
                 log.error("Could not create user with email: {}", email);
                 return Optional.empty();
             }
+            passwordAuthStore.get().set(userId, hash(password));
             return createToken(userId, userDetails);
         }
         catch (Exception e) {
@@ -137,7 +141,7 @@ public class UserLifecycleManager {
             log.error("Token {} is already validated", token);
             return Optional.empty();
         }
-        final Date currentDate = new Date();
+        val currentDate = new Date();
         if (new Date(userToken.getCreated().getTime() + DEFAULT_TOKEN_VALIDITY_MS).before(currentDate)) {
             log.error("Token {} is expired. Created date: {} Current Date: {}",
                       token, userToken.getCreated(), currentDate);
@@ -145,90 +149,92 @@ public class UserLifecycleManager {
         }
 
         val userId = userToken.getUserId();
-        val user = validateUser(userId, password).orElse(null);
-        if (null == user) {
+        val userSession = userAuthenticator.authenticate(new PasswordAuthData(userId, password)).orElse(null);
+        if (null == userSession) {
             log.error("No valid user for token {} userID {}", token, userId);
             return Optional.empty();
         }
 
         val tokenUpdateStatus = userActivationTokenStore.get()
-                .update(token, t -> {
-                    t.setState(UserActivationTokenState.VALIDATED);
-                });
+                .update(token, t -> t.setState(UserActivationTokenState.VALIDATED));
         if (!tokenUpdateStatus) {
             return Optional.empty();
         }
         log.info("Token {} successfully validated for user: {}", token, userId);
-        if (user.getState().equals(UserState.CREATED)) {
-            val updatedDetails = userStore.get().update(userId, userDetails -> {
-                userDetails.setState(UserState.ACTIVE);
-            }).orElse(null);
+        val userState = userSession.getUser().getSummary().getState();
+        if (userState.equals(UserState.CREATED)) {
+            val updatedDetails = userStore.get()
+                    .updateState(userId, UserState.ACTIVE)
+                    .orElse(null);
             if (null != updatedDetails) {
-                return createSession(updatedDetails);
+                return Optional.of(new UserSession(new User(updatedDetails,
+                                                            userSession.getUser().getGroups(),
+                                                            userSession.getUser()
+                                                                    .getSkills()),
+                                                   userSession.getSessionId(),
+                                                   userSession.getState(),
+                                                   userSession.getType(),
+                                                   userSession.getExpiry(),
+                                                   userSession.getJwt()));
+            }
+            else {
+                log.error("User state could not be updated to ACTIVE for {}", userId);
+                return Optional.empty();
             }
         }
-        log.warn("Token validated for user {} in state: {}", userId, user.getState());
-        return createSession(user);
+        log.warn("Token validated for user {} in state: {}", userId, userState);
+        return Optional.of(userSession);
     }
 
     /**
      * Login a user and create a new session.
-     * @param userId Userid for the user
+     *
+     * @param userId   Userid for the user
      * @param password Password for the user
      * @return A new user session
      */
     public Optional<UserSession> loginUser(String userId, String password) {
         //Get a validated user
-        val user = validateUser(userId, password).orElse(null);
-        if (null == user) {
-            return Optional.empty();
-        }
-        if (!user.getState().equals(UserState.ACTIVE)) {
-            log.error("User {} is not ctive", userId);
-            return Optional.empty();
-        }
-
-        return createSession(user);
+        return userAuthenticator.authenticate(new PasswordAuthData(userId, password));
     }
 
     /**
      * This will validate the session for a user
-     * @param sessionId The id for the session that needs to be validated
-     * @param userId the user id for which this session is present
-     * @return True if a valid session, false otherwise
+     *
+     * @param token The JWT token for a session
      */
-    public boolean validateSession(String sessionId, String userId) {
-        //TODO:: IMPLEMENT
-        return false;
+    public Optional<UserSession> validateToken(String token) {
+        return userAuthenticator.authenticate(new UserTokenAuthData(token));
     }
 
     /**
      * Create a new {@link Group}
-     * @param name name of the group
+     *
+     * @param name        name of the group
      * @param description description of the group
      * @return The newly created group
      */
     public Optional<Group> createGroup(String name, String description) {
         return groupStore.get()
-                .create(name, description)
-                .map(UserLifecycleManager::toGroup);
+                .create(name, description);
     }
 
     /**
      * Delete an existing {@link Group}
+     *
      * @param groupId ID for the existing group
      * @return The updated group with {@link Group#isDeleted()} set to true
      */
     public Optional<Group> deleteGroup(String groupId) {
         return groupStore.get()
-                .delete(groupId)
-                .map(UserLifecycleManager::toGroup);
+                .delete(groupId);
     }
 
     /**
      * Add an {@link User} to a {@link Group}. A user can belong to multiple groups.
+     *
      * @param groupId ID for an existing group
-     * @param userId ID for an existing user
+     * @param userId  ID for an existing user
      * @return Group information
      */
     public Optional<Group> addUserToGroup(String groupId, String userId) {
@@ -236,34 +242,30 @@ public class UserLifecycleManager {
                 .addUserToGroup(groupId, userId);
         log.info("User {} addition to group {}. Status: {}", groupId, userId, status);
         return groupStore.get()
-                .get(groupId)
-                .map(UserLifecycleManager::toGroup);
+                .get(groupId);
     }
 
     /**
      * Return a paginated list of users in the group
+     *
      * @param groupId ID for an existing group
-     * @param start Start offset of the page
-     * @param limit Number oif records to return
+     * @param start   Start offset of the page
+     * @param limit   Number oif records to return
      * @return List of users in the group
      */
     public List<UserSummary> findUsersForGroup(String groupId, int start, int limit) {
         val groupStoreImpl = this.groupStore.get();
         val group = groupStoreImpl.get(groupId).orElse(null);
-        if(null == group || group.isDeleted()) {
-            return Collections.emptyList();
+        if (null == group || group.isDeleted()) {
+            return List.of();
         }
-        val userIds = groupStoreImpl
-                .findUsersForGroup(groupId, start, limit);
-        return userStore.get()
-                .getByIds(userIds)
-                .stream()
-                .map(UserLifecycleManager::toSummary)
-                .collect(Collectors.toList());
+        val userIds = groupStoreImpl.findUsersForGroup(groupId, start, limit);
+        return userStore.get().getByIds(userIds);
     }
 
     /**
      * Create a {@link Skill}
+     *
      * @param value The skill value
      * @return created Skill object
      */
@@ -284,29 +286,16 @@ public class UserLifecycleManager {
 
     public List<Skill> getSkillsForUser(String userId) {
         //TODO::IMPLEMENT
-        return Collections.emptyList();
+        return List.of();
     }
 
     public List<UserSummary> getUsersWithSkill(String skillvalue) {
         //TODO::IMPLEMENT
-        return Collections.emptyList();
+        return List.of();
     }
 
-    private Optional<UserSession> createSession(UserDetails user) {
-        return sessionStore.get()
-                .create(user.getId())
-                .map(session -> {
-                    val groupsForUser = groupStore.get()
-                            .findGroupsForUser(user.getId())
-                            .stream()
-                            .map(UserLifecycleManager::toGroup)
-                            .collect(Collectors.toSet());
-                    return new UserSession(new User(toSummary(user), groupsForUser,
-                                                             Collections.emptySet()), session.getId());
-                });
-    }
 
-    private Optional<UserSummary> createToken(String userId, UserDetails userDetails) {
+    private Optional<UserSummary> createToken(String userId, UserSummary userDetails) {
         val token = userActivationTokenStore.get()
                 .generate(userId, new Date(new Date().getTime() + DEFAULT_TOKEN_VALIDITY_MS))
                 .orElse(null);
@@ -318,78 +307,13 @@ public class UserLifecycleManager {
             log.info("Token for user: {} is [{}]", userId, token);
         }
         //TODO::SEND EVENT TO BUS
-        return Optional.of(toSummary(userDetails));
+        return Optional.of(userDetails);
     }
 
-    private Optional<UserDetails> validateUser(String userId, String password) {
-        val user = userStore.get().getById(userId).orElse(null);
-        ;
-        if (null == user) {
-            log.error("No valid user found for userID: {}", userId);
-            return Optional.empty();
-        }
-        final boolean matchResult = matchHash(userId, password, user.getPassword());
-        val updatedUser = userStore.get()
-                .update(userId, userDetails -> {
-                    val attempts = userDetails.getFailedPasswordAttempts() + 1;
-                    if (matchResult) {
-                        userDetails.setFailedPasswordAttempts(0);
-                    }
-                    else {
-                        userDetails.setFailedPasswordAttempts(attempts);
-                        if (attempts > 3) {
-                            userDetails.setState(UserState.LOCKED);
-                        }
-                    }
-                })
-                .orElse(null);
-        Preconditions.checkNotNull(updatedUser);
-        if (matchResult) {
-            log.info("User {} successfully authenticated", userId);
-        }
-        else {
-            log.error("Password validation failure. User state for user {} is {} [attempts: {}]",
-                      userId, updatedUser.getId(), updatedUser.getFailedPasswordAttempts());
-        }
-        return Optional.ofNullable(updatedUser)
-                .filter(UserLifecycleManager::isUserActionable);
-    }
-
-    private static boolean isUserActionable(final UserDetails userDetails) {
-        return null != userDetails
-                && !TERMINAL_USER_STATES.contains(userDetails.getState());
-    }
 
     private static String hash(String s) {
         return BCrypt.withDefaults().hashToString(12, s.toCharArray());
     }
 
-    private static boolean matchHash(String userId, String s, String hash) {
-        val res = BCrypt.verifyer().verify(s.toCharArray(), hash);
-        if (!res.verified) {
-            //TODO::UPDATE RATE LIMIT COUNTER
-            log.warn("Password validation failure for: {}. Error: {}", userId, res);
-        }
-        return res.verified;
-    }
 
-    private static UserSummary toSummary(UserDetails user) {
-        return new UserSummary(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getState(),
-                user.getCreated(),
-                user.getUpdated());
-    }
-
-    private static Group toGroup(GroupDetails groupDetails) {
-        return new Group(
-                groupDetails.getId(),
-                groupDetails.getName(),
-                groupDetails.getDescription(),
-                groupDetails.isDeleted(),
-                groupDetails.getCreated(),
-                groupDetails.getUpdated());
-    }
 }

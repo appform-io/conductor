@@ -18,6 +18,8 @@ package io.appform.conductor.model.usermgmt;
 
 import lombok.Value;
 
+import java.util.Date;
+
 /**
  *
  */
@@ -25,4 +27,9 @@ import lombok.Value;
 public class UserSession {
     User user;
     String sessionId;
+    SessionState state;
+    SessionType type;
+    Date expiry;
+
+    String jwt;
 }

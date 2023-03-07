@@ -28,11 +28,10 @@ import java.util.Date;
 @AllArgsConstructor
 public class UserDetails {
     private final String id;
+    private final UserType userType;
     private String name;
     private String email;
-    private String password;
     private UserState state;
-    private int failedPasswordAttempts;
     private final Date created;
     private final Date updated;
 }

@@ -26,6 +26,7 @@ import java.util.Date;
 @Value
 public class UserSummary {
     String id;
+    UserType type;
     String name;
     String email;
     UserState state;

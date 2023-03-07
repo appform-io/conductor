@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,10 @@ package io.appform.conductor.server.utils;
 
 import lombok.experimental.UtilityClass;
 
-import java.util.Calendar;
-import java.util.Date;
-
 /**
- * Utility functions for date manipulation
+ *
  */
 @UtilityClass
-public class DateUtils {
-    public static int currentWeek() {
-        Calendar c = Calendar.getInstance();
-        c.setTime(new Date());
-        return c.getWeekYear();
-    }
+public class Constants {
+
 }

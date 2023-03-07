@@ -22,7 +22,7 @@ import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.usermgmt.UserActivationToken;
 import io.appform.conductor.model.usermgmt.UserActivationTokenState;
 import io.appform.conductor.server.store.UserActivationTokenStore;
-import io.appform.conductor.server.utils.DateUtils;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Data;
@@ -90,7 +90,7 @@ public class DBUserActivationTokenStore implements UserActivationTokenStore {
             this.userId = userId;
             this.validTill = validTill;
             this.state = state;
-            this.partitionId = DateUtils.currentWeek();
+            this.partitionId = ConductorServerUtils.currentWeek();
         }
     }
 

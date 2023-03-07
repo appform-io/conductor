@@ -14,27 +14,20 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.usermgmt;
+package io.appform.conductor.server.store;
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
+import io.appform.conductor.server.internalmodels.auth.UserPasswordAuthDetails;
 
-import java.util.Date;
+import java.util.Optional;
+import java.util.function.UnaryOperator;
 
 /**
  *
  */
-@Value
-@AllArgsConstructor
-public
-class UserSessionDetails {
-    String id;
-    String userId;
-    SessionState state;
-    SessionType type;
+public interface UserPasswordAuthStore {
+    Optional<UserPasswordAuthDetails> set(final String userId, final String password);
 
-    Date expiry;
+    Optional<UserPasswordAuthDetails> update(final String userId, final UnaryOperator<UserPasswordAuthDetails> updater);
 
-    Date created;
-    Date lastActive;
+    Optional<UserPasswordAuthDetails> get(final String userId);
 }

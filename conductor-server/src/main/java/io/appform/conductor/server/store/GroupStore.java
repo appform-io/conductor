@@ -18,7 +18,6 @@ package io.appform.conductor.server.store;
 
 
 import io.appform.conductor.model.usermgmt.Group;
-import io.appform.conductor.model.usermgmt.GroupDetails;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,16 +28,16 @@ import java.util.function.Consumer;
  */
 public interface GroupStore {
 
-    Optional<GroupDetails> create(String name, String description);
-    Optional<GroupDetails> get(String groupId);
+    Optional<Group> create(String name, String description);
+    Optional<Group> get(String groupId);
 
-    List<GroupDetails> get(List<String> groupIds);
-    Optional<GroupDetails> delete(String groupId);
-    Optional<GroupDetails> update(String groupId, Consumer<GroupDetails> handler);
+    List<Group> get(List<String> groupIds);
+    Optional<Group> delete(String groupId);
+    Optional<Group> update(String groupId, Consumer<Group> handler);
     boolean addUserToGroup(String groupId, String userId);
 
     boolean removeUserFromGroup(String groupId, String userId);
 
     List<String> findUsersForGroup(String groupId, int start, int limit);
-    List<GroupDetails> findGroupsForUser(String userId);
+    List<Group> findGroupsForUser(String userId);
 }

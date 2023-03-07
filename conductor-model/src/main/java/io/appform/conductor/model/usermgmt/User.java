@@ -18,6 +18,7 @@ package io.appform.conductor.model.usermgmt;
 
 import lombok.Value;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -26,6 +27,6 @@ import java.util.Set;
 @Value
 public class User {
     UserSummary summary;
-    Set<Group> groups;
+    Collection<Group> groups;
     Set<Skill> skills;
 }

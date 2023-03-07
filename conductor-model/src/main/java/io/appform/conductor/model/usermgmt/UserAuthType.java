@@ -16,25 +16,11 @@
 
 package io.appform.conductor.model.usermgmt;
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
-
-import java.util.Date;
-
 /**
- *
+ * Authentication type for a user
  */
-@Value
-@AllArgsConstructor
-public
-class UserSessionDetails {
-    String id;
-    String userId;
-    SessionState state;
-    SessionType type;
-
-    Date expiry;
-
-    Date created;
-    Date lastActive;
+public enum UserAuthType {
+    PASSWORD,
+    GOOGLE,
+    TOKEN
 }

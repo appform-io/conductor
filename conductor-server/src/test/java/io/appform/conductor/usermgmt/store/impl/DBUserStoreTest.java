@@ -19,8 +19,9 @@ package io.appform.conductor.usermgmt.store.impl;
 import io.appform.conductor.DBTestBase;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
-import io.appform.conductor.model.usermgmt.UserDetails;
+import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.usermgmt.UserState;
+import io.appform.conductor.model.usermgmt.UserType;
 import io.appform.conductor.server.store.impl.DBUserStore;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import lombok.SneakyThrows;
@@ -29,6 +30,7 @@ import org.hibernate.criterion.DetachedCriteria;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -41,20 +43,19 @@ import static org.mockito.Mockito.*;
 class DBUserStoreTest extends DBTestBase {
 
     @Test
-    public void testCreate() {
+    void testCreate() {
         val userStore = new DBUserStore(createRealUserDao());
-        val createdUser = userStore.create("Test", "test@test.com", "TestPassword")
+        val createdUser = userStore.create("Test", UserType.HUMAN, "test@test.com")
                 .orElse(null);
         assertNotNull(createdUser);
         assertEquals("Test", createdUser.getName());
         assertEquals("test@test.com", createdUser.getEmail());
-        assertEquals("TestPassword", createdUser.getPassword());
     }
 
     @Test
-    public void testGetById() {
+    void testGetById() {
         val userStore = new DBUserStore(createRealUserDao());
-        val newUser = userStore.create("Test", "test@test.com", "testpassword")
+        val newUser = userStore.create("Test", UserType.HUMAN, "test@test.com")
                 .orElse(null);
         assertNotNull(newUser);
         val newId = newUser.getId();
@@ -64,36 +65,36 @@ class DBUserStoreTest extends DBTestBase {
     }
 
     @Test
-    public void testGetByIds() {
+    void testGetByIds() {
         val numOfUsers = 10;
         val userStore = new DBUserStore(createRealUserDao());
         List<String> queryIds = new ArrayList<>();
-        val users = new ArrayList<UserDetails>();
+        val users = new ArrayList<UserSummary>();
         IntStream.range(0, numOfUsers).forEach(
                 i -> {
-                    val newUser = userStore.create("Test"+i, "test"+i+"@gmail.com", "testpassword"+i)
+                    val newUser = userStore.create("Test" + i, UserType.HUMAN, "test" + i + "@gmail.com")
                             .orElse(null);
                     assertNotNull(newUser);
                     val newId = newUser.getId();
                     users.add(newUser);
                     queryIds.add(newId);
                 }
-        );
+                                              );
 
         val returnedUsers = userStore.getByIds(queryIds);
         assertEquals(numOfUsers, queryIds.size());
         assertEquals(numOfUsers, returnedUsers.size());
         IntStream.range(0, numOfUsers).forEach(
-                i-> assertTrue(returnedUsers.contains(users.get(i)))
-        );
+                i -> assertTrue(returnedUsers.contains(users.get(i)))
+                                              );
     }
 
     @Test
-    public void testGetByEmailFailed() {
+    void testGetByEmailFailed() {
         //User not found
         val userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
-        val emptyList = new ArrayList<UserDetails>();
+        val emptyList = new ArrayList<UserSummary>();
         doReturn(emptyList).when(userDao).scatterGather(any(DetachedCriteria.class));
         val user = userStore.getByEmail("testMail").orElse(null);
         assertNull(user);
@@ -107,15 +108,15 @@ class DBUserStoreTest extends DBTestBase {
             fail("Should have thrown exception.");
         }
         catch (Exception e) {
-            assertTrue( e instanceof ConductorException);
-            assertEquals(ConductorErrorCode.STORE_READ_ERROR, ((ConductorException)e).getErrorCode());
+            assertTrue(e instanceof ConductorException);
+            assertEquals(ConductorErrorCode.STORE_READ_ERROR, ((ConductorException) e).getErrorCode());
         }
     }
-  
+
     @Test
-    public void testGetByEmail() {
+    void testGetByEmail() {
         val userStore = new DBUserStore(createRealUserDao());
-        val newUser = userStore.create("Test", "test@test.com", "testpassword")
+        val newUser = userStore.create("Test", UserType.HUMAN, "test@test.com")
                 .orElse(null);
         assertNotNull(newUser);
         val newEmail = newUser.getEmail();
@@ -127,8 +128,8 @@ class DBUserStoreTest extends DBTestBase {
     @Test
     public void testUpdate() {
         val userStore = new DBUserStore(createRealUserDao());
-        val newUser1 = userStore.create("Test1", "test1@test.com", "testPassword1").orElse(null);
-        val newUser2 =userStore.create("Test2", "test2@test.com", "testPassword2").orElse(null);
+        val newUser1 = userStore.create("Test1", UserType.HUMAN, "test1@test.com").orElse(null);
+        val newUser2 = userStore.create("Test2", UserType.HUMAN, "test2@test.com").orElse(null);
         assertNotNull(newUser1);
         assertNotNull(newUser2);
         val newId1 = newUser1.getId();
@@ -140,18 +141,18 @@ class DBUserStoreTest extends DBTestBase {
         //Check Correct users are created
         assertEquals("Test1", returnedUser1.getName());
         assertEquals("test1@test.com", returnedUser1.getEmail());
-        assertEquals("testPassword1", returnedUser1.getPassword());
 
         assertEquals("Test2", returnedUser2.getName());
         assertEquals("test2@test.com", returnedUser2.getEmail());
-        assertEquals("testPassword2", returnedUser2.getPassword());
-        val updatedUser = userStore.update(newId2, myUser -> {
-            myUser.setEmail("newTest@test.com");
-            myUser.setName("newTest");
-            myUser.setPassword("newTestPassword");
-            myUser.setFailedPasswordAttempts(newUser2.getFailedPasswordAttempts() + 1);
-            myUser.setState(UserState.INACTIVE);
-        }).orElse(null);
+        val updatedUser = userStore.update(newId2,
+                                           myUser -> new UserSummary(
+                                                   myUser.getId(),
+                                                   myUser.getType(),
+                                                   "newTest",
+                                                   "newTest@test.com",
+                                                   UserState.INACTIVE,
+                                                   myUser.getCreated(),
+                                                   new Date())).orElse(null);
         assertNotNull(updatedUser);
         val returnedAgainUser1 = userStore.getById(newId1).orElse(null);
         val returnedAgainUser2 = userStore.getById(newId2).orElse(null);
@@ -160,37 +161,37 @@ class DBUserStoreTest extends DBTestBase {
 
         assertEquals("Test1", returnedAgainUser1.getName());
         assertEquals("test1@test.com", returnedAgainUser1.getEmail());
-        assertEquals("testPassword1", returnedAgainUser1.getPassword());
 
         assertEquals("newTest", returnedAgainUser2.getName());
         assertEquals("newTest@test.com", returnedAgainUser2.getEmail());
-        assertEquals("newTestPassword", returnedAgainUser2.getPassword());
-        assertEquals(newUser2.getFailedPasswordAttempts() + 1, returnedAgainUser2.getFailedPasswordAttempts());
         assertEquals(UserState.INACTIVE, returnedAgainUser2.getState());
 
         assertEquals("newTest", updatedUser.getName());
         assertEquals("newTest@test.com", updatedUser.getEmail());
-        assertEquals("newTestPassword", updatedUser.getPassword());
-        assertEquals(newUser2.getFailedPasswordAttempts() + 1, updatedUser.getFailedPasswordAttempts());
         assertEquals(UserState.INACTIVE, updatedUser.getState());
     }
 
     @Test
     @SneakyThrows
-    public void testUpdateFailed() {
+    void testUpdateFailed() {
         final LookupDao<DBUserStore.StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
         doThrow(NullPointerException.class).when(userDao).update(any(String.class), any());
         try {
-            val result = userStore.update("test_user_id", updateUser -> {
-                updateUser.setEmail("newemail@test.com");
-                updateUser.setName("newTest");
-            }).orElse(null);
+            val result = userStore.update("test_user_id", myUser -> new UserSummary(
+                    myUser.getId(),
+                    myUser.getType(),
+                    "newTest@test.com",
+                    "newTest",
+                    UserState.INACTIVE,
+                    myUser.getCreated(),
+                    new Date())
+            ).orElse(null);
             fail("Should have thrown exception.");
         }
         catch (Exception e) {
-            assertTrue( e instanceof ConductorException);
-            assertEquals(ConductorErrorCode.STORE_UPDATE_ERROR, ((ConductorException)e).getErrorCode());
+            assertTrue(e instanceof ConductorException);
+            assertEquals(ConductorErrorCode.STORE_UPDATE_ERROR, ((ConductorException) e).getErrorCode());
         }
     }
 
@@ -200,17 +201,17 @@ class DBUserStoreTest extends DBTestBase {
         final LookupDao<DBUserStore.StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
         doThrow(NullPointerException.class).when(userDao).get(anyList());
-        try{
+        try {
             List<String> idList = new ArrayList<>();
             val length = 5;
             IntStream.range(0, length).forEach(i ->
-                    idList.add("userId" + i));
+                                                       idList.add("userId" + i));
             userStore.getByIds(idList);
             fail("Should have thrown exception.");
         }
         catch (Exception e) {
-            assertTrue( e instanceof ConductorException);
-            assertEquals(ConductorErrorCode.STORE_LIST_ERROR, ((ConductorException)e).getErrorCode());
+            assertTrue(e instanceof ConductorException);
+            assertEquals(ConductorErrorCode.STORE_LIST_ERROR, ((ConductorException) e).getErrorCode());
         }
     }
 
@@ -220,13 +221,13 @@ class DBUserStoreTest extends DBTestBase {
         final LookupDao<DBUserStore.StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
         doThrow(NullPointerException.class).when(userDao).get(any(String.class));
-        try{
+        try {
             userStore.getById("testUserId");
             fail("Should have thrown exception.");
         }
         catch (Exception e) {
             assertTrue(e instanceof ConductorException);
-            assertEquals(ConductorErrorCode.STORE_READ_ERROR, ((ConductorException)e).getErrorCode());
+            assertEquals(ConductorErrorCode.STORE_READ_ERROR, ((ConductorException) e).getErrorCode());
         }
     }
 
@@ -238,12 +239,12 @@ class DBUserStoreTest extends DBTestBase {
         doThrow(NullPointerException.class).when(userDao).save(any(DBUserStore.StoredUser.class));
 
         try {
-            userStore.create("Test", "test@test.com", "TestPassword");
+            userStore.create("Test", UserType.HUMAN, "test@test.com");
             fail("Should have thrown exception");
         }
         catch (Exception e) {
-            assertTrue( e instanceof ConductorException);
-            assertEquals(ConductorErrorCode.STORE_WRITE_ERROR, ((ConductorException)e).getErrorCode());
+            assertTrue(e instanceof ConductorException);
+            assertEquals(ConductorErrorCode.STORE_WRITE_ERROR, ((ConductorException) e).getErrorCode());
         }
     }
 
@@ -254,6 +255,6 @@ class DBUserStoreTest extends DBTestBase {
 
     @SuppressWarnings("unchecked")
     private LookupDao<DBUserStore.StoredUser> createMockUserDao() {
-        return (LookupDao<DBUserStore.StoredUser>)mock(LookupDao.class);
+        return (LookupDao<DBUserStore.StoredUser>) mock(LookupDao.class);
     }
 }

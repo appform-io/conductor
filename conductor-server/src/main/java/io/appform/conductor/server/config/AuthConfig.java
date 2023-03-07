@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.utils;
+package io.appform.conductor.server.config;
 
-import lombok.experimental.UtilityClass;
+import lombok.Data;
+
+import javax.validation.constraints.NotEmpty;
+import java.time.Duration;
 
 /**
  *
  */
-@UtilityClass
-public class StringUtils {
-    public static String normalize(final String value) {
-        return value
-                .toLowerCase()
-                .replaceAll("\\p{Punct}","_");
-    }
+@Data
+public class AuthConfig {
+    @NotEmpty
+    private String signingSecret;
+
+    private Duration sessionTime;
 }

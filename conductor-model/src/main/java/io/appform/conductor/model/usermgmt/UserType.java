@@ -16,21 +16,28 @@
 
 package io.appform.conductor.model.usermgmt;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-import java.util.Date;
-
 /**
- * Storage layer model for {@link Group}
+ * Type of a user
  */
-@Data
-@AllArgsConstructor
-public class GroupDetails {
-    private final String id;
-    private final String name;
-    private final String description;
-    boolean deleted;
-    private final Date created;
-    private final Date updated;
+public enum UserType {
+    HUMAN {
+        @Override
+        public <T> T accept(UserTypeVisitor<T> visitor) {
+            return visitor.visitHuman();
+        }
+    },
+    SYSTEM {
+        @Override
+        public <T> T accept(UserTypeVisitor<T> visitor) {
+            return visitor.visitSystem();
+        }
+    };
+
+    public static interface UserTypeVisitor<T> {
+
+        T visitHuman();
+        T visitSystem();
+    }
+
+    public abstract <T> T accept(final UserTypeVisitor<T> visitor);
 }

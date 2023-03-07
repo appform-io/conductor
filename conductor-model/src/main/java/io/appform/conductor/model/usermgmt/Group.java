@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,21 @@
 
 package io.appform.conductor.model.usermgmt;
 
-import lombok.Value;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 import java.util.Date;
 
 /**
  * A group of users in the system. Ticket routing will be done to groups or users.
  */
-@Value
+@Data
+@AllArgsConstructor
 public class Group {
-    String id;
-    String name;
-    String description;
+    private final String id;
+    private final String name;
+    private final String description;
     boolean deleted;
-    Date created;
-    Date updated;
+    private final Date created;
+    private final Date updated;
 }

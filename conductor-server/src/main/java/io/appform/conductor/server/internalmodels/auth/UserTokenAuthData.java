@@ -14,27 +14,28 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.usermgmt;
+package io.appform.conductor.server.internalmodels.auth;
 
-import lombok.AllArgsConstructor;
+import io.appform.conductor.model.usermgmt.UserAuthType;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.Value;
-
-import java.util.Date;
 
 /**
  *
  */
 @Value
-@AllArgsConstructor
-public
-class UserSessionDetails {
-    String id;
-    String userId;
-    SessionState state;
-    SessionType type;
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class UserTokenAuthData extends UserAuthData {
+    String token;
+    public UserTokenAuthData(String token) {
+        super(UserAuthType.TOKEN);
+        this.token = token;
+    }
 
-    Date expiry;
-
-    Date created;
-    Date lastActive;
+    @Override
+    public <T> T accept(UserAuthDataVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }
