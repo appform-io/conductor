@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,26 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.store.impl;
+package io.appform.conductor.server.usermanagement.impl;
 
 import com.google.common.collect.ImmutableMap;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.usermgmt.Group;
-import io.appform.conductor.server.store.GroupStore;
+import io.appform.conductor.server.usermanagement.GroupStore;
+import io.appform.conductor.server.usermanagement.impl.models.StoredGroup;
+import io.appform.conductor.server.usermanagement.impl.models.StoredGroupUserMapping;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
-import io.appform.dropwizard.sharding.sharding.LookupKey;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
 import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Property;
 
 import javax.inject.Inject;
-import javax.persistence.*;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -49,82 +44,8 @@ import java.util.function.Consumer;
 @Slf4j
 public class DBGroupStore implements GroupStore {
 
-    private static final String GROUP_TABLE_NAME = "groups";
-    private static final String GROUP_USERS_TABLE_NAME = "group_users";
-
-    @Entity
-    @Table(name = GROUP_TABLE_NAME)
-    @Data
-    @NoArgsConstructor
-    public static class StoredGroup {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private long id;
-
-        @Column(name = "group_id", length = 45, nullable = false, unique = true)
-        @LookupKey
-        private String groupId;
-
-        @Column(name = "name", nullable = false)
-        private String name;
-
-        @Column
-        private String description;
-
-        @Column
-        private boolean deleted;
-
-        @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-        @Generated(value = GenerationTime.INSERT)
-        private Date created;
-
-        @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-                updatable = false, insertable = false)
-        @Generated(value = GenerationTime.ALWAYS)
-        private Date updated;
-
-        public StoredGroup(String groupId, String name, String description) {
-            this.groupId = groupId;
-            this.name = name;
-            this.description = description;
-        }
-    }
-
-    @Entity
-    @Table(name = GROUP_USERS_TABLE_NAME,
-            uniqueConstraints = {
-                    @UniqueConstraint(name = "uk_user_group", columnNames = {"group_id", "user_id"})
-            })
-    @Data
-    @NoArgsConstructor
-    private static class StoredGroupUserMapping {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private long id;
-
-        @Column(name = "group_id", length = 45, nullable = false)
-        private String groupId;
-
-        @Column(name = "user_id", nullable = false)
-        private String userId;
-
-        @Column
-        private boolean deleted;
-
-        @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-        @Generated(value = GenerationTime.INSERT)
-        private Date created;
-
-        @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-                updatable = false, insertable = false)
-        @Generated(value = GenerationTime.ALWAYS)
-        private Date updated;
-
-        public StoredGroupUserMapping(String groupId, String userId) {
-            this.groupId = groupId;
-            this.userId = userId;
-        }
-    }
+    public static final String GROUP_TABLE_NAME = "groups";
+    public static final String GROUP_USERS_TABLE_NAME = "group_users";
 
     private final LookupDao<StoredGroup> groupDao;
     private final RelationalDao<StoredGroupUserMapping> groupUsersDao;
@@ -241,8 +162,8 @@ public class DBGroupStore implements GroupStore {
         try {
             return groupUsersDao.update(groupId,
                                         DetachedCriteria.forClass(StoredGroupUserMapping.class)
-                                                .add(Restrictions.eq("groupId", groupId))
-                                                .add(Restrictions.eq("userId", userId)),
+                                                .add(Property.forName("groupId").eq(groupId))
+                                                .add(Property.forName("userId").eq(userId)),
                                         storedGroupUserMapping -> {
                                             storedGroupUserMapping.setDeleted(true);
                                             return storedGroupUserMapping;
@@ -266,7 +187,7 @@ public class DBGroupStore implements GroupStore {
             return groupUsersDao.select(
                             groupId,
                             DetachedCriteria.forClass(StoredGroupUserMapping.class)
-                                    .add(Restrictions.eq("groupId", groupId)),
+                                    .add(Property.forName("groupId").eq(groupId)),
                             start,
                             limit)
                     .stream()
@@ -290,7 +211,7 @@ public class DBGroupStore implements GroupStore {
         try {
             return get(groupUsersDao.scatterGather(
                             DetachedCriteria.forClass(StoredGroupUserMapping.class)
-                                    .add(Restrictions.eq("userId", userId)),
+                                    .add(Property.forName("userId").eq(userId)),
                             0,
                             Integer.MAX_VALUE)
                                .stream()

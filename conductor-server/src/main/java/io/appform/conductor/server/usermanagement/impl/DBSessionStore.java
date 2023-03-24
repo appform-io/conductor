@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.store.impl;
+package io.appform.conductor.server.usermanagement.impl;
 
 import com.google.common.collect.ImmutableMap;
 import io.appform.conductor.model.error.ConductorErrorCode;
@@ -22,20 +22,15 @@ import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.usermgmt.SessionState;
 import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.model.usermgmt.UserSessionDetails;
-import io.appform.conductor.server.store.SessionStore;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.server.usermanagement.SessionStore;
+import io.appform.conductor.server.usermanagement.impl.models.StoredUserSessionDetails;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
 import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Property;
 
 import javax.inject.Inject;
-import javax.persistence.*;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,70 +41,7 @@ import java.util.function.Consumer;
  */
 @Slf4j
 public class DBSessionStore implements SessionStore {
-    private static final String TABLE_NAME = "user_sessions";
-
-    /**
-     * DB model object corresponding to {@link io.appform.conductor.model.usermgmt.UserSessionDetails}
-     */
-    @Entity
-    @Table(name = TABLE_NAME, uniqueConstraints = {
-            @UniqueConstraint(name = "uk_sessions", columnNames = {"partition_id", "user_id", "session_id"})
-    })
-    @Data
-    @NoArgsConstructor
-    public static class StoredUserSessionDetails {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private long id;
-
-        @Column(name = "session_id", nullable = false, length = 45)
-        private String sessionId;
-
-        @Column(name = "user_id", unique = true, nullable = false, length = 45)
-        private String userId;
-
-        @Column
-        @Enumerated(EnumType.STRING)
-        private SessionState state;
-
-        @Column
-        @Enumerated(EnumType.STRING)
-        private SessionType type;
-
-        @Column
-        private Date expiry;
-
-        @Column(name = "last_active", nullable = false)
-        private Date lastActive;
-
-        @Column(name = "partition_id", nullable = false)
-        private int partitionId;
-
-        @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-        @Generated(value = GenerationTime.INSERT)
-        private Date created;
-
-        @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-                updatable = false, insertable = false)
-        @Generated(value = GenerationTime.ALWAYS)
-        private Date updated;
-
-        public StoredUserSessionDetails(
-                String sessionId,
-                String userId,
-                SessionState state,
-                SessionType type,
-                Date expiry,
-                Date lastActive) {
-            this.sessionId = sessionId;
-            this.userId = userId;
-            this.state = state;
-            this.type = type;
-            this.expiry = expiry;
-            this.lastActive = lastActive;
-            this.partitionId = ConductorServerUtils.currentWeek();
-        }
-    }
+    public static final String SESSION_TABLE_NAME = "user_sessions";
 
     private final RelationalDao<StoredUserSessionDetails> sessionDetailsDao;
 
@@ -135,7 +67,7 @@ public class DBSessionStore implements SessionStore {
             throw ConductorException.builder()
                     .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
                     .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", TABLE_NAME)
+                                     .put("type", SESSION_TABLE_NAME)
                                      .put("id", userId)
                                      .build())
                     .cause(e)
@@ -158,7 +90,7 @@ public class DBSessionStore implements SessionStore {
             throw ConductorException.builder()
                     .errorCode(ConductorErrorCode.STORE_READ_ERROR)
                     .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", TABLE_NAME)
+                                     .put("type", SESSION_TABLE_NAME)
                                      .put("id", String.format("%s-%s", userId, sessionId))
                                      .build())
                     .cause(e)
@@ -186,7 +118,7 @@ public class DBSessionStore implements SessionStore {
             throw ConductorException.builder()
                     .errorCode(ConductorErrorCode.STORE_READ_ERROR)
                     .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", TABLE_NAME)
+                                     .put("type", SESSION_TABLE_NAME)
                                      .put("id", String.format("%s-%s", userId, sessionId))
                                      .build())
                     .cause(e)
@@ -196,8 +128,8 @@ public class DBSessionStore implements SessionStore {
 
     private static DetachedCriteria sessionCriteria(String userId, String sessionId) {
         return DetachedCriteria.forClass(StoredUserSessionDetails.class)
-                .add(Restrictions.eq("userId", userId))
-                .add(Restrictions.eq("sessionId", sessionId));
+                .add(Property.forName("userId").eq(userId))
+                .add(Property.forName("sessionId").eq(sessionId));
     }
 
     private static UserSessionDetails toWire(StoredUserSessionDetails session) {

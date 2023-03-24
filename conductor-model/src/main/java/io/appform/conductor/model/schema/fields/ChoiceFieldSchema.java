@@ -35,26 +35,6 @@ import java.util.List;
 @ToString(callSuper = true)
 public class ChoiceFieldSchema extends FieldSchema {
 
-    /**
-     * List of available choices
-     */
-    @Value
-    public static class Option {
-        String id;
-        String displayText;
-    }
-    List<Option> choices;
-
-    /**
-     * Is multiple selection allowed
-     */
-    boolean allowMultiple;
-
-    /**
-     * Default choice if field is not mandatory
-     */
-    String defaultValue;
-
     public ChoiceFieldSchema(
             String id,
             String name,
@@ -68,7 +48,7 @@ public class ChoiceFieldSchema extends FieldSchema {
             Date updated,
             List<Option> choices,
             boolean allowMultiple,
-            String defaultValue) {
+            String defaultSelection) {
         super(FieldType.CHOICE,
               id,
               name,
@@ -82,8 +62,28 @@ public class ChoiceFieldSchema extends FieldSchema {
               updated);
         this.choices = choices;
         this.allowMultiple = allowMultiple;
-        this.defaultValue = defaultValue;
+        this.defaultSelection = defaultSelection;
     }
+
+    /**
+     * List of available choices
+     */
+    @Value
+    public static class Option {
+        String value;
+        String displayText;
+    }
+    List<Option> choices;
+
+    /**
+     * Is multiple selection allowed
+     */
+    boolean allowMultiple;
+
+    /**
+     * Default choice if field is not mandatory
+     */
+    String defaultSelection;
 
     @Override
     public <T> T accept(FieldSchemaVisitor<T> visitor) {

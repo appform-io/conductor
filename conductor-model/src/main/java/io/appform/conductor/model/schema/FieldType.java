@@ -26,57 +26,33 @@ public enum FieldType {
     /**
      * String field type.
      */
-    STRING("String") {
-        @Override
-        public <T> T accept(FieldTypeVisitor<T> visitor) {
-            return visitor.visitString();
-        }
-    },
+    STRING("String"),
+
     /**
      * Field consists of a choice of fixed values
      */
-    CHOICE("Choice") {
-        @Override
-        public <T> T accept(FieldTypeVisitor<T> visitor) {
-            return visitor.visitChoice();
-        }
-    },
+    CHOICE("Choice"),
+
     /**
      * Boolean field type
      */
-    BOOLEAN("Boolean") {
-        @Override
-        public <T> T accept(FieldTypeVisitor<T> visitor) {
-            return visitor.visitBoolean();
-        }
-    },
+    BOOLEAN("Boolean"),
+
     /**
      * Number field type. Will be represented as double
      */
-    NUMBER("Number") {
-        @Override
-        public <T> T accept(FieldTypeVisitor<T> visitor) {
-            return visitor.visitNumber();
-        }
-    },
+    NUMBER("Number"),
+
     /**
      * Location field type. Will store latitude and longitude
      */
-    LOCATION("Location") {
-        @Override
-        public <T> T accept(FieldTypeVisitor<T> visitor) {
-            return visitor.visitLocation();
-        }
-    },
+    LOCATION("Location"),
+
     /**
      * Date field type. Will store value as epoch.
      */
-    DATE("Date") {
-        @Override
-        public <T> T accept(FieldTypeVisitor<T> visitor) {
-            return visitor.visitDate();
-        }
-    };
+    DATE("Date")
+    ;
 
     /**
      * Display name
@@ -88,54 +64,4 @@ public enum FieldType {
         this.displayName = displayName;
     }
 
-    /**
-     * Accept an implementation of {@link FieldTypeVisitor} that can be used to perform type specific options
-     * @param visitor The actual implementation.
-     * @param <T> Return type of the visitor
-     * @return The result of processing in the visitor
-     */
-    public abstract <T> T accept(FieldTypeVisitor<T> visitor);
-
-    /**
-     * To be implemented to handle type specific validations, creation and operations etc
-     * @param <T> Return type of the visitor
-     */
-    public interface FieldTypeVisitor<T> {
-
-        /**
-         * Needs to be overridden to handle a {@link FieldType#STRING} type field
-         * @return Result of processing
-         */
-        T visitString();
-
-        /**
-         * Needs to be overridden to handle a {@link FieldType#CHOICE} type field
-         * @return Result of processing
-         */
-        T visitChoice();
-
-        /**
-         * Needs to be overridden to handle a {@link FieldType#BOOLEAN} type field
-         * @return Result of processing
-         */
-        T visitBoolean();
-
-        /**
-         * Needs to be overridden to handle a {@link FieldType#NUMBER} type field
-         * @return Result of processing
-         */
-        T visitNumber();
-
-        /**
-         * Needs to be overridden to handle a {@link FieldType#LOCATION} type field
-         * @return Result of processing
-         */
-        T visitLocation();
-
-        /**
-         * Needs to be overridden to handle a {@link FieldType#DATE} type field
-         * @return Result of processing
-         */
-        T visitDate();
-    }
 }

@@ -28,11 +28,20 @@ import java.util.List;
  */
 @Value
 public class Workflow {
-    String id;
     /**
-     * Human readable description of the workflow
+     * Unique id for the workflow
+     */
+    String id;
+
+    /**
+     * Human-readable name of the workflow
      */
     String name;
+
+    /**
+     * Human-readable description of the workflow
+     */
+    String description;
 
     /**
      * The schema for tickets in this workflow

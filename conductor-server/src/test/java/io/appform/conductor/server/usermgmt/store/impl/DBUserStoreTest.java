@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.usermgmt.store.impl;
+package io.appform.conductor.server.usermgmt.store.impl;
 
-import io.appform.conductor.DBTestBase;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
-import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.usermgmt.UserState;
+import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.usermgmt.UserType;
-import io.appform.conductor.server.store.impl.DBUserStore;
+import io.appform.conductor.server.DBTestBase;
+import io.appform.conductor.server.usermanagement.impl.DBUserStore;
+import io.appform.conductor.server.usermanagement.impl.models.StoredUser;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -174,7 +175,7 @@ class DBUserStoreTest extends DBTestBase {
     @Test
     @SneakyThrows
     void testUpdateFailed() {
-        final LookupDao<DBUserStore.StoredUser> userDao = createMockUserDao();
+        final LookupDao<StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
         doThrow(NullPointerException.class).when(userDao).update(any(String.class), any());
         try {
@@ -198,7 +199,7 @@ class DBUserStoreTest extends DBTestBase {
     @Test
     @SneakyThrows
     public void testGetByIdsFailed() {
-        final LookupDao<DBUserStore.StoredUser> userDao = createMockUserDao();
+        final LookupDao<StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
         doThrow(NullPointerException.class).when(userDao).get(anyList());
         try {
@@ -218,7 +219,7 @@ class DBUserStoreTest extends DBTestBase {
     @Test
     @SneakyThrows
     public void testGetByIdFailed() {
-        final LookupDao<DBUserStore.StoredUser> userDao = createMockUserDao();
+        final LookupDao<StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
         doThrow(NullPointerException.class).when(userDao).get(any(String.class));
         try {
@@ -234,9 +235,9 @@ class DBUserStoreTest extends DBTestBase {
     @Test
     @SneakyThrows
     public void testCreateFailure() {
-        final LookupDao<DBUserStore.StoredUser> userDao = createMockUserDao();
+        final LookupDao<StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
-        doThrow(NullPointerException.class).when(userDao).save(any(DBUserStore.StoredUser.class));
+        doThrow(NullPointerException.class).when(userDao).save(any(StoredUser.class));
 
         try {
             userStore.create("Test", UserType.HUMAN, "test@test.com");
@@ -249,12 +250,12 @@ class DBUserStoreTest extends DBTestBase {
     }
 
 
-    private LookupDao<DBUserStore.StoredUser> createRealUserDao() {
-        return bundle.createParentObjectDao(DBUserStore.StoredUser.class);
+    private LookupDao<StoredUser> createRealUserDao() {
+        return bundle.createParentObjectDao(StoredUser.class);
     }
 
     @SuppressWarnings("unchecked")
-    private LookupDao<DBUserStore.StoredUser> createMockUserDao() {
-        return (LookupDao<DBUserStore.StoredUser>) mock(LookupDao.class);
+    private LookupDao<StoredUser> createMockUserDao() {
+        return (LookupDao<StoredUser>) mock(LookupDao.class);
     }
 }

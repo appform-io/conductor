@@ -26,8 +26,53 @@ import java.util.List;
  */
 @Value
 public class Schema {
-    SchemaSummary summary;
+    /**
+     * Globally unique id of the schema
+     */
+    String id;
+
+    /**
+     * Human-readable name of the schema
+     */
+    String name;
+
+    /**
+     * Human-readable description of the schema
+     */
+    String description;
+
+    /**
+     * Current version of the schema
+     */
+    long version;
+
+    /**
+     * Current state of the schema
+     */
+    SchemaState state;
+
+    /**
+     * Coordinates of the user that created this schema
+     */
+    String createdBy;
+
+    /**
+     * Coordinates of the user that updated this schema to last state
+     */
+    String stateChangedBy;
+
+    /**
+     * List of fields in the schema
+     */
     List<FieldSchema> fields;
+
+    /**
+     * Creation date for the schema
+     */
     Date created;
+
+    /**
+     * Last updated date of the schema
+     */
     Date updated;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor;
+package io.appform.conductor.server;
 
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.common.collect.ImmutableList;
@@ -51,7 +51,7 @@ public abstract class DBTestBase {
     private final Bootstrap<?> bootstrap = mock(Bootstrap.class);
 
     protected BalancedDBShardingBundle<TestConfig> bundle
-            = new BalancedDBShardingBundle<TestConfig>("io.appform.conductor.server.store.impl") {
+            = new BalancedDBShardingBundle<TestConfig>("io.appform.conductor.server") {
         @Override
         protected ShardedHibernateFactory getConfig(TestConfig config) {
             return config.shards;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.store;
+package io.appform.conductor.server.usermanagement;
 
-import io.appform.conductor.model.usermgmt.UserActivationToken;
+import io.appform.conductor.model.usermgmt.SessionType;
+import io.appform.conductor.model.usermgmt.UserSessionDetails;
 
 import java.util.Date;
 import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
- *
+ * A store for {@link UserSessionDetails}
  */
-public interface UserActivationTokenStore {
+public interface SessionStore {
 
-    Optional<UserActivationToken> generate(String userId, Date validTill);
-    Optional<UserActivationToken> getById(String token);
-    boolean update(String token, Consumer<UserActivationToken> handler);
+    Optional<UserSessionDetails> create(String userId, SessionType type, Date expiry);
+    Optional<UserSessionDetails> getById(String userId, String sessionId);
+    Optional<UserSessionDetails> update(String userId, String sessionId, Consumer<UserSessionDetails> handler);
 }

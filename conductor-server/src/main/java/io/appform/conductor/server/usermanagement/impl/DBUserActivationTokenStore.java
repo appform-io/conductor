@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.store.impl;
+package io.appform.conductor.server.usermanagement.impl;
 
 import com.google.common.collect.ImmutableMap;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.usermgmt.UserActivationToken;
 import io.appform.conductor.model.usermgmt.UserActivationTokenState;
-import io.appform.conductor.server.store.UserActivationTokenStore;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.server.usermanagement.UserActivationTokenStore;
+import io.appform.conductor.server.usermanagement.impl.models.StoredUserActivationToken;
 import io.appform.dropwizard.sharding.dao.LookupDao;
-import io.appform.dropwizard.sharding.sharding.LookupKey;
-import lombok.Data;
 import lombok.val;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
 
 import javax.inject.Inject;
-import javax.persistence.*;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,56 +38,7 @@ import java.util.function.Consumer;
  */
 public class DBUserActivationTokenStore implements UserActivationTokenStore {
 
-    private static final String TABLE_NAME = "user_activation_links";
-
-    /**
-     * DB model for {@link UserActivationToken}
-     */
-    @Entity
-    @Table(name = TABLE_NAME)
-    @Data
-    public static class StoredUserActivationToken {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private long id;
-
-        @LookupKey
-        @Column(name = "token", unique = true, nullable = false, length = 45)
-        private String token;
-
-        @Column(name = "user_id", nullable = false)
-        private String userId;
-
-        @Column(name = "email", unique = true, nullable = false)
-        private Date validTill;
-
-        @Column(name = "partitionId", nullable = false)
-        private int partitionId;
-
-        @Enumerated(EnumType.STRING)
-        @Column(name = "state", nullable = false, length = 45)
-        private UserActivationTokenState state;
-
-        @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-        @Generated(value = GenerationTime.INSERT)
-        private Date created;
-
-        @Column(name = "updated", columnDefinition = "timestamp default current_timestamp", updatable = false, insertable = false)
-        @Generated(value = GenerationTime.ALWAYS)
-        private Date updated;
-
-        public StoredUserActivationToken(
-                String token,
-                String userId,
-                Date validTill,
-                UserActivationTokenState state) {
-            this.token = token;
-            this.userId = userId;
-            this.validTill = validTill;
-            this.state = state;
-            this.partitionId = ConductorServerUtils.currentWeek();
-        }
-    }
+    public static final String ACTIVATION_TOKEN_TABLE_NAME = "user_activation_links";
 
     private final LookupDao<StoredUserActivationToken> tokenDao;
 
@@ -115,7 +61,7 @@ public class DBUserActivationTokenStore implements UserActivationTokenStore {
             throw ConductorException.builder()
                     .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
                     .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", TABLE_NAME)
+                                     .put("type", ACTIVATION_TOKEN_TABLE_NAME)
                                      .put("id", token)
                                      .build())
                     .cause(e)
@@ -133,7 +79,7 @@ public class DBUserActivationTokenStore implements UserActivationTokenStore {
             throw ConductorException.builder()
                     .errorCode(ConductorErrorCode.STORE_READ_ERROR)
                     .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", TABLE_NAME)
+                                     .put("type", ACTIVATION_TOKEN_TABLE_NAME)
                                      .put("id", token)
                                      .build())
                     .cause(e)
@@ -159,7 +105,7 @@ public class DBUserActivationTokenStore implements UserActivationTokenStore {
             throw ConductorException.builder()
                     .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
                     .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", TABLE_NAME)
+                                     .put("type", ACTIVATION_TOKEN_TABLE_NAME)
                                      .put("id", token)
                                      .build())
                     .cause(e)

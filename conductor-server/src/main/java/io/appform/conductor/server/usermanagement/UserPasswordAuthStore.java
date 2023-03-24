@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package io.appform.conductor;
+package io.appform.conductor.server.usermanagement;
 
-import io.appform.dropwizard.sharding.config.ShardedHibernateFactory;
-import io.dropwizard.Configuration;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import io.appform.conductor.server.internalmodels.auth.UserPasswordAuthDetails;
+
+import java.util.Optional;
+import java.util.function.UnaryOperator;
 
 /**
- * A test config to setup local database
+ *
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class TestConfig extends Configuration {
-    public ShardedHibernateFactory shards = new ShardedHibernateFactory();
+public interface UserPasswordAuthStore {
+    Optional<UserPasswordAuthDetails> set(final String userId, final String password);
+
+    Optional<UserPasswordAuthDetails> update(final String userId, final UnaryOperator<UserPasswordAuthDetails> updater);
+
+    Optional<UserPasswordAuthDetails> get(final String userId);
 }

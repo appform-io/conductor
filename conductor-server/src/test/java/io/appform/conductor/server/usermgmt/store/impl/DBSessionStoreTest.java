@@ -1,0 +1,78 @@
+/*
+ * Copyright (c) 2023 Santanu Sinha
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package io.appform.conductor.server.usermgmt.store.impl;
+
+import io.appform.conductor.model.error.ConductorErrorCode;
+import io.appform.conductor.model.error.ConductorException;
+import io.appform.conductor.model.usermgmt.SessionState;
+import io.appform.conductor.model.usermgmt.SessionType;
+import io.appform.conductor.server.usermanagement.impl.DBSessionStore;
+import io.appform.conductor.server.usermanagement.impl.models.StoredUserSessionDetails;
+import io.appform.dropwizard.sharding.dao.RelationalDao;
+import io.appform.conductor.server.DBTestBase;
+import lombok.SneakyThrows;
+import lombok.val;
+import org.junit.jupiter.api.Test;
+
+import java.sql.Date;
+import java.time.Duration;
+import java.time.Instant;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+/**
+ * Tests for {@link DBSessionStore}
+ */
+class DBSessionStoreTest extends DBTestBase {
+
+    @Test
+    void testCreate() {
+        val userStore = new DBSessionStore(createRealUserDao());
+        val newUserSession = userStore.create("user_id",
+                                              SessionType.DYNAMIC,
+                                              Date.from(Instant.now().plus(Duration.ofDays(7)))).orElse(null);
+        assertNotNull(newUserSession);
+        assertEquals("user_id", newUserSession.getUserId());
+        assertEquals(SessionState.ACTIVE, newUserSession.getState());
+    }
+
+    @Test
+    @SneakyThrows
+    void testCreateFailed() {
+        val userDao = createMockUserDao();
+        val mockUserDao = new DBSessionStore(userDao);
+        doThrow(NullPointerException.class).when(userDao).save(anyString(), any(StoredUserSessionDetails.class));
+        try {
+            mockUserDao.create("user_id", SessionType.DYNAMIC, Date.from(Instant.now().plus(Duration.ofDays(7))));
+            fail("Should have thrown exception");
+        }
+        catch (Exception e) {
+            assertTrue(e instanceof ConductorException);
+            assertEquals(ConductorErrorCode.STORE_WRITE_ERROR, ((ConductorException) e).getErrorCode());
+        }
+    }
+
+    private RelationalDao<StoredUserSessionDetails> createRealUserDao() {
+        return bundle.createRelatedObjectDao(StoredUserSessionDetails.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    private RelationalDao<StoredUserSessionDetails> createMockUserDao() {
+        return (RelationalDao<StoredUserSessionDetails>) mock(RelationalDao.class);
+    }
+}

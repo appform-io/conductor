@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.store.impl;
+package io.appform.conductor.server.usermgmt.store.impl;
 
-import io.appform.conductor.DBTestBase;
+import io.appform.conductor.server.DBTestBase;
 import io.appform.conductor.server.internalmodels.auth.UserPasswordAuthDetails;
+import io.appform.conductor.server.usermanagement.impl.DBUserPasswordAuthStore;
+import io.appform.conductor.server.usermanagement.impl.models.StoredUserPassword;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +35,7 @@ class DBUserPasswordAuthStoreTest extends DBTestBase {
     @Test
     void test() {
         val store =
-                new DBUserPasswordAuthStore(bundle.createRelatedObjectDao(DBUserPasswordAuthStore.StoredUserPassword.class));
+                new DBUserPasswordAuthStore(bundle.createRelatedObjectDao(StoredUserPassword.class));
         val res = store.set("TEST_USER", "TEST_PASSWORD");
         assertTrue(res.isPresent());
         assertEquals(res.map(UserPasswordAuthDetails::getPassword).orElse(null),

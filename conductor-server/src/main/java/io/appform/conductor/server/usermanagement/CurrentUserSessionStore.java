@@ -14,20 +14,29 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.store;
+package io.appform.conductor.server.usermanagement;
 
-import io.appform.conductor.server.internalmodels.auth.UserPasswordAuthDetails;
+import io.appform.conductor.model.usermgmt.UserSession;
+import lombok.experimental.UtilityClass;
 
 import java.util.Optional;
-import java.util.function.UnaryOperator;
 
 /**
  *
  */
-public interface UserPasswordAuthStore {
-    Optional<UserPasswordAuthDetails> set(final String userId, final String password);
+@UtilityClass
+public class CurrentUserSessionStore {
+    private static final ThreadLocal<UserSession> currentSession = new ThreadLocal<>();
 
-    Optional<UserPasswordAuthDetails> update(final String userId, final UnaryOperator<UserPasswordAuthDetails> updater);
+    public static void set(UserSession session) {
+        currentSession.set(session);
+    }
 
-    Optional<UserPasswordAuthDetails> get(final String userId);
+    public static Optional<UserSession> get() {
+        return Optional.ofNullable(currentSession.get());
+    }
+
+    public static void clear() {
+        currentSession.remove();
+    }
 }

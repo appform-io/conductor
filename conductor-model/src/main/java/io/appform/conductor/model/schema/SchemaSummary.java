@@ -16,7 +16,6 @@
 
 package io.appform.conductor.model.schema;
 
-import io.appform.conductor.model.usermgmt.UserSummary;
 import lombok.Value;
 
 import java.util.Date;
@@ -55,7 +54,7 @@ public class SchemaSummary {
     /**
      * Coordinates of the user that created this schema
      */
-    UserSummary createdBy;
+    String stateChangedBy;
 
     /**
      * Creation date for the schema

@@ -16,6 +16,10 @@
 
 package io.appform.conductor.model.schema;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.appform.conductor.model.schema.fields.*;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -25,7 +29,15 @@ import java.util.Date;
  * Definition for a field in the ticket. Will be used to render and validate inputs/outputs
  */
 @Data
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(name = "STRING", value = StringFieldSchema.class),
+        @JsonSubTypes.Type(name = "CHOICE", value = ChoiceFieldSchema.class),
+        @JsonSubTypes.Type(name = "BOOLEAN", value = BooleanFieldSchema.class),
+        @JsonSubTypes.Type(name = "LOCATION", value = LocationFieldSchema.class),
+        @JsonSubTypes.Type(name = "DATE", value = DateFieldSchema.class),
+})
 public abstract class FieldSchema {
     /**
      * Type of field

@@ -26,22 +26,12 @@ public enum SchemaState {
     /**
      * Schema is active and ticket creation is allowed
      */
-    ACTIVE("Active") {
-        @Override
-        public <T> T accept(SchemaStateVisitor<T> visitor) {
-            return visitor.visitActive();
-        }
-    },
+    ACTIVE("Active"),
 
     /**
      * Schema is inactive
      */
-    INACTIVE("Inactive") {
-        @Override
-        public <T> T accept(SchemaStateVisitor<T> visitor) {
-            return visitor.visitInactive();
-        }
-    };
+    INACTIVE("Inactive");
 
     @Getter
     private final String displayName;
@@ -50,22 +40,4 @@ public enum SchemaState {
         this.displayName = displayName;
     }
 
-    /**
-     * Accepts an implementation of {@link SchemaStateVisitor} fpr handling state specific operations
-     * @param visitor The actual implementation fo the visitor
-     * @param <T> Return type for implementation
-     * @return Rerult of processing
-     */
-    public abstract <T> T accept(final SchemaStateVisitor<T> visitor);
-
-    /**
-     * Visitor can be implemented to handle validations and transitions etc.
-     * @param <T> Return type of visitor
-     */
-    public interface SchemaStateVisitor<T> {
-
-        T visitActive();
-
-        T visitInactive();
-    }
 }

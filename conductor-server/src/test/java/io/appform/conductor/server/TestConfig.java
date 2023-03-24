@@ -16,24 +16,18 @@
 
 package io.appform.conductor.server;
 
-import io.appform.conductor.server.utils.ConductorServerUtils;
-import io.dropwizard.Application;
+import io.appform.dropwizard.sharding.config.ShardedHibernateFactory;
 import io.dropwizard.Configuration;
-import io.dropwizard.setup.Environment;
-import lombok.val;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
- *
+ * A test config to setup local database
  */
-public class App extends Application<Configuration> {
-    @Override
-    public void run(Configuration configuration, Environment environment) throws Exception {
-        val objectMapper = environment.getObjectMapper();
-        ConductorServerUtils.configureMapper(objectMapper);
-    }
-
-    public static void main(String[] args) throws Exception {
-        val app = new App();
-        app.run(args);
-    }
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class TestConfig extends Configuration {
+    public ShardedHibernateFactory shards = new ShardedHibernateFactory();
 }

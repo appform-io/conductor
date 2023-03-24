@@ -16,8 +16,14 @@
 
 package io.appform.conductor.server.utils;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
+import io.appform.conductor.server.usermanagement.CurrentUserSessionStore;
 import lombok.experimental.UtilityClass;
 
 import java.util.Calendar;
@@ -51,4 +57,17 @@ public class ConductorServerUtils {
     }
 
 
+    public static String operatingUserId() {
+        return CurrentUserSessionStore.get()
+                .map(user -> user.getUser().getSummary().getId())
+                .orElse(null);
+    }
+
+    public static void configureMapper(ObjectMapper objectMapper) {
+        objectMapper.registerModule(new ParameterNamesModule());
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    }
 }

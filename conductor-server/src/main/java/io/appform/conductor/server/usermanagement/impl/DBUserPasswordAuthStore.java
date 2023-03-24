@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.store.impl;
+package io.appform.conductor.server.usermanagement.impl;
 
 import com.google.common.collect.ImmutableMap;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.server.internalmodels.auth.UserPasswordAuthDetails;
-import io.appform.conductor.server.store.UserPasswordAuthStore;
+import io.appform.conductor.server.usermanagement.UserPasswordAuthStore;
+import io.appform.conductor.server.usermanagement.impl.models.StoredUserPassword;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.val;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
 import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Property;
 
 import javax.inject.Inject;
-import javax.persistence.*;
-import java.util.Date;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
@@ -40,45 +35,11 @@ import java.util.function.UnaryOperator;
  *
  */
 public class DBUserPasswordAuthStore implements UserPasswordAuthStore {
-    private static final String TABLE_NAME = "user_passwords";
+    public static final String USER_PASSWORD_TABLE_NAME = "user_passwords";
 
     @Inject
     public DBUserPasswordAuthStore(RelationalDao<StoredUserPassword> passwordDao) {
         this.passwordDao = passwordDao;
-    }
-
-    @Entity
-    @Table(name = TABLE_NAME)
-    @Data
-    @NoArgsConstructor
-    public static class StoredUserPassword {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private long id;
-
-        @Column(name = "user_id", unique = true, nullable = false, length = 45)
-        private String userId;
-
-        @Column(name = "password", nullable = false)
-        private String password;
-
-        @Column(name = "failed_password_attempt")
-        private int failedPasswordAttempts;
-
-        @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-        @Generated(value = GenerationTime.INSERT)
-        private Date created;
-
-        @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-                updatable = false, insertable = false)
-        @Generated(value = GenerationTime.ALWAYS)
-        private Date updated;
-
-        public StoredUserPassword(String userId, String password, int failedPasswordAttempts) {
-            this.userId = userId;
-            this.password = password;
-            this.failedPasswordAttempts = failedPasswordAttempts;
-        }
     }
 
     private final RelationalDao<StoredUserPassword> passwordDao;
@@ -93,7 +54,7 @@ public class DBUserPasswordAuthStore implements UserPasswordAuthStore {
             throw ConductorException.builder()
                     .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
                     .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", TABLE_NAME)
+                                     .put("type", USER_PASSWORD_TABLE_NAME)
                                      .put("id", userId)
                                      .build())
                     .cause(e)
@@ -120,7 +81,7 @@ public class DBUserPasswordAuthStore implements UserPasswordAuthStore {
                             throw ConductorException.builder()
                                     .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
                                     .context(ImmutableMap.<String, Object>builder()
-                                                     .put("type", TABLE_NAME)
+                                                     .put("type", USER_PASSWORD_TABLE_NAME)
                                                      .put("id", userId)
                                                      .build())
                                     .cause(e)
@@ -136,7 +97,7 @@ public class DBUserPasswordAuthStore implements UserPasswordAuthStore {
             throw ConductorException.builder()
                     .errorCode(ConductorErrorCode.STORE_READ_ERROR)
                     .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", TABLE_NAME)
+                                     .put("type", USER_PASSWORD_TABLE_NAME)
                                      .put("id", userId)
                                      .build())
                     .cause(e)
@@ -157,7 +118,7 @@ public class DBUserPasswordAuthStore implements UserPasswordAuthStore {
             throw ConductorException.builder()
                     .errorCode(ConductorErrorCode.STORE_READ_ERROR)
                     .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", TABLE_NAME)
+                                     .put("type", USER_PASSWORD_TABLE_NAME)
                                      .put("id", userId)
                                      .build())
                     .cause(e)
@@ -167,7 +128,7 @@ public class DBUserPasswordAuthStore implements UserPasswordAuthStore {
 
     private static DetachedCriteria createCriteria(String userId) {
         return DetachedCriteria.forClass(StoredUserPassword.class)
-                .add(Restrictions.eq("userId", userId));
+                .add(Property.forName("userId").eq(userId));
     }
 
     private static UserPasswordAuthDetails toWire(final StoredUserPassword password) {

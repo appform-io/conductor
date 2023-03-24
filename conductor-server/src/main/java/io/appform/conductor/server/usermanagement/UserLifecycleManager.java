@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.core;
+package io.appform.conductor.server.usermanagement;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.google.common.base.Strings;
@@ -25,7 +25,6 @@ import io.appform.conductor.model.usermgmt.*;
 import io.appform.conductor.server.internalmodels.auth.PasswordAuthData;
 import io.appform.conductor.server.internalmodels.auth.UserAuthenticator;
 import io.appform.conductor.server.internalmodels.auth.UserTokenAuthData;
-import io.appform.conductor.server.store.*;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
