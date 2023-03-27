@@ -51,6 +51,7 @@ public class DBSchemaStore implements SchemaStore {
 
     private static final String SCHEMA_ID_FIELD = "schemaId";
     private static final String VERSION_FIELD = "version";
+    private static final String STATE_FIELD = "state";
 
     private final RelationalDao<StoredSchema> schemaDao;
     private final ObjectMapper mapper;
@@ -95,8 +96,14 @@ public class DBSchemaStore implements SchemaStore {
     public Optional<Schema> get(String schemaId) {
         try {
             return schemaDao.select(schemaId,
-                                    criteriaForMaxVersion(schemaId)
-                                            .add(Property.forName("state").eq(ACTIVE)),
+                                    DetachedCriteria.forClass(StoredSchema.class)
+                                            .add(Property.forName(SCHEMA_ID_FIELD).eq(schemaId))
+                                            .add(Property.forName(VERSION_FIELD)
+                                                         .eq(DetachedCriteria.forClass(StoredSchema.class)
+                                                                     .add(Property.forName(SCHEMA_ID_FIELD).eq(schemaId))
+                                                                     .add(Property.forName(STATE_FIELD).eq(ACTIVE))
+                                                                     .setProjection(Projections.max(VERSION_FIELD))))
+                                            ,
                                     0, 1)
                     .stream()
                     .findFirst()
