@@ -240,7 +240,7 @@ public class DBSchemaStore implements SchemaStore {
                     .build();
         }
         throw ConductorException.builder()
-                .errorCode(ConductorErrorCode.SCHEMA_VERSION_CREATE_FAILED)
+                .errorCode(ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
                 .context(ImmutableMap.<String, Object>builder()
                                  .put(SCHEMA_ID_FIELD, schemaId)
                                  .put(VERSION_FIELD, version)

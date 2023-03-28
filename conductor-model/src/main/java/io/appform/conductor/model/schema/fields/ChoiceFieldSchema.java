@@ -41,7 +41,7 @@ public class ChoiceFieldSchema extends FieldSchema {
             String displayName,
             String description,
             boolean required,
-            FieldSchema parent,
+            String parent,
             String visibilityCondition,
             String editableCondition,
             Date created,
@@ -58,6 +58,7 @@ public class ChoiceFieldSchema extends FieldSchema {
               parent,
               visibilityCondition,
               editableCondition,
+              allowMultiple,
               created,
               updated);
         this.choices = choices;
@@ -74,11 +75,6 @@ public class ChoiceFieldSchema extends FieldSchema {
         String displayText;
     }
     List<Option> choices;
-
-    /**
-     * Is multiple selection allowed
-     */
-    boolean allowMultiple;
 
     /**
      * Default choice if field is not mandatory

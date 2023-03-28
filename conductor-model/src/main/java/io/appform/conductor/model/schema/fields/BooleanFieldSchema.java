@@ -49,9 +49,10 @@ public class BooleanFieldSchema extends FieldSchema {
             String displayName,
             String description,
             boolean required,
-            FieldSchema parent,
+            String parent,
             String visibilityCondition,
             String editableCondition,
+            boolean allowMultiple,
             Date created,
             Date updated,
             boolean defaultValue) {
@@ -64,6 +65,7 @@ public class BooleanFieldSchema extends FieldSchema {
               parent,
               visibilityCondition,
               editableCondition,
+              allowMultiple,
               created,
               updated);
         this.defaultValue = defaultValue;

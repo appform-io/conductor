@@ -49,9 +49,10 @@ public class LocationFieldSchema extends FieldSchema {
             String displayName,
             String description,
             boolean required,
-            FieldSchema parent,
+            String parent,
             String visibilityCondition,
             String editableCondition,
+            boolean allowMultiple,
             Date created,
             Date updated,
             double defaultLat,
@@ -65,6 +66,7 @@ public class LocationFieldSchema extends FieldSchema {
               parent,
               visibilityCondition,
               editableCondition,
+              allowMultiple,
               created,
               updated);
         this.defaultLat = defaultLat;

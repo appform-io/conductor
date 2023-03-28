@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,32 +14,42 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.schema.fields;
+package io.appform.conductor.server.schemamanagement.impl.models;
 
-import io.appform.conductor.model.schema.FieldSchema;
-import io.appform.conductor.model.schema.FieldSchemaVisitor;
 import io.appform.conductor.model.schema.FieldType;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
-import lombok.Value;
 
-import java.util.Date;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
 /**
- * Represents the schema for a date input field.
+ *
  */
-@Value
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class DateFieldSchema extends FieldSchema {
+@Entity
+@Table(name = "number_field_schemas")
+@Getter
+@Setter
+@ToString
+public class StoredNumberFieldSchema extends StoredFieldSchema {
+    @Column(name = "max_value")
+    private double max;
 
-    /**
-     * Default value to be put in if field is not mandatory.
-     */
-    Date defaultValue;
+    @Column(name = "min_value")
+    private double min;
 
-    public DateFieldSchema(
-            String id,
+    @Column(name = "default_value")
+    private double defaultValue;
+
+    public StoredNumberFieldSchema() {
+        super(FieldType.NUMBER);
+    }
+
+    public StoredNumberFieldSchema(
+            String schemaId,
+            String fieldId,
             String name,
             String displayName,
             String description,
@@ -48,11 +58,12 @@ public class DateFieldSchema extends FieldSchema {
             String visibilityCondition,
             String editableCondition,
             boolean allowMultiple,
-            Date created,
-            Date updated,
-            Date defaultValue) {
-        super(FieldType.DATE,
-              id,
+            double max,
+            double min,
+            double defaultValue) {
+        super(FieldType.NUMBER,
+              schemaId,
+              fieldId,
               name,
               displayName,
               description,
@@ -60,14 +71,14 @@ public class DateFieldSchema extends FieldSchema {
               parent,
               visibilityCondition,
               editableCondition,
-              allowMultiple,
-              created,
-              updated);
+              allowMultiple);
+        this.max = max;
+        this.min = min;
         this.defaultValue = defaultValue;
     }
 
     @Override
-    public <T> T accept(FieldSchemaVisitor<T> visitor) {
+    public <T> T accept(StoredFieldSchemaVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

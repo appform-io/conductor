@@ -37,6 +37,7 @@ import java.util.Date;
         @JsonSubTypes.Type(name = "BOOLEAN", value = BooleanFieldSchema.class),
         @JsonSubTypes.Type(name = "LOCATION", value = LocationFieldSchema.class),
         @JsonSubTypes.Type(name = "DATE", value = DateFieldSchema.class),
+        @JsonSubTypes.Type(name = "NUMBER", value = NumberFieldSchema.class),
 })
 public abstract class FieldSchema {
     /**
@@ -72,7 +73,7 @@ public abstract class FieldSchema {
     /**
      * This is possible if field is child of another field (TODO)
      */
-    private final FieldSchema parent;
+    private final String parent;
 
     //TODO::HINT
 
@@ -87,6 +88,11 @@ public abstract class FieldSchema {
     private final String editableCondition;
 
     /**
+     * Is multiple selection allowed
+     */
+    protected boolean allowMultiple;
+
+    /**
      * Creation time for the schema
      */
     private final Date created;
@@ -95,6 +101,7 @@ public abstract class FieldSchema {
      * Last updated timestamp
      */
     private final Date updated;
+
 
     /**
      * Accept an implementation of {@link FieldSchemaVisitor} for type specific handling like validations, rendering etc

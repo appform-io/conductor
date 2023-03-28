@@ -58,6 +58,7 @@ class DBSchemaStoreTest extends DBTestBase {
                                                               null,
                                                               null,
                                                               null,
+                                                              false,
                                                               new Date(),
                                                               new Date(),
                                                               false)));
@@ -113,6 +114,7 @@ class DBSchemaStoreTest extends DBTestBase {
                                                                                                          null,
                                                                                                          null,
                                                                                                          null,
+                                                                                                         false,
                                                                                                          new Date(),
                                                                                                          new Date(),
                                                                                                          false)));
@@ -137,6 +139,7 @@ class DBSchemaStoreTest extends DBTestBase {
                                                                           null,
                                                                           null,
                                                                           null,
+                                                                          false,
                                                                           new Date(),
                                                                           new Date(),
                                                                           false)));
@@ -154,6 +157,7 @@ class DBSchemaStoreTest extends DBTestBase {
                                                                                           null,
                                                                                           null,
                                                                                           null,
+                                                                                          false,
                                                                                           new Date(),
                                                                                           new Date(),
                                                                                           false)));

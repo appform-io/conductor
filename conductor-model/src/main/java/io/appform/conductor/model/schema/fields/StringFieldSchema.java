@@ -41,7 +41,7 @@ public class StringFieldSchema extends FieldSchema {
     /**
      * Regular expression to ensure field can take only matching patterns
      */
-    String regex;
+    String matchPattern;
 
     /**
      * Default value to be filled in if field is not mandatory
@@ -54,13 +54,14 @@ public class StringFieldSchema extends FieldSchema {
             String displayName,
             String description,
             boolean required,
-            FieldSchema parent,
+            String parent,
             String visibilityCondition,
             String editableCondition,
+            boolean allowMultiple,
             Date created,
             Date updated,
             int maxLength,
-            String regex,
+            String matchPattern,
             String defaultValue) {
         super(FieldType.STRING,
               id,
@@ -71,10 +72,11 @@ public class StringFieldSchema extends FieldSchema {
               parent,
               visibilityCondition,
               editableCondition,
+              allowMultiple,
               created,
               updated);
         this.maxLength = maxLength;
-        this.regex = regex;
+        this.matchPattern = matchPattern;
         this.defaultValue = defaultValue;
     }
 

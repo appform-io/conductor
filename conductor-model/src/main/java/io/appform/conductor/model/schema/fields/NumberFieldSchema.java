@@ -54,9 +54,10 @@ public class NumberFieldSchema extends FieldSchema {
             String displayName,
             String description,
             boolean required,
-            FieldSchema parent,
+            String parent,
             String visibilityCondition,
             String editableCondition,
+            boolean allowMultiple,
             Date created,
             Date updated,
             double max,
@@ -71,6 +72,7 @@ public class NumberFieldSchema extends FieldSchema {
               parent,
               visibilityCondition,
               editableCondition,
+              allowMultiple,
               created,
               updated);
         this.max = max;
