@@ -17,6 +17,7 @@
 package io.appform.conductor.server.schemamanagement.impl.models;
 
 import io.appform.conductor.model.schema.SchemaState;
+import io.appform.conductor.server.schemamanagement.impl.DBSchemaStore;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,7 +34,7 @@ import java.util.List;
  *
  */
 @Entity
-@Table(name = "schema_summaries")
+@Table(name = DBSchemaStore.SCHEMA_TABLE_NAME)
 @Getter
 @Setter
 @ToString

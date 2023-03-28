@@ -21,63 +21,51 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
-import io.appform.conductor.model.schema.FieldSchema;
-import io.appform.conductor.model.schema.Schema;
-import io.appform.conductor.model.schema.SchemaState;
-import io.appform.conductor.server.schemamanagement.impl.models.StoredSchema;
+import io.appform.conductor.model.schema.*;
+import io.appform.conductor.model.schema.fields.*;
+import io.appform.conductor.server.schemamanagement.impl.models.*;
+import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
-import io.appform.functionmetrics.MonitoredFunction;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Property;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.List;
 import java.util.Optional;
 
-import static io.appform.conductor.model.schema.SchemaState.ACTIVE;
 import static io.appform.conductor.model.schema.SchemaState.INACTIVE;
-import static io.appform.conductor.server.schemamanagement.impl.models.StoredSchema.DefinitionType.RAW;
 import static io.appform.conductor.server.utils.ConductorServerUtils.normalize;
 import static io.appform.conductor.server.utils.ConductorServerUtils.operatingUserId;
 
 /**
- * Stored schema in mysql
+ *
  */
+@Singleton
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class DBSchemaStore implements SchemaStore {
-    public static final String SCHEMA_TABLE_NAME = "schemas";
+    public static final String SCHEMA_TABLE_NAME = "schema_summaries";
+    private static final String SCHEMA_ID_NAME = "schemaId";
+    private static final String FIELD_ID_NAME = "fieldId";
 
-    private static final String SCHEMA_ID_FIELD = "schemaId";
-    private static final String VERSION_FIELD = "version";
-    private static final String STATE_FIELD = "state";
+    private final LookupDao<StoredSchemaSummary> schemaDao;
+    private final RelationalDao<StoredFieldSchema> fieldDao;
 
-    private final RelationalDao<StoredSchema> schemaDao;
     private final ObjectMapper mapper;
 
-    @Inject
-    public DBSchemaStore(RelationalDao<StoredSchema> schemaDao, ObjectMapper mapper) {
-        this.schemaDao = schemaDao;
-        this.mapper = mapper;
-    }
-
     @Override
-    @MonitoredFunction
-    public Optional<Schema> create(String name, String description, List<FieldSchema> fields) {
+    public Optional<SchemaSummary> create(String name, String description) {
         val schemaId = normalize(name);
         try {
-            val version = versionNumber(schemaId);
-            val storedSchema = new StoredSchema()
-                    .setSchemaId(schemaId)
-                    .setName(name)
-                    .setDescription(description)
-                    .setVersion(version)
-                    .setDefinitionType(RAW)
-                    .setFields(mapper.writeValueAsBytes(fields))
-                    .setState(INACTIVE)
-                    .setCreatedBy(operatingUserId());
-            return schemaDao.save(schemaId, storedSchema).map(this::toWire);
+            return schemaDao.save(new StoredSchemaSummary(schemaId,
+                                                          name,
+                                                          description,
+                                                          INACTIVE,
+                                                          operatingUserId()))
+                    .map(DBSchemaStore::toSummary);
         }
         catch (Exception e) {
             throw ConductorException.builder()
@@ -92,200 +80,495 @@ public class DBSchemaStore implements SchemaStore {
     }
 
     @Override
-    @MonitoredFunction
+    public Optional<SchemaSummary> getSummary(String schemaId) {
+        try {
+            return schemaDao.get(schemaId).map(DBSchemaStore::toSummary);
+        }
+        catch (Exception e) {
+            throw ConductorException.builder()
+                    .errorCode(ConductorErrorCode.STORE_READ_ERROR)
+                    .context(ImmutableMap.<String, Object>builder()
+                                     .put("type", SCHEMA_TABLE_NAME)
+                                     .put("id", schemaId)
+                                     .build())
+                    .cause(e)
+                    .build();
+        }
+    }
+
+    @Override
     public Optional<Schema> get(String schemaId) {
         try {
-            return schemaDao.select(schemaId,
-                                    DetachedCriteria.forClass(StoredSchema.class)
-                                            .add(Property.forName(SCHEMA_ID_FIELD).eq(schemaId))
-                                            .add(Property.forName(VERSION_FIELD)
-                                                         .eq(DetachedCriteria.forClass(StoredSchema.class)
-                                                                     .add(Property.forName(SCHEMA_ID_FIELD).eq(schemaId))
-                                                                     .add(Property.forName(STATE_FIELD).eq(ACTIVE))
-                                                                     .setProjection(Projections.max(VERSION_FIELD))))
-                                            ,
-                                    0, 1)
-                    .stream()
-                    .findFirst()
-                    .map(this::toWire);
+            return schemaDao.readOnlyExecutor(schemaId)
+                    .readAugmentParent(fieldDao,
+                                       DetachedCriteria.forClass(StoredFieldSchema.class)
+                                               .add(Property.forName("deleted").eq(false))
+                                               .add(Property.forName(SCHEMA_ID_NAME).eq(schemaId)),
+                                       0, Integer.MAX_VALUE,
+                                       StoredSchemaSummary::setFields)
+                    .execute()
+                    .map(this::toSchema);
         }
         catch (Exception e) {
             throw ConductorException.builder()
                     .errorCode(ConductorErrorCode.STORE_READ_ERROR)
                     .context(ImmutableMap.<String, Object>builder()
                                      .put("type", SCHEMA_TABLE_NAME)
-                                     .put("id", schemaId + "/latest")
+                                     .put("id", schemaId)
                                      .build())
                     .cause(e)
                     .build();
         }
+
     }
 
     @Override
-    @MonitoredFunction
-    public Optional<Schema> getVersion(String schemaId, long version) {
+    public Optional<SchemaSummary> updateDescription(String schemaId, String description) {
         try {
-            return schemaDao.select(schemaId,
-                                    criteriaForVersion(schemaId, version), 0, 1)
-                    .stream()
-                    .findFirst()
-                    .map(this::toWire);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_READ_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", SCHEMA_TABLE_NAME)
-                                     .put("id", schemaId + "/" + version)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
-    }
-
-    @Override
-    @MonitoredFunction
-    public Optional<Schema> updateDescription(String schemaId, long version, String description) {
-        try {
-            val status = schemaDao.update(schemaId,
-                                          criteriaForVersion(schemaId, version),
-                                          existing -> existing.setDescription(description)); //No version change
-            if (status) {
-                return getVersion(schemaId, version);
-            }
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_READ_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", SCHEMA_TABLE_NAME)
-                                     .put("id", schemaId + "/" + version)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
-        throw ConductorException.builder()
-                .errorCode(ConductorErrorCode.SCHEMA_UPDATE_FAILED)
-                .context(ImmutableMap.<String, Object>builder()
-                                 .put(SCHEMA_ID_FIELD, schemaId)
-                                 .put(VERSION_FIELD, version)
-                                 .put("operation", "Description update to: " + description)
-                                 .build())
-                .build();
-    }
-
-    @Override
-    @MonitoredFunction
-    public Optional<Schema> updateState(String schemaId, long version, SchemaState required, SchemaState newState) {
-        try {
-            val status = schemaDao.update(schemaId,
-                                          criteriaForVersion(schemaId, version)
-                                                  .add(Property.forName("state").eq(required)),
-                                          existing -> existing.setState(newState)
-                                                  .setStateChangedBy(operatingUserId())); //Do not update version here
-            if (status) {
-                return getVersion(schemaId, version);
-            }
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_READ_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", SCHEMA_TABLE_NAME)
-                                     .put("id", schemaId + "/" + version)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
-        throw ConductorException.builder()
-                .errorCode(ConductorErrorCode.SCHEMA_UPDATE_FAILED)
-                .context(ImmutableMap.<String, Object>builder()
-                                 .put(SCHEMA_ID_FIELD, schemaId)
-                                 .put(VERSION_FIELD, version)
-                                 .put("operation", "State update from " + required + " to " + newState)
-                                 .build())
-                .build();
-    }
-
-    @Override
-    @MonitoredFunction
-    public Optional<Schema> updateFields(String schemaId, long version, List<FieldSchema> fields) {
-        try {
-            val existing = schemaDao.select(schemaId, criteriaForVersion(schemaId, version), 0, 1)
-                    .stream()
-                    .findFirst()
-                    .orElse(null);
-            if (null != existing) {
-                val versionNumber = versionNumber(schemaId);
-                val storedSchema = new StoredSchema()
-                        .setSchemaId(schemaId)
-                        .setName(existing.getName())
-                        .setDescription(existing.getDescription())
-                        .setVersion(versionNumber)
-                        .setDefinitionType(RAW)
-                        .setFields(mapper.writeValueAsBytes(fields))
-                        .setState(INACTIVE)
-                        .setCreatedBy(operatingUserId());
-                return schemaDao.save(schemaId, storedSchema).map(this::toWire); //Do not update version here
-            }
+            return Optional.ofNullable(schemaDao.lockAndGetExecutor(schemaId)
+                                               .mutate(summary -> summary.setDescription(description))
+                                               .execute())
+                    .map(DBSchemaStore::toSummary);
         }
         catch (Exception e) {
             throw ConductorException.builder()
                     .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
                     .context(ImmutableMap.<String, Object>builder()
                                      .put("type", SCHEMA_TABLE_NAME)
-                                     .put("id", schemaId + "/" + version)
+                                     .put("id", schemaId)
                                      .build())
                     .cause(e)
                     .build();
         }
-        throw ConductorException.builder()
-                .errorCode(ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
-                .context(ImmutableMap.<String, Object>builder()
-                                 .put(SCHEMA_ID_FIELD, schemaId)
-                                 .put(VERSION_FIELD, version)
-                                 .build())
-                .build();
     }
 
-    @SneakyThrows
-    private Schema toWire(final StoredSchema schema) {
+    @Override
+    public Optional<SchemaSummary> updateState(String schemaId, SchemaState state) {
+        try {
+            return Optional.ofNullable(schemaDao.lockAndGetExecutor(schemaId)
+                                               .mutate(summary -> summary.setState(state)
+                                                       .setStateChangedBy(operatingUserId()))
+                                               .execute())
+                    .map(DBSchemaStore::toSummary);
+        }
+        catch (Exception e) {
+            throw ConductorException.builder()
+                    .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
+                    .context(ImmutableMap.<String, Object>builder()
+                                     .put("type", SCHEMA_TABLE_NAME)
+                                     .put("id", schemaId)
+                                     .build())
+                    .cause(e)
+                    .build();
+        }
+    }
+
+    @Override
+    public Optional<FieldSchema> addField(String schemaId, FieldSchema schema) {
+        val fieldId = schemaId + "-" + normalize(schema.getName());
+        try {
+            return fieldDao.save(schemaId, toStoredFieldSchema(schemaId, fieldId, schema))
+                    .map(this::toFieldSchema);
+        }
+        catch (Exception e) {
+            throw ConductorException.builder()
+                    .errorCode(ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
+                    .context(ImmutableMap.<String, Object>builder()
+                                     .put(SCHEMA_ID_NAME, schemaId)
+                                     .put(FIELD_ID_NAME, schemaId)
+                                     .put("id", schemaId)
+                                     .build())
+                    .cause(e)
+                    .build();
+        }
+    }
+
+    @Override
+    public Optional<FieldSchema> updateField(String schemaId, FieldSchema updated) {
+        try {
+            return Optional.ofNullable(fieldDao.lockAndGetExecutor(schemaId,
+                                                                   DetachedCriteria.forClass(StoredFieldSchema.class)
+                                                                           .add(Property.forName(FIELD_ID_NAME)
+                                                                                        .eq(updated.getId())))
+                                               .mutate(schema -> updateSchema(updated, schema))
+                                               .execute())
+                    .map(this::toFieldSchema);
+        }
+        catch (Exception e) {
+            throw ConductorException.builder()
+                    .errorCode(ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
+                    .context(ImmutableMap.<String, Object>builder()
+                                     .put(SCHEMA_ID_NAME, schemaId)
+                                     .put(FIELD_ID_NAME, schemaId)
+                                     .put("id", schemaId)
+                                     .build())
+                    .cause(e)
+                    .build();
+        }
+    }
+
+    private void updateSchema(FieldSchema updated, StoredFieldSchema schema) {
+        schema
+                .setDisplayName(schema.getDisplayName())
+                .setDescription(updated.getDescription())
+                .setRequired(updated.isRequired())
+                .setParent(updated.getParent())
+                .setVisibilityCondition(updated.getVisibilityCondition())
+                .setEditableCondition(updated.getEditableCondition())
+                .setAllowMultiple(updated.isAllowMultiple());
+        updated.accept(new FieldSchemaVisitor<Void>() {
+            @Override
+            public Void visit(StringFieldSchema updatedStringField) {
+                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
+
+                    @Override
+                    public Void visit(StoredStringFieldSchema stringField) {
+                        stringField
+                                .setMaxLength(updatedStringField.getMaxLength())
+                                .setMatchPattern(updatedStringField.getMatchPattern())
+                                .setDefaultValue(updatedStringField.getDefaultValue());
+                        return super.visit(stringField);
+                    }
+                });
+                return null;
+            }
+
+            @Override
+            public Void visit(NumberFieldSchema updatedNumberField) {
+                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
+                    @Override
+                    public Void visit(StoredNumberFieldSchema numberField) {
+                        numberField
+                                .setMax(updatedNumberField.getMax())
+                                .setMin(updatedNumberField.getMin())
+                                .setDefaultValue(updatedNumberField.getDefaultValue());
+                        return super.visit(numberField);
+                    }
+                });
+                return null;
+            }
+
+            @Override
+            public Void visit(BooleanFieldSchema updatedBooleanField) {
+                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
+                    @Override
+                    public Void visit(StoredBooleanFieldSchema booleanField) {
+                        booleanField.setDefaultValue(booleanField.isDefaultValue());
+                        return super.visit(booleanField);
+                    }
+                });
+                return null;
+            }
+
+            @Override
+            public Void visit(LocationFieldSchema updatedLocationField) {
+                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
+                    @Override
+                    public Void visit(StoredLocationFieldSchema locationField) {
+                        locationField
+                                .setDefaultLat(updatedLocationField.getDefaultLat())
+                                .setDefaultLon(updatedLocationField.getDefaultLon());
+                        return super.visit(locationField);
+                    }
+                });
+                return null;
+            }
+
+            @Override
+            public Void visit(DateFieldSchema updateDateField) {
+                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
+                    @Override
+                    public Void visit(StoredDateFieldSchema dateField) {
+                        dateField
+                                .setDefaultValue(updateDateField.getDefaultValue());
+                        return super.visit(dateField);
+                    }
+                });
+                return null;
+            }
+
+            @Override
+            public Void visit(ChoiceFieldSchema updatedChoiceField) {
+                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
+                    @Override
+                    @SneakyThrows
+                    public Void visit(StoredChoiceFieldSchema choiceField) {
+                        choiceField
+                                .setOptionsData(mapper.writeValueAsBytes(updatedChoiceField.getChoices()))
+                                .setDefaultSelection(updatedChoiceField.getDefaultSelection());
+                        return super.visit(choiceField);
+                    }
+                });
+                return null;
+            }
+        });
+
+    }
+
+    @Override
+    public boolean deleteField(String schemaId, String fieldId) {
+        try {
+            return fieldDao.lockAndGetExecutor(schemaId, DetachedCriteria.forClass(StoredFieldSchema.class)
+                            .add(Property.forName(FIELD_ID_NAME).eq(fieldId)))
+                    .mutate(schema -> schema.setDeleted(true))
+                    .execute() != null;
+        }
+        catch (Exception e) {
+            throw ConductorException.builder()
+                    .errorCode(ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
+                    .context(ImmutableMap.<String, Object>builder()
+                                     .put(SCHEMA_ID_NAME, schemaId)
+                                     .put(FIELD_ID_NAME, schemaId)
+                                     .put("id", schemaId)
+                                     .build())
+                    .cause(e)
+                    .build();
+        }
+    }
+
+    private static SchemaSummary toSummary(final StoredSchemaSummary schemaSummary) {
+        return new SchemaSummary(schemaSummary.getSchemaId(),
+                                 schemaSummary.getName(),
+                                 schemaSummary.getDescription(),
+                                 0,
+                                 schemaSummary.getState(),
+                                 schemaSummary.getStateChangedBy(),
+                                 schemaSummary.getCreated(),
+                                 schemaSummary.getUpdated());
+    }
+
+    private Schema toSchema(final StoredSchemaSummary schema) {
+        val fields = schema.getFields() == null
+                     ? List.<FieldSchema>of()
+                     : schema.getFields()
+                             .stream()
+                             .map(this::toFieldSchema)
+                             .toList();
         return new Schema(schema.getSchemaId(),
                           schema.getName(),
                           schema.getDescription(),
-                          schema.getVersion(),
+                          0,
                           schema.getState(),
                           schema.getCreatedBy(),
                           schema.getStateChangedBy(),
-                          mapper.readValue(schema.getFields(), new TypeReference<>() {
-                          }),
+                          fields,
                           schema.getCreated(),
                           schema.getUpdated());
     }
 
-    private long versionNumber(String schemaId) throws Exception {
-        return schemaDao.select(schemaId,
-                                criteriaForMaxVersion(schemaId),
-                                0, 1)
-                .stream()
-                .findFirst()
-                .map(schema -> schema.getVersion() + 1)
-                .orElse(1L);
+    private FieldSchema toFieldSchema(StoredFieldSchema storedField) {
+        if (null == storedField) {
+            return null;
+        }
+        return storedField.accept(new StoredFieldSchemaVisitor<>() {
+            @Override
+            public FieldSchema visit(StoredStringFieldSchema stringField) {
+                return new StringFieldSchema(storedField.getFieldId(),
+                                             storedField.getName(),
+                                             storedField.getDisplayName(),
+                                             storedField.getDescription(),
+                                             storedField.isRequired(),
+                                             storedField.getParent(),
+                                             storedField.getVisibilityCondition(),
+                                             storedField.getEditableCondition(),
+                                             storedField.isAllowMultiple(),
+                                             storedField.getCreated(),
+                                             storedField.getUpdated(),
+                                             stringField.getMaxLength(),
+                                             stringField.getMatchPattern(),
+                                             stringField.getDefaultValue());
+            }
+
+            @Override
+            public FieldSchema visit(StoredBooleanFieldSchema booleanField) {
+                return new BooleanFieldSchema(storedField.getFieldId(),
+                                              storedField.getName(),
+                                              storedField.getDisplayName(),
+                                              storedField.getDescription(),
+                                              storedField.isRequired(),
+                                              storedField.getParent(),
+                                              storedField.getVisibilityCondition(),
+                                              storedField.getEditableCondition(),
+                                              storedField.isAllowMultiple(),
+                                              storedField.getCreated(),
+                                              storedField.getUpdated(),
+                                              booleanField.isDefaultValue());
+            }
+
+            @Override
+            public FieldSchema visit(StoredLocationFieldSchema locationField) {
+                return new LocationFieldSchema(storedField.getFieldId(),
+                                               storedField.getName(),
+                                               storedField.getDisplayName(),
+                                               storedField.getDescription(),
+                                               storedField.isRequired(),
+                                               storedField.getParent(),
+                                               storedField.getVisibilityCondition(),
+                                               storedField.getEditableCondition(),
+                                               storedField.isAllowMultiple(),
+                                               storedField.getCreated(),
+                                               storedField.getUpdated(),
+                                               locationField.getDefaultLat(),
+                                               locationField.getDefaultLon());
+            }
+
+            @Override
+            public FieldSchema visit(StoredDateFieldSchema dateField) {
+                return new DateFieldSchema(storedField.getFieldId(),
+                                           storedField.getName(),
+                                           storedField.getDisplayName(),
+                                           storedField.getDescription(),
+                                           storedField.isRequired(),
+                                           storedField.getParent(),
+                                           storedField.getVisibilityCondition(),
+                                           storedField.getEditableCondition(),
+                                           storedField.isAllowMultiple(),
+                                           storedField.getCreated(),
+                                           storedField.getUpdated(),
+                                           dateField.getDefaultValue());
+            }
+
+            @Override
+            public FieldSchema visit(StoredNumberFieldSchema numberField) {
+                return new NumberFieldSchema(storedField.getFieldId(),
+                                             storedField.getName(),
+                                             storedField.getDisplayName(),
+                                             storedField.getDescription(),
+                                             storedField.isRequired(),
+                                             storedField.getParent(),
+                                             storedField.getVisibilityCondition(),
+                                             storedField.getEditableCondition(),
+                                             storedField.isAllowMultiple(),
+                                             storedField.getCreated(),
+                                             storedField.getUpdated(),
+                                             numberField.getMax(),
+                                             numberField.getMin(),
+                                             numberField.getDefaultValue());
+            }
+
+            @SneakyThrows
+            @Override
+            public FieldSchema visit(StoredChoiceFieldSchema choiceField) {
+                return new ChoiceFieldSchema(storedField.getFieldId(),
+                                             storedField.getName(),
+                                             storedField.getDisplayName(),
+                                             storedField.getDescription(),
+                                             storedField.isRequired(),
+                                             storedField.getParent(),
+                                             storedField.getVisibilityCondition(),
+                                             storedField.getEditableCondition(),
+                                             storedField.isAllowMultiple(),
+                                             storedField.getCreated(),
+                                             storedField.getUpdated(),
+                                             mapper.readValue(choiceField.getOptionsData(),
+                                                              new TypeReference<>() {
+                                                              }),
+                                             choiceField.getDefaultSelection());
+            }
+        });
     }
 
-    private static DetachedCriteria criteriaForVersion(String schemaId, long version) {
-        return DetachedCriteria.forClass(StoredSchema.class)
-                .add(Property.forName(SCHEMA_ID_FIELD).eq(schemaId))
-                .add(Property.forName(VERSION_FIELD).eq(version));
-    }
+    private StoredFieldSchema toStoredFieldSchema(
+            final String schemaId,
+            String fieldId,
+            final FieldSchema fieldSchema) {
+        return fieldSchema.accept(new FieldSchemaVisitor<>() {
+            @Override
+            public StoredFieldSchema visit(StringFieldSchema stringField) {
+                return new StoredStringFieldSchema(schemaId,
+                                                   fieldId,
+                                                   fieldSchema.getName(),
+                                                   fieldSchema.getDisplayName(),
+                                                   fieldSchema.getDescription(),
+                                                   fieldSchema.isRequired(),
+                                                   fieldSchema.getParent(),
+                                                   fieldSchema.getVisibilityCondition(),
+                                                   fieldSchema.getEditableCondition(),
+                                                   fieldSchema.isAllowMultiple(),
+                                                   stringField.getMaxLength(),
+                                                   stringField.getMatchPattern(),
+                                                   stringField.getDefaultValue());
+            }
 
-    private static DetachedCriteria criteriaForMaxVersion(String schemaId) {
-        return DetachedCriteria.forClass(StoredSchema.class)
-                .add(Property.forName(SCHEMA_ID_FIELD).eq(schemaId))
-                .add(Property.forName(VERSION_FIELD)
-                             .eq(DetachedCriteria.forClass(StoredSchema.class)
-                                         .add(Property.forName(SCHEMA_ID_FIELD).eq(schemaId))
-                                         .setProjection(Projections.max(VERSION_FIELD))));
-    }
+            @Override
+            public StoredFieldSchema visit(NumberFieldSchema numberField) {
+                return new StoredNumberFieldSchema(schemaId,
+                                                   fieldId,
+                                                   fieldSchema.getName(),
+                                                   fieldSchema.getDisplayName(),
+                                                   fieldSchema.getDescription(),
+                                                   fieldSchema.isRequired(),
+                                                   fieldSchema.getParent(),
+                                                   fieldSchema.getVisibilityCondition(),
+                                                   fieldSchema.getEditableCondition(),
+                                                   fieldSchema.isAllowMultiple(),
+                                                   numberField.getMax(),
+                                                   numberField.getMin(),
+                                                   numberField.getDefaultValue());
+            }
 
+            @Override
+            public StoredFieldSchema visit(BooleanFieldSchema booleanField) {
+                return new StoredBooleanFieldSchema(schemaId,
+                                                    fieldId,
+                                                    fieldSchema.getName(),
+                                                    fieldSchema.getDisplayName(),
+                                                    fieldSchema.getDescription(),
+                                                    fieldSchema.isRequired(),
+                                                    fieldSchema.getParent(),
+                                                    fieldSchema.getVisibilityCondition(),
+                                                    fieldSchema.getEditableCondition(),
+                                                    fieldSchema.isAllowMultiple(),
+                                                    booleanField.isDefaultValue());
+            }
+
+            @Override
+            public StoredFieldSchema visit(LocationFieldSchema locationField) {
+                return new StoredLocationFieldSchema(schemaId,
+                                                     fieldId,
+                                                     fieldSchema.getName(),
+                                                     fieldSchema.getDisplayName(),
+                                                     fieldSchema.getDescription(),
+                                                     fieldSchema.isRequired(),
+                                                     fieldSchema.getParent(),
+                                                     fieldSchema.getVisibilityCondition(),
+                                                     fieldSchema.getEditableCondition(),
+                                                     fieldSchema.isAllowMultiple(),
+                                                     locationField.getDefaultLat(),
+                                                     locationField.getDefaultLon());
+            }
+
+            @Override
+            public StoredFieldSchema visit(DateFieldSchema dateField) {
+                return new StoredDateFieldSchema(schemaId,
+                                                 fieldId,
+                                                 fieldSchema.getName(),
+                                                 fieldSchema.getDisplayName(),
+                                                 fieldSchema.getDescription(),
+                                                 fieldSchema.isRequired(),
+                                                 fieldSchema.getParent(),
+                                                 fieldSchema.getVisibilityCondition(),
+                                                 fieldSchema.getEditableCondition(),
+                                                 fieldSchema.isAllowMultiple(),
+                                                 dateField.getDefaultValue());
+            }
+
+            @Override
+            @SneakyThrows
+            public StoredFieldSchema visit(ChoiceFieldSchema choiceField) {
+                return new StoredChoiceFieldSchema(schemaId,
+                                                   fieldId,
+                                                   fieldSchema.getName(),
+                                                   fieldSchema.getDisplayName(),
+                                                   fieldSchema.getDescription(),
+                                                   fieldSchema.isRequired(),
+                                                   fieldSchema.getParent(),
+                                                   fieldSchema.getVisibilityCondition(),
+                                                   fieldSchema.getEditableCondition(),
+                                                   fieldSchema.isAllowMultiple(),
+                                                   mapper.writeValueAsBytes(choiceField.getChoices()),
+                                                   choiceField.getDefaultSelection());
+            }
+        });
+    }
 }

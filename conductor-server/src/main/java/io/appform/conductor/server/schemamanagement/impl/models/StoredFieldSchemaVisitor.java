@@ -29,4 +29,6 @@ public interface StoredFieldSchemaVisitor<T> {
     T visit(final StoredDateFieldSchema dateField);
 
     T visit(final StoredNumberFieldSchema numberField);
+
+    T visit(final StoredChoiceFieldSchema choiceField);
 }

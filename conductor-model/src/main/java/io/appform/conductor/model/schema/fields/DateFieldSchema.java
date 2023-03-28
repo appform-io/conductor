@@ -19,16 +19,16 @@ package io.appform.conductor.model.schema.fields;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldSchemaVisitor;
 import io.appform.conductor.model.schema.FieldType;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
 
 import java.util.Date;
 
 /**
  * Represents the schema for a date input field.
  */
-@Value
+@Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class DateFieldSchema extends FieldSchema {
@@ -36,7 +36,7 @@ public class DateFieldSchema extends FieldSchema {
     /**
      * Default value to be put in if field is not mandatory.
      */
-    Date defaultValue;
+    private Date defaultValue;
 
     public DateFieldSchema(
             String id,

@@ -19,28 +19,26 @@ package io.appform.conductor.server.schemamanagement.impl;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
+import io.appform.conductor.model.schema.SchemaSummary;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
  *
  */
 public interface SchemaStore {
-    Optional<Schema> create(final String name, final String description, final List<FieldSchema> fields);
+    Optional<SchemaSummary> create(final String name, final String description);
+
+    Optional<SchemaSummary> getSummary(final String schemaId);
 
     Optional<Schema> get(final String schemaId);
 
-    Optional<Schema> getVersion(final String schemaId, final long version);
+    Optional<SchemaSummary> updateDescription(final String schemaId, final String description);
 
-    Optional<Schema> updateDescription(final String schemaId, final long version, final String description);
+    Optional<SchemaSummary> updateState(final String schemaId, final SchemaState state);
 
-    Optional<Schema> updateState(
-            final String schemaId,
-            final long version,
-            final SchemaState required,
-            final SchemaState newState);
+    Optional<FieldSchema> addField(final String schemaId, final FieldSchema schema);
 
-    Optional<Schema> updateFields(final String schemaId, final long version, final List<FieldSchema> fields);
-
+    Optional<FieldSchema> updateField(final String schemaId, final FieldSchema updated);
+    boolean deleteField(final String schemaId, final String fieldId);
 }

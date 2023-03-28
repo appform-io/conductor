@@ -58,39 +58,39 @@ public abstract class FieldSchema {
     /**
      * Field name to be used for display purposes
      */
-    private final String displayName;
+    private String displayName;
 
     /**
      * Human-readable description for the field
      */
-    private final String description;
+    private String description;
 
     /**
      * Field value must be supplied
      */
-    private final boolean required;
+    private boolean required;
 
     /**
      * This is possible if field is child of another field (TODO)
      */
-    private final String parent;
+    private String parent;
 
     //TODO::HINT
 
     /**
      * Rule to configure when the field is visible
      */
-    private final String visibilityCondition;
+    private String visibilityCondition;
 
     /**
      * Rule to configure when field is editable
      */
-    private final String editableCondition;
+    private String editableCondition;
 
     /**
      * Is multiple selection allowed
      */
-    protected boolean allowMultiple;
+    private boolean allowMultiple;
 
     /**
      * Creation time for the schema

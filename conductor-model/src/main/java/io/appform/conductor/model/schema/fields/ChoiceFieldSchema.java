@@ -19,6 +19,7 @@ package io.appform.conductor.model.schema.fields;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldSchemaVisitor;
 import io.appform.conductor.model.schema.FieldType;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
@@ -30,10 +31,26 @@ import java.util.List;
  * Represents the schema for a field with user-selectable pre-defined choices.
  * Field will be able to support single and multiple choices as configured.
  */
-@Value
+@Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class ChoiceFieldSchema extends FieldSchema {
+
+    /**
+     * List of available choices
+     */
+    @Value
+    public static class Option {
+        String value;
+        String displayText;
+    }
+    private List<Option> choices;
+
+    /**
+     * Default choice if field is not mandatory
+     */
+    private String defaultSelection;
+
 
     public ChoiceFieldSchema(
             String id,
@@ -44,10 +61,10 @@ public class ChoiceFieldSchema extends FieldSchema {
             String parent,
             String visibilityCondition,
             String editableCondition,
+            boolean allowMultiple,
             Date created,
             Date updated,
             List<Option> choices,
-            boolean allowMultiple,
             String defaultSelection) {
         super(FieldType.CHOICE,
               id,
@@ -62,24 +79,9 @@ public class ChoiceFieldSchema extends FieldSchema {
               created,
               updated);
         this.choices = choices;
-        this.allowMultiple = allowMultiple;
         this.defaultSelection = defaultSelection;
     }
 
-    /**
-     * List of available choices
-     */
-    @Value
-    public static class Option {
-        String value;
-        String displayText;
-    }
-    List<Option> choices;
-
-    /**
-     * Default choice if field is not mandatory
-     */
-    String defaultSelection;
 
     @Override
     public <T> T accept(FieldSchemaVisitor<T> visitor) {

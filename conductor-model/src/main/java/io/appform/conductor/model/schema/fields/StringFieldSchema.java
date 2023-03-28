@@ -19,16 +19,16 @@ package io.appform.conductor.model.schema.fields;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldSchemaVisitor;
 import io.appform.conductor.model.schema.FieldType;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Value;
 
 import java.util.Date;
 
 /**
  * Represents the schema for a string input field
  */
-@Value
+@Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class StringFieldSchema extends FieldSchema {
@@ -36,17 +36,17 @@ public class StringFieldSchema extends FieldSchema {
     /**
      * Maximum length of the input
      */
-    int maxLength;
+    private int maxLength;
 
     /**
      * Regular expression to ensure field can take only matching patterns
      */
-    String matchPattern;
+    private String matchPattern;
 
     /**
      * Default value to be filled in if field is not mandatory
      */
-    String defaultValue;
+    private String defaultValue;
 
     public StringFieldSchema(
             String id,

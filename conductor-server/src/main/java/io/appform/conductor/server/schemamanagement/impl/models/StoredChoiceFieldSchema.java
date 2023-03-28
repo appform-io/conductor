@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,34 +14,39 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.schema.fields;
+package io.appform.conductor.server.schemamanagement.impl.models;
 
-import io.appform.conductor.model.schema.FieldSchema;
-import io.appform.conductor.model.schema.FieldSchemaVisitor;
 import io.appform.conductor.model.schema.FieldType;
-import lombok.*;
-import lombok.extern.jackson.Jacksonized;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.util.Date;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
 /**
- * Represents the schema for a boolean ticket field that can only
- * tale {@link Boolean#TRUE} and {@link Boolean#FALSE} values
+ *
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-@Jacksonized
-public class BooleanFieldSchema extends FieldSchema {
+@Entity
+@Table(name = "choice_field_schemas")
+@Getter
+@Setter
+@ToString
+public class StoredChoiceFieldSchema extends StoredFieldSchema {
+    @Column(name = "default_value")
+    private String defaultSelection;
 
-    /**
-     * Default value of the field if not a required field
-     */
-    private boolean defaultValue;
+    @Column
+    private byte[] optionsData;
 
-    @Builder
-    public BooleanFieldSchema(
-            String id,
+    public StoredChoiceFieldSchema() {
+        super(FieldType.CHOICE);
+    }
+
+    public StoredChoiceFieldSchema(
+            String schemaId,
+            String fieldId,
             String name,
             String displayName,
             String description,
@@ -50,11 +55,11 @@ public class BooleanFieldSchema extends FieldSchema {
             String visibilityCondition,
             String editableCondition,
             boolean allowMultiple,
-            Date created,
-            Date updated,
-            boolean defaultValue) {
-        super(FieldType.BOOLEAN,
-              id,
+            byte[] optionsData,
+            String defaultSelection) {
+        super(FieldType.CHOICE,
+              schemaId,
+              fieldId,
               name,
               displayName,
               description,
@@ -62,14 +67,14 @@ public class BooleanFieldSchema extends FieldSchema {
               parent,
               visibilityCondition,
               editableCondition,
-              allowMultiple,
-              created,
-              updated);
-        this.defaultValue = defaultValue;
+              allowMultiple);
+        this.optionsData = optionsData;
+        this.defaultSelection = defaultSelection;
     }
 
     @Override
-    public <T> T accept(FieldSchemaVisitor<T> visitor) {
+    public <T> T accept(StoredFieldSchemaVisitor<T> visitor) {
         return visitor.visit(this);
     }
+
 }
