@@ -173,5 +173,6 @@ class DBSchemaStoreTest extends DBTestBase {
         assertEquals("Changed", store.updateField(sId, schema.getFields().get(5).setDescription("Changed"))
                 .map(FieldSchema::getDescription)
                 .orElse(null));
+        assertNotNull(store.getField(sId, schema.getFields().get(2).getId()).orElse(null));
     }
 }

@@ -184,6 +184,26 @@ public class DBSchemaStore implements SchemaStore {
     }
 
     @Override
+    public Optional<FieldSchema> getField(String schemaId, String fieldId) {
+        try {
+            return fieldDao.select(schemaId, DetachedCriteria.forClass(StoredFieldSchema.class)
+                            .add(Property.forName(FIELD_ID_NAME).eq(fieldId)), 0, 1)
+                    .stream().findFirst().map(this::toFieldSchema);
+        }
+        catch (Exception e) {
+            throw ConductorException.builder()
+                    .errorCode(ConductorErrorCode.SCHEMA_FIELD_READ_FAILED)
+                    .context(ImmutableMap.<String, Object>builder()
+                                     .put(SCHEMA_ID_NAME, schemaId)
+                                     .put(FIELD_ID_NAME, schemaId)
+                                     .put("id", schemaId)
+                                     .build())
+                    .cause(e)
+                    .build();
+        }
+    }
+
+    @Override
     public Optional<FieldSchema> updateField(String schemaId, FieldSchema updated) {
         try {
             return Optional.ofNullable(fieldDao.lockAndGetExecutor(schemaId,

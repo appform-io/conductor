@@ -19,9 +19,11 @@ package io.appform.conductor.model.schema.fields;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldSchemaVisitor;
 import io.appform.conductor.model.schema.FieldType;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.Date;
 
@@ -31,6 +33,7 @@ import java.util.Date;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@Jacksonized
 public class LocationFieldSchema extends FieldSchema {
 
     /**
@@ -43,6 +46,7 @@ public class LocationFieldSchema extends FieldSchema {
      */
     private double defaultLon;
 
+    @Builder
     public LocationFieldSchema(
             String id,
             String name,

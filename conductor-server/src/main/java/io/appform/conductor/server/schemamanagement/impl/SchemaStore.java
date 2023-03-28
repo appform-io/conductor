@@ -39,6 +39,8 @@ public interface SchemaStore {
 
     Optional<FieldSchema> addField(final String schemaId, final FieldSchema schema);
 
+    Optional<FieldSchema> getField(final String schemaId, final String fieldId);
+
     Optional<FieldSchema> updateField(final String schemaId, final FieldSchema updated);
     boolean deleteField(final String schemaId, final String fieldId);
 }

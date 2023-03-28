@@ -29,7 +29,8 @@ public enum ConductorErrorCode {
     STORE_LIST_ERROR(1004, "Error reading object list of type ${type}"),
 
     SCHEMA_UPDATE_FAILED(2001, "Error updating schema version ${schemaId}/${version}. Operation attempted: ${operation}"),
-    SCHEMA_FIELD_WRITE_FAILED(2002, "Error creating schema field for ${schemaId}/${fieldId}"),
+    SCHEMA_FIELD_WRITE_FAILED(2002, "Error writing schema field for ${schemaId}/${fieldId}"),
+    SCHEMA_FIELD_READ_FAILED(2003, "Error rwading schema field for ${schemaId}/${fieldId}"),
     ;
 
     private final int errorCode;
