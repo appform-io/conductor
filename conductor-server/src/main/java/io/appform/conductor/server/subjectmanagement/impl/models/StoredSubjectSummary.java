@@ -14,86 +14,75 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.schemamanagement.impl.models;
+package io.appform.conductor.server.subjectmanagement.impl.models;
 
-import io.appform.conductor.model.schema.SchemaState;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.Generated;
+import lombok.val;
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.SQLDelete;
 
 import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
- *
+ * Storage representation for {@link io.appform.conductor.model.subject.SubjectSummary}
  */
 @Entity
-@Table(name = StoredSchemaSummary.SCHEMA_TABLE_NAME)
+@Table(name = StoredSubjectSummary.SUBJECT_TABLE_NAME)
 @Getter
 @Setter
 @ToString
-@NoArgsConstructor
-public class StoredSchemaSummary {
-
-    public static final String SCHEMA_TABLE_NAME = "schema_summaries";
+@SQLDelete(sql = "update subject_summaries set deleted=true where external_id=?")
+public class StoredSubjectSummary {
+    public static final String SUBJECT_TABLE_NAME = "subject_summaries";
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @LookupKey
-    @Column(name = "schema_id", nullable = false, length = 45, unique = true)
-    private String schemaId;
-
-    @Column(name = "name", nullable = false, length = 45)
-    private String name;
-
-    @Column(name = "description")
-    private String description;
+    @Column(name = "global_id", unique = true)
+    private String globalId;
 
     @Column
-    @Enumerated(EnumType.STRING)
-    private SchemaState state;
+    private String name;
 
-    @Column(name = "created_by", length = 45)
-    private String createdBy;
+    @Column(columnDefinition = "timestamp")
+    private Date dob;
 
-    @Column(name = "state_changed_by", length = 45)
-    private String stateChangedBy;
+    @Column
+    private boolean deleted;
 
     @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @org.hibernate.annotations.Generated(value = GenerationTime.INSERT)
     private Date created;
 
     @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
             updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @org.hibernate.annotations.Generated(value = GenerationTime.ALWAYS)
     private Date updated;
 
     @Transient
-    private List<StoredFieldSchema> fields;
+    private List<StoredSubjectID> ids;
 
-    @SuppressWarnings("java:S107")
-    public StoredSchemaSummary(
-            String schemaId,
-            String name,
-            String description,
-            SchemaState state,
-            String stateChangedBy) {
-        this.schemaId = schemaId;
-        this.name = name;
-        this.description = description;
-        this.state = state;
-        this.stateChangedBy = stateChangedBy;
-    }
+    @Transient
+    private List<StoredAddress> addresses;
 
     @Override
     public boolean equals(Object o) {
-        return super.equals(o);
+        if (this == o) {
+            return true;
+        }
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+            return false;
+        }
+        val that = (StoredSubjectSummary) o;
+        return Objects.equals(id, that.id);
     }
 
     @Override

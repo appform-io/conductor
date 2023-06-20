@@ -17,6 +17,7 @@
 package io.appform.conductor.server.schemamanagement.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.*;
 import io.appform.conductor.model.schema.fields.*;
 import io.appform.conductor.server.DBTestBase;
@@ -46,6 +47,7 @@ class DBSchemaStoreTest extends DBTestBase {
 
     @Test
     @SneakyThrows
+    @SuppressWarnings("java:S5961")
     void test() {
         val store = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),
                                       bundle.createRelatedObjectDao(StoredFieldSchema.class),
@@ -54,48 +56,10 @@ class DBSchemaStoreTest extends DBTestBase {
         assertNotNull(schemaSummary);
         val sId = schemaSummary.getId();
         assertEquals(schemaSummary, store.getSummary(sId).orElse(null));
-        assertNotNull(store.addField(sId, new StringFieldSchema("f1",
-                                                                "f1",
-                                                                "F1",
-                                                                "Test field 1",
-                                                                true,
-                                                                null,
-                                                                null,
-                                                                null,
-                                                                false,
-                                                                new Date(),
-                                                                new Date(),
-                                                                100,
-                                                                null,
-                                                                "Default Value")).orElse(null));
-        assertNotNull(store.addField(sId, new BooleanFieldSchema("f2",
-                                                                 "f2",
-                                                                 "F2",
-                                                                 "Test field 2",
-                                                                 true,
-                                                                 null,
-                                                                 null,
-                                                                 null,
-                                                                 false,
-                                                                 new Date(),
-                                                                 new Date(),
-                                                                 false)).orElse(null));
-        assertNotNull(store.addField(sId, new DateFieldSchema("f3",
-                                                              "f3",
-                                                              "F3",
-                                                              "Test field 3",
-                                                              true,
-                                                              null,
-                                                              null,
-                                                              null,
-                                                              false,
-                                                              new Date(),
-                                                              new Date(),
-                                                              new Date())).orElse(null));
-        assertNotNull(store.addField(sId, new LocationFieldSchema("f4",
-                                                                  "f4",
-                                                                  "F4",
-                                                                  "Test field 4",
+        assertNotNull(store.addField(sId, sId + "-f1", new StringFieldSchema("f1",
+                                                                  "f1",
+                                                                  "F1",
+                                                                  "Test field 1",
                                                                   true,
                                                                   null,
                                                                   null,
@@ -103,38 +67,76 @@ class DBSchemaStoreTest extends DBTestBase {
                                                                   false,
                                                                   new Date(),
                                                                   new Date(),
-                                                                  5.0,
-                                                                  -15.0))
+                                                                  100,
+                                                                  null,
+                                                                  "Default Value")).orElse(null));
+        assertNotNull(store.addField(sId, sId + "-f2", new BooleanFieldSchema("f2",
+                                                                   "f2",
+                                                                   "F2",
+                                                                   "Test field 2",
+                                                                   true,
+                                                                   null,
+                                                                   null,
+                                                                   null,
+                                                                   false,
+                                                                   new Date(),
+                                                                   new Date(),
+                                                                   false)).orElse(null));
+        assertNotNull(store.addField(sId, sId + "-f3", new DateFieldSchema("f3",
+                                                                "f3",
+                                                                "F3",
+                                                                "Test field 3",
+                                                                true,
+                                                                null,
+                                                                null,
+                                                                null,
+                                                                false,
+                                                                new Date(),
+                                                                new Date(),
+                                                                new Date())).orElse(null));
+        assertNotNull(store.addField(sId, sId + "-f4", new LocationFieldSchema("f4",
+                                                                    "f4",
+                                                                    "F4",
+                                                                    "Test field 4",
+                                                                    true,
+                                                                    null,
+                                                                    null,
+                                                                    null,
+                                                                    false,
+                                                                    new Date(),
+                                                                    new Date(),
+                                                                    5.0,
+                                                                    -15.0))
                                                                         .orElse(null));
-        assertNotNull(store.addField(sId, new NumberFieldSchema("f5",
-                                                                "f5",
-                                                                "F5",
-                                                                "Test field 5",
-                                                                true,
-                                                                null,
-                                                                null,
-                                                                null,
-                                                                false,
-                                                                new Date(),
-                                                                new Date(),
-                                                                100,
-                                                                -10.0,
-                                                                0.0))
+        assertNotNull(store.addField(sId, sId + "-f5", new NumberFieldSchema("f5",
+                                                                  "f5",
+                                                                  "F5",
+                                                                  "Test field 5",
+                                                                  true,
+                                                                  null,
+                                                                  null,
+                                                                  null,
+                                                                  false,
+                                                                  new Date(),
+                                                                  new Date(),
+                                                                  100,
+                                                                  -10.0,
+                                                                  0.0))
                               .orElse(null));
-        assertNotNull(store.addField(sId, new ChoiceFieldSchema("f6",
-                                                                "f6",
-                                                                "F6",
-                                                                "Test field 6",
-                                                                true,
-                                                                null,
-                                                                null,
-                                                                null,
-                                                                false,
-                                                                new Date(),
-                                                                new Date(),
-                                                                List.of(new ChoiceFieldSchema.Option("cat", "Cat"),
+        assertNotNull(store.addField(sId, sId + "-f6", new ChoiceFieldSchema("f6",
+                                                                  "f6",
+                                                                  "F6",
+                                                                  "Test field 6",
+                                                                  true,
+                                                                  null,
+                                                                  null,
+                                                                  null,
+                                                                  false,
+                                                                  new Date(),
+                                                                  new Date(),
+                                                                  List.of(new ChoiceFieldSchema.Option("cat", "Cat"),
                                                                         new ChoiceFieldSchema.Option("dog", "Dog")),
-                                                                "cat"))
+                                                                  "cat"))
                               .orElse(null));
 
         val schema = store.get(sId).orElse(null);
@@ -396,19 +398,19 @@ class DBSchemaStoreTest extends DBTestBase {
                      store.updateState(sId, SchemaState.ACTIVE).map(SchemaSummary::getState).orElse(null));
         assertTrue(store.deleteField(sId, schema.getFields().get(0).getId()));
         assertEquals(5, store.get(sId).map(r -> r.getFields().size()).orElse(-1));
-        assertEquals("Changed", store.updateField(sId, schema.getFields().get(1).setDescription("Changed"))
+        assertEquals("Changed", store.updateField(sId, sId + "-f2", schema.getFields().get(1).setDescription("Changed"))
                 .map(FieldSchema::getDescription)
                 .orElse(null));
-        assertEquals("Changed", store.updateField(sId, schema.getFields().get(2).setDescription("Changed"))
+        assertEquals("Changed", store.updateField(sId, sId + "-f3", schema.getFields().get(2).setDescription("Changed"))
                 .map(FieldSchema::getDescription)
                 .orElse(null));
-        assertEquals("Changed", store.updateField(sId, schema.getFields().get(3).setDescription("Changed"))
+        assertEquals("Changed", store.updateField(sId, sId + "-f4", schema.getFields().get(3).setDescription("Changed"))
                 .map(FieldSchema::getDescription)
                 .orElse(null));
-        assertEquals("Changed", store.updateField(sId, schema.getFields().get(4).setDescription("Changed"))
+        assertEquals("Changed", store.updateField(sId, sId + "-f5", schema.getFields().get(4).setDescription("Changed"))
                 .map(FieldSchema::getDescription)
                 .orElse(null));
-        assertEquals("Changed", store.updateField(sId, schema.getFields().get(5).setDescription("Changed"))
+        assertEquals("Changed", store.updateField(sId, sId + "-f6", schema.getFields().get(5).setDescription("Changed"))
                 .map(FieldSchema::getDescription)
                 .orElse(null));
         assertNotNull(store.getField(sId, schema.getFields().get(2).getId()).orElse(null));
@@ -428,7 +430,7 @@ class DBSchemaStoreTest extends DBTestBase {
             fail("Exception didn't occur - test failed");
         }
         catch(Exception e) {
-            assertEquals(NullPointerException.class, e.getClass());
+            assertEquals(ConductorException.class, e.getClass());
         }
     }
 
@@ -465,7 +467,7 @@ class DBSchemaStoreTest extends DBTestBase {
             fail("Exception didn't occur - test failed");
         }
         catch(Exception e) {
-            assertEquals(NullPointerException.class, e.getClass());
+            assertEquals(ConductorException.class, e.getClass());
         }
     }
 
@@ -480,7 +482,7 @@ class DBSchemaStoreTest extends DBTestBase {
             fail("Exception didn't occur - test failed");
         }
         catch(Exception e) {
-            assertEquals(NullPointerException.class, e.getClass());
+            assertEquals(ConductorException.class, e.getClass());
         }
     }
     @Test
@@ -494,7 +496,7 @@ class DBSchemaStoreTest extends DBTestBase {
             fail("Exception didn't occur - test failed");
         }
         catch(Exception e) {
-            assertEquals(NullPointerException.class, e.getClass());
+            assertEquals(ConductorException.class, e.getClass());
         }
     }
 
@@ -509,7 +511,7 @@ class DBSchemaStoreTest extends DBTestBase {
             fail("Exception didn't occur - test failed");
         }
         catch(Exception e) {
-            assertEquals(NullPointerException.class, e.getClass());
+            assertEquals(ConductorException.class, e.getClass());
         }
     }
 
@@ -534,11 +536,11 @@ class DBSchemaStoreTest extends DBTestBase {
                     100,
                     null,
                     "Default Value");
-            store.addField(null, fieldSchema);
+            store.addField(null, "f1", fieldSchema);
             fail("Exception didn't occur - test failed");
         }
         catch(Exception e) {
-            assertEquals(NullPointerException.class, e.getClass());
+            assertEquals(ConductorException.class, e.getClass());
         }
     }
 
@@ -553,7 +555,7 @@ class DBSchemaStoreTest extends DBTestBase {
             fail("Exception didn't occur - test failed");
         }
         catch(Exception e) {
-            assertEquals(NullPointerException.class, e.getClass());
+            assertEquals(ConductorException.class, e.getClass());
         }
     }
 
@@ -564,11 +566,11 @@ class DBSchemaStoreTest extends DBTestBase {
             val store = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),
                     bundle.createRelatedObjectDao(StoredFieldSchema.class),
                     MAPPER);
-            store.updateField(null, null);
+            store.updateField(null, null, null);
             fail("Exception didn't occur - test failed");
         }
         catch(Exception e) {
-            assertEquals(NullPointerException.class, e.getClass());
+            assertEquals(ConductorException.class, e.getClass());
         }
     }
 
@@ -583,7 +585,7 @@ class DBSchemaStoreTest extends DBTestBase {
             fail("Exception didn't occur - test failed");
         }
         catch(Exception e) {
-            assertEquals(NullPointerException.class, e.getClass());
+            assertEquals(ConductorException.class, e.getClass());
         }
     }
 
@@ -598,7 +600,7 @@ class DBSchemaStoreTest extends DBTestBase {
             fail("Exception didn't occur - test failed");
         }
         catch(Exception e) {
-            assertEquals(NullPointerException.class, e.getClass());
+            assertEquals(ConductorException.class, e.getClass());
         }
     }
 

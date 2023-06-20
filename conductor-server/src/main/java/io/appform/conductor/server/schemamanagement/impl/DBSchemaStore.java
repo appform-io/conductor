@@ -18,14 +18,14 @@ package io.appform.conductor.server.schemamanagement.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import io.appform.conductor.model.error.ConductorErrorCode;
-import io.appform.conductor.model.error.ConductorException;
+import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.*;
 import io.appform.conductor.model.schema.fields.*;
 import io.appform.conductor.server.schemamanagement.impl.models.*;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
+import io.appform.functionmetrics.MonitoredFunction;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -42,308 +42,127 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.normalize;
 import static io.appform.conductor.server.utils.ConductorServerUtils.operatingUserId;
 
 /**
- *
+ * DB based implementation for {@link SchemaStore}
  */
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class DBSchemaStore implements SchemaStore {
-    public static final String SCHEMA_TABLE_NAME = "schema_summaries";
     private static final String SCHEMA_ID_NAME = "schemaId";
     private static final String FIELD_ID_NAME = "fieldId";
 
     private final LookupDao<StoredSchemaSummary> schemaDao;
     private final RelationalDao<StoredFieldSchema> fieldDao;
-
     private final ObjectMapper mapper;
 
     @Override
-    public Optional<SchemaSummary> create(String name, String description) {
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredSchemaSummary.SCHEMA_TABLE_NAME))
+    public Optional<SchemaSummary> create(@Throws.RuntimeParam("id") String name, String description) {
         val schemaId = normalize(name);
-        try {
-            return schemaDao.save(new StoredSchemaSummary(schemaId,
-                                                          name,
-                                                          description,
-                                                          INACTIVE,
-                                                          operatingUserId()))
-                    .map(DBSchemaStore::toSummary);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", SCHEMA_TABLE_NAME)
-                                     .put("id", schemaId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+        return schemaDao.save(new StoredSchemaSummary(schemaId,
+                                                      name,
+                                                      description,
+                                                      INACTIVE,
+                                                      operatingUserId()))
+                .map(DBSchemaStore::toSummary);
     }
 
     @Override
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredSchemaSummary.SCHEMA_TABLE_NAME))
     public Optional<SchemaSummary> getSummary(String schemaId) {
-        try {
-            return schemaDao.get(schemaId).map(DBSchemaStore::toSummary);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_READ_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", SCHEMA_TABLE_NAME)
-                                     .put("id", schemaId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+        return schemaDao.get(schemaId).map(DBSchemaStore::toSummary);
     }
 
     @Override
-    public Optional<Schema> get(String schemaId) {
-        try {
-            return schemaDao.readOnlyExecutor(schemaId)
-                    .readAugmentParent(fieldDao,
-                                       DetachedCriteria.forClass(StoredFieldSchema.class)
-                                               .add(Property.forName("deleted").eq(false))
-                                               .add(Property.forName(SCHEMA_ID_NAME).eq(schemaId)),
-                                       0, Integer.MAX_VALUE,
-                                       StoredSchemaSummary::setFields)
-                    .execute()
-                    .map(this::toSchema);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_READ_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", SCHEMA_TABLE_NAME)
-                                     .put("id", schemaId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
-
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredSchemaSummary.SCHEMA_TABLE_NAME))
+    public Optional<Schema> get(@Throws.RuntimeParam("id") String schemaId) {
+        return schemaDao.readOnlyExecutor(schemaId)
+                .readAugmentParent(fieldDao,
+                                   DetachedCriteria.forClass(StoredFieldSchema.class)
+                                           .add(Property.forName("deleted").eq(false))
+                                           .add(Property.forName(SCHEMA_ID_NAME).eq(schemaId)),
+                                   0, Integer.MAX_VALUE,
+                                   StoredSchemaSummary::setFields)
+                .execute()
+                .map(this::toSchema);
     }
 
     @Override
-    public Optional<SchemaSummary> updateDescription(String schemaId, String description) {
-        try {
-            return Optional.ofNullable(schemaDao.lockAndGetExecutor(schemaId)
-                                               .mutate(summary -> summary.setDescription(description))
-                                               .execute())
-                    .map(DBSchemaStore::toSummary);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", SCHEMA_TABLE_NAME)
-                                     .put("id", schemaId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredSchemaSummary.SCHEMA_TABLE_NAME))
+    public Optional<SchemaSummary> updateDescription(@Throws.RuntimeParam("id") String schemaId, String description) {
+        return Optional.ofNullable(schemaDao.lockAndGetExecutor(schemaId)
+                                           .mutate(summary -> summary.setDescription(description))
+                                           .execute())
+                .map(DBSchemaStore::toSummary);
     }
 
     @Override
-    public Optional<SchemaSummary> updateState(String schemaId, SchemaState state) {
-        try {
-            return Optional.ofNullable(schemaDao.lockAndGetExecutor(schemaId)
-                                               .mutate(summary -> summary.setState(state)
-                                                       .setStateChangedBy(operatingUserId()))
-                                               .execute())
-                    .map(DBSchemaStore::toSummary);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", SCHEMA_TABLE_NAME)
-                                     .put("id", schemaId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredSchemaSummary.SCHEMA_TABLE_NAME))
+    public Optional<SchemaSummary> updateState(@Throws.RuntimeParam("id") String schemaId, SchemaState state) {
+        return Optional.ofNullable(schemaDao.lockAndGetExecutor(schemaId)
+                                           .mutate(summary -> summary.setState(state)
+                                                   .setStateChangedBy(operatingUserId()))
+                                           .execute())
+                .map(DBSchemaStore::toSummary);
     }
 
     @Override
-    public Optional<FieldSchema> addField(String schemaId, FieldSchema schema) {
-        val fieldId = schemaId + "-" + normalize(schema.getName());
-        try {
-            return fieldDao.save(schemaId, toStoredFieldSchema(schemaId, fieldId, schema))
-                    .map(this::toFieldSchema);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put(SCHEMA_ID_NAME, schemaId)
-                                     .put(FIELD_ID_NAME, schemaId)
-                                     .put("id", schemaId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
+    public Optional<FieldSchema> addField(@Throws.RuntimeParam(SCHEMA_ID_NAME) String schemaId,
+                                          @Throws.RuntimeParam(FIELD_ID_NAME) String fieldId,
+                                          FieldSchema schema) {
+        return fieldDao.save(schemaId, toStoredFieldSchema(schemaId, fieldId, schema))
+                .map(this::toFieldSchema);
     }
 
     @Override
-    public Optional<FieldSchema> getField(String schemaId, String fieldId) {
-        try {
-            return fieldDao.select(schemaId, DetachedCriteria.forClass(StoredFieldSchema.class)
-                            .add(Property.forName(FIELD_ID_NAME).eq(fieldId)), 0, 1)
-                    .stream().findFirst().map(this::toFieldSchema);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.SCHEMA_FIELD_READ_FAILED)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put(SCHEMA_ID_NAME, schemaId)
-                                     .put(FIELD_ID_NAME, schemaId)
-                                     .put("id", schemaId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.SCHEMA_FIELD_READ_FAILED)
+    public Optional<FieldSchema> getField(@Throws.RuntimeParam(SCHEMA_ID_NAME) String schemaId,
+                                          @Throws.RuntimeParam(FIELD_ID_NAME) String fieldId) {
+        return fieldDao.select(schemaId, DetachedCriteria.forClass(StoredFieldSchema.class)
+                        .add(Property.forName(FIELD_ID_NAME).eq(fieldId)), 0, 1)
+                .stream().findFirst().map(this::toFieldSchema);
     }
 
     @Override
-    public Optional<FieldSchema> updateField(String schemaId, FieldSchema updated) {
-        try {
-            return Optional.ofNullable(fieldDao.lockAndGetExecutor(schemaId,
-                                                                   DetachedCriteria.forClass(StoredFieldSchema.class)
-                                                                           .add(Property.forName(FIELD_ID_NAME)
-                                                                                        .eq(updated.getId())))
-                                               .mutate(schema -> updateSchema(updated, schema))
-                                               .execute())
-                    .map(this::toFieldSchema);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put(SCHEMA_ID_NAME, schemaId)
-                                     .put(FIELD_ID_NAME, schemaId)
-                                     .put("id", schemaId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
-    }
-
-    private void updateSchema(FieldSchema updated, StoredFieldSchema schema) {
-        schema
-                .setDisplayName(schema.getDisplayName())
-                .setDescription(updated.getDescription())
-                .setRequired(updated.isRequired())
-                .setParent(updated.getParent())
-                .setVisibilityCondition(updated.getVisibilityCondition())
-                .setEditableCondition(updated.getEditableCondition())
-                .setAllowMultiple(updated.isAllowMultiple());
-        updated.accept(new FieldSchemaVisitor<Void>() {
-            @Override
-            public Void visit(StringFieldSchema updatedStringField) {
-                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
-
-                    @Override
-                    public Void visit(StoredStringFieldSchema stringField) {
-                        stringField
-                                .setMaxLength(updatedStringField.getMaxLength())
-                                .setMatchPattern(updatedStringField.getMatchPattern())
-                                .setDefaultValue(updatedStringField.getDefaultValue());
-                        return super.visit(stringField);
-                    }
-                });
-                return null;
-            }
-
-            @Override
-            public Void visit(NumberFieldSchema updatedNumberField) {
-                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
-                    @Override
-                    public Void visit(StoredNumberFieldSchema numberField) {
-                        numberField
-                                .setMax(updatedNumberField.getMax())
-                                .setMin(updatedNumberField.getMin())
-                                .setDefaultValue(updatedNumberField.getDefaultValue());
-                        return super.visit(numberField);
-                    }
-                });
-                return null;
-            }
-
-            @Override
-            public Void visit(BooleanFieldSchema updatedBooleanField) {
-                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
-                    @Override
-                    public Void visit(StoredBooleanFieldSchema booleanField) {
-                        booleanField.setDefaultValue(booleanField.isDefaultValue());
-                        return super.visit(booleanField);
-                    }
-                });
-                return null;
-            }
-
-            @Override
-            public Void visit(LocationFieldSchema updatedLocationField) {
-                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
-                    @Override
-                    public Void visit(StoredLocationFieldSchema locationField) {
-                        locationField
-                                .setDefaultLat(updatedLocationField.getDefaultLat())
-                                .setDefaultLon(updatedLocationField.getDefaultLon());
-                        return super.visit(locationField);
-                    }
-                });
-                return null;
-            }
-
-            @Override
-            public Void visit(DateFieldSchema updateDateField) {
-                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
-                    @Override
-                    public Void visit(StoredDateFieldSchema dateField) {
-                        dateField
-                                .setDefaultValue(updateDateField.getDefaultValue());
-                        return super.visit(dateField);
-                    }
-                });
-                return null;
-            }
-
-            @Override
-            public Void visit(ChoiceFieldSchema updatedChoiceField) {
-                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
-                    @Override
-                    @SneakyThrows
-                    public Void visit(StoredChoiceFieldSchema choiceField) {
-                        choiceField
-                                .setOptionsData(mapper.writeValueAsBytes(updatedChoiceField.getChoices()))
-                                .setDefaultSelection(updatedChoiceField.getDefaultSelection());
-                        return super.visit(choiceField);
-                    }
-                });
-                return null;
-            }
-        });
-
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
+    public Optional<FieldSchema> updateField(@Throws.RuntimeParam(SCHEMA_ID_NAME) String schemaId,
+                                             @Throws.RuntimeParam(FIELD_ID_NAME) String fieldId,
+                                             FieldSchema updated) {
+        return Optional.ofNullable(fieldDao.lockAndGetExecutor(schemaId,
+                                                               DetachedCriteria.forClass(StoredFieldSchema.class)
+                                                                       .add(Property.forName(FIELD_ID_NAME)
+                                                                                    .eq(fieldId)))
+                                           .mutate(schema -> updateSchema(updated, schema))
+                                           .execute())
+                .map(this::toFieldSchema);
     }
 
     @Override
-    public boolean deleteField(String schemaId, String fieldId) {
-        try {
-            return fieldDao.lockAndGetExecutor(schemaId, DetachedCriteria.forClass(StoredFieldSchema.class)
-                            .add(Property.forName(FIELD_ID_NAME).eq(fieldId)))
-                    .mutate(schema -> schema.setDeleted(true))
-                    .execute() != null;
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put(SCHEMA_ID_NAME, schemaId)
-                                     .put(FIELD_ID_NAME, schemaId)
-                                     .put("id", schemaId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
+    public boolean deleteField(@Throws.RuntimeParam(SCHEMA_ID_NAME) String schemaId,
+                               @Throws.RuntimeParam(FIELD_ID_NAME) String fieldId) {
+        return fieldDao.lockAndGetExecutor(schemaId, DetachedCriteria.forClass(StoredFieldSchema.class)
+                        .add(Property.forName(FIELD_ID_NAME).eq(fieldId)))
+                .mutate(schema -> schema.setDeleted(true))
+                .execute() != null;
     }
 
     private static SchemaSummary toSummary(final StoredSchemaSummary schemaSummary) {
@@ -590,5 +409,104 @@ public class DBSchemaStore implements SchemaStore {
                                                    choiceField.getDefaultSelection());
             }
         });
+    }
+
+
+    private void updateSchema(FieldSchema updated, StoredFieldSchema schema) {
+        schema
+                .setDisplayName(schema.getDisplayName())
+                .setDescription(updated.getDescription())
+                .setRequired(updated.isRequired())
+                .setParent(updated.getParent())
+                .setVisibilityCondition(updated.getVisibilityCondition())
+                .setEditableCondition(updated.getEditableCondition())
+                .setAllowMultiple(updated.isAllowMultiple());
+        updated.accept(new FieldSchemaVisitor<Void>() {
+            @Override
+            public Void visit(StringFieldSchema updatedStringField) {
+                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
+
+                    @Override
+                    public Void visit(StoredStringFieldSchema stringField) {
+                        stringField
+                                .setMaxLength(updatedStringField.getMaxLength())
+                                .setMatchPattern(updatedStringField.getMatchPattern())
+                                .setDefaultValue(updatedStringField.getDefaultValue());
+                        return super.visit(stringField);
+                    }
+                });
+                return null;
+            }
+
+            @Override
+            public Void visit(NumberFieldSchema updatedNumberField) {
+                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
+                    @Override
+                    public Void visit(StoredNumberFieldSchema numberField) {
+                        numberField
+                                .setMax(updatedNumberField.getMax())
+                                .setMin(updatedNumberField.getMin())
+                                .setDefaultValue(updatedNumberField.getDefaultValue());
+                        return super.visit(numberField);
+                    }
+                });
+                return null;
+            }
+
+            @Override
+            public Void visit(BooleanFieldSchema updatedBooleanField) {
+                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
+                    @Override
+                    public Void visit(StoredBooleanFieldSchema booleanField) {
+                        booleanField.setDefaultValue(booleanField.isDefaultValue());
+                        return super.visit(booleanField);
+                    }
+                });
+                return null;
+            }
+
+            @Override
+            public Void visit(LocationFieldSchema updatedLocationField) {
+                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
+                    @Override
+                    public Void visit(StoredLocationFieldSchema locationField) {
+                        locationField
+                                .setDefaultLat(updatedLocationField.getDefaultLat())
+                                .setDefaultLon(updatedLocationField.getDefaultLon());
+                        return super.visit(locationField);
+                    }
+                });
+                return null;
+            }
+
+            @Override
+            public Void visit(DateFieldSchema updateDateField) {
+                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
+                    @Override
+                    public Void visit(StoredDateFieldSchema dateField) {
+                        dateField
+                                .setDefaultValue(updateDateField.getDefaultValue());
+                        return super.visit(dateField);
+                    }
+                });
+                return null;
+            }
+
+            @Override
+            public Void visit(ChoiceFieldSchema updatedChoiceField) {
+                schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
+                    @Override
+                    @SneakyThrows
+                    public Void visit(StoredChoiceFieldSchema choiceField) {
+                        choiceField
+                                .setOptionsData(mapper.writeValueAsBytes(updatedChoiceField.getChoices()))
+                                .setDefaultSelection(updatedChoiceField.getDefaultSelection());
+                        return super.visit(choiceField);
+                    }
+                });
+                return null;
+            }
+        });
+
     }
 }

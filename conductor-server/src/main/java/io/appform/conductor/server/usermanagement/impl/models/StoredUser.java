@@ -19,24 +19,27 @@ package io.appform.conductor.server.usermanagement.impl.models;
 import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.usermgmt.UserType;
-import io.appform.conductor.server.usermanagement.impl.DBUserStore;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * DB model object corresponding to {@link UserSummary}
  */
 @Entity
-@Table(name = DBUserStore.USER_TABLE_NAME)
-@Data
+@Table(name = StoredUser.USER_TABLE_NAME)
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
 public class StoredUser {
+    public static final String USER_TABLE_NAME = "users";
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -45,7 +48,7 @@ public class StoredUser {
     @Column(name = "user_id", unique = true, nullable = false, length = 45)
     private String userId;
 
-    @Column(name = "user_type", unique = false, nullable = false, length = 45)
+    @Column(name = "user_type", nullable = false, length = 45)
     private UserType userType;
 
     @Column(name = "name", nullable = false)
@@ -78,5 +81,22 @@ public class StoredUser {
         this.name = name;
         this.email = email;
         this.state = state;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+            return false;
+        }
+        StoredUser that = (StoredUser) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

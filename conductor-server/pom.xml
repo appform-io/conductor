@@ -111,9 +111,54 @@
             <version>${bcrypt.version}</version>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
+            <plugin>
+                <groupId>dev.aspectj</groupId>
+                <artifactId>aspectj-maven-plugin</artifactId>
+                <version>1.13.1</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.aspectj</groupId>
+                        <artifactId>aspectjrt</artifactId>
+                        <version>${aspectj.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.aspectj</groupId>
+                        <artifactId>aspectjtools</artifactId>
+                        <version>${aspectj.version}</version>
+                    </dependency>
+                </dependencies>
+
+                <configuration>
+                    <complianceLevel>17</complianceLevel>
+                    <source>17</source>
+                    <target>17</target>
+                    <showWeaveInfo>true</showWeaveInfo>
+                    <forceAjcCompile>true</forceAjcCompile>
+                    <sources />
+                    <weaveDirectories>
+                        <weaveDirectory>${project.build.directory}/classes</weaveDirectory>
+                    </weaveDirectories>
+                    <verbose>true</verbose>
+                    <Xlint>ignore</Xlint>
+                    <aspectLibraries>
+                        <aspectLibrary>
+                            <groupId>io.appform.functionmetrics</groupId>
+                            <artifactId>function-metrics</artifactId>
+                        </aspectLibrary>
+                    </aspectLibraries>
+                    <aspectDirectory>${project.build.directory}/io/appform/conductor/server/aspect</aspectDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>

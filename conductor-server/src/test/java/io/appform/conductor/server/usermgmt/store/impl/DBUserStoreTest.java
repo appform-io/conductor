@@ -110,7 +110,7 @@ class DBUserStoreTest extends DBTestBase {
         }
         catch (Exception e) {
             assertTrue(e instanceof ConductorException);
-            assertEquals(ConductorErrorCode.STORE_READ_ERROR, ((ConductorException) e).getErrorCode());
+            assertEquals(ConductorErrorCode.STORE_QUERY_ERROR, ((ConductorException) e).getErrorCode());
         }
     }
 
@@ -127,7 +127,7 @@ class DBUserStoreTest extends DBTestBase {
     }
 
     @Test
-    public void testUpdate() {
+    void testUpdate() {
         val userStore = new DBUserStore(createRealUserDao());
         val newUser1 = userStore.create("Test1", UserType.HUMAN, "test1@test.com").orElse(null);
         val newUser2 = userStore.create("Test2", UserType.HUMAN, "test2@test.com").orElse(null);
@@ -198,10 +198,10 @@ class DBUserStoreTest extends DBTestBase {
 
     @Test
     @SneakyThrows
-    public void testGetByIdsFailed() {
+    void testGetByIdsFailed() {
         final LookupDao<StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
-        doThrow(NullPointerException.class).when(userDao).get(anyList());
+        doThrow(IllegalStateException.class).when(userDao).get(anyList());
         try {
             List<String> idList = new ArrayList<>();
             val length = 5;
@@ -218,7 +218,7 @@ class DBUserStoreTest extends DBTestBase {
 
     @Test
     @SneakyThrows
-    public void testGetByIdFailed() {
+    void testGetByIdFailed() {
         final LookupDao<StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
         doThrow(NullPointerException.class).when(userDao).get(any(String.class));
@@ -228,13 +228,14 @@ class DBUserStoreTest extends DBTestBase {
         }
         catch (Exception e) {
             assertTrue(e instanceof ConductorException);
+            System.out.println("MESSAGE: " + e.getMessage());
             assertEquals(ConductorErrorCode.STORE_READ_ERROR, ((ConductorException) e).getErrorCode());
         }
     }
 
     @Test
     @SneakyThrows
-    public void testCreateFailure() {
+    void testCreateFailure() {
         final LookupDao<StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
         doThrow(NullPointerException.class).when(userDao).save(any(StoredUser.class));

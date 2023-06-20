@@ -16,14 +16,15 @@
 
 package io.appform.conductor.server.usermanagement.impl;
 
-import com.google.common.collect.ImmutableMap;
 import io.appform.conductor.model.error.ConductorErrorCode;
-import io.appform.conductor.model.error.ConductorException;
+import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.usermgmt.UserActivationToken;
 import io.appform.conductor.model.usermgmt.UserActivationTokenState;
 import io.appform.conductor.server.usermanagement.UserActivationTokenStore;
 import io.appform.conductor.server.usermanagement.impl.models.StoredUserActivationToken;
 import io.appform.dropwizard.sharding.dao.LookupDao;
+import io.appform.functionmetrics.MonitoredFunction;
+import lombok.SneakyThrows;
 import lombok.val;
 
 import javax.inject.Inject;
@@ -38,8 +39,6 @@ import java.util.function.Consumer;
  */
 public class DBUserActivationTokenStore implements UserActivationTokenStore {
 
-    public static final String ACTIVATION_TOKEN_TABLE_NAME = "user_activation_links";
-
     private final LookupDao<StoredUserActivationToken> tokenDao;
 
     @Inject
@@ -48,69 +47,44 @@ public class DBUserActivationTokenStore implements UserActivationTokenStore {
     }
 
     @Override
-    public Optional<UserActivationToken> generate(String userId, Date validTill) {
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredUserActivationToken.ACTIVATION_TOKEN_TABLE_NAME))
+    public Optional<UserActivationToken> generate(@Throws.RuntimeParam("id") String userId, Date validTill) {
         val token = UUID.randomUUID().toString();
-        try {
-            return tokenDao.save(new StoredUserActivationToken(token,
-                                                               userId,
-                                                               validTill,
-                                                               UserActivationTokenState.UNVALIDATED))
-                    .map(DBUserActivationTokenStore::toWire);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", ACTIVATION_TOKEN_TABLE_NAME)
-                                     .put("id", token)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+        return tokenDao.save(new StoredUserActivationToken(token,
+                                                           userId,
+                                                           validTill,
+                                                           UserActivationTokenState.UNVALIDATED))
+                .map(DBUserActivationTokenStore::toWire);
     }
 
     @Override
-    public Optional<UserActivationToken> getById(String token) {
-        try {
-            return tokenDao.get(token)
-                    .map(DBUserActivationTokenStore::toWire);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_READ_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", ACTIVATION_TOKEN_TABLE_NAME)
-                                     .put("id", token)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredUserActivationToken.ACTIVATION_TOKEN_TABLE_NAME))
+    public Optional<UserActivationToken> getById(@Throws.RuntimeParam("id") String token) {
+        return tokenDao.get(token)
+                .map(DBUserActivationTokenStore::toWire);
     }
 
     @Override
-    public boolean update(String token, Consumer<UserActivationToken> handler) {
-        try {
-            return tokenDao.update(token, storedToken -> {
-                val userToken = storedToken.orElse(null);
-                if (userToken != null) {
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredUserActivationToken.ACTIVATION_TOKEN_TABLE_NAME))
+    public boolean update(@Throws.RuntimeParam("id") String token, Consumer<UserActivationToken> handler) {
+        return tokenDao.update(token, storedToken -> {
+            val userToken = storedToken.orElse(null);
+            if (userToken != null) {
 
-                    val updatedToken = toWire(userToken);
-                    handler.accept(updatedToken);
-                    userToken.setState(updatedToken.getState());
-                }
-                return userToken;
-            });
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", ACTIVATION_TOKEN_TABLE_NAME)
-                                     .put("id", token)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+                val updatedToken = toWire(userToken);
+                handler.accept(updatedToken);
+                userToken.setState(updatedToken.getState());
+            }
+            return userToken;
+        });
     }
 
     private static UserActivationToken toWire(final StoredUserActivationToken token) {

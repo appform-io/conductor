@@ -16,15 +16,16 @@
 
 package io.appform.conductor.server.usermanagement.impl;
 
-import com.google.common.collect.ImmutableMap;
 import io.appform.conductor.model.error.ConductorErrorCode;
-import io.appform.conductor.model.error.ConductorException;
+import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.usermgmt.SessionState;
 import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.model.usermgmt.UserSessionDetails;
 import io.appform.conductor.server.usermanagement.SessionStore;
 import io.appform.conductor.server.usermanagement.impl.models.StoredUserSessionDetails;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
+import io.appform.functionmetrics.MonitoredFunction;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
@@ -41,7 +42,6 @@ import java.util.function.Consumer;
  */
 @Slf4j
 public class DBSessionStore implements SessionStore {
-    public static final String SESSION_TABLE_NAME = "user_sessions";
 
     private final RelationalDao<StoredUserSessionDetails> sessionDetailsDao;
 
@@ -51,79 +51,55 @@ public class DBSessionStore implements SessionStore {
     }
 
     @Override
-    public Optional<UserSessionDetails> create(String userId, SessionType type, Date expiry) {
-        try {
-            return sessionDetailsDao.save(userId,
-                                          new StoredUserSessionDetails(
-                                                  UUID.randomUUID().toString(),
-                                                  userId,
-                                                  SessionState.ACTIVE,
-                                                  type,
-                                                  expiry,
-                                                  new Date()))
-                    .map(DBSessionStore::toWire);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", SESSION_TABLE_NAME)
-                                     .put("id", userId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+    @SneakyThrows
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredUserSessionDetails.SESSION_TABLE_NAME))
+    public Optional<UserSessionDetails> create(@Throws.RuntimeParam("id") String userId, SessionType type, Date expiry) {
+        return sessionDetailsDao.save(userId,
+                                      new StoredUserSessionDetails(
+                                              UUID.randomUUID().toString(),
+                                              userId,
+                                              SessionState.ACTIVE,
+                                              type,
+                                              expiry,
+                                              new Date()))
+                .map(DBSessionStore::toWire);
     }
 
     @Override
-    public Optional<UserSessionDetails> getById(String userId, String sessionId) {
-        try {
-            return sessionDetailsDao.select(userId,
-                                            sessionCriteria(userId, sessionId),
-                                            0,
-                                            1)
-                    .stream()
-                    .findAny()
-                    .map(DBSessionStore::toWire);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_READ_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", SESSION_TABLE_NAME)
-                                     .put("id", String.format("%s-%s", userId, sessionId))
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+    @SneakyThrows
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredUserSessionDetails.SESSION_TABLE_NAME))
+    public Optional<UserSessionDetails> getById(String userId, @Throws.RuntimeParam("id") String sessionId) {
+        return sessionDetailsDao.select(userId,
+                                        sessionCriteria(userId, sessionId),
+                                        0,
+                                        1)
+                .stream()
+                .findAny()
+                .map(DBSessionStore::toWire);
     }
 
     @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredUserSessionDetails.SESSION_TABLE_NAME))
     public Optional<UserSessionDetails> update(
-            String userId, String sessionId, Consumer<UserSessionDetails> handler) {
-        try {
-            val status = sessionDetailsDao.update(userId, sessionCriteria(userId, sessionId), storedSession -> {
-                val session = toWire(storedSession);
-                handler.accept(session);
-                storedSession.setState(session.getState());
-                storedSession.setLastActive(session.getLastActive());
-                return storedSession;
-            });
-            if(status) {
-                log.warn("Session {} for user {} could not be updated", sessionId, userId);
-            }
-            return Optional.empty();
+            String userId, @Throws.RuntimeParam("id") String sessionId, Consumer<UserSessionDetails> handler) {
+        val status = sessionDetailsDao.update(userId, sessionCriteria(userId, sessionId), storedSession -> {
+            val session = toWire(storedSession);
+            handler.accept(session);
+            storedSession.setState(session.getState());
+            storedSession.setLastActive(session.getLastActive());
+            return storedSession;
+        });
+        if(status) {
+            log.warn("Session {} for user {} could not be updated", sessionId, userId);
+            return getById(userId, sessionId);
         }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_READ_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", SESSION_TABLE_NAME)
-                                     .put("id", String.format("%s-%s", userId, sessionId))
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+        return Optional.empty();
     }
 
     private static DetachedCriteria sessionCriteria(String userId, String sessionId) {

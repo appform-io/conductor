@@ -16,13 +16,14 @@
 
 package io.appform.conductor.server.usermanagement.impl;
 
-import com.google.common.collect.ImmutableMap;
 import io.appform.conductor.model.error.ConductorErrorCode;
-import io.appform.conductor.model.error.ConductorException;
+import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.server.internalmodels.auth.UserPasswordAuthDetails;
 import io.appform.conductor.server.usermanagement.UserPasswordAuthStore;
 import io.appform.conductor.server.usermanagement.impl.models.StoredUserPassword;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
+import io.appform.functionmetrics.MonitoredFunction;
+import lombok.SneakyThrows;
 import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Property;
@@ -35,7 +36,6 @@ import java.util.function.UnaryOperator;
  *
  */
 public class DBUserPasswordAuthStore implements UserPasswordAuthStore {
-    public static final String USER_PASSWORD_TABLE_NAME = "user_passwords";
 
     @Inject
     public DBUserPasswordAuthStore(RelationalDao<StoredUserPassword> passwordDao) {
@@ -45,85 +45,44 @@ public class DBUserPasswordAuthStore implements UserPasswordAuthStore {
     private final RelationalDao<StoredUserPassword> passwordDao;
 
     @Override
-    public Optional<UserPasswordAuthDetails> set(String userId, String password) {
-        try {
-            return passwordDao.save(userId, new StoredUserPassword(userId, password, 0))
-                    .map(DBUserPasswordAuthStore::toWire);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", USER_PASSWORD_TABLE_NAME)
-                                     .put("id", userId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredUserPassword.USER_PASSWORD_TABLE_NAME))
+    public Optional<UserPasswordAuthDetails> set(@Throws.RuntimeParam("id") String userId, String password) {
+        return passwordDao.save(userId, new StoredUserPassword(userId, password, 0))
+                .map(DBUserPasswordAuthStore::toWire);
     }
 
     @Override
-    public Optional<UserPasswordAuthDetails> update(String userId, final UnaryOperator<UserPasswordAuthDetails> updater) {
-        try {
-            return passwordDao.select(userId, createCriteria(userId), 0, 1)
-                    .stream()
-                    .findFirst()
-                    .map(existing -> {
-                        val updated = updater.apply(toWire(existing));
-                        return existing.setPassword(updated.getPassword())
-                                .setFailedPasswordAttempts(updated.getFailedPasswordAttempts());
-                    })
-                    .flatMap(updated -> {
-                        try {
-                            return passwordDao.save(userId, updated);
-                        }
-                        catch (Exception e) {
-                            throw ConductorException.builder()
-                                    .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                                    .context(ImmutableMap.<String, Object>builder()
-                                                     .put("type", USER_PASSWORD_TABLE_NAME)
-                                                     .put("id", userId)
-                                                     .build())
-                                    .cause(e)
-                                    .build();
-                        }
-                    })
-                    .map(DBUserPasswordAuthStore::toWire);
-        }
-        catch (Exception e) {
-            if (e instanceof ConductorException ce) {
-                throw ce;
-            }
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_READ_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", USER_PASSWORD_TABLE_NAME)
-                                     .put("id", userId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredUserPassword.USER_PASSWORD_TABLE_NAME))
+    public Optional<UserPasswordAuthDetails> update(@Throws.RuntimeParam("id") String userId, final UnaryOperator<UserPasswordAuthDetails> updater) {
+        return passwordDao.select(userId, createCriteria(userId), 0, 1)
+                .stream()
+                .findFirst()
+                .map(existing -> {
+                    val updated = updater.apply(toWire(existing));
+                    return existing.setPassword(updated.getPassword())
+                            .setFailedPasswordAttempts(updated.getFailedPasswordAttempts());
+                })
+                .flatMap(updated -> saveInternal(userId, updated))
+                .map(DBUserPasswordAuthStore::toWire);
     }
 
     @Override
-    public Optional<UserPasswordAuthDetails> get(String userId) {
-        try {
-            return passwordDao.select(userId, createCriteria(userId),
-                                      0, 1)
-                    .stream()
-                    .findFirst()
-                    .map(DBUserPasswordAuthStore::toWire);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_READ_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", USER_PASSWORD_TABLE_NAME)
-                                     .put("id", userId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredUserPassword.USER_PASSWORD_TABLE_NAME))
+    public Optional<UserPasswordAuthDetails> get(@Throws.RuntimeParam("id") String userId) {
+        return passwordDao.select(userId, createCriteria(userId),
+                                  0, 1)
+                .stream()
+                .findFirst()
+                .map(DBUserPasswordAuthStore::toWire);
     }
 
     private static DetachedCriteria createCriteria(String userId) {
@@ -138,4 +97,12 @@ public class DBUserPasswordAuthStore implements UserPasswordAuthStore {
                                            password.getCreated(),
                                            password.getUpdated());
     }
+
+    @SneakyThrows
+    private Optional<StoredUserPassword> saveInternal(
+            String userId,
+            StoredUserPassword updated) {
+        return passwordDao.save(userId, updated);
+    }
+
 }

@@ -16,11 +16,13 @@
 
 package io.appform.conductor.server;
 
+import com.codahale.metrics.SharedMetricRegistries;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import io.appform.dropwizard.sharding.config.ShardedHibernateFactory;
+import io.appform.functionmetrics.FunctionMetricsManager;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.jersey.DropwizardResourceConfig;
 import io.dropwizard.jersey.setup.JerseyEnvironment;
@@ -74,7 +76,7 @@ public abstract class DBTestBase {
         bundle.initBundles(bootstrap);
         bundle.runBundles(testConfig, environment);
         bundle.run(testConfig, environment);
-
+        FunctionMetricsManager.initialize("test", SharedMetricRegistries.getOrCreate("test"));
         log.debug("DB sharding bundle initialized...");
     }
 

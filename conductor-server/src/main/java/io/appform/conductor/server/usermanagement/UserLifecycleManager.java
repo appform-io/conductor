@@ -18,9 +18,6 @@ package io.appform.conductor.server.usermanagement;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import io.appform.conductor.model.error.ConductorErrorCode;
-import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.usermgmt.*;
 import io.appform.conductor.server.internalmodels.auth.PasswordAuthData;
 import io.appform.conductor.server.internalmodels.auth.UserAuthenticator;
@@ -31,7 +28,9 @@ import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * User lifecycle manager
@@ -75,7 +74,7 @@ public class UserLifecycleManager {
     }
 
     /**
-     * This will create an user and send an activation link for the user.
+     * This will create a user and send an activation link for the user.
      * User will NOT be able to log in till activation is completed.
      * The state for the user will be {@link UserState#CREATED}
      *
@@ -86,27 +85,15 @@ public class UserLifecycleManager {
      */
     public Optional<UserSummary> createUser(String name, String email, String password) {
         final String userId = ConductorServerUtils.normalize(name);
-        try {
-            val userDetails = userStore.get()
-                    .create(name, UserType.HUMAN, email)
-                    .orElse(null);
-            if (null == userDetails) {
-                log.error("Could not create user with email: {}", email);
-                return Optional.empty();
-            }
-            passwordAuthStore.get().set(userId, hash(password));
-            return createToken(userId, userDetails);
+        val userDetails = userStore.get()
+                .create(name, UserType.HUMAN, email)
+                .orElse(null);
+        if (null == userDetails) {
+            log.error("Could not create user with email: {}", email);
+            return Optional.empty();
         }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", "users")
-                                     .put("id", userId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+        passwordAuthStore.get().set(userId, hash(password));
+        return createToken(userId, userDetails);
     }
 
     /**

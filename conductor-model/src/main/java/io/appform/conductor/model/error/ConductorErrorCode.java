@@ -27,10 +27,13 @@ public enum ConductorErrorCode {
     STORE_WRITE_ERROR(1002, "Error saving to database for type ${type} with ${id}"),
     STORE_UPDATE_ERROR(1003, "Error updating database for type ${type} with id ${id}"),
     STORE_LIST_ERROR(1004, "Error reading object list of type ${type}"),
+    STORE_QUERY_ERROR(1005, "Error reading object of type ${type} using query of param type ${paramType} and value ${value}"),
 
     SCHEMA_UPDATE_FAILED(2001, "Error updating schema version ${schemaId}/${version}. Operation attempted: ${operation}"),
     SCHEMA_FIELD_WRITE_FAILED(2002, "Error writing schema field for ${schemaId}/${fieldId}"),
-    SCHEMA_FIELD_READ_FAILED(2003, "Error rwading schema field for ${schemaId}/${fieldId}"),
+    SCHEMA_FIELD_READ_FAILED(2003, "Error reading schema field for ${schemaId}/${fieldId}"),
+
+
     ;
 
     private final int errorCode;

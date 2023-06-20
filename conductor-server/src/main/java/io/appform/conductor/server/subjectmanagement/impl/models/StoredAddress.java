@@ -14,56 +14,72 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.schemamanagement.impl.models;
+package io.appform.conductor.server.subjectmanagement.impl.models;
 
-import io.appform.conductor.model.schema.SchemaState;
-import io.appform.dropwizard.sharding.sharding.LookupKey;
+import io.appform.conductor.model.subject.AddressType;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.val;
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.SQLDelete;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.List;
+import java.util.Objects;
 
 /**
- *
+ * DB representation for an address
  */
 @Entity
-@Table(name = StoredSchemaSummary.SCHEMA_TABLE_NAME)
+@Table(name = StoredAddress.SUBJECT_ADDRESS_TABLE_NAME, indexes = {
+        @Index(name = "idx_addr_sub_global", columnList = "subject_global_id")
+})
 @Getter
 @Setter
 @ToString
-@NoArgsConstructor
-public class StoredSchemaSummary {
-
-    public static final String SCHEMA_TABLE_NAME = "schema_summaries";
+@SQLDelete(sql = "update addresses set deleted=true where external_id=?")
+public class StoredAddress {
+    public static final String SUBJECT_ADDRESS_TABLE_NAME = "addresses";
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @LookupKey
-    @Column(name = "schema_id", nullable = false, length = 45, unique = true)
-    private String schemaId;
-
-    @Column(name = "name", nullable = false, length = 45)
-    private String name;
-
-    @Column(name = "description")
-    private String description;
+    @Column(name = "ext_id", unique = true)
+    private String extId;
 
     @Column
     @Enumerated(EnumType.STRING)
-    private SchemaState state;
+    private AddressType type;
 
-    @Column(name = "created_by", length = 45)
-    private String createdBy;
+    @Column(name = "house_number")
+    private String houseNumber;
 
-    @Column(name = "state_changed_by", length = 45)
-    private String stateChangedBy;
+    @Column(name = "street")
+    private String street;
+
+    @Column
+    private String locality;
+
+    @Column
+    private String city;
+
+    @Column
+    private String state;
+
+    @Column
+    private String country;
+
+    @Column(name = "pin_code")
+    private String pinCode;
+
+    @Column(name = "subject_global_id", nullable = false)
+    String subjectGlobalId;
+
+    @Column
+    private boolean deleted;
 
     @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
     @Generated(value = GenerationTime.INSERT)
@@ -74,26 +90,16 @@ public class StoredSchemaSummary {
     @Generated(value = GenerationTime.ALWAYS)
     private Date updated;
 
-    @Transient
-    private List<StoredFieldSchema> fields;
-
-    @SuppressWarnings("java:S107")
-    public StoredSchemaSummary(
-            String schemaId,
-            String name,
-            String description,
-            SchemaState state,
-            String stateChangedBy) {
-        this.schemaId = schemaId;
-        this.name = name;
-        this.description = description;
-        this.state = state;
-        this.stateChangedBy = stateChangedBy;
-    }
-
     @Override
     public boolean equals(Object o) {
-        return super.equals(o);
+        if (this == o) {
+            return true;
+        }
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+            return false;
+        }
+        val that = (StoredAddress) o;
+        return Objects.equals(id, that.id);
     }
 
     @Override

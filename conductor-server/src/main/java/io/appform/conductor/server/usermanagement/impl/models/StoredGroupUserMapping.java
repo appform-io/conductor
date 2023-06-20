@@ -16,26 +16,30 @@
 
 package io.appform.conductor.server.usermanagement.impl.models;
 
-import io.appform.conductor.server.usermanagement.impl.DBGroupStore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  *
  */
 @Entity
-@Table(name = DBGroupStore.GROUP_USERS_TABLE_NAME,
+@Table(name = StoredGroupUserMapping.GROUP_USERS_TABLE_NAME,
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_user_group", columnNames = {"group_id", "user_id"})
         })
 @Data
 @NoArgsConstructor
-public class StoredGroupUserMapping {
+public class StoredGroupUserMapping implements Serializable {
+    private static final long serialVersionUID = -1854965130712240861L;
+
+    public static final String GROUP_USERS_TABLE_NAME = "group_users";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;

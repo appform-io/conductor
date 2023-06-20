@@ -16,9 +16,8 @@
 
 package io.appform.conductor.server.usermanagement.impl;
 
-import com.google.common.collect.ImmutableMap;
 import io.appform.conductor.model.error.ConductorErrorCode;
-import io.appform.conductor.model.error.ConductorException;
+import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.usermanagement.impl.models.StoredGroup;
@@ -26,7 +25,9 @@ import io.appform.conductor.server.usermanagement.impl.models.StoredGroupUserMap
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
+import io.appform.functionmetrics.MonitoredFunction;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
@@ -44,9 +45,6 @@ import java.util.function.Consumer;
 @Slf4j
 public class DBGroupStore implements GroupStore {
 
-    public static final String GROUP_TABLE_NAME = "groups";
-    public static final String GROUP_USERS_TABLE_NAME = "group_users";
-
     private final LookupDao<StoredGroup> groupDao;
     private final RelationalDao<StoredGroupUserMapping> groupUsersDao;
 
@@ -59,174 +57,127 @@ public class DBGroupStore implements GroupStore {
     }
 
     @Override
-    public Optional<Group> create(String name, String description) {
-        final String groupId = ConductorServerUtils.normalize(name);
-        try {
-            return groupDao.save(new StoredGroup(groupId, name, description))
-                    .map(DBGroupStore::toWire);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", GROUP_TABLE_NAME)
-                                     .put("id", groupId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredGroup.GROUP_TABLE_NAME))
+    public Optional<Group> create(@Throws.RuntimeParam("id") String name, String description) {
+        return groupDao.save(new StoredGroup(ConductorServerUtils.normalize(name), name, description))
+                .map(DBGroupStore::toWire);
     }
 
     @Override
-    public Optional<Group> get(String groupId) {
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredGroup.GROUP_TABLE_NAME))
+    public Optional<Group> get(@Throws.RuntimeParam("id") String groupId) {
         return get(Collections.singletonList(groupId))
                 .stream()
                 .findAny();
     }
 
     @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_LIST_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredGroup.GROUP_TABLE_NAME))
     public List<Group> get(List<String> groupIds) {
-        try {
-            return groupDao.get(groupIds)
-                    .stream()
-                    .map(DBGroupStore::toWire)
-                    .toList();
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_READ_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", GROUP_TABLE_NAME)
-                                     .put("id", groupIds.toString())
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+        return groupDao.get(groupIds)
+                .stream()
+                .map(DBGroupStore::toWire)
+                .toList();
     }
 
     @Override
+    @MonitoredFunction
     public Optional<Group> delete(String groupId) {
         return update(groupId, groupDetails -> groupDetails.setDeleted(true));
     }
 
     @Override
-    public Optional<Group> update(
-            String groupId, Consumer<Group> handler) {
-        try {
-            boolean status = groupDao.update(groupId, groupOpt -> {
-                val group = groupOpt.orElse(null);
-                if (null != group) {
-                    val groupDetails = toWire(group);
-                    handler.accept(groupDetails);
-                    group.setDescription(groupDetails.getDescription())
-                            .setDeleted(groupDetails.isDeleted());
-                    return group;
-                }
-                return null;
-            });
-            log.info("Group {} update status: {}", groupId, status);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", GROUP_TABLE_NAME)
-                                     .put("id", groupId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredGroup.GROUP_TABLE_NAME))
+    public Optional<Group> update(@Throws.RuntimeParam("id") String groupId, Consumer<Group> handler) {
+        boolean status = groupDao.update(groupId, groupOpt -> {
+            val group = groupOpt.orElse(null);
+            if (null != group) {
+                val groupDetails = toWire(group);
+                handler.accept(groupDetails);
+                group.setDescription(groupDetails.getDescription())
+                        .setDeleted(groupDetails.isDeleted());
+                return group;
+            }
+            return null;
+        });
+        log.info("Group {} update status: {}", groupId, status);
         return get(groupId);
     }
 
     @Override
-    public boolean addUserToGroup(String groupId, String userId) {
-        try {
-            return groupUsersDao.save(groupId, new StoredGroupUserMapping(groupId, userId))
-                    .isPresent();
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", GROUP_TABLE_NAME)
-                                     .put("id", groupId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredGroupUserMapping.GROUP_USERS_TABLE_NAME))
+    public boolean addUserToGroup(@Throws.RuntimeParam("id") String groupId, String userId) {
+        return groupDao.lockAndGetExecutor(groupId)
+                .createOrUpdate(groupUsersDao,
+                                DetachedCriteria.forClass(StoredGroupUserMapping.class)
+                                        .add(Property.forName("groupId").eq(groupId))
+                                        .add(Property.forName("userId").eq(userId)),
+                                existing -> existing.setDeleted(false),
+                                () -> new StoredGroupUserMapping(groupId, userId))
+                .execute() != null;
+    }
+
+
+
+    @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredGroupUserMapping.GROUP_USERS_TABLE_NAME))
+    public boolean removeUserFromGroup(@Throws.RuntimeParam("id") String groupId, String userId) {
+        return groupDao.lockAndGetExecutor(groupId)
+                .update(groupUsersDao,
+                        DetachedCriteria.forClass(StoredGroupUserMapping.class)
+                                .add(Property.forName("groupId").eq(groupId))
+                                .add(Property.forName("userId").eq(userId)),
+                        existing -> existing.setDeleted(true),
+                        () -> false)
+                .execute() != null;
     }
 
     @Override
-    public boolean removeUserFromGroup(String groupId, String userId) {
-        try {
-            return groupUsersDao.update(groupId,
-                                        DetachedCriteria.forClass(StoredGroupUserMapping.class)
-                                                .add(Property.forName("groupId").eq(groupId))
-                                                .add(Property.forName("userId").eq(userId)),
-                                        storedGroupUserMapping -> {
-                                            storedGroupUserMapping.setDeleted(true);
-                                            return storedGroupUserMapping;
-                                        });
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", GROUP_TABLE_NAME)
-                                     .put("id", groupId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
-    }
-
-    @Override
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.STORE_LIST_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredGroupUserMapping.GROUP_USERS_TABLE_NAME))
     public List<String> findUsersForGroup(String groupId, int start, int limit) {
-        try {
-            return groupUsersDao.select(
-                            groupId,
-                            DetachedCriteria.forClass(StoredGroupUserMapping.class)
-                                    .add(Property.forName("groupId").eq(groupId)),
-                            start,
-                            limit)
-                    .stream()
-                    .map(StoredGroupUserMapping::getUserId)
-                    .toList();
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_READ_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", GROUP_TABLE_NAME)
-                                     .put("id", groupId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+        return groupUsersDao.select(
+                        groupId,
+                        DetachedCriteria.forClass(StoredGroupUserMapping.class)
+                                .add(Property.forName("groupId").eq(groupId))
+                                .add(Property.forName("deleted").eq(false)),
+                        start,
+                        limit)
+                .stream()
+                .map(StoredGroupUserMapping::getUserId)
+                .toList();
     }
 
     @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_LIST_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredGroupUserMapping.GROUP_USERS_TABLE_NAME))
     public List<Group> findGroupsForUser(String userId) {
-        try {
-            return get(groupUsersDao.scatterGather(
-                            DetachedCriteria.forClass(StoredGroupUserMapping.class)
-                                    .add(Property.forName("userId").eq(userId)),
-                            0,
-                            Integer.MAX_VALUE)
-                               .stream()
-                               .map(StoredGroupUserMapping::getUserId)
-                               .toList());
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_LIST_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", GROUP_TABLE_NAME)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+        return get(groupUsersDao.scatterGather(
+                        DetachedCriteria.forClass(StoredGroupUserMapping.class)
+                                .add(Property.forName("userId").eq(userId))
+                                .add(Property.forName("deleted").eq(false)),
+                        0,
+                        Integer.MAX_VALUE)
+                           .stream()
+                           .map(StoredGroupUserMapping::getUserId)
+                           .toList());
     }
 
     private static Group toWire(@NonNull final StoredGroup group) {

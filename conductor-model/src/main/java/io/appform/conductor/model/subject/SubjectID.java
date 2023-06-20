@@ -21,38 +21,53 @@ import lombok.Value;
 import java.util.Date;
 
 /**
- * Subject for a ticket. This is the person reaching out for help.
+ * Identification coordinates for a subject. For example email etc.
  */
 @Value
-public class SubjectSummary {
+public class SubjectID {
 
     /**
-     * Globally unique id for the subject
+     * Type of this ID (phone/email/etc)
      */
-    String globalId;
+    SubjectIDType type;
 
     /**
-     * Full name for the subject
+     * Subtype of this ID. For example, if type phone, this should be set to Home, Work etc
      */
-    String name;
+    String subType;
 
     /**
-     * Date of birth
+     * Global ID for this id.
      */
-    Date dob;
+    String extId;
 
     /**
-     * Is the subject deleted
+     * Actual value, phone, email etc
+     */
+    String value;
+
+    /**
+     * Is this the primary (phone, email, etc)
+     */
+    boolean primary;
+
+    /**
+     * Verification status for  this ID
+     */
+    SubjectIDVerificationStatus verificationStatus;
+
+    /**
+     * IS this ID deleted?
      */
     boolean deleted;
 
     /**
-     * Subject creation date
+     * Creation date of the ID
      */
     Date created;
 
     /**
-     * Ticket update date
+     * Last updated date
      */
     Date updated;
 }

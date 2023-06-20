@@ -123,7 +123,7 @@ public abstract class StoredFieldSchema {
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
             return false;
         }
-        StoredFieldSchema that = (StoredFieldSchema) o;
+        val that = (StoredFieldSchema) o;
         return Objects.equals(id, that.id);
     }
 

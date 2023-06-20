@@ -16,7 +16,6 @@
 
 package io.appform.conductor.server.usermanagement.impl.models;
 
-import io.appform.conductor.server.usermanagement.impl.DBGroupStore;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,10 +29,11 @@ import java.util.Date;
  *
  */
 @Entity
-@Table(name = DBGroupStore.GROUP_TABLE_NAME)
+@Table(name = StoredGroup.GROUP_TABLE_NAME)
 @Data
 @NoArgsConstructor
 public class StoredGroup {
+    public static final String GROUP_TABLE_NAME = "groups";
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;

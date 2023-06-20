@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,32 +14,16 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.subject;
+package io.appform.conductor.server.subjectmanagement;
 
-import lombok.Value;
-
-import java.util.List;
+import io.appform.conductor.model.subject.SubjectIDVerificationStatus;
+import io.appform.conductor.model.subject.SubjectID;
+import io.appform.conductor.model.subject.SubjectSummary;
 
 /**
- * Overview of the subject
+ *
  */
-@Value
-public class Subject {
-
-    /**
-     * Core details for the subject
-     */
-    SubjectSummary summary;
-
-    /**
-     * List of phone/email etc for the subject
-     */
-    List<SubjectID> subjectIDs;
-
-    List<Address> permanentAddress;
-
-    /**
-     * The record is marked ambiguous if there are multiple subjects for the same identifier
-     */
-    boolean ambiguous;
+public interface SubjectIDVerifier {
+    SubjectIDVerificationStatus verify(final SubjectSummary summary,
+                                       final SubjectID subjectID);
 }

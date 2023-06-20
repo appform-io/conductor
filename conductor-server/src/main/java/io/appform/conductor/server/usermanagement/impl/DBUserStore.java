@@ -16,9 +16,8 @@
 
 package io.appform.conductor.server.usermanagement.impl;
 
-import com.google.common.collect.ImmutableMap;
 import io.appform.conductor.model.error.ConductorErrorCode;
-import io.appform.conductor.model.error.ConductorException;
+import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.usermgmt.UserType;
@@ -26,6 +25,8 @@ import io.appform.conductor.server.usermanagement.UserStore;
 import io.appform.conductor.server.usermanagement.impl.models.StoredUser;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
+import io.appform.functionmetrics.MonitoredFunction;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
@@ -36,12 +37,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
+import static io.appform.conductor.server.usermanagement.impl.models.StoredUser.USER_TABLE_NAME;
+
 /**
  * RDBMS backend for {@link UserStore}
  */
 @Slf4j
 public class DBUserStore implements UserStore {
-    public static final String USER_TABLE_NAME = "users";
 
     private final LookupDao<StoredUser> userDao;
 
@@ -51,116 +53,78 @@ public class DBUserStore implements UserStore {
     }
 
     @Override
-    public Optional<UserSummary> create(String name, UserType userType, String email) {
-        final String userId = ConductorServerUtils.normalize(name);
-        try {
-            return userDao.save(
-                    new StoredUser(
-                            userId,
-                            userType,
-                            name,
-                            email,
-                            UserState.CREATED))
-                    .map(DBUserStore::toWire);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", USER_TABLE_NAME)
-                                     .put("id", userId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+    @SneakyThrows
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = USER_TABLE_NAME))
+    public Optional<UserSummary> create(@Throws.RuntimeParam("id") String name, UserType userType, String email) {
+        val userId = ConductorServerUtils.normalize(name);
+        return userDao.save(
+                        new StoredUser(
+                                userId,
+                                userType,
+                                name,
+                                email,
+                                UserState.CREATED))
+                .map(DBUserStore::toWire);
     }
 
     @Override
-    public Optional<UserSummary> getById(String userId) {
-        try {
-            return userDao.get(userId)
-                    .map(DBUserStore::toWire);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_READ_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", USER_TABLE_NAME)
-                                     .put("id", userId)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = USER_TABLE_NAME))
+    public Optional<UserSummary> getById(@Throws.RuntimeParam("id") String userId) {
+        return userDao.get(userId)
+                .map(DBUserStore::toWire);
     }
 
     @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_LIST_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = USER_TABLE_NAME))
     public List<UserSummary> getByIds(List<String> userIds) {
-        try {
-            return userDao.get(userIds)
-                    .stream()
-                    .map(DBUserStore::toWire)
-                    .toList();
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_LIST_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                                     .put("type", USER_TABLE_NAME)
-                                     .build())
-                    .cause(e)
-                    .build();
-        }    }
-
-    @Override
-    public Optional<UserSummary> getByEmail(String email) {
-        try {
-            return userDao.scatterGather(
-                    DetachedCriteria.forClass(StoredUser.class)
-                            .add(Property.forName("email").eq(email)))
-                    .stream()
-                    .findAny()
-                    .map(DBUserStore::toWire);
-        }
-        catch(Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_READ_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                            .put("type", USER_TABLE_NAME)
-                            .build())
-                    .cause(e)
-                    .build();
-        }
-
+        return userDao.get(userIds)
+                .stream()
+                .map(DBUserStore::toWire)
+                .toList();
     }
 
     @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_QUERY_ERROR,
+            fixedParams = {
+                    @Throws.Param(name = "type", value = USER_TABLE_NAME),
+                    @Throws.Param(name = "paramType", value = "email"),
+            })
+    public Optional<UserSummary> getByEmail(@Throws.RuntimeParam("value") String email) {
+        return userDao.scatterGather(
+                        DetachedCriteria.forClass(StoredUser.class)
+                                .add(Property.forName("email").eq(email)))
+                .stream()
+                .findAny()
+                .map(DBUserStore::toWire);
+    }
+
+    @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_UPDATE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = USER_TABLE_NAME))
     public Optional<UserSummary> update(
-            String userId, UnaryOperator<UserSummary> handler) {
-        try {
-            boolean updatedResult = userDao.update(userId, userOptional -> {
-                val user = userOptional.orElse(null);
-                if (user == null) {
-                    return null;
-                }
-                val updatedUser = handler.apply(toWire(user));
-                user.setEmail(updatedUser.getEmail())
-                        .setName(updatedUser.getName())
-                        .setState(updatedUser.getState());
-                return user;
-            });
-            log.info("Update result for user: {} is: {}", userId, updatedResult);
-            return getById(userId);
-        }
-        catch (Exception e) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.STORE_UPDATE_ERROR)
-                    .context(ImmutableMap.<String, Object>builder()
-                            .put("type", USER_TABLE_NAME)
-                            .put("id", userId)
-                            .build())
-                    .cause(e)
-                    .build();
-        }
+            @Throws.RuntimeParam("id") String userId, UnaryOperator<UserSummary> handler) {
+        boolean updatedResult = userDao.update(userId, userOptional -> {
+            val user = userOptional.orElse(null);
+            if (user == null) {
+                return null;
+            }
+            val updatedUser = handler.apply(toWire(user));
+            user.setEmail(updatedUser.getEmail())
+                    .setName(updatedUser.getName())
+                    .setState(updatedUser.getState());
+            return user;
+        });
+        log.info("Update result for user: {} is: {}", userId, updatedResult);
+        return getById(userId);
     }
 
     private static UserSummary toWire(StoredUser user) {

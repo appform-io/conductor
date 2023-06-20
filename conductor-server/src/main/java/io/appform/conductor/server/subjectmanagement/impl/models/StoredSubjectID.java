@@ -14,41 +14,69 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.usermanagement.impl.models;
+package io.appform.conductor.server.subjectmanagement.impl.models;
 
-import lombok.*;
+import io.appform.conductor.model.subject.SubjectIDType;
+import io.appform.conductor.model.subject.SubjectIDVerificationStatus;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.val;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.SQLDelete;
 
 import javax.persistence.*;
 import java.util.Date;
 import java.util.Objects;
 
 /**
- *
+ * DB representation for {@link io.appform.conductor.model.subject.SubjectID}
  */
 @Entity
-@Table(name = StoredUserPassword.USER_PASSWORD_TABLE_NAME)
+@Table(name = StoredSubjectID.SUBJECT_ID_TABLE_NAME,
+        indexes = {
+                @Index(name = "idx_sub_id", columnList = "id_type, id_value"),
+                @Index(name = "idx_sub_subtype_id", columnList = "id_type, sub_type, id_value"),
+                @Index(name = "idx_sub_global", columnList = "subject_global_id")
+        })
 @Getter
 @Setter
 @ToString
-@NoArgsConstructor
-public class StoredUserPassword {
-    public static final String USER_PASSWORD_TABLE_NAME = "user_passwords";
+@SQLDelete(sql = "update subject_ids set deleted=true where external_id=?")
+public class StoredSubjectID {
+    public static final String SUBJECT_ID_TABLE_NAME = "subject_ids";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "user_id", unique = true, nullable = false, length = 45)
-    private String userId;
+    @Column(name = "external_id", unique = true)
+    private String extId;
 
-    @Column(name = "password", nullable = false)
-    private String password;
+    @Column(name = "id_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private SubjectIDType type;
 
-    @Column(name = "failed_password_attempt")
-    private int failedPasswordAttempts;
+    @Column(name = "sub_type")
+    private String subType;
+
+    @Column(name = "id_value", nullable = false)
+    private String value;
+
+    @Column(name = "subject_global_id", nullable = false)
+    private String subjectGlobalId;
+
+    @Column(name = "is_primary")
+    private boolean primary;
+
+    @Column(name = "verification_status")
+    @Enumerated(EnumType.STRING)
+    private SubjectIDVerificationStatus verificationStatus;
+
+    @Column
+    private boolean deleted;
 
     @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
     @Generated(value = GenerationTime.INSERT)
@@ -59,12 +87,6 @@ public class StoredUserPassword {
     @Generated(value = GenerationTime.ALWAYS)
     private Date updated;
 
-    public StoredUserPassword(String userId, String password, int failedPasswordAttempts) {
-        this.userId = userId;
-        this.password = password;
-        this.failedPasswordAttempts = failedPasswordAttempts;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -73,7 +95,7 @@ public class StoredUserPassword {
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
             return false;
         }
-        StoredUserPassword that = (StoredUserPassword) o;
+        val that = (StoredSubjectID) o;
         return Objects.equals(id, that.id);
     }
 

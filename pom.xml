@@ -42,7 +42,7 @@
         <jose4j.version>0.9.3</jose4j.version>
         <bcrypt.version>0.10.2</bcrypt.version>
         <signals.version>1.4</signals.version>
-        <function-metrics.version>1.0.13</function-metrics.version>
+        <function-metrics.version>1.0.15</function-metrics.version>
         <awaitility.version>4.2.0</awaitility.version>
         <guice.version>5.1.0</guice.version>
         <dw-guicey.version>5.6.1</dw-guicey.version>

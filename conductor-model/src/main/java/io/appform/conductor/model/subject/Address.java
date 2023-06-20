@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,41 +18,18 @@ package io.appform.conductor.model.subject;
 
 import lombok.Value;
 
-import java.util.Date;
-
 /**
- * Subject for a ticket. This is the person reaching out for help.
+ * Address for usage with {@link Subject}
  */
 @Value
-public class SubjectSummary {
-
-    /**
-     * Globally unique id for the subject
-     */
-    String globalId;
-
-    /**
-     * Full name for the subject
-     */
-    String name;
-
-    /**
-     * Date of birth
-     */
-    Date dob;
-
-    /**
-     * Is the subject deleted
-     */
-    boolean deleted;
-
-    /**
-     * Subject creation date
-     */
-    Date created;
-
-    /**
-     * Ticket update date
-     */
-    Date updated;
+public class Address {
+    String id;
+    AddressType type;
+    String houseNumber;
+    String street;
+    String locality;
+    String city;
+    String state;
+    String country;
+    String pinCode;
 }

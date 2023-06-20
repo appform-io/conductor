@@ -18,7 +18,6 @@ package io.appform.conductor.server.usermanagement.impl.models;
 
 import io.appform.conductor.model.usermgmt.SessionState;
 import io.appform.conductor.model.usermgmt.SessionType;
-import io.appform.conductor.server.usermanagement.impl.DBSessionStore;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,12 +31,13 @@ import java.util.Date;
  * DB model object corresponding to {@link io.appform.conductor.model.usermgmt.UserSessionDetails}
  */
 @Entity
-@Table(name = DBSessionStore.SESSION_TABLE_NAME, uniqueConstraints = {
+@Table(name = StoredUserSessionDetails.SESSION_TABLE_NAME, uniqueConstraints = {
         @UniqueConstraint(name = "uk_sessions", columnNames = {"partition_id", "user_id", "session_id"})
 })
 @Data
 @NoArgsConstructor
 public class StoredUserSessionDetails {
+    public static final String SESSION_TABLE_NAME = "user_sessions";
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;

@@ -16,53 +16,43 @@
 
 package io.appform.conductor.model.subject;
 
-import lombok.Value;
-
-import java.util.Date;
+import lombok.Getter;
 
 /**
- * Identification coordinates for a subject. For example email etc.
+ * Identifier for a subject
  */
-@Value
-public class SubjectIdentifier {
+public enum SubjectIDType {
 
     /**
-     * Type of this ID (phone/email/etc)
+     * Phone number for subject
      */
-    SubjectIdentifierType type;
+    PHONE("Phone"),
 
     /**
-     * Subtype of this ID. For example, if type phone, this should be set to Home, Work etc
+     * Email for subject
      */
-    String subType;
+    EMAIL("Email"),
 
     /**
-     * Global ID for this id.
+     * Govt identification
      */
-    String id;
+    GOVT_ID("Government ID"),
 
     /**
-     * Actual value, phone, email etc
+     * Govt identification
      */
-    String value;
+    EXTERNAL_ID("Some other external ID")
+
+    ;
 
     /**
-     * Is this the primary (phone, email, etc)
+     * Display name of the attribute
      */
-    boolean primary;
+    @Getter
+    private final String displayName;
 
-    /**
-     * IS this ID deleted?
-     */
-    boolean deleted;
+    SubjectIDType(String displayName) {
+        this.displayName = displayName;
+    }
 
-    /**
-     * Creation date of the ID
-     */
-    Date created;
-
-    /**
-     * Last updated date
-     */
-    Date updated;
 }

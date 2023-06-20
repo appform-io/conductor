@@ -18,23 +18,28 @@ package io.appform.conductor.server.usermanagement.impl.models;
 
 import io.appform.conductor.model.usermgmt.UserActivationToken;
 import io.appform.conductor.model.usermgmt.UserActivationTokenState;
-import io.appform.conductor.server.usermanagement.impl.DBUserActivationTokenStore;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
-import lombok.Data;
+import lombok.*;
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * DB model for {@link UserActivationToken}
  */
 @Entity
-@Table(name = DBUserActivationTokenStore.ACTIVATION_TOKEN_TABLE_NAME)
-@Data
+@Table(name = StoredUserActivationToken.ACTIVATION_TOKEN_TABLE_NAME)
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
 public class StoredUserActivationToken {
+    public static final String ACTIVATION_TOKEN_TABLE_NAME = "user_activation_links";
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -75,5 +80,22 @@ public class StoredUserActivationToken {
         this.validTill = validTill;
         this.state = state;
         this.partitionId = ConductorServerUtils.currentWeek();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+            return false;
+        }
+        StoredUserActivationToken that = (StoredUserActivationToken) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }
