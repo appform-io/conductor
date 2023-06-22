@@ -16,47 +16,62 @@
 
 package io.appform.conductor.model.workflow;
 
-import io.appform.conductor.model.schema.Schema;
-import io.appform.conductor.model.schema.State;
-import lombok.Value;
+import io.appform.conductor.model.schema.TicketState;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
  */
-@Value
+@Data
+@AllArgsConstructor
 public class Workflow {
     /**
      * Unique id for the workflow
      */
-    String id;
+    private final String id;
 
     /**
      * Human-readable name of the workflow
      */
-    String name;
+    private final String displayName;
 
     /**
      * Human-readable description of the workflow
      */
-    String description;
+    private String description;
 
     /**
      * The schema for tickets in this workflow
      */
-    Schema schema;
+    private final String schemaId;
 
     /**
-     * state machine transitions in the workflow
+     * List of all states for this workflow
      */
-    List<StateTransition> stateTransitions;
+    private final Map<String, TicketState> states;
+
+    /**
+     * State machine transitions in the workflow
+     */
+    private final Map<String, List<TicketStateTransition>> ticketStateTransitions;
 
     /**
      * Start state
      */
-    State start;
-    Date created;
-    Date updated;
+    private String startStateId;
+
+    /**
+     * Rules for selection of this workflow
+     */
+    private final Map<String, Rule> rules;
+
+    private WorkflowState state;
+
+    private final Date created;
+    private final Date updated;
 }

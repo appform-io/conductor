@@ -16,8 +16,6 @@
 
 package io.appform.conductor.model.workflow;
 
-import io.appform.conductor.model.actions.Action;
-import io.appform.conductor.model.schema.State;
 import lombok.Value;
 
 import java.util.Date;
@@ -26,19 +24,19 @@ import java.util.Date;
  * A defined state transition in a workflow
  */
 @Value
-public class StateTransition {
+public class TicketStateTransition {
 
     /**
      * Behaviour of the state machine executor when it reaches this transition
      */
-    public enum Type {
+    public enum TicketStateTransitionType {
 
         /**
          * The associated rule will get evaluated to see if the transition is valid
          */
         EVALUATED,
         /**
-         * This transition will be considered last and if none of the other {@link Type#EVALUATED}
+         * This transition will be considered last and if none of the other {@link TicketStateTransitionType#EVALUATED}
          * transitions happened, this path will be taken.
          */
         DEFAULT
@@ -50,29 +48,24 @@ public class StateTransition {
     String id;
 
     /**
-     * Type of transition. Check {@link Type} to understand
-     */
-    Type type;
-
-    /**
-     * Originating state for the transition
-     */
-    State from;
-
-    /**
      * Terminating state of the transition
      */
-    State to;
+    String to;
+
+    /**
+     * Type of this transition
+     */
+    TicketStateTransitionType type;
 
     /**
      * Actual rule to be evaluated to check if the transition can be made or not
      */
-    String transitionRule;
+    Rule rule;
 
     /**
      * Action to be performed when the transition is successful
      */
-    Action action;
+    String actionId;
 
     /**
      * Creation date for the transition

@@ -28,6 +28,10 @@ public enum ConductorErrorCode {
     STORE_UPDATE_ERROR(1003, "Error updating database for type ${type} with id ${id}"),
     STORE_LIST_ERROR(1004, "Error reading object list of type ${type}"),
     STORE_QUERY_ERROR(1005, "Error reading object of type ${type} using query of param type ${paramType} and value ${value}"),
+    STORE_RELATED_ENTITY_READ_ERROR(1006, "Error reading database for type ${type} with ${id}/${subId}"),
+    STORE_RELATED_ENTITY_WRITE_ERROR(1007, "Error saving to database for type ${type} with ${id}/${subId}"),
+    STORE_RELATED_ENTITY_UPDATE_ERROR(1008, "Error updating database for type ${type} with id ${id}/${subId}"),
+
 
     SCHEMA_UPDATE_FAILED(2001, "Error updating schema version ${schemaId}/${version}. Operation attempted: ${operation}"),
     SCHEMA_FIELD_WRITE_FAILED(2002, "Error writing schema field for ${schemaId}/${fieldId}"),

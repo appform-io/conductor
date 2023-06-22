@@ -16,7 +16,7 @@
 
 package io.appform.conductor.model.ticket;
 
-import io.appform.conductor.model.schema.State;
+import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.subject.Subject;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.User;
@@ -73,9 +73,9 @@ public class TicketSummary {
     Subject subject;
 
     /**
-     * Current ticket {@link State}
+     * Current ticket {@link TicketState}
      */
-    State state;
+    TicketState ticketState;
 
     /**
      * Priority for the ticket

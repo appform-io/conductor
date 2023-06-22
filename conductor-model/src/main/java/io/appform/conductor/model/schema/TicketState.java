@@ -24,7 +24,7 @@ import java.util.Date;
  * A representation for a ticket state
  */
 @Value
-public class State {
+public class TicketState {
 
     /**
      * Global ID for the state
@@ -45,11 +45,6 @@ public class State {
      * If this is a terminal state
      */
     boolean terminal;
-
-    /**
-     * Whether the state is deleted or not
-     */
-    boolean deleted;
 
     /**
      * Creation date of the state

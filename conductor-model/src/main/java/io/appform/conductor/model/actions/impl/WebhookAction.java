@@ -38,7 +38,7 @@ import java.util.Set;
 public class WebhookAction extends Action {
 
     /**
-     * HTTP verb for the call.. is it a GET/POST etc
+     * HTTP verb for the call... is it a GET/POST etc
      */
     enum CallType {
         GET,

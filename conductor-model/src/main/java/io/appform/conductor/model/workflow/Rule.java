@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.actions;
+package io.appform.conductor.model.workflow;
 
-import java.util.Date;
+import lombok.Value;
 
 /**
- *
+ * Definition for a rule
  */
-public class WebhookCallAction extends Action {
-    public WebhookCallAction(
-            ActionType type,
-            String id,
-            String name,
-            String description,
-            Date created,
-            Date updated) {
-        super(type, id, name, description, created, updated);
+@Value
+public class Rule {
+    public enum RuleType {
+        JSON_RULE
     }
-
-    @Override
-    public <T> T accept(ActionVisitor<T> visitor) {
-        return null;
-    }
+    RuleType type;
+    String rule;
 }

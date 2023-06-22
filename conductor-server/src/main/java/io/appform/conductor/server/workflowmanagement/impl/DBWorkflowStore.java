@@ -1,0 +1,338 @@
+/*
+ * Copyright (c) 2023 Santanu Sinha
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package io.appform.conductor.server.workflowmanagement.impl;
+
+import io.appform.conductor.model.error.ConductorErrorCode;
+import io.appform.conductor.model.error.Throws;
+import io.appform.conductor.model.schema.TicketState;
+import io.appform.conductor.model.workflow.Rule;
+import io.appform.conductor.model.workflow.TicketStateTransition;
+import io.appform.conductor.model.workflow.Workflow;
+import io.appform.conductor.model.workflow.WorkflowState;
+import io.appform.conductor.server.workflowmanagement.WorkflowStore;
+import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketState;
+import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketStateTransition;
+import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflow;
+import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflowSelectionRule;
+import io.appform.dropwizard.sharding.dao.LookupDao;
+import io.appform.dropwizard.sharding.dao.RelationalDao;
+import io.appform.functionmetrics.MonitoredFunction;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Property;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
+
+/**
+ *
+ */
+@Singleton
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
+@Slf4j
+public class DBWorkflowStore implements WorkflowStore {
+
+    private final LookupDao<StoredWorkflow> wfDao;
+    private final RelationalDao<StoredTicketState> tsDao;
+    private final RelationalDao<StoredTicketStateTransition> tstrnDao;
+    private final RelationalDao<StoredWorkflowSelectionRule> wfselDao;
+
+    @Override
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredWorkflow.WORKFLOW_TABLE_NAME))
+    public Optional<Workflow> create(
+            @Throws.RuntimeParam("id") String workflowId,
+            String name,
+            String description,
+            String schemaId) {
+        return wfDao.save(new StoredWorkflow()
+                                  .setWorkflowId(workflowId)
+                                  .setDisplayName(name)
+                                  .setDescription(description)
+                                  .setState(WorkflowState.INACTIVE))
+                .map(DBWorkflowStore::toWirePartial);
+    }
+
+    @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredWorkflow.WORKFLOW_TABLE_NAME))
+    public Optional<Workflow> read(@Throws.RuntimeParam("id") String workflowId) {
+        return wfDao.readOnlyExecutor(workflowId)
+                .readAugmentParent(tsDao,
+                                   createCriteria(StoredTicketState.class, workflowId),
+                                   0,
+                                   Integer.MAX_VALUE,
+                                   (wf, states) -> wf.setStates(
+                                           states.stream()
+                                                   .collect(Collectors.toMap(StoredTicketState::getExtId,
+                                                                             DBWorkflowStore::toWire))))
+                .readAugmentParent(tstrnDao,
+                                   createCriteria(StoredTicketStateTransition.class, workflowId),
+                                   0,
+                                   Integer.MAX_VALUE,
+                                   (wf, states) -> wf.setTicketStateTransitions(
+                                           states.stream()
+                                                   .collect(Collectors.groupingBy(StoredTicketStateTransition::getFromState,
+                                                                                  Collectors.mapping(DBWorkflowStore::toWire,
+                                                                                                     Collectors.toList())))))
+                .readAugmentParent(wfselDao,
+                                   createCriteria(StoredWorkflowSelectionRule.class, workflowId),
+                                   0,
+                                   Integer.MAX_VALUE,
+                                   (wf, states) -> wf.setRules(
+                                           states.stream()
+                                                   .collect(Collectors.toMap(StoredWorkflowSelectionRule::getExtId,
+                                                                             r -> new Rule(r.getRuleType(),
+                                                                                           r.getRule())))))
+                .execute()
+                .map(wf -> new Workflow(wf.getWorkflowId(),
+                                        wf.getDisplayName(),
+                                        wf.getDescription(),
+                                        wf.getSchemaId(),
+                                        wf.getStates(),
+                                        wf.getTicketStateTransitions(),
+                                        wf.getStartStateId(),
+                                        wf.getRules(),
+                                        wf.getState(),
+                                        wf.getCreated(),
+                                        wf.getUpdated()));
+    }
+
+
+    @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredWorkflow.WORKFLOW_TABLE_NAME))
+    public Optional<Workflow> update(@Throws.RuntimeParam("id") String workflowId, UnaryOperator<Workflow> updater) {
+        val updated = wfDao.update(workflowId, stored -> stored.map(wf -> {
+                    val updatedObj = updater.apply(toWirePartial(wf));
+                    return wf.setDescription(updatedObj.getDescription())
+                            .setStartStateId(updatedObj.getStartStateId())
+                            .setState(updatedObj.getState());
+                })
+                .orElse(null));
+        log.info("Update for workflow {} application status: {}", workflowId, updated);
+        return read(workflowId);
+    }
+
+    @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredWorkflow.WORKFLOW_TABLE_NAME))
+    public boolean deleteWorkflow(@Throws.RuntimeParam("id") String workflowId) {
+        return wfDao.update(workflowId, stored -> stored.map(wf -> wf.setDeleted(true))
+                .orElse(null));
+    }
+
+    @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_RELATED_ENTITY_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredTicketState.WF_STATE_TABLE_NAME))
+    public Optional<Workflow> addState(
+            @Throws.RuntimeParam("id") String workflowId,
+            @Throws.RuntimeParam("subId") String stateId,
+            String displayName,
+            String description,
+            boolean terminal) {
+        val updated = wfDao.lockAndGetExecutor(workflowId)
+                .createOrUpdate(tsDao,
+                                createCriteria(StoredTicketState.class, workflowId)
+                                        .add(Property.forName("extId").eq(stateId)),
+                                existing -> existing
+                                        .setDisplayName(displayName)
+                                        .setDescription(description)
+                                        .setTerminal(terminal),
+                                () -> new StoredTicketState()
+                                        .setWorkflowId(workflowId)
+                                        .setExtId(stateId)
+                                        .setDisplayName(displayName)
+                                        .setDescription(description)
+                                        .setTerminal(terminal))
+                .execute() != null;
+        log.info("State create status for {}/{}: {}", workflowId, stateId, updated);
+        return read(workflowId);
+    }
+
+    @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_RELATED_ENTITY_UPDATE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredTicketState.WF_STATE_TABLE_NAME))
+    public Optional<Workflow> deleteState(
+            @Throws.RuntimeParam("id") String workflowId,
+            @Throws.RuntimeParam("subId") String stateId) {
+        val updated = wfDao.lockAndGetExecutor(workflowId)
+                .update(tsDao,
+                        createCriteria(StoredTicketState.class, workflowId)
+                                .add(Property.forName("extId").eq(stateId)),
+                        state -> state.setDeleted(true),
+                        () -> false)
+                .execute();
+        log.info("State delete status for {}/{}: {}", workflowId, stateId, updated);
+        return read(workflowId);
+    }
+
+    @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_RELATED_ENTITY_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredTicketStateTransition.WF_TRANSITIONS_TABLE_NAME))
+    public Optional<Workflow> addTransition(
+            @Throws.RuntimeParam("id") String workflowId,
+            @Throws.RuntimeParam("subId") String transitionId,
+            String from,
+            String to,
+            TicketStateTransition.TicketStateTransitionType type,
+            Rule rule,
+            String actionId) {
+        val updated = wfDao.lockAndGetExecutor(workflowId)
+                .createOrUpdate(tstrnDao,
+                                createCriteria(StoredTicketStateTransition.class, workflowId)
+                                        .add(Property.forName("extId").eq(transitionId)),
+                                existing -> existing
+                                        .setFromState(from)
+                                        .setToState(to)
+                                        .setType(type)
+                                        .setRuleType(rule.getType())
+                                        .setRule(rule.getRule())
+                                        .setActionId(actionId),
+                                () -> new StoredTicketStateTransition()
+                                        .setWorkflowId(workflowId)
+                                        .setExtId(transitionId)
+                                        .setFromState(from)
+                                        .setToState(to)
+                                        .setType(type)
+                                        .setRuleType(rule.getType())
+                                        .setRule(rule.getRule())
+                                        .setActionId(actionId))
+                .execute() != null;
+        log.info("State transition create status for {}/{}: {}", workflowId, transitionId, updated);
+        return read(workflowId);
+    }
+
+    @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_RELATED_ENTITY_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredTicketStateTransition.WF_TRANSITIONS_TABLE_NAME))
+    public Optional<Workflow> deleteTransition(
+            @Throws.RuntimeParam("id") String workflowId,
+            @Throws.RuntimeParam("subId") String transitionId) {
+        val updated = wfDao.lockAndGetExecutor(workflowId)
+                .update(tstrnDao,
+                        createCriteria(StoredTicketStateTransition.class, workflowId)
+                                .add(Property.forName("extId").eq(transitionId)),
+                        transition -> transition.setDeleted(true),
+                        () -> false)
+                .execute();
+        log.info("State transition delete status for {}/{}: {}", workflowId, transitionId, updated);
+        return read(workflowId);
+    }
+
+    @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_RELATED_ENTITY_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type",
+                    value = StoredWorkflowSelectionRule.WF_SELECTION_RULE_TABLE_NAME))
+    public Optional<Workflow> addSelectionRule(
+            @Throws.RuntimeParam("id") String workflowId,
+            @Throws.RuntimeParam("subId") String ruleId,
+            Rule rule) {
+        val updated = wfDao.lockAndGetExecutor(workflowId)
+                .createOrUpdate(wfselDao,
+                                createCriteria(StoredWorkflowSelectionRule.class, workflowId)
+                                        .add(Property.forName("extId").eq(ruleId)),
+                                existing -> existing
+                                        .setRuleType(rule.getType())
+                                        .setRule(rule.getRule()),
+                                () -> new StoredWorkflowSelectionRule()
+                                        .setWorkflowId(workflowId)
+                                        .setExtId(ruleId)
+                                        .setRuleType(rule.getType())
+                                        .setRule(rule.getRule()))
+                .execute() != null;
+        log.info("Workflow rule create status for {}/{}: {}", workflowId, ruleId, updated);
+        return read(workflowId);
+    }
+
+    @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_RELATED_ENTITY_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type",
+                    value = StoredWorkflowSelectionRule.WF_SELECTION_RULE_TABLE_NAME))
+    public Optional<Workflow> removeSelectionRule(
+            @Throws.RuntimeParam("id") String workflowId,
+            @Throws.RuntimeParam("subId") String ruleId) {
+        val updated = wfDao.lockAndGetExecutor(workflowId)
+                .update(tsDao,
+                        createCriteria(StoredWorkflowSelectionRule.class, workflowId)
+                                .add(Property.forName("extId").eq(ruleId)),
+                        state -> state.setDeleted(true),
+                        () -> false)
+                .execute();
+        log.info("Workflow rule delete status for {}/{}: {}", workflowId, ruleId, updated);
+        return read(workflowId);
+    }
+
+    private static Workflow toWirePartial(StoredWorkflow wf) {
+        return new Workflow(wf.getWorkflowId(),
+                            wf.getDisplayName(),
+                            wf.getDescription(),
+                            wf.getSchemaId(),
+                            Map.of(),
+                            Map.of(),
+                            wf.getStartStateId(),
+                            Map.of(),
+                            wf.getState(),
+                            wf.getCreated(),
+                            wf.getUpdated());
+    }
+
+    private static DetachedCriteria createCriteria(Class<?> clazz, String workflowId) {
+        return DetachedCriteria.forClass(clazz)
+                .add(Property.forName("workflowId").eq(workflowId))
+                .add(Property.forName("deleted").eq(false));
+    }
+
+    private static TicketState toWire(final StoredTicketState state) {
+        return new TicketState(
+                state.getExtId(),
+                state.getDisplayName(),
+                state.getDescription(),
+                state.isTerminal(),
+                state.getCreated(),
+                state.getUpdated());
+    }
+
+    private static TicketStateTransition toWire(final StoredTicketStateTransition state) {
+        return new TicketStateTransition(
+                state.getExtId(),
+                state.getToState(),
+                state.getType(),
+                new Rule(state.getRuleType(), state.getRule()),
+                state.getActionId(),
+                state.getCreated(),
+                state.getUpdated());
+    }
+}
