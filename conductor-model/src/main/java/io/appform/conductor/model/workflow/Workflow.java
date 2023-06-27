@@ -68,7 +68,7 @@ public class Workflow {
     /**
      * Rules for selection of this workflow
      */
-    private final Map<String, Rule> rules;
+    private final Map<String, Rule> selectionRules;
 
     private WorkflowState state;
 

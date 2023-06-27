@@ -37,7 +37,7 @@ import java.util.Objects;
 @Entity
 @Table(name = StoredWorkflowSelectionRule.WF_SELECTION_RULE_TABLE_NAME,
         indexes = {
-                @Index(name = "idx_wf_state", columnList = "workflow_id"),
+                @Index(name = "idx_wf_selection_rule_wf_id", columnList = "workflow_id"),
         }
 )
 @Getter

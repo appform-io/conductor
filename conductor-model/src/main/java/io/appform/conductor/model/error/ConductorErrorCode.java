@@ -31,13 +31,15 @@ public enum ConductorErrorCode {
     STORE_RELATED_ENTITY_READ_ERROR(1006, "Error reading database for type ${type} with ${id}/${subId}"),
     STORE_RELATED_ENTITY_WRITE_ERROR(1007, "Error saving to database for type ${type} with ${id}/${subId}"),
     STORE_RELATED_ENTITY_UPDATE_ERROR(1008, "Error updating database for type ${type} with id ${id}/${subId}"),
+    STORE_RELATED_ENTITY_LIST_ERROR(1009, "Error listing related entities of type ${type} with parent id ${id}"),
 
 
     SCHEMA_UPDATE_FAILED(2001, "Error updating schema version ${schemaId}/${version}. Operation attempted: ${operation}"),
     SCHEMA_FIELD_WRITE_FAILED(2002, "Error writing schema field for ${schemaId}/${fieldId}"),
     SCHEMA_FIELD_READ_FAILED(2003, "Error reading schema field for ${schemaId}/${fieldId}"),
 
-
+    WORKFLOW_ERROR_INVALID_ID(3001, "Invalid workflow ID: ${id}"),
+    WORKFLOW_ERROR(3002, "Error in workflow management: ${message}")
     ;
 
     private final int errorCode;

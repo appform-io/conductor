@@ -23,11 +23,15 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
+import io.appform.conductor.model.error.ConductorErrorCode;
+import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.server.usermanagement.CurrentUserSessionStore;
 import lombok.experimental.UtilityClass;
+import lombok.val;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Map;
 
 /**
  *
@@ -56,6 +60,15 @@ public class ConductorServerUtils {
                 .replaceAll("\\p{Punct}","_");
     }
 
+    public static String readableId(final String... values) {
+        val value = String.join("_", values);
+        return normalize(value).toUpperCase();
+    }
+
+    public static String readableId(final String value) {
+        return normalize(value).toUpperCase();
+    }
+
 
     public static String operatingUserId() {
         return CurrentUserSessionStore.get()
@@ -69,5 +82,21 @@ public class ConductorServerUtils {
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    }
+
+    public static void ensure(boolean condition, ConductorErrorCode errorCode, String message) {
+        if(!condition) {
+            throw new ConductorException(errorCode, Map.of("message", message), null);
+        }
+    }
+
+    public static void notNull(Object object, ConductorErrorCode errorCode, String message) {
+        if(null == object) {
+            throw new ConductorException(errorCode, Map.of("message", message), null);
+        }
+    }
+
+    public static void logicalError(ConductorErrorCode errorCode, String message) {
+        throw new ConductorException(errorCode, Map.of("message", message), null);
     }
 }

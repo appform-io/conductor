@@ -32,33 +32,40 @@ public interface WorkflowStore {
     Optional<Workflow> read(final String workflowId);
 
     Optional<Workflow> update(final String id, final UnaryOperator<Workflow> updater);
+
     boolean deleteWorkflow(final String id);
 
-    Optional<Workflow> addState(final String workflowId,
-                                final String stateId,
-                                final String displayName,
-                                final String description,
-                                final boolean terminal);
+    Optional<Workflow> createOrUpdateState(
+            final String workflowId,
+            final String stateId,
+            final String displayName,
+            final String description,
+            final boolean terminal);
 
-    Optional<Workflow> deleteState(final String workflowId,
-                                   final String stateId);
+    Optional<Workflow> deleteState(
+            final String workflowId,
+            final String stateId);
 
-    Optional<Workflow> addTransition(final String workflowId,
-                                     final String transitionId,
-                                     final String from,
-                                     final String to,
-                                     final TicketStateTransition.TicketStateTransitionType type,
-                                     final Rule rule,
-                                     final String actionId);
+    Optional<Workflow> createOrUpdateTransition(
+            final String workflowId,
+            final String transitionId,
+            final String from,
+            final String to,
+            final TicketStateTransition.TicketStateTransitionType type,
+            final Rule rule,
+            final String actionId);
 
-    Optional<Workflow> deleteTransition(final String workflowId,
-                                        final String transitionId);
+    Optional<Workflow> deleteTransition(
+            final String workflowId,
+            final String transitionId);
 
-    Optional<Workflow> addSelectionRule(final String workFlowId,
-                                        final String ruleId,
-                                        final Rule rule);
+    Optional<Workflow> createOrUpdateSelectionRule(
+            final String workFlowId,
+            final String ruleId,
+            final Rule rule);
 
-    Optional<Workflow> removeSelectionRule(final String workflowId,
-                                           final String ruleId);
+    Optional<Workflow> deleteSelectionRule(
+            final String workflowId,
+            final String ruleId);
 
 }

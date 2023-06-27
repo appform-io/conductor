@@ -46,7 +46,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 /**
- *
+ * DB implementation of {@link WorkflowStore}
  */
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
@@ -152,7 +152,7 @@ public class DBWorkflowStore implements WorkflowStore {
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_RELATED_ENTITY_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredTicketState.WF_STATE_TABLE_NAME))
-    public Optional<Workflow> addState(
+    public Optional<Workflow> createOrUpdateState(
             @Throws.RuntimeParam("id") String workflowId,
             @Throws.RuntimeParam("subId") String stateId,
             String displayName,
@@ -199,7 +199,7 @@ public class DBWorkflowStore implements WorkflowStore {
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_RELATED_ENTITY_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredTicketStateTransition.WF_TRANSITIONS_TABLE_NAME))
-    public Optional<Workflow> addTransition(
+    public Optional<Workflow> createOrUpdateTransition(
             @Throws.RuntimeParam("id") String workflowId,
             @Throws.RuntimeParam("subId") String transitionId,
             String from,
@@ -212,8 +212,6 @@ public class DBWorkflowStore implements WorkflowStore {
                                 createCriteria(StoredTicketStateTransition.class, workflowId)
                                         .add(Property.forName("extId").eq(transitionId)),
                                 existing -> existing
-                                        .setFromState(from)
-                                        .setToState(to)
                                         .setType(type)
                                         .setRuleType(rule.getType())
                                         .setRule(rule.getRule())
@@ -255,7 +253,7 @@ public class DBWorkflowStore implements WorkflowStore {
     @Throws(value = ConductorErrorCode.STORE_RELATED_ENTITY_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type",
                     value = StoredWorkflowSelectionRule.WF_SELECTION_RULE_TABLE_NAME))
-    public Optional<Workflow> addSelectionRule(
+    public Optional<Workflow> createOrUpdateSelectionRule(
             @Throws.RuntimeParam("id") String workflowId,
             @Throws.RuntimeParam("subId") String ruleId,
             Rule rule) {
@@ -281,7 +279,7 @@ public class DBWorkflowStore implements WorkflowStore {
     @Throws(value = ConductorErrorCode.STORE_RELATED_ENTITY_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type",
                     value = StoredWorkflowSelectionRule.WF_SELECTION_RULE_TABLE_NAME))
-    public Optional<Workflow> removeSelectionRule(
+    public Optional<Workflow> deleteSelectionRule(
             @Throws.RuntimeParam("id") String workflowId,
             @Throws.RuntimeParam("subId") String ruleId) {
         val updated = wfDao.lockAndGetExecutor(workflowId)
@@ -328,6 +326,7 @@ public class DBWorkflowStore implements WorkflowStore {
     private static TicketStateTransition toWire(final StoredTicketStateTransition state) {
         return new TicketStateTransition(
                 state.getExtId(),
+                state.getFromState(),
                 state.getToState(),
                 state.getType(),
                 new Rule(state.getRuleType(), state.getRule()),

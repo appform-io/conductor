@@ -48,6 +48,11 @@ public class TicketStateTransition {
     String id;
 
     /**
+     * Originating state of the transition
+     */
+    String from;
+
+    /**
      * Terminating state of the transition
      */
     String to;

@@ -44,87 +44,87 @@ class DBWorkflowStoreTest extends DBTestBase {
                 .orElse(null);
         assertNotNull(original);
         {
-            val updated = ds.addState(original.getId(), "START", "Start State", "For testing", false)
+            val updated = ds.createOrUpdateState(original.getId(), "START", "Start State", "For testing", false)
                     .orElse(null);
             assertEquals(1, updated.getStates().size());
         }
         {
-            val updated = ds.addState(original.getId(), "INTERMEDIATE_1", "Intermediate State", "For testing", false)
+            val updated = ds.createOrUpdateState(original.getId(), "INTERMEDIATE_1", "Intermediate State", "For testing", false)
                     .orElse(null);
             assertEquals(2, updated.getStates().size());
         }        {
-            val updated = ds.addState(original.getId(), "INTERMEDIATE_2", "Intermediate State", "For testing", false)
+            val updated = ds.createOrUpdateState(original.getId(), "INTERMEDIATE_2", "Intermediate State", "For testing", false)
                     .orElse(null);
             assertEquals(3, updated.getStates().size());
         }
         {
-            val updated = ds.addState(original.getId(), "END", "End State", "For testing", true)
+            val updated = ds.createOrUpdateState(original.getId(), "END", "End State", "For testing", true)
                     .orElse(null);
             assertEquals(4, updated.getStates().size());
         }
         {
-            val updated = ds.addTransition(original.getId(),
-                                           "S_I1",
-                                           "START",
-                                           "INTERMEDIATE_1",
-                                           TicketStateTransition.TicketStateTransitionType.EVALUATED,
-                                           new Rule(Rule.RuleType.JSON_RULE, "{}"),
-                                           "NO_ACTION")
+            val updated = ds.createOrUpdateTransition(original.getId(),
+                                                      "S_I1",
+                                                      "START",
+                                                      "INTERMEDIATE_1",
+                                                      TicketStateTransition.TicketStateTransitionType.EVALUATED,
+                                                      new Rule(Rule.RuleType.JSON_RULE, "{}"),
+                                                      "NO_ACTION")
                     .orElse(null);
             assertEquals(1, updated.getTicketStateTransitions().size());
             assertEquals(1, updated.getTicketStateTransitions().get("START").size());
         }
         {
-            val updated = ds.addTransition(original.getId(),
-                                           "S_I2",
-                                           "START",
-                                           "INTERMEDIATE_2",
-                                           TicketStateTransition.TicketStateTransitionType.EVALUATED,
-                                           new Rule(Rule.RuleType.JSON_RULE, "{}"),
-                                           "NO_ACTION")
+            val updated = ds.createOrUpdateTransition(original.getId(),
+                                                      "S_I2",
+                                                      "START",
+                                                      "INTERMEDIATE_2",
+                                                      TicketStateTransition.TicketStateTransitionType.EVALUATED,
+                                                      new Rule(Rule.RuleType.JSON_RULE, "{}"),
+                                                      "NO_ACTION")
                     .orElse(null);
             assertEquals(1, updated.getTicketStateTransitions().size());
             assertEquals(2, updated.getTicketStateTransitions().get("START").size());
         }
         {
-            val updated = ds.addTransition(original.getId(),
-                                           "I1_E",
-                                           "INTERMEDIATE_1",
-                                           "END",
-                                           TicketStateTransition.TicketStateTransitionType.DEFAULT,
-                                           new Rule(Rule.RuleType.JSON_RULE, "{}"),
-                                           "NO_ACTION")
+            val updated = ds.createOrUpdateTransition(original.getId(),
+                                                      "I1_E",
+                                                      "INTERMEDIATE_1",
+                                                      "END",
+                                                      TicketStateTransition.TicketStateTransitionType.DEFAULT,
+                                                      new Rule(Rule.RuleType.JSON_RULE, "{}"),
+                                                      "NO_ACTION")
                     .orElse(null);
             assertEquals(2, updated.getTicketStateTransitions().size());
             assertEquals(1, updated.getTicketStateTransitions().get("INTERMEDIATE_1").size());
         }
         {
-            val updated = ds.addTransition(original.getId(),
-                                           "I2_E",
-                                           "INTERMEDIATE_2",
-                                           "END",
-                                           TicketStateTransition.TicketStateTransitionType.DEFAULT,
-                                           new Rule(Rule.RuleType.JSON_RULE, "{}"),
-                                           "NO_ACTION")
+            val updated = ds.createOrUpdateTransition(original.getId(),
+                                                      "I2_E",
+                                                      "INTERMEDIATE_2",
+                                                      "END",
+                                                      TicketStateTransition.TicketStateTransitionType.DEFAULT,
+                                                      new Rule(Rule.RuleType.JSON_RULE, "{}"),
+                                                      "NO_ACTION")
                     .orElse(null);
             assertEquals(3, updated.getTicketStateTransitions().size());
             assertEquals(1, updated.getTicketStateTransitions().get("INTERMEDIATE_2").size());
         }
         {
-            val updated = ds.addSelectionRule(original.getId(),
-                                           "R1",
-                                           new Rule(Rule.RuleType.JSON_RULE, "{}"))
+            val updated = ds.createOrUpdateSelectionRule(original.getId(),
+                                                         "R1",
+                                                         new Rule(Rule.RuleType.JSON_RULE, "{}"))
                     .orElse(null);
-            assertEquals(1, updated.getRules().size());
-            assertNotNull(updated.getRules().get("R1"));
+            assertEquals(1, updated.getSelectionRules().size());
+            assertNotNull(updated.getSelectionRules().get("R1"));
         }
         {
-            val updated = ds.addSelectionRule(original.getId(),
-                                           "R2",
-                                           new Rule(Rule.RuleType.JSON_RULE, "{}"))
+            val updated = ds.createOrUpdateSelectionRule(original.getId(),
+                                                         "R2",
+                                                         new Rule(Rule.RuleType.JSON_RULE, "{}"))
                     .orElse(null);
-            assertEquals(2, updated.getRules().size());
-            assertNotNull(updated.getRules().get("R2"));
+            assertEquals(2, updated.getSelectionRules().size());
+            assertNotNull(updated.getSelectionRules().get("R2"));
         }
     }
 
