@@ -20,15 +20,19 @@ import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
-import io.appform.conductor.server.DBTestBase;
+import io.appform.conductor.server.DBTestExtension;
+import io.appform.conductor.server.RelevantDBEntityPackages;
+import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.workflowmanagement.impl.DBWorkflowStore;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketState;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketStateTransition;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflow;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflowSelectionRule;
+import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.val;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Optional;
 
@@ -38,14 +42,25 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- *
+ * Tests for {@link WorkflowManager}
  */
-class WorkflowManagerTest extends DBTestBase {
+@RelevantDBEntityPackages("io.appform.conductor.server.workflowmanagement.impl.models")
+@ExtendWith(DBTestExtension.class)
+class WorkflowManagerTest {
 
     @Test
-    void testWorkflowCrud() {
+    void testWorkflowCrud(BalancedDBShardingBundle<TestConfig> bundle) {
         val schemaStore = mock(SchemaStore.class);
-        val schema = new Schema("S1", "S1", null, 1, SchemaState.ACTIVE, null, null,null, null, null);
+        val schema = new Schema("S1",
+                                "S1",
+                                null,
+                                1,
+                                SchemaState.ACTIVE,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null);
         when(schemaStore.get(anyString())).thenReturn(Optional.of(schema));
         val workflowStore = new DBWorkflowStore(bundle.createParentObjectDao(StoredWorkflow.class),
                                                 bundle.createRelatedObjectDao(StoredTicketState.class),
@@ -56,8 +71,8 @@ class WorkflowManagerTest extends DBTestBase {
         val wf = wfm.create("Test", "Test workflow", "S1").orElse(null);
         assertNotNull(wf);
         try {
-            wfm.create("Test", "Test workflow", "S1").orElse(null);
-            fail("Should have thrown");
+            wfm.create("Test", "Test workflow", "S1");
+            fail("Should have thrown as it's a duplicate entry");
         }
         catch (ConductorException e) {
             assertEquals(ConductorErrorCode.STORE_WRITE_ERROR, e.getErrorCode());

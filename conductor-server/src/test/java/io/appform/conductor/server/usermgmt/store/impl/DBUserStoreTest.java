@@ -21,14 +21,18 @@ import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.usermgmt.UserType;
-import io.appform.conductor.server.DBTestBase;
+import io.appform.conductor.server.DBTestExtension;
+import io.appform.conductor.server.RelevantDBEntityPackages;
+import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.usermanagement.impl.DBUserStore;
 import io.appform.conductor.server.usermanagement.impl.models.StoredUser;
+import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -41,11 +45,13 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for {@link DBUserStore}
  */
-class DBUserStoreTest extends DBTestBase {
+@RelevantDBEntityPackages("io.appform.conductor.server.usermanagement.impl.models")
+@ExtendWith(DBTestExtension.class)
+class DBUserStoreTest {
 
     @Test
-    void testCreate() {
-        val userStore = new DBUserStore(createRealUserDao());
+    void testCreate(BalancedDBShardingBundle<TestConfig> bundle) {
+        val userStore = new DBUserStore(createRealUserDao(bundle));
         val createdUser = userStore.create("Test", UserType.HUMAN, "test@test.com")
                 .orElse(null);
         assertNotNull(createdUser);
@@ -54,8 +60,8 @@ class DBUserStoreTest extends DBTestBase {
     }
 
     @Test
-    void testGetById() {
-        val userStore = new DBUserStore(createRealUserDao());
+    void testGetById(BalancedDBShardingBundle<TestConfig> bundle) {
+        val userStore = new DBUserStore(createRealUserDao(bundle));
         val newUser = userStore.create("Test", UserType.HUMAN, "test@test.com")
                 .orElse(null);
         assertNotNull(newUser);
@@ -66,9 +72,9 @@ class DBUserStoreTest extends DBTestBase {
     }
 
     @Test
-    void testGetByIds() {
+    void testGetByIds(BalancedDBShardingBundle<TestConfig> bundle) {
         val numOfUsers = 10;
-        val userStore = new DBUserStore(createRealUserDao());
+        val userStore = new DBUserStore(createRealUserDao(bundle));
         List<String> queryIds = new ArrayList<>();
         val users = new ArrayList<UserSummary>();
         IntStream.range(0, numOfUsers).forEach(
@@ -91,7 +97,7 @@ class DBUserStoreTest extends DBTestBase {
     }
 
     @Test
-    void testGetByEmailFailed() {
+    void testGetByEmailFailed(BalancedDBShardingBundle<TestConfig> bundle) {
         //User not found
         val userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
@@ -115,8 +121,8 @@ class DBUserStoreTest extends DBTestBase {
     }
 
     @Test
-    void testGetByEmail() {
-        val userStore = new DBUserStore(createRealUserDao());
+    void testGetByEmail(BalancedDBShardingBundle<TestConfig> bundle) {
+        val userStore = new DBUserStore(createRealUserDao(bundle));
         val newUser = userStore.create("Test", UserType.HUMAN, "test@test.com")
                 .orElse(null);
         assertNotNull(newUser);
@@ -127,8 +133,8 @@ class DBUserStoreTest extends DBTestBase {
     }
 
     @Test
-    void testUpdate() {
-        val userStore = new DBUserStore(createRealUserDao());
+    void testUpdate(BalancedDBShardingBundle<TestConfig> bundle) {
+        val userStore = new DBUserStore(createRealUserDao(bundle));
         val newUser1 = userStore.create("Test1", UserType.HUMAN, "test1@test.com").orElse(null);
         val newUser2 = userStore.create("Test2", UserType.HUMAN, "test2@test.com").orElse(null);
         assertNotNull(newUser1);
@@ -174,7 +180,7 @@ class DBUserStoreTest extends DBTestBase {
 
     @Test
     @SneakyThrows
-    void testUpdateFailed() {
+    void testUpdateFailed(BalancedDBShardingBundle<TestConfig> bundle) {
         final LookupDao<StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
         doThrow(NullPointerException.class).when(userDao).update(any(String.class), any());
@@ -198,7 +204,7 @@ class DBUserStoreTest extends DBTestBase {
 
     @Test
     @SneakyThrows
-    void testGetByIdsFailed() {
+    void testGetByIdsFailed(BalancedDBShardingBundle<TestConfig> bundle) {
         final LookupDao<StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
         doThrow(IllegalStateException.class).when(userDao).get(anyList());
@@ -218,7 +224,7 @@ class DBUserStoreTest extends DBTestBase {
 
     @Test
     @SneakyThrows
-    void testGetByIdFailed() {
+    void testGetByIdFailed(BalancedDBShardingBundle<TestConfig> bundle) {
         final LookupDao<StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
         doThrow(NullPointerException.class).when(userDao).get(any(String.class));
@@ -235,7 +241,7 @@ class DBUserStoreTest extends DBTestBase {
 
     @Test
     @SneakyThrows
-    void testCreateFailure() {
+    void testCreateFailure(BalancedDBShardingBundle<TestConfig> bundle) {
         final LookupDao<StoredUser> userDao = createMockUserDao();
         val userStore = new DBUserStore(userDao);
         doThrow(NullPointerException.class).when(userDao).save(any(StoredUser.class));
@@ -251,7 +257,7 @@ class DBUserStoreTest extends DBTestBase {
     }
 
 
-    private LookupDao<StoredUser> createRealUserDao() {
+    private LookupDao<StoredUser> createRealUserDao(BalancedDBShardingBundle<TestConfig> bundle) {
         return bundle.createParentObjectDao(StoredUser.class);
     }
 

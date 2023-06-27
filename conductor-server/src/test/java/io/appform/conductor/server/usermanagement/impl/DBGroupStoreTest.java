@@ -16,31 +16,37 @@
 
 package io.appform.conductor.server.usermanagement.impl;
 
-import io.appform.conductor.server.DBTestBase;
+import io.appform.conductor.server.DBTestExtension;
+import io.appform.conductor.server.RelevantDBEntityPackages;
+import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.usermanagement.impl.models.StoredGroup;
 import io.appform.conductor.server.usermanagement.impl.models.StoredGroupUserMapping;
+import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import lombok.val;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  *
  */
-class DBGroupStoreTest extends DBTestBase {
+@RelevantDBEntityPackages("io.appform.conductor.server.usermanagement.impl.models")
+@ExtendWith(DBTestExtension.class)
+class DBGroupStoreTest {
 
     @Test
-    void testCreate() {
-        val groupStore = new DBGroupStore(createRealGroupDao(), createRealGroupUserMappingDao());
+    void testCreate(BalancedDBShardingBundle<TestConfig> bundle) {
+        val groupStore = new DBGroupStore(createRealGroupDao(bundle), createRealGroupUserMappingDao(bundle));
         val group = groupStore.create("Test", "Test group").orElse(null);
         assertNotNull(group);
     }
 
     @Test
-    void testCreateAssociation() {
-        val groupStore = new DBGroupStore(createRealGroupDao(), createRealGroupUserMappingDao());
+    void testCreateAssociation(BalancedDBShardingBundle<TestConfig> bundle) {
+        val groupStore = new DBGroupStore(createRealGroupDao(bundle), createRealGroupUserMappingDao(bundle));
         groupStore.create("Test", "Test Group");
         assertTrue(groupStore.addUserToGroup("test", "test-user"));
         assertEquals(1, groupStore.findUsersForGroup("test", 0, Integer.MAX_VALUE).size());
@@ -50,10 +56,10 @@ class DBGroupStoreTest extends DBTestBase {
         assertEquals(1, groupStore.findUsersForGroup("test", 0, Integer.MAX_VALUE).size());
     }
 
-    private LookupDao<StoredGroup> createRealGroupDao() {
+    private LookupDao<StoredGroup> createRealGroupDao(BalancedDBShardingBundle<TestConfig> bundle) {
         return bundle.createParentObjectDao(StoredGroup.class);
     }
-    private RelationalDao<StoredGroupUserMapping> createRealGroupUserMappingDao() {
+    private RelationalDao<StoredGroupUserMapping> createRealGroupUserMappingDao(BalancedDBShardingBundle<TestConfig> bundle) {
         return bundle.createRelatedObjectDao(StoredGroupUserMapping.class);
     }
 }

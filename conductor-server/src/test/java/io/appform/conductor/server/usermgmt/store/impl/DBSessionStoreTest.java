@@ -20,13 +20,17 @@ import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.usermgmt.SessionState;
 import io.appform.conductor.model.usermgmt.SessionType;
+import io.appform.conductor.server.DBTestExtension;
+import io.appform.conductor.server.RelevantDBEntityPackages;
+import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.usermanagement.impl.DBSessionStore;
 import io.appform.conductor.server.usermanagement.impl.models.StoredUserSessionDetails;
+import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
-import io.appform.conductor.server.DBTestBase;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.sql.Date;
 import java.time.Duration;
@@ -38,11 +42,13 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for {@link DBSessionStore}
  */
-class DBSessionStoreTest extends DBTestBase {
+@RelevantDBEntityPackages("io.appform.conductor.server.usermanagement.impl.models")
+@ExtendWith(DBTestExtension.class)
+class DBSessionStoreTest {
 
     @Test
-    void testCreate() {
-        val userStore = new DBSessionStore(createRealUserDao());
+    void testCreate(BalancedDBShardingBundle<TestConfig> bundle) {
+        val userStore = new DBSessionStore(createRealUserDao(bundle));
         val newUserSession = userStore.create("user_id",
                                               SessionType.DYNAMIC,
                                               Date.from(Instant.now().plus(Duration.ofDays(7)))).orElse(null);
@@ -53,8 +59,8 @@ class DBSessionStoreTest extends DBTestBase {
 
     @Test
     @SneakyThrows
-    void testCreateFailed() {
-        val userDao = createMockUserDao();
+    void testCreateFailed(BalancedDBShardingBundle<TestConfig> bundle) {
+        val userDao = createMockUserDao(bundle);
         val mockUserDao = new DBSessionStore(userDao);
         doThrow(NullPointerException.class).when(userDao).save(anyString(), any(StoredUserSessionDetails.class));
         try {
@@ -67,12 +73,12 @@ class DBSessionStoreTest extends DBTestBase {
         }
     }
 
-    private RelationalDao<StoredUserSessionDetails> createRealUserDao() {
+    private RelationalDao<StoredUserSessionDetails> createRealUserDao(BalancedDBShardingBundle<TestConfig> bundle) {
         return bundle.createRelatedObjectDao(StoredUserSessionDetails.class);
     }
 
     @SuppressWarnings("unchecked")
-    private RelationalDao<StoredUserSessionDetails> createMockUserDao() {
+    private RelationalDao<StoredUserSessionDetails> createMockUserDao(BalancedDBShardingBundle<TestConfig> bundle) {
         return (RelationalDao<StoredUserSessionDetails>) mock(RelationalDao.class);
     }
 }

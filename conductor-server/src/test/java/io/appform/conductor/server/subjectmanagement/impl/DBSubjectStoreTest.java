@@ -19,12 +19,16 @@ package io.appform.conductor.server.subjectmanagement.impl;
 import io.appform.conductor.model.subject.SubjectID;
 import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.subject.SubjectIDVerificationStatus;
-import io.appform.conductor.server.DBTestBase;
+import io.appform.conductor.server.DBTestExtension;
+import io.appform.conductor.server.RelevantDBEntityPackages;
+import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredAddress;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectID;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectSummary;
+import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.val;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Date;
 import java.util.List;
@@ -33,12 +37,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
- *
+ * Test for {@link io.appform.conductor.server.subjectmanagement.SubjectStore}
  */
-class DBSubjectStoreTest extends DBTestBase {
+@RelevantDBEntityPackages("io.appform.conductor.server.subjectmanagement.impl.models")
+@ExtendWith(DBTestExtension.class)
+class DBSubjectStoreTest {
 
     @Test
-    void testSummaryCRUD() {
+    void testSummaryCRUD(BalancedDBShardingBundle<TestConfig> bundle) {
         val ds = new DBSubjectStore(bundle.createParentObjectDao(StoredSubjectSummary.class),
                                     bundle.createRelatedObjectDao(StoredSubjectID.class),
                                     bundle.createRelatedObjectDao(StoredAddress.class));

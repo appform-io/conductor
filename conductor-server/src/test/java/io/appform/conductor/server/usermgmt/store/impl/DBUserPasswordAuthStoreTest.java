@@ -16,12 +16,16 @@
 
 package io.appform.conductor.server.usermgmt.store.impl;
 
-import io.appform.conductor.server.DBTestBase;
+import io.appform.conductor.server.DBTestExtension;
+import io.appform.conductor.server.RelevantDBEntityPackages;
+import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.internalmodels.auth.UserPasswordAuthDetails;
 import io.appform.conductor.server.usermanagement.impl.DBUserPasswordAuthStore;
 import io.appform.conductor.server.usermanagement.impl.models.StoredUserPassword;
+import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.val;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Date;
 
@@ -29,11 +33,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- *
+ * Tests for {@link DBUserPasswordAuthStore}
  */
-class DBUserPasswordAuthStoreTest extends DBTestBase {
+@RelevantDBEntityPackages("io.appform.conductor.server.usermanagement.impl.models")
+@ExtendWith(DBTestExtension.class)
+class DBUserPasswordAuthStoreTest {
     @Test
-    void test() {
+    void test(BalancedDBShardingBundle<TestConfig> bundle) {
         val store =
                 new DBUserPasswordAuthStore(bundle.createRelatedObjectDao(StoredUserPassword.class));
         val res = store.set("TEST_USER", "TEST_PASSWORD");

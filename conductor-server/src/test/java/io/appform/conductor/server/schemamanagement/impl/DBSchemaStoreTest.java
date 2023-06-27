@@ -18,15 +18,22 @@ package io.appform.conductor.server.schemamanagement.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.error.ConductorException;
-import io.appform.conductor.model.schema.*;
+import io.appform.conductor.model.schema.FieldSchema;
+import io.appform.conductor.model.schema.FieldType;
+import io.appform.conductor.model.schema.SchemaState;
+import io.appform.conductor.model.schema.SchemaSummary;
 import io.appform.conductor.model.schema.fields.*;
-import io.appform.conductor.server.DBTestBase;
+import io.appform.conductor.server.DBTestExtension;
+import io.appform.conductor.server.RelevantDBEntityPackages;
+import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.schemamanagement.impl.models.StoredFieldSchema;
 import io.appform.conductor.server.schemamanagement.impl.models.StoredSchemaSummary;
+import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Date;
 import java.util.List;
@@ -35,9 +42,11 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.configureMa
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- *
+ * Test for {@link DBSchemaStore}
  */
-class DBSchemaStoreTest extends DBTestBase {
+@RelevantDBEntityPackages("io.appform.conductor.server.schemamanagement.impl.models")
+@ExtendWith(DBTestExtension.class)
+class DBSchemaStoreTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @BeforeAll
@@ -48,7 +57,7 @@ class DBSchemaStoreTest extends DBTestBase {
     @Test
     @SneakyThrows
     @SuppressWarnings("java:S5961")
-    void test() {
+    void test(BalancedDBShardingBundle<TestConfig> bundle) {
         val store = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),
                                       bundle.createRelatedObjectDao(StoredFieldSchema.class),
                                       MAPPER);
@@ -420,7 +429,7 @@ class DBSchemaStoreTest extends DBTestBase {
     }
 
     @Test
-    void testExceptionStoreCreateFail() {
+    void testExceptionStoreCreateFail(BalancedDBShardingBundle<TestConfig> bundle) {
 
         try{
             val store = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),
@@ -435,7 +444,7 @@ class DBSchemaStoreTest extends DBTestBase {
     }
 
     @Test
-    void testExceptionsOutOfBound() {
+    void testExceptionsOutOfBound(BalancedDBShardingBundle<TestConfig> bundle) {
 
         try{
             val store = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),
@@ -457,7 +466,7 @@ class DBSchemaStoreTest extends DBTestBase {
     }
 
     @Test
-    void testExceptionsGetSummarySchemaNullParams() {
+    void testExceptionsGetSummarySchemaNullParams(BalancedDBShardingBundle<TestConfig> bundle) {
 
         try{
             val store = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),
@@ -472,7 +481,7 @@ class DBSchemaStoreTest extends DBTestBase {
     }
 
     @Test
-    void testExceptionsGetSchemaNullParams() {
+    void testExceptionsGetSchemaNullParams(BalancedDBShardingBundle<TestConfig> bundle) {
 
         try{
             val store = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),
@@ -486,7 +495,7 @@ class DBSchemaStoreTest extends DBTestBase {
         }
     }
     @Test
-    void testExceptionsUpdateDescriptionNullParams() {
+    void testExceptionsUpdateDescriptionNullParams(BalancedDBShardingBundle<TestConfig> bundle) {
 
         try{
             val store = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),
@@ -501,7 +510,7 @@ class DBSchemaStoreTest extends DBTestBase {
     }
 
     @Test
-    void testExceptionsUpdateStateNullParams() {
+    void testExceptionsUpdateStateNullParams(BalancedDBShardingBundle<TestConfig> bundle) {
 
         try{
             val store = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),
@@ -516,7 +525,7 @@ class DBSchemaStoreTest extends DBTestBase {
     }
 
     @Test
-    void testExceptionsAddFieldNullParams() {
+    void testExceptionsAddFieldNullParams(BalancedDBShardingBundle<TestConfig> bundle) {
 
         try{
             val store = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),
@@ -545,7 +554,7 @@ class DBSchemaStoreTest extends DBTestBase {
     }
 
     @Test
-    void testExceptionsGetFieldNullParams() {
+    void testExceptionsGetFieldNullParams(BalancedDBShardingBundle<TestConfig> bundle) {
 
         try{
             val store = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),
@@ -560,7 +569,7 @@ class DBSchemaStoreTest extends DBTestBase {
     }
 
     @Test
-    void testExceptionsUpdateFieldNullParams() {
+    void testExceptionsUpdateFieldNullParams(BalancedDBShardingBundle<TestConfig> bundle) {
 
         try{
             val store = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),
@@ -575,7 +584,7 @@ class DBSchemaStoreTest extends DBTestBase {
     }
 
     @Test
-    void testExceptionsDeleteFieldNullParams() {
+    void testExceptionsDeleteFieldNullParams(BalancedDBShardingBundle<TestConfig> bundle) {
 
         try{
             val store = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),
@@ -590,7 +599,7 @@ class DBSchemaStoreTest extends DBTestBase {
     }
 
     @Test
-    void testExceptions() {
+    void testExceptions(BalancedDBShardingBundle<TestConfig> bundle) {
 
         try{
             val store = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),

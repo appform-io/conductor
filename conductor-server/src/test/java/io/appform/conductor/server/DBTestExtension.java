@@ -31,40 +31,34 @@ import io.dropwizard.setup.AdminEnvironment;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
+import lombok.val;
+import org.junit.jupiter.api.extension.*;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Base class for all DB testcases
+ *
  */
 @Slf4j
-public abstract class DBTestBase {
-
+public class DBTestExtension implements BeforeEachCallback, ParameterResolver {
     private final TestConfig testConfig = new TestConfig();
     private final HealthCheckRegistry healthChecks = mock(HealthCheckRegistry.class);
     private final JerseyEnvironment jerseyEnvironment = mock(JerseyEnvironment.class);
     private final LifecycleEnvironment lifecycleEnvironment = mock(LifecycleEnvironment.class);
     private final Environment environment = mock(Environment.class);
-    protected final AdminEnvironment adminEnvironment = mock(AdminEnvironment.class);
+    private final AdminEnvironment adminEnvironment = mock(AdminEnvironment.class);
     private final Bootstrap<?> bootstrap = mock(Bootstrap.class);
 
-    protected BalancedDBShardingBundle<TestConfig> bundle
-            = new BalancedDBShardingBundle<TestConfig>("io.appform.conductor.server") {
-        @Override
-        protected ShardedHibernateFactory getConfig(TestConfig config) {
-            return config.shards;
-        }
-    };
+    private BalancedDBShardingBundle<TestConfig> bundle;
 
-    /**
-     * This member will be called by JUnit before every test and will create a pristine in-memory db and setup the store
-     */
-    @BeforeEach
-    public void setupBundle() {
+
+    @Override
+    public void beforeEach(ExtensionContext extensionContext) throws Exception {
         testConfig.shards.setShards(ImmutableList.of(createConfig("1"), createConfig("2")));
         when(jerseyEnvironment.getResourceConfig()).thenReturn(new DropwizardResourceConfig());
         when(environment.jersey()).thenReturn(jerseyEnvironment);
@@ -72,12 +66,36 @@ public abstract class DBTestBase {
         when(environment.healthChecks()).thenReturn(healthChecks);
         when(environment.admin()).thenReturn(adminEnvironment);
         when(bootstrap.getHealthCheckRegistry()).thenReturn(new HealthCheckRegistry());
+        val entityClassPaths = extensionContext.getTestClass()
+                .map(clazz -> clazz.getAnnotation(RelevantDBEntityPackages.class))
+                .map(annotation -> Arrays.asList(annotation.value()))
+                .orElse(List.of("io.appform.conductor.server"));
+        bundle = new BalancedDBShardingBundle<>(entityClassPaths.toArray(new String[0])) {
+            @Override
+            protected ShardedHibernateFactory getConfig(TestConfig config) {
+                return config.shards;
+            }
+        };
         bundle.initialize(bootstrap);
         bundle.initBundles(bootstrap);
         bundle.runBundles(testConfig, environment);
         bundle.run(testConfig, environment);
         FunctionMetricsManager.initialize("test", SharedMetricRegistries.getOrCreate("test"));
         log.debug("DB sharding bundle initialized...");
+    }
+
+    @Override
+    public boolean supportsParameter(
+            ParameterContext parameterContext,
+            ExtensionContext extensionContext) throws ParameterResolutionException {
+        return parameterContext.getParameter().getType().equals(BalancedDBShardingBundle.class);
+    }
+
+    @Override
+    public Object resolveParameter(
+            ParameterContext parameterContext,
+            ExtensionContext extensionContext) throws ParameterResolutionException {
+        return bundle;
     }
 
     private static DataSourceFactory createConfig(String dbName) {

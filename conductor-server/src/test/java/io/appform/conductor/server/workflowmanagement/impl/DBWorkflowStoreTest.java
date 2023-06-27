@@ -18,23 +18,30 @@ package io.appform.conductor.server.workflowmanagement.impl;
 
 import io.appform.conductor.model.workflow.Rule;
 import io.appform.conductor.model.workflow.TicketStateTransition;
-import io.appform.conductor.server.DBTestBase;
+import io.appform.conductor.server.DBTestExtension;
+import io.appform.conductor.server.RelevantDBEntityPackages;
+import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketState;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketStateTransition;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflow;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflowSelectionRule;
+import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.val;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
- *
+ * Tests for {@link DBWorkflowStore}
  */
-class DBWorkflowStoreTest extends DBTestBase {
+@RelevantDBEntityPackages("io.appform.conductor.server.workflowmanagement.impl.models")
+@ExtendWith(DBTestExtension.class)
+class DBWorkflowStoreTest {
 
     @Test
-    void testBasicCrud() {
+    void testBasicCrud(BalancedDBShardingBundle<TestConfig> bundle) {
         val ds = new DBWorkflowStore(
                 bundle.createParentObjectDao(StoredWorkflow.class),
                 bundle.createRelatedObjectDao(StoredTicketState.class),
