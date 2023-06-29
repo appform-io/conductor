@@ -17,26 +17,28 @@
 package io.appform.conductor.model.ticket.fields.impl;
 
 import io.appform.conductor.model.schema.FieldType;
-import io.appform.conductor.model.ticket.fields.Value;
-import io.appform.conductor.model.ticket.fields.ValueVisitor;
-
-import java.util.Date;
-import java.util.List;
+import io.appform.conductor.model.ticket.fields.FieldValue;
+import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.Value;
 
 /**
- * (Multiple)Choice field value
+ * String field value
  */
-public class ChoiceValue extends Value<List<String>> {
-    public ChoiceValue(
-            String fieldSchemaId,
-            List<String> value,
-            Date created,
-            Date updated) {
-        super(FieldType.CHOICE, fieldSchemaId, value, created, updated);
+@Value
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class StringFieldValue extends FieldValue {
+    String value;
+
+    public StringFieldValue(String value) {
+        super(FieldType.STRING);
+        this.value = value;
     }
 
     @Override
-    public <T> T accept(ValueVisitor<T> visitor) {
+    public <T> T accept(FieldValueVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

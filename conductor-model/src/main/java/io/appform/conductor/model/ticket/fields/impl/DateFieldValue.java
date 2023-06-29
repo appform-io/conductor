@@ -17,25 +17,30 @@
 package io.appform.conductor.model.ticket.fields.impl;
 
 import io.appform.conductor.model.schema.FieldType;
-import io.appform.conductor.model.ticket.fields.Value;
-import io.appform.conductor.model.ticket.fields.ValueVisitor;
+import io.appform.conductor.model.ticket.fields.FieldValue;
+import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.Value;
 
 import java.util.Date;
 
 /**
- * Numeric field value
+ * Date field value
  */
-public class NumberValue extends Value<Number> {
-    public NumberValue(
-            String fieldSchemaId,
-            Number value,
-            Date created,
-            Date updated) {
-        super(FieldType.NUMBER, fieldSchemaId, value, created, updated);
+@Value
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class DateFieldValue extends FieldValue {
+
+    Date value;
+    public DateFieldValue(Date value) {
+        super(FieldType.DATE);
+        this.value = value;
     }
 
     @Override
-    public <T> T accept(ValueVisitor<T> visitor) {
+    public <T> T accept(FieldValueVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

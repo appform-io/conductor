@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,41 +14,21 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket.fields;
-
-import io.appform.conductor.model.schema.FieldType;
-
-import java.util.Date;
+package io.appform.conductor.server.ticketmanagement.impl.models;
 
 /**
  *
  */
-@lombok.Value
-public class TicketField {
+public interface StoredTicketFieldValueVisitor<T> {
+    T visit(StoredTicketFieldStringValue stringValue);
 
-    /**
-     * Type of field
-     */
-    FieldType type;
+    T visit(StoredTicketFieldChoiceValue choiceValue);
 
-    /**
-     * Global id for the field schema
-     */
-    String fieldSchemaId;
+    T visit(StoredTicketFieldBooleanValue booleanValue);
 
-    /**
-     * Actual field fieldValue
-     */
-    FieldValue fieldValue;
+    T visit(StoredTicketFieldNumberValue numberValue);
 
-    /**
-     * Creation date of the fieldValue
-     */
-    Date created;
+    T visit(StoredTicketFieldLocationValue locationValue);
 
-    /**
-     * Date when the fieldValue was last updated
-     */
-    Date updated;
-
+    T visit(StoredTicketFieldDateValue dateValue);
 }

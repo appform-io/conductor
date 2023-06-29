@@ -39,7 +39,9 @@ public enum ConductorErrorCode {
     SCHEMA_FIELD_READ_FAILED(2003, "Error reading schema field for ${schemaId}/${fieldId}"),
 
     WORKFLOW_ERROR_INVALID_ID(3001, "Invalid workflow ID: ${id}"),
-    WORKFLOW_ERROR(3002, "Error in workflow management: ${message}")
+    WORKFLOW_ERROR(3002, "Error in workflow management: ${message}"),
+
+
     ;
 
     private final int errorCode;

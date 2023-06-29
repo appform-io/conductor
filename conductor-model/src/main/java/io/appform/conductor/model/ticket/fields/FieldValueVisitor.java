@@ -19,20 +19,20 @@ package io.appform.conductor.model.ticket.fields;
 import io.appform.conductor.model.ticket.fields.impl.*;
 
 /**
- * This visitor can be implement to handle different {@link Value} types for
+ * This visitor can be implement to handle different {@link FieldValue} types for
  * performing type specific options like rendering
  */
-public interface ValueVisitor<T> {
+public interface FieldValueVisitor<T> {
 
-    T visit(final StringValue stringFieldValue);
+    T visit(final StringFieldValue stringFieldValue);
 
-    T visit(final ChoiceValue choiceFieldValue);
+    T visit(final ChoiceFieldValue choiceFieldValue);
 
-    T visit(final BooleanValue booleanFieldValue);
+    T visit(final BooleanFieldValue booleanFieldValue);
 
-    T visit(final NumberValue numberFieldValue);
+    T visit(final NumberFieldValue numberFieldValue);
 
-    T visit(final LocationValue locationFieldValue);
+    T visit(final LocationFieldValue locationFieldValue);
 
-    T visit(final DateValue dateFieldValue);
+    T visit(final DateFieldValue dateFieldValue);
 }

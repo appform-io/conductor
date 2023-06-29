@@ -19,13 +19,11 @@ package io.appform.conductor.model.ticket.fields;
 import io.appform.conductor.model.schema.FieldType;
 import lombok.Data;
 
-import java.util.Date;
-
 /**
  * Representation for a value in the field
  */
 @Data
-public abstract class Value<T> {
+public abstract class FieldValue {
 
     /**
      * Type of field
@@ -33,30 +31,10 @@ public abstract class Value<T> {
     private final FieldType type;
 
     /**
-     * Global id for the field schema
-     */
-    private final String fieldSchemaId;
-
-    /**
-     * Actual field value
-     */
-    private final T value;
-
-    /**
-     * Creation date of the value
-     */
-    private final Date created;
-
-    /**
-     * Date when the value was last updated
-     */
-    private final Date updated;
-
-    /**
-     * Accept an implementation of {@link ValueVisitor} to perform subtype specific options
+     * Accept an implementation of {@link FieldValueVisitor} to perform subtype specific options
      * @param visitor The actual implementation
      * @param <R> Return type of the visitor
      * @return The actual result of processing
      */
-    public abstract <R> R accept(final ValueVisitor<R> visitor);
+    public abstract <R> R accept(final FieldValueVisitor<R> visitor);
 }

@@ -17,25 +17,26 @@
 package io.appform.conductor.model.ticket.fields.impl;
 
 import io.appform.conductor.model.schema.FieldType;
-import io.appform.conductor.model.ticket.fields.Value;
-import io.appform.conductor.model.ticket.fields.ValueVisitor;
-
-import java.util.Date;
+import io.appform.conductor.model.ticket.fields.FieldValue;
+import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
+import lombok.*;
 
 /**
  * Boolean field value
  */
-public class BooleanValue extends Value<Boolean> {
-    public BooleanValue(
-            String fieldSchemaId,
-            boolean value,
-            Date created,
-            Date updated) {
-        super(FieldType.BOOLEAN, fieldSchemaId, value, created, updated);
+@Value
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class BooleanFieldValue extends FieldValue {
+    boolean value;
+
+    public BooleanFieldValue(boolean value) {
+        super(FieldType.BOOLEAN);
+        this.value = value;
     }
 
     @Override
-    public <T> T accept(ValueVisitor<T> visitor) {
+    public <T> T accept(FieldValueVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

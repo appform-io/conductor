@@ -17,25 +17,31 @@
 package io.appform.conductor.model.ticket.fields.impl;
 
 import io.appform.conductor.model.schema.FieldType;
-import io.appform.conductor.model.ticket.fields.Value;
-import io.appform.conductor.model.ticket.fields.ValueVisitor;
-
-import java.util.Date;
+import io.appform.conductor.model.ticket.fields.FieldValue;
+import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.Value;
 
 /**
- * String field value
+ * Location field value
  */
-public class StringValue extends Value<String> {
-    public StringValue(
-            String fieldSchemaId,
-            String value,
-            Date created,
-            Date updated) {
-        super(FieldType.STRING, fieldSchemaId, value, created, updated);
+@Value
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class LocationFieldValue extends FieldValue {
+
+    double lat;
+    double lon;
+
+    public LocationFieldValue(double lat, double lon) {
+        super(FieldType.LOCATION);
+        this.lat = lat;
+        this.lon = lon;
     }
 
     @Override
-    public <T> T accept(ValueVisitor<T> visitor) {
+    public <T> T accept(FieldValueVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

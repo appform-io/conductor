@@ -78,7 +78,7 @@ class DBSchemaStoreTest {
                                                                   new Date(),
                                                                   100,
                                                                   null,
-                                                                  "Default Value")).orElse(null));
+                                                                  "Default FieldValue")).orElse(null));
         assertNotNull(store.addField(sId, sId + "-f2", new BooleanFieldSchema("f2",
                                                                    "f2",
                                                                    "F2",
@@ -151,7 +151,7 @@ class DBSchemaStoreTest {
         val schema = store.get(sId).orElse(null);
         assertNotNull(schema);
         assertEquals(6, schema.getFields().size());
-
+        System.out.println(MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(schema));
 
         /* ******* String field tests start ***** */
         assertEquals(FieldType.STRING, schema.getFields().get(0).getType());
@@ -181,7 +181,7 @@ class DBSchemaStoreTest {
                                         new Date(),
                                         100,
                                         null,
-                                        "Default Value");
+                                        "Default FieldValue");
 
 
         FieldSchema fieldSchema = schema.getFields().get(0);
@@ -190,11 +190,11 @@ class DBSchemaStoreTest {
 
         assertEquals(100, stringFieldSchema.getMaxLength());
         assertNull(stringFieldSchema.getMatchPattern());
-        assertEquals("Default Value", stringFieldSchema.getDefaultValue());
+        assertEquals("Default FieldValue", stringFieldSchema.getDefaultValue());
 
         assertEquals(200,stringFieldSchema.setMaxLength(200).getMaxLength());
         assertEquals("Pattern", stringFieldSchema.setMatchPattern("Pattern").getMatchPattern());
-        assertEquals("Default String Value", stringFieldSchema.setDefaultValue("Default String Value").getDefaultValue());
+        assertEquals("Default String FieldValue", stringFieldSchema.setDefaultValue("Default String FieldValue").getDefaultValue());
         /* ******* String field tests end ****** */
 
         /* ******* Boolean field tests start ****** */
@@ -544,7 +544,7 @@ class DBSchemaStoreTest {
                     new Date(),
                     100,
                     null,
-                    "Default Value");
+                    "Default FieldValue");
             store.addField(null, "f1", fieldSchema);
             fail("Exception didn't occur - test failed");
         }
