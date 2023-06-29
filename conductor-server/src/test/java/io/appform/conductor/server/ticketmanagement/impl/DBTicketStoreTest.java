@@ -24,7 +24,7 @@ import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.ticketmanagement.TicketFieldData;
-import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketFieldValue;
+import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredTicketFieldValue;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import org.junit.jupiter.api.Test;
@@ -72,6 +72,5 @@ class DBTicketStoreTest {
                 .orElse(null);
         assertNotNull(updated);
         assertEquals(3, updated.getFields().size());
-        System.out.println(updated);
     }
 }

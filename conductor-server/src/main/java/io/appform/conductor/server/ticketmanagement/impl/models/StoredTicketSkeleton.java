@@ -17,6 +17,7 @@
 package io.appform.conductor.server.ticketmanagement.impl.models;
 
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredTicketFieldValue;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.*;
 import org.hibernate.Hibernate;

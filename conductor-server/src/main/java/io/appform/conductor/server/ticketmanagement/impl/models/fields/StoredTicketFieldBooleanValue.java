@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ticketmanagement.impl.models;
+package io.appform.conductor.server.ticketmanagement.impl.models.fields;
 
 import io.appform.conductor.model.schema.FieldType;
 import lombok.Getter;
@@ -32,18 +32,15 @@ import java.util.Date;
  *
  */
 @Entity
-@Table(name = StoredTicketFieldLocationValue.TICKET_FIELD_LOCATION_VALUE_TABLE_NAME)
+@Table(name = StoredTicketFieldBooleanValue.TICKET_FIELD_BOOLEAN_VALUE_TABLE_NAME)
 @Getter
 @Setter
 @ToString(callSuper = true)
-public class StoredTicketFieldLocationValue extends StoredTicketFieldValue {
-    public static final String TICKET_FIELD_LOCATION_VALUE_TABLE_NAME = "ticket_field_location_values";
+public class StoredTicketFieldBooleanValue extends StoredTicketFieldValue {
+    public static final String TICKET_FIELD_BOOLEAN_VALUE_TABLE_NAME = "ticket_field_boolean_values";
 
-    @Column(name = "location_value_lat")
-    private double lat;
-
-    @Column(name = "location_value_lon")
-    private double lon;
+    @Column(name = "boolean_value")
+    private boolean value;
 
     @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
     @Generated(value = GenerationTime.INSERT)
@@ -54,8 +51,8 @@ public class StoredTicketFieldLocationValue extends StoredTicketFieldValue {
     @Generated(value = GenerationTime.ALWAYS)
     private Date updated;
 
-    public StoredTicketFieldLocationValue() {
-        super(FieldType.LOCATION);
+    public StoredTicketFieldBooleanValue() {
+        super(FieldType.BOOLEAN);
     }
 
     @Override
@@ -72,4 +69,5 @@ public class StoredTicketFieldLocationValue extends StoredTicketFieldValue {
     public int hashCode() {
         return super.hashCode();
     }
+
 }

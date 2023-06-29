@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ticketmanagement.impl.models;
+package io.appform.conductor.server.ticketmanagement.impl.models.fields;
 
 import io.appform.conductor.model.schema.FieldType;
 import lombok.Getter;
@@ -32,15 +32,15 @@ import java.util.Date;
  *
  */
 @Entity
-@Table(name = StoredTicketFieldStringValue.TICKET_FIELD_STRING_VALUE_TABLE_NAME)
+@Table(name = StoredTicketFieldDateValue.TICKET_FIELD_DATE_VALUE_TABLE_NAME)
 @Getter
 @Setter
 @ToString(callSuper = true)
-public class StoredTicketFieldStringValue extends StoredTicketFieldValue {
-    public static final String TICKET_FIELD_STRING_VALUE_TABLE_NAME = "ticket_field_string_values";
+public class StoredTicketFieldDateValue extends StoredTicketFieldValue {
+    public static final String TICKET_FIELD_DATE_VALUE_TABLE_NAME = "ticket_field_date_values";
 
-    @Column(name = "string_value", length = 4096)
-    private String value;
+    @Column(name = "date_value")
+    private Date value;
 
     @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
     @Generated(value = GenerationTime.INSERT)
@@ -51,8 +51,8 @@ public class StoredTicketFieldStringValue extends StoredTicketFieldValue {
     @Generated(value = GenerationTime.ALWAYS)
     private Date updated;
 
-    public StoredTicketFieldStringValue() {
-        super(FieldType.STRING);
+    public StoredTicketFieldDateValue() {
+        super(FieldType.BOOLEAN);
     }
 
     @Override
@@ -69,5 +69,4 @@ public class StoredTicketFieldStringValue extends StoredTicketFieldValue {
     public int hashCode() {
         return super.hashCode();
     }
-
 }

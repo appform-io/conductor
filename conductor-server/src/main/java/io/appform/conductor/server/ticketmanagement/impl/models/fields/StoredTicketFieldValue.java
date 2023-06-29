@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ticketmanagement.impl.models;
+package io.appform.conductor.server.ticketmanagement.impl.models.fields;
 
 import io.appform.conductor.model.schema.FieldType;
 import lombok.*;

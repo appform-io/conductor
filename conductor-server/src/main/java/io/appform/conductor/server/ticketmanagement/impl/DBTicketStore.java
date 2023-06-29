@@ -26,6 +26,7 @@ import io.appform.conductor.server.ticketmanagement.TicketFieldData;
 import io.appform.conductor.server.ticketmanagement.TicketSkeleton;
 import io.appform.conductor.server.ticketmanagement.TicketStore;
 import io.appform.conductor.server.ticketmanagement.impl.models.*;
+import io.appform.conductor.server.ticketmanagement.impl.models.fields.*;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
@@ -103,13 +104,14 @@ public class DBTicketStore implements TicketStore {
     @SneakyThrows
     @Throws(value = STORE_UPDATE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
-    public Optional<TicketSkeleton> update(@Throws.RuntimeParam("id") final String ticketId,
-                                           final String title,
-                                           final String description,
-                                           final String subjectId,
-                                           final String ticketStateId,
-                                           final TicketPriority priority,
-                                           final List<TicketFieldData> fields) {
+    public Optional<TicketSkeleton> update(
+            @Throws.RuntimeParam("id") final String ticketId,
+            final String title,
+            final String description,
+            final String subjectId,
+            final String ticketStateId,
+            final TicketPriority priority,
+            final List<TicketFieldData> fields) {
         ticketDao.lockAndGetExecutor(ticketId)
                 .mutate(ticket -> ticket.setTitle(title)
                         .setDescription(description)
