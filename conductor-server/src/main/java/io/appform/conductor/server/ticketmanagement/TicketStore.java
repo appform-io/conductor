@@ -17,9 +17,13 @@
 package io.appform.conductor.server.ticketmanagement;
 
 import io.appform.conductor.model.error.Throws;
+import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.filter.QueryTimeWindow;
+import io.appform.conductor.model.ticket.filter.TicketFilterFieldBasedCriteria;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -47,4 +51,9 @@ public interface TicketStore {
             String ticketStateId,
             TicketPriority priority,
             List<TicketFieldData> fields);
+
+    List<TicketSkeleton> list(
+            QueryTimeWindow timeWindow, List<TicketFilterFieldBasedCriteria> filters, int start, int size,
+            Map<String, FieldSchema> relevantFieldSchema);
+
 }

@@ -17,30 +17,37 @@
 package io.appform.conductor.server.ticketmanagement.impl;
 
 import io.appform.conductor.model.error.Throws;
+import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
 import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.fields.impl.*;
+import io.appform.conductor.model.ticket.filter.*;
 import io.appform.conductor.server.ticketmanagement.TicketFieldData;
 import io.appform.conductor.server.ticketmanagement.TicketSkeleton;
 import io.appform.conductor.server.ticketmanagement.TicketStore;
-import io.appform.conductor.server.ticketmanagement.impl.models.*;
-import io.appform.conductor.server.ticketmanagement.impl.models.fields.*;
+import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
+import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.functionmetrics.MonitoredFunction;
+import io.dropwizard.util.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.val;
+import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
 import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Property;
+import org.hibernate.transform.Transformers;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.UnaryOperator;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.*;
 
@@ -52,7 +59,7 @@ import static io.appform.conductor.model.error.ConductorErrorCode.*;
 public class DBTicketStore implements TicketStore {
 
     private final LookupDao<StoredTicketSkeleton> ticketDao;
-    private final RelationalDao<StoredTicketFieldValue> fieldDao;
+    private final RelationalDao<StoredFieldValue> fieldDao;
 
     @Override
     @MonitoredFunction
@@ -77,7 +84,7 @@ public class DBTicketStore implements TicketStore {
                                              .setSubjectId(subjectId)
                                              .setTicketStateId(ticketStateId)
                                              .setPriority(priority))
-                .saveAll(fieldDao, ticket -> toStoredFields(ticketId, fields))
+                .saveAll(fieldDao, ticket -> toStoredFields(ticket, fields))
                 .execute();
         return read(ticketId, true);
     }
@@ -88,15 +95,9 @@ public class DBTicketStore implements TicketStore {
     @Throws(value = STORE_READ_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
     public Optional<TicketSkeleton> read(@Throws.RuntimeParam("id") final String ticketId, boolean readFields) {
-        return ticketDao.readOnlyExecutor(ticketId)
-                .readAugmentParent(fieldDao, DetachedCriteria.forClass(StoredTicketFieldValue.class)
-                                           .add(Property.forName("ticketId").eq(ticketId))
-                                           .add(Property.forName("deleted").eq(false)),
-                                   0,
-                                   Integer.MAX_VALUE,
-                                   StoredTicketSkeleton::setFields)
-                .execute()
-                .map(DBTicketStore::toSummary);
+        return ticketDao.get(ticketId,
+                             (UnaryOperator<Criteria>) criteria -> criteria.setFetchMode("fields", FetchMode.JOIN))
+                .map(ticket -> toSummary(ticket, true));
     }
 
     @Override
@@ -112,18 +113,66 @@ public class DBTicketStore implements TicketStore {
             final String ticketStateId,
             final TicketPriority priority,
             final List<TicketFieldData> fields) {
+
         ticketDao.lockAndGetExecutor(ticketId)
                 .mutate(ticket -> ticket.setTitle(title)
                         .setDescription(description)
                         .setSubjectId(subjectId)
                         .setTicketStateId(ticketStateId)
                         .setPriority(priority))
-                .saveAll(fieldDao, ticket -> toStoredFields(ticketId, fields))
+                .saveAll(fieldDao, ticket -> toStoredFields(ticket, fields))
                 .execute();
         return read(ticketId, true);
     }
 
-    private static TicketSkeleton toSummary(final StoredTicketSkeleton skeleton) {
+    @Override
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = STORE_LIST_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
+    public List<TicketSkeleton> list(
+            QueryTimeWindow timeWindow,
+            final List<TicketFilterFieldBasedCriteria> filters,
+            final int start,
+            final int size,
+            final Map<String, FieldSchema> relevantFieldSchema) {
+        val window = Objects.requireNonNullElse(timeWindow,
+                                                new QueryTimeWindow(Duration.days(1), new Date()));
+        val criteria = DetachedCriteria.forClass(StoredTicketSkeleton.class, "ticket")
+                .add(Property.forName("deleted").eq(false))
+                .add(Property.forName("updated")
+                             .gt(new Date(window.getFrom().getTime() - window.getDuration().toMilliseconds())))
+                .setProjection(Projections.projectionList()
+                                       .add(Projections.property("id"))
+                                       .add(Projections.distinct(Projections.property("ticketId")))
+                                       .add(Projections.property("title"))
+                                       .add(Projections.property("description"))
+                                       .add(Projections.property("workflowId"))
+                                       .add(Projections.property("createdByUserId"))
+                                       .add(Projections.property("assignedToGroupId"))
+                                       .add(Projections.property("assignedToUserId"))
+                                       .add(Projections.property("subjectId"))
+                                       .add(Projections.property("ticketStateId"))
+                                       .add(Projections.property("priority"))
+                                       .add(Projections.property("deleted"))
+                                       .add(Projections.property("created"))
+                                       .add(Projections.property("updated"))
+                              )
+                .setResultTransformer(Transformers.aliasToBean(StoredTicketSkeleton.class));
+        var root = criteria;
+        translateFilter(filters, relevantFieldSchema, root);
+
+        return ticketDao.scatterGather(criteria)
+                .stream()
+                .map(ticket -> toSummary(ticket, false))
+                .toList();
+    }
+
+    private static TicketSkeleton toSummary(final StoredTicketSkeleton skeleton, boolean readFields) {
+        val fields = new ArrayList<StoredFieldValue>();
+        if (readFields) {
+            fields.addAll(Objects.requireNonNullElse(skeleton.getFields(), List.of()));
+        }
         return new TicketSkeleton()
                 .setTicketId(skeleton.getTicketId())
                 .setTitle(skeleton.getTitle())
@@ -137,122 +186,146 @@ public class DBTicketStore implements TicketStore {
                 .setDeleted(skeleton.isDeleted())
                 .setCreated(skeleton.getCreated())
                 .setUpdated(skeleton.getUpdated())
-                .setFields(Objects.requireNonNullElse(skeleton.getFields(), List.<StoredTicketFieldValue>of())
-                                   .stream()
+                .setFields(fields.stream()
                                    .map(DBTicketStore::toWireField)
                                    .toList());
     }
 
-    private static List<StoredTicketFieldValue> toStoredFields(String ticketId, List<TicketFieldData> fields) {
+    private static List<StoredFieldValue> toStoredFields(StoredTicketSkeleton ticket, List<TicketFieldData> fields) {
         return Objects.requireNonNullElse(fields, List.<TicketFieldData>of())
                 .stream()
-                .map(field -> toStoredField(ticketId, field))
+                .map(field -> toStoredField(ticket, field))
                 .toList();
     }
 
-    private static TicketField toWireField(final StoredTicketFieldValue value) {
-        return value.accept(new StoredTicketFieldValueVisitor<>() {
-            @Override
-            public TicketField visit(StoredTicketFieldStringValue stringValue) {
-                return new TicketField(FieldType.STRING,
-                                       stringValue.getSchemaFieldId(),
-                                       new StringFieldValue(stringValue.getValue()),
-                                       stringValue.getCreated(),
-                                       stringValue.getUpdated());
+    private static TicketField toWireField(final StoredFieldValue value) {
+        return switch (value.getType()) {
 
+            case STRING -> new TicketField(FieldType.STRING,
+                                           value.getSchemaFieldId(),
+                                           new StringFieldValue(value.getStringValue()),
+                                           value.getCreated(),
+                                           value.getUpdated());
+            case CHOICE -> new TicketField(FieldType.CHOICE,
+                                           value.getSchemaFieldId(),
+                                           new ChoiceFieldValue(value.getChoiceValue()),
+                                           value.getCreated(),
+                                           value.getUpdated());
+            case BOOLEAN -> new TicketField(FieldType.BOOLEAN,
+                                            value.getSchemaFieldId(),
+                                            new BooleanFieldValue(value.isBooleanValue()),
+                                            value.getCreated(),
+                                            value.getUpdated());
+            case NUMBER -> new TicketField(FieldType.NUMBER,
+                                           value.getSchemaFieldId(),
+                                           new NumberFieldValue(value.getNumberValue()),
+                                           value.getCreated(),
+                                           value.getUpdated());
+            case LOCATION -> new TicketField(FieldType.LOCATION,
+                                             value.getSchemaFieldId(),
+                                             new LocationFieldValue(value.getLocationLatValue(),
+                                                                    value.getLocationLonValue()),
+                                             value.getCreated(),
+                                             value.getUpdated());
+            case DATE -> new TicketField(FieldType.DATE,
+                                         value.getSchemaFieldId(),
+                                         new DateFieldValue(value.getDateValue()),
+                                         value.getCreated(),
+                                         value.getUpdated());
+        };
+    }
+
+    private static StoredFieldValue toStoredField(
+            final StoredTicketSkeleton ticket,
+            final TicketFieldData data) {
+        val fieldValue = new StoredFieldValue()
+                .setFieldValueId(ticket.getTicketId() + "-" + data.getSchemaFieldId())
+                .setType(data.getValue().getType())
+                .setTicket(ticket)
+                .setSchemaFieldId(data.getSchemaFieldId());
+        data.getValue().accept(new FieldValueVisitor<Void>() {
+            @Override
+            public Void visit(StringFieldValue stringFieldValue) {
+                fieldValue.setStringValue(stringFieldValue.getValue());
+                return null;
             }
 
             @Override
-            public TicketField visit(StoredTicketFieldChoiceValue choiceValue) {
-                return new TicketField(FieldType.CHOICE,
-                                       choiceValue.getSchemaFieldId(),
-                                       new ChoiceFieldValue(choiceValue.getValue()),
-                                       choiceValue.getCreated(),
-                                       choiceValue.getUpdated());
+            public Void visit(ChoiceFieldValue choiceFieldValue) {
+                fieldValue.setChoiceValue(choiceFieldValue.getValue());
+                return null;
             }
 
             @Override
-            public TicketField visit(StoredTicketFieldBooleanValue booleanValue) {
-                return new TicketField(FieldType.BOOLEAN,
-                                       booleanValue.getSchemaFieldId(),
-                                       new BooleanFieldValue(booleanValue.isValue()),
-                                       booleanValue.getCreated(),
-                                       booleanValue.getUpdated());
+            public Void visit(BooleanFieldValue booleanFieldValue) {
+                fieldValue.setBooleanValue(booleanFieldValue.isValue());
+                return null;
             }
 
             @Override
-            public TicketField visit(StoredTicketFieldNumberValue numberValue) {
-                return new TicketField(FieldType.NUMBER,
-                                       numberValue.getSchemaFieldId(),
-                                       new NumberFieldValue(numberValue.getValue()),
-                                       numberValue.getCreated(),
-                                       numberValue.getUpdated());
-
+            public Void visit(NumberFieldValue numberFieldValue) {
+                fieldValue.setNumberValue(numberFieldValue.getValue());
+                return null;
             }
 
             @Override
-            public TicketField visit(StoredTicketFieldLocationValue locationValue) {
-                return new TicketField(FieldType.LOCATION,
-                                       locationValue.getSchemaFieldId(),
-                                       new LocationFieldValue(locationValue.getLat(), locationValue.getLon()),
-                                       locationValue.getCreated(),
-                                       locationValue.getUpdated());
+            public Void visit(LocationFieldValue locationFieldValue) {
+                fieldValue.setLocationLatValue(locationFieldValue.getLat())
+                        .setLocationLatValue(locationFieldValue.getLon());
+                return null;
             }
 
             @Override
-            public TicketField visit(StoredTicketFieldDateValue dateValue) {
-                return new TicketField(FieldType.DATE,
-                                       dateValue.getSchemaFieldId(),
-                                       new DateFieldValue(dateValue.getValue()),
-                                       dateValue.getCreated(),
-                                       dateValue.getUpdated());
+            public Void visit(DateFieldValue dateFieldValue) {
+                fieldValue.setDateValue(dateFieldValue.getValue());
+                return null;
             }
         });
+        return fieldValue;
     }
 
-    private static StoredTicketFieldValue toStoredField(
-            final String ticketId,
-            final TicketFieldData data) {
-        return data.getValue().accept(new FieldValueVisitor<StoredTicketFieldValue>() {
-                    @Override
-                    public StoredTicketFieldValue visit(StringFieldValue stringFieldValue) {
-                        return new StoredTicketFieldStringValue()
-                                .setValue(stringFieldValue.getValue());
+    private static void translateFilter(
+            List<TicketFilterFieldBasedCriteria> filters,
+            final Map<String, FieldSchema> relevantFields,
+            DetachedCriteria rootCriteria) {
+        var top = rootCriteria.createCriteria("fields");
+        for (val filter : filters) {
+            val fieldSchema = relevantFields.get(filter.getFieldSchemaId());
+            val finalTop = top;
+            filter.accept(new TicketFilterVisitor<Void>() {
+                @Override
+                public Void visit(TicketEqualsCriteria equals) {
+                    switch (fieldSchema.getType()) {
+                        case STRING -> finalTop.add(Property.forName("stringValue").eq(equals.getValue()));
+                        case BOOLEAN -> finalTop.add(Property.forName("booleanValue").eq(equals.getValue()));
+                        case NUMBER -> finalTop.add(Property.forName("numberValue").eq(equals.getValue()));
+                        case DATE -> finalTop.add(Property.forName("dateValue").eq(equals.getValue()));
+                        case CHOICE, LOCATION -> {
+                            //NO OP
+                        }
                     }
+                    return null;
+                }
 
-                    @Override
-                    public StoredTicketFieldValue visit(ChoiceFieldValue choiceFieldValue) {
-                        return new StoredTicketFieldChoiceValue()
-                                .setValue(choiceFieldValue.getValue());
+                @Override
+                public Void visit(TicketNotEqualsCriteria notEquals) {
+                    switch (fieldSchema.getType()) {
+                        case STRING -> finalTop.add(Property.forName("stringValue").ne(notEquals.getValue()));
+                        case BOOLEAN -> finalTop.add(Property.forName("booleanValue").ne(notEquals.getValue()));
+                        case NUMBER -> finalTop.add(Property.forName("numberValue").ne(notEquals.getValue()));
+                        case DATE -> finalTop.add(Property.forName("dateValue").ne(notEquals.getValue()));
+                        case CHOICE, LOCATION -> {
+                            //NO OP
+                        }
                     }
+                    return null;
+                }
+            });
+            top = top.createCriteria("ticket")
+                    .createCriteria("fields");
 
-                    @Override
-                    public StoredTicketFieldValue visit(BooleanFieldValue booleanFieldValue) {
-                        return new StoredTicketFieldBooleanValue()
-                                .setValue(booleanFieldValue.isValue());
-                    }
-
-                    @Override
-                    public StoredTicketFieldValue visit(NumberFieldValue numberFieldValue) {
-                        return new StoredTicketFieldNumberValue()
-                                .setValue(numberFieldValue.getValue().doubleValue());
-                    }
-
-                    @Override
-                    public StoredTicketFieldValue visit(LocationFieldValue locationFieldValue) {
-                        return new StoredTicketFieldLocationValue()
-                                .setLat(locationFieldValue.getLat())
-                                .setLon(locationFieldValue.getLon());
-                    }
-
-                    @Override
-                    public StoredTicketFieldValue visit(DateFieldValue dateFieldValue) {
-                        return new StoredTicketFieldDateValue()
-                                .setValue(dateFieldValue.getValue());
-                    }
-                })
-                .setFieldValueId(ticketId + "-" + data.getSchemaFieldId())
-                .setTicketId(ticketId)
-                .setSchemaFieldId(data.getSchemaFieldId());
+        }
     }
 }
+
+

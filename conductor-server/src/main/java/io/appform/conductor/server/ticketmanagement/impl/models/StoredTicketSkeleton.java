@@ -17,15 +17,20 @@
 package io.appform.conductor.server.ticketmanagement.impl.models;
 
 import io.appform.conductor.model.ticket.TicketPriority;
-import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredTicketFieldValue;
+import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -40,8 +45,11 @@ import java.util.Objects;
 @Setter
 @ToString
 @NoArgsConstructor
-public class StoredTicketSkeleton {
+public class StoredTicketSkeleton implements Serializable {
+
     public static final String TICKET_SUMMARY_TABLE_NAME = "ticket_skeletons";
+    @Serial
+    private static final long serialVersionUID = -9138428302273551724L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -79,8 +87,21 @@ public class StoredTicketSkeleton {
     @Enumerated(EnumType.STRING)
     private TicketPriority priority;
 
-    @Transient
-    private List<StoredTicketFieldValue> fields;
+/*    @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
+    @Where(clause = "type='STRING'")
+    private Set<StoredTicketFieldValue> stringFields;
+
+    @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
+    @Where(clause = "type='BOOLEAN'")
+    private Set<StoredTicketFieldValue> booleanFields;
+
+    @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
+    @Where(clause = "type='NUMBER'")
+    private Set<StoredTicketFieldValue> numberFields;*/
+
+    @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
+//    @Where(clause = "type='STRING'")
+    private List<StoredFieldValue> fields;
 
     @Column(name = "deleted")
     private boolean deleted;

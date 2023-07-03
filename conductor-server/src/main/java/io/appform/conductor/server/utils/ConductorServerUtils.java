@@ -29,9 +29,7 @@ import io.appform.conductor.server.usermanagement.CurrentUserSessionStore;
 import lombok.experimental.UtilityClass;
 import lombok.val;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 /**
  *
@@ -98,5 +96,9 @@ public class ConductorServerUtils {
 
     public static void logicalError(ConductorErrorCode errorCode, String message) {
         throw new ConductorException(errorCode, Map.of("message", message), null);
+    }
+
+    public static <T> List<T> joinLists(List<T>... lists) {
+        return Arrays.stream(lists).flatMap(Collection::stream).toList();
     }
 }

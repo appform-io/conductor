@@ -17,52 +17,81 @@
 package io.appform.conductor.server.ticketmanagement.impl.models.fields;
 
 import io.appform.conductor.model.schema.FieldType;
+import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
 import lombok.*;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
- * DB model for {@link io.appform.conductor.model.ticket.fields.TicketField}
+ *
  */
 @Entity
-@Table(name = StoredTicketFieldValue.TICKET_FIELD_VALUE_BASE_TABLE_NAME/*,
+@Table(name = StoredFieldValue.TICKET_FIELD_VALUE_TABLE_NAME/*,
         uniqueConstraints = @UniqueConstraint(name = "uk_ticket_field", columnNames = {"ticket_id", "schema_field_id"})*/)
-@Inheritance(strategy = InheritanceType.JOINED)
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class StoredTicketFieldValue {
-    public static final String TICKET_FIELD_VALUE_BASE_TABLE_NAME = "ticket_field_values_base";
+@NoArgsConstructor
+public class StoredFieldValue implements Serializable {
+    public static final String TICKET_FIELD_VALUE_TABLE_NAME = "ticket_field_values";
+    @Serial
+    private static final long serialVersionUID = 7147859251068889312L;
 
     @Id
     @Column(name = "field_value_id", unique = true)
     private String fieldValueId;
 
-    @Column(name = "ticket_id")
-    private String ticketId;
+    @ManyToOne
+    @JoinColumn(name = "ticket_id", referencedColumnName="ticket_id")
+    private StoredTicketSkeleton ticket;
 
     @Column(name = "schema_field_id")
     private String schemaFieldId;
 
     @Column
-    private final FieldType type;
+    @Enumerated(EnumType.STRING)
+    private FieldType type;
+
+    @Column(name = "string_value")
+    private String stringValue;
+
+    @Column(name = "boolean_value")
+    private boolean booleanValue;
+
+    @Column(name = "number_value")
+    private double numberValue;
+
+    @Column(name = "location_lat_value")
+    private double locationLatValue;
+
+    @Column(name = "location_lon_value")
+    private double locationLonValue;
+
+    @Column(name = "choices_value")
+    @Convert(converter = ChoicesStringConverter.class)
+    private List<String> choiceValue;
+
+    @Column(name = "date_value")
+    private Date dateValue;
 
     @Column(name = "deleted")
     private boolean deleted;
 
     @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @org.hibernate.annotations.Generated(value = GenerationTime.INSERT)
     private Date created;
 
     @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
             updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @org.hibernate.annotations.Generated(value = GenerationTime.ALWAYS)
     private Date updated;
 
     @Override
@@ -73,7 +102,7 @@ public abstract class StoredTicketFieldValue {
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
             return false;
         }
-        StoredTicketFieldValue that = (StoredTicketFieldValue) o;
+        StoredFieldValue that = (StoredFieldValue) o;
         return Objects.equals(getFieldValueId(), that.getFieldValueId());
     }
 
@@ -81,6 +110,4 @@ public abstract class StoredTicketFieldValue {
     public int hashCode() {
         return getClass().hashCode();
     }
-
-    public abstract <T> T accept(final StoredTicketFieldValueVisitor<T> visitor);
 }

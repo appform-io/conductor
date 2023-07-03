@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,23 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket.fields.impl;
+package io.appform.conductor.model.ticket.filter;
 
-import io.appform.conductor.model.schema.FieldType;
-import io.appform.conductor.model.ticket.fields.FieldValue;
-import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
-import lombok.Value;
 
 /**
- * Numeric field value
+ *
  */
-@Value
+@Getter
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class NumberFieldValue extends FieldValue {
-    double value;
-    public NumberFieldValue(double value) {
-        super(FieldType.NUMBER);
-        this.value = value;
-    }
+public abstract class TicketFilterFieldBasedCriteria extends TicketFilterCriteria {
+    private final String fieldSchemaId;
 
-    @Override
-    public <T> T accept(FieldValueVisitor<T> visitor) {
-        return visitor.visit(this);
+    protected TicketFilterFieldBasedCriteria(TicketFilterType type, String fieldSchemaId) {
+        super(type);
+        this.fieldSchemaId = fieldSchemaId;
     }
 }

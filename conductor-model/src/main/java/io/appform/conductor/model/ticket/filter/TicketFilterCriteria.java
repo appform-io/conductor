@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ticketmanagement.impl.models.fields;
+package io.appform.conductor.model.ticket.filter;
 
 /**
  *
  */
-public interface StoredTicketFieldValueVisitor<T> {
-    T visit(StoredTicketFieldStringValue stringValue);
+public abstract class TicketFilterCriteria {
+    private final TicketFilterType type;
 
-    T visit(StoredTicketFieldChoiceValue choiceValue);
+    protected TicketFilterCriteria(TicketFilterType type) {
+        this.type = type;
+    }
 
-    T visit(StoredTicketFieldBooleanValue booleanValue);
-
-    T visit(StoredTicketFieldNumberValue numberValue);
-
-    T visit(StoredTicketFieldLocationValue locationValue);
-
-    T visit(StoredTicketFieldDateValue dateValue);
+    public abstract <T> T accept(final TicketFilterVisitor<T> visitor);
 }
