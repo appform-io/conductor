@@ -31,28 +31,31 @@ import java.util.Optional;
 public interface TicketStore {
 
     Optional<TicketSkeleton> create(
-            String ticketId,
-            String title,
-            String description,
-            String workflowId,
-            String subjectId,
-            String ticketStateId,
-            TicketPriority priority,
-            List<TicketFieldData> fields);
+            final String ticketId,
+            final String title,
+            final String description,
+            final String workflowId,
+            final String subjectId,
+            final String ticketStateId,
+            final TicketPriority priority,
+            final List<TicketFieldData> fields);
 
     Optional<TicketSkeleton> read(String ticketId, boolean readFields);
 
     Optional<TicketSkeleton> update(
-            String ticketId,
-            String title,
-            String description,
-            String subjectId,
-            String ticketStateId,
-            TicketPriority priority,
-            List<TicketFieldData> fields);
+            final String ticketId,
+            final String title,
+            final String description,
+            final String subjectId,
+            final String ticketStateId,
+            final TicketPriority priority,
+            final List<TicketFieldData> fields);
 
-    List<TicketSkeleton> list(
-            QueryTimeWindow timeWindow, List<TicketFieldFilter> filters, int start, int size,
-            Map<String, FieldSchema> relevantFieldSchema);
+    TicketSkeletonListResult list(
+            final QueryTimeWindow timeWindow,
+            final List<TicketFieldFilter> filters,
+            final String start,
+            final int size,
+            final Map<String, FieldSchema> relevantFieldSchema);
 
 }

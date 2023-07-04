@@ -16,6 +16,8 @@
 
 package io.appform.conductor.server.ticketmanagement.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
@@ -27,12 +29,14 @@ import io.appform.conductor.model.ticket.filter.*;
 import io.appform.conductor.model.ticket.filter.fieldfilters.*;
 import io.appform.conductor.server.ticketmanagement.TicketFieldData;
 import io.appform.conductor.server.ticketmanagement.TicketSkeleton;
+import io.appform.conductor.server.ticketmanagement.TicketSkeletonListResult;
 import io.appform.conductor.server.ticketmanagement.TicketStore;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
+import io.appform.dropwizard.sharding.scroll.ScrollPointer;
 import io.appform.functionmetrics.MonitoredFunction;
 import io.dropwizard.util.Duration;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +49,7 @@ import org.hibernate.transform.Transformers;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.UnaryOperator;
 
@@ -57,7 +62,7 @@ import static io.appform.conductor.model.error.ConductorErrorCode.*;
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class DBTicketStore implements TicketStore {
     private static final String FIELDS_VALUE_FIELD_NAME = "fields";
-    private static final String TICKETS_VALUE_FIELD_NAME = "tickets";
+    private static final String TICKETS_VALUE_FIELD_NAME = "ticket";
     private static final String STRING_VALUE_FIELD_NAME = "stringValue";
     private static final String NUMBER_VALUE_FIELD_NAME = "numberValue";
     private static final String BOOLEAN_VALUE_FIELD_NAME = "booleanValue";
@@ -68,6 +73,7 @@ public class DBTicketStore implements TicketStore {
 
     private final LookupDao<StoredTicketSkeleton> ticketDao;
     private final RelationalDao<StoredFieldValue> fieldDao;
+    private final ObjectMapper mapper;
 
     @Override
     @MonitoredFunction
@@ -138,10 +144,10 @@ public class DBTicketStore implements TicketStore {
     @SneakyThrows
     @Throws(value = STORE_LIST_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
-    public List<TicketSkeleton> list(
+    public TicketSkeletonListResult list(
             QueryTimeWindow timeWindow,
             final List<TicketFieldFilter> filters,
-            final int start,
+            final String start,
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema) {
         val window = Objects.requireNonNullElse(timeWindow,
@@ -169,11 +175,19 @@ public class DBTicketStore implements TicketStore {
                               )
                 .setResultTransformer(Transformers.aliasToBean(StoredTicketSkeleton.class));
         translateFilter(filters, relevantFieldSchema, criteria);
-
-        return ticketDao.scatterGather(criteria)
+        val pointer = Strings.isNullOrEmpty(start)
+                        ? null
+                        : mapper.readValue(Base64.getUrlDecoder().decode(start.getBytes(StandardCharsets.UTF_8)),
+                                               ScrollPointer.class);
+        val results = ticketDao.since(criteria, pointer, size, "id");
+        return new TicketSkeletonListResult(
+                results.getResult()
                 .stream()
                 .map(ticket -> toSummary(ticket, false))
-                .toList();
+                .toList(),
+                Base64.getUrlEncoder().encodeToString(
+                        mapper.writeValueAsString(results.getPointer())
+                                .getBytes(StandardCharsets.UTF_8))); //Keep charset consistent
     }
 
     private static TicketSkeleton toSummary(final StoredTicketSkeleton skeleton, boolean readFields) {

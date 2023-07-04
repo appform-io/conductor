@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.ticketmanagement.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.schema.fields.NumberFieldSchema;
 import io.appform.conductor.model.schema.fields.StringFieldSchema;
 import io.appform.conductor.model.ticket.TicketPriority;
@@ -33,6 +34,7 @@ import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFie
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import io.dropwizard.util.Duration;
 import lombok.val;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -40,6 +42,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import static io.appform.conductor.server.utils.ConductorServerUtils.configureMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -50,10 +53,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @ExtendWith(DBTestExtension.class)
 class DBTicketStoreTest {
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    @BeforeAll
+    static void setup() {
+        configureMapper(MAPPER);
+    }
+
     @Test
     void testCRUD(final BalancedDBShardingBundle<TestConfig> bundle) {
         val store = new DBTicketStore(bundle.createParentObjectDao(StoredTicketSkeleton.class),
-                                      bundle.createRelatedObjectDao(StoredFieldValue.class));
+                                      bundle.createRelatedObjectDao(StoredFieldValue.class),
+                                      MAPPER);
         val created = store.create("T001",
                                    "Test",
                                    "This is a test ticket",
@@ -139,15 +150,15 @@ class DBTicketStoreTest {
         var list = store.list(new QueryTimeWindow(Duration.minutes(1), new Date()),
                               List.of(new TicketFieldEquals("TF003", 23.0),
                                       new TicketFieldEquals("TF004", "Random Value")
-                                     ), 0,
+                                     ), null,
                               Integer.MAX_VALUE, relevantFieldSchema);
-        assertEquals(2, list.size());
+        assertEquals(2, list.getResults().size());
         list = store.list(new QueryTimeWindow(Duration.minutes(1), new Date()),
                           List.of(new TicketFieldEquals("TF003", 23.0),
                                   new TicketFieldEquals("TF002", "Random updated value"),
                                   new TicketFieldEquals("TF004", "Random Value")
-                                 ), 0,
+                                 ), null,
                           Integer.MAX_VALUE, relevantFieldSchema);
-        assertEquals(1, list.size());
+        assertEquals(1, list.getResults().size());
     }
 }
