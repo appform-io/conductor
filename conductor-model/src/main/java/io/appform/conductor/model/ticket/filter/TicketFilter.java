@@ -16,9 +16,15 @@
 
 package io.appform.conductor.model.ticket.filter;
 
-/**
- *
- */
-public abstract class TicketFilter {
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
+/**
+ * Filter based on ticket core properties and not fields
+ */
+@Data
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+public abstract class TicketFilter {
+    private final TicketFilterType type;
 }
