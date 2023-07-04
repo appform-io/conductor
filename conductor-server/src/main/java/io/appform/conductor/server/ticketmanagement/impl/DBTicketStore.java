@@ -56,6 +56,15 @@ import static io.appform.conductor.model.error.ConductorErrorCode.*;
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class DBTicketStore implements TicketStore {
+    private static final String FIELDS_VALUE_FIELD_NAME = "fields";
+    private static final String TICKETS_VALUE_FIELD_NAME = "tickets";
+    private static final String STRING_VALUE_FIELD_NAME = "stringValue";
+    private static final String NUMBER_VALUE_FIELD_NAME = "numberValue";
+    private static final String BOOLEAN_VALUE_FIELD_NAME = "booleanValue";
+    private static final String LOCATION_LAT_VALUE_FIELD_NAME = "locationLatValue";
+    private static final String LOCATION_LON_VALUE_FIELD_NAME = "locationLonValue";
+    private static final String CHOICE_VALUE_FIELD_NAME = "choiceValue";
+    private static final String DATE_VALUE_FIELD_NAME = "dateValue";
 
     private final LookupDao<StoredTicketSkeleton> ticketDao;
     private final RelationalDao<StoredFieldValue> fieldDao;
@@ -95,7 +104,7 @@ public class DBTicketStore implements TicketStore {
             fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
     public Optional<TicketSkeleton> read(@Throws.RuntimeParam("id") final String ticketId, boolean readFields) {
         return ticketDao.get(ticketId,
-                             (UnaryOperator<Criteria>) criteria -> criteria.setFetchMode("fields", FetchMode.JOIN))
+                             (UnaryOperator<Criteria>) criteria -> criteria.setFetchMode(FIELDS_VALUE_FIELD_NAME, FetchMode.JOIN))
                 .map(ticket -> toSummary(ticket, true));
     }
 
@@ -137,7 +146,7 @@ public class DBTicketStore implements TicketStore {
             final Map<String, FieldSchema> relevantFieldSchema) {
         val window = Objects.requireNonNullElse(timeWindow,
                                                 new QueryTimeWindow(Duration.days(1), new Date()));
-        val criteria = DetachedCriteria.forClass(StoredTicketSkeleton.class, "ticket")
+        val criteria = DetachedCriteria.forClass(StoredTicketSkeleton.class, TICKETS_VALUE_FIELD_NAME)
                 .add(Property.forName("deleted").eq(false))
                 .add(Property.forName("updated")
                              .gt(new Date(window.getFrom().getTime() - window.getDuration().toMilliseconds())))
@@ -159,8 +168,7 @@ public class DBTicketStore implements TicketStore {
                                        .add(Projections.property("updated"))
                               )
                 .setResultTransformer(Transformers.aliasToBean(StoredTicketSkeleton.class));
-        var root = criteria;
-        translateFilter(filters, relevantFieldSchema, root);
+        translateFilter(filters, relevantFieldSchema, criteria);
 
         return ticketDao.scatterGather(criteria)
                 .stream()
@@ -288,26 +296,28 @@ public class DBTicketStore implements TicketStore {
             List<TicketFieldFilter> filters,
             final Map<String, FieldSchema> relevantFields,
             DetachedCriteria rootCriteria) {
-        var top = rootCriteria.createCriteria("fields");
+        var top = rootCriteria.createCriteria(FIELDS_VALUE_FIELD_NAME);
         for (val filter : filters) {
             val fieldSchema = relevantFields.get(filter.getFieldSchemaId());
             val finalTop = top;
             augmentFilter(filter, fieldSchema, finalTop);
-            top = top.createCriteria("ticket")
-                    .createCriteria("fields");
+            top = top.createCriteria(TICKETS_VALUE_FIELD_NAME)
+                    .createCriteria(FIELDS_VALUE_FIELD_NAME);
 
         }
     }
 
+    @SuppressWarnings("java:S3776")
     private static void augmentFilter(TicketFieldFilter filter, FieldSchema fieldSchema, DetachedCriteria finalTop) {
         filter.accept(new TicketFieldFilterVisitor<Void>() {
+
             @Override
             public Void visit(TicketFieldEquals equals) {
                 switch (fieldSchema.getType()) {
-                    case STRING -> finalTop.add(Property.forName("stringValue").eq(equals.getValue()));
-                    case BOOLEAN -> finalTop.add(Property.forName("booleanValue").eq(equals.getValue()));
-                    case NUMBER -> finalTop.add(Property.forName("numberValue").eq(equals.getValue()));
-                    case DATE -> finalTop.add(Property.forName("dateValue").eq(equals.getValue()));
+                    case STRING -> finalTop.add(Property.forName(STRING_VALUE_FIELD_NAME).eq(equals.getValue()));
+                    case BOOLEAN -> finalTop.add(Property.forName(BOOLEAN_VALUE_FIELD_NAME).eq(equals.getValue()));
+                    case NUMBER -> finalTop.add(Property.forName(NUMBER_VALUE_FIELD_NAME).eq(equals.getValue()));
+                    case DATE -> finalTop.add(Property.forName(DATE_VALUE_FIELD_NAME).eq(equals.getValue()));
                     case CHOICE, LOCATION -> {
                         //NO OP
                     }
@@ -318,10 +328,10 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldNotEquals notEquals) {
                 switch (fieldSchema.getType()) {
-                    case STRING -> finalTop.add(Property.forName("stringValue").ne(notEquals.getValue()));
-                    case BOOLEAN -> finalTop.add(Property.forName("booleanValue").ne(notEquals.getValue()));
-                    case NUMBER -> finalTop.add(Property.forName("numberValue").ne(notEquals.getValue()));
-                    case DATE -> finalTop.add(Property.forName("dateValue").ne(notEquals.getValue()));
+                    case STRING -> finalTop.add(Property.forName(STRING_VALUE_FIELD_NAME).ne(notEquals.getValue()));
+                    case BOOLEAN -> finalTop.add(Property.forName(BOOLEAN_VALUE_FIELD_NAME).ne(notEquals.getValue()));
+                    case NUMBER -> finalTop.add(Property.forName(NUMBER_VALUE_FIELD_NAME).ne(notEquals.getValue()));
+                    case DATE -> finalTop.add(Property.forName(DATE_VALUE_FIELD_NAME).ne(notEquals.getValue()));
                     case CHOICE, LOCATION -> {
                         //NO OP
                     }
@@ -332,7 +342,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldGreater greater) {
                 if (fieldSchema.getType() == FieldType.NUMBER) {
-                    finalTop.add(Property.forName("numberValue").gt(greater.getValue()));
+                    finalTop.add(Property.forName(NUMBER_VALUE_FIELD_NAME).gt(greater.getValue()));
                 }
                 return null;
             }
@@ -340,7 +350,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldGreaterEquals greaterEquals) {
                 if (fieldSchema.getType() == FieldType.NUMBER) {
-                    finalTop.add(Property.forName("numberValue").ge(greaterEquals.getValue()));
+                    finalTop.add(Property.forName(NUMBER_VALUE_FIELD_NAME).ge(greaterEquals.getValue()));
                 }
                 return null;
             }
@@ -348,7 +358,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldLesser lesser) {
                 if (fieldSchema.getType() == FieldType.NUMBER) {
-                    finalTop.add(Property.forName("numberValue").lt(lesser.getValue()));
+                    finalTop.add(Property.forName(NUMBER_VALUE_FIELD_NAME).lt(lesser.getValue()));
                 }
                 return null;
             }
@@ -356,7 +366,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldLesserEquals lesserEquals) {
                 if (fieldSchema.getType() == FieldType.NUMBER) {
-                    finalTop.add(Property.forName("numberValue").le(lesserEquals.getValue()));
+                    finalTop.add(Property.forName(NUMBER_VALUE_FIELD_NAME).le(lesserEquals.getValue()));
                 }
                 return null;
             }
@@ -364,7 +374,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldBetween between) {
                 if (fieldSchema.getType() == FieldType.NUMBER) {
-                    finalTop.add(Property.forName("numberValue").between(between.getMin(), between.getMax()));
+                    finalTop.add(Property.forName(NUMBER_VALUE_FIELD_NAME).between(between.getMin(), between.getMax()));
                 }
                 return null;
             }
@@ -374,7 +384,7 @@ public class DBTicketStore implements TicketStore {
                 if (fieldSchema.getType() == FieldType.CHOICE) {
                     val query = Restrictions.conjunction();
                     containsChoices.getChoices()
-                            .forEach(choice -> query.add(Property.forName("choiceValue")
+                            .forEach(choice -> query.add(Property.forName(CHOICE_VALUE_FIELD_NAME)
                                                                  .like(choice, MatchMode.ANYWHERE)));
                     finalTop.add(query);
                 }
