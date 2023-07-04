@@ -23,7 +23,7 @@ import io.appform.conductor.model.ticket.fields.impl.BooleanFieldValue;
 import io.appform.conductor.model.ticket.fields.impl.NumberFieldValue;
 import io.appform.conductor.model.ticket.fields.impl.StringFieldValue;
 import io.appform.conductor.model.ticket.filter.QueryTimeWindow;
-import io.appform.conductor.model.ticket.filter.TicketEqualsCriteria;
+import io.appform.conductor.model.ticket.filter.fieldfilters.TicketFieldEquals;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
@@ -137,15 +137,15 @@ class DBTicketStoreTest {
                                                                         null,
                                                                         null));
         var list = store.list(new QueryTimeWindow(Duration.minutes(1), new Date()),
-                              List.of(new TicketEqualsCriteria("TF003", 23.0),
-                                      new TicketEqualsCriteria("TF004", "Random Value")
+                              List.of(new TicketFieldEquals("TF003", 23.0),
+                                      new TicketFieldEquals("TF004", "Random Value")
                                      ), 0,
                               Integer.MAX_VALUE, relevantFieldSchema);
         assertEquals(2, list.size());
         list = store.list(new QueryTimeWindow(Duration.minutes(1), new Date()),
-                          List.of(new TicketEqualsCriteria("TF003", 23.0),
-                                  new TicketEqualsCriteria("TF002", "Random updated value"),
-                                  new TicketEqualsCriteria("TF004", "Random Value")
+                          List.of(new TicketFieldEquals("TF003", 23.0),
+                                  new TicketFieldEquals("TF002", "Random updated value"),
+                                  new TicketFieldEquals("TF004", "Random Value")
                                  ), 0,
                           Integer.MAX_VALUE, relevantFieldSchema);
         assertEquals(1, list.size());

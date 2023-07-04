@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket.filter;
+package io.appform.conductor.model.ticket.filter.fieldfilters;
 
+import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
+import io.appform.conductor.model.ticket.filter.TicketFieldFilterType;
+import io.appform.conductor.model.ticket.filter.TicketFieldFilterVisitor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -26,19 +29,19 @@ import lombok.extern.jackson.Jacksonized;
  *
  */
 @Value
-@Jacksonized
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TicketEqualsCriteria extends TicketFilterFieldBasedCriteria {
+public class TicketFieldNotEquals extends TicketFieldFilter {
     Object value;
+    @Jacksonized
     @Builder
-    public TicketEqualsCriteria(String fieldSchemaId, Object value) {
-        super(TicketFilterType.EQUALS, fieldSchemaId);
+    public TicketFieldNotEquals(String fieldSchemaId, Object value) {
+        super(TicketFieldFilterType.NOT_EQUALS, fieldSchemaId);
         this.value = value;
     }
 
     @Override
-    public <T> T accept(TicketFilterVisitor<T> visitor) {
+    public <T> T accept(TicketFieldFilterVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

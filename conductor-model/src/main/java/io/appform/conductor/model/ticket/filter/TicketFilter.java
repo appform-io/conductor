@@ -17,10 +17,8 @@
 package io.appform.conductor.model.ticket.filter;
 
 /**
- * To handle filter type level functionality
+ *
  */
-public interface TicketFilterVisitor<T> {
-    T visit(TicketEqualsCriteria equals);
+public abstract class TicketFilter {
 
-    T visit(TicketNotEqualsCriteria notEquals);
 }

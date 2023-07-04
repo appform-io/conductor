@@ -16,15 +16,26 @@
 
 package io.appform.conductor.model.ticket.filter;
 
+import lombok.Getter;
+
 /**
  *
  */
-public abstract class TicketFilterCriteria {
-    private final TicketFilterType type;
+@Getter
+public enum TicketFieldFilterType {
+    EQUALS("Equals"),
+    NOT_EQUALS("Not Equals"),
+    GREATER("Greater Than"),
+    GREATER_EQUALS("Greater Than or Equals"),
+    LESSER("Lesser Than"),
+    LESSER_EQUALS("Lesser Than or Equals"),
+    BETWEEN("Between"),
+    CONTAINS_CHOICES("Contains choices"),
+    ;
 
-    protected TicketFilterCriteria(TicketFilterType type) {
-        this.type = type;
+    private final String displayName;
+
+    TicketFieldFilterType(String displayName) {
+        this.displayName = displayName;
     }
-
-    public abstract <T> T accept(final TicketFilterVisitor<T> visitor);
 }

@@ -16,11 +16,10 @@
 
 package io.appform.conductor.server.ticketmanagement;
 
-import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.filter.QueryTimeWindow;
-import io.appform.conductor.model.ticket.filter.TicketFilterFieldBasedCriteria;
+import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 
 import java.util.List;
 import java.util.Map;
@@ -44,7 +43,7 @@ public interface TicketStore {
     Optional<TicketSkeleton> read(String ticketId, boolean readFields);
 
     Optional<TicketSkeleton> update(
-            @Throws.RuntimeParam("id") String ticketId,
+            String ticketId,
             String title,
             String description,
             String subjectId,
@@ -53,7 +52,7 @@ public interface TicketStore {
             List<TicketFieldData> fields);
 
     List<TicketSkeleton> list(
-            QueryTimeWindow timeWindow, List<TicketFilterFieldBasedCriteria> filters, int start, int size,
+            QueryTimeWindow timeWindow, List<TicketFieldFilter> filters, int start, int size,
             Map<String, FieldSchema> relevantFieldSchema);
 
 }

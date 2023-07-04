@@ -16,21 +16,25 @@
 
 package io.appform.conductor.model.ticket.filter;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import io.appform.conductor.model.ticket.filter.fieldfilters.*;
 
 /**
- *
+ * To handle filter type level functionality
  */
-@Getter
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public abstract class TicketFilterFieldBasedCriteria extends TicketFilterCriteria {
-    private final String fieldSchemaId;
+public interface TicketFieldFilterVisitor<T> {
+    T visit(TicketFieldEquals equals);
 
-    protected TicketFilterFieldBasedCriteria(TicketFilterType type, String fieldSchemaId) {
-        super(type);
-        this.fieldSchemaId = fieldSchemaId;
-    }
+    T visit(TicketFieldNotEquals notEquals);
+
+    T visit(TicketFieldGreater greater);
+
+    T visit(TicketFieldGreaterEquals greaterEquals);
+
+    T visit(TicketFieldLesser lesser);
+
+    T visit(TicketFieldLesserEquals lesserEquals);
+
+    T visit(TicketFieldBetween between);
+
+    T visit(TicketFieldContainsChoices containsChoices);
 }

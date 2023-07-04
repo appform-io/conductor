@@ -24,6 +24,7 @@ import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
 import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.fields.impl.*;
 import io.appform.conductor.model.ticket.filter.*;
+import io.appform.conductor.model.ticket.filter.fieldfilters.*;
 import io.appform.conductor.server.ticketmanagement.TicketFieldData;
 import io.appform.conductor.server.ticketmanagement.TicketSkeleton;
 import io.appform.conductor.server.ticketmanagement.TicketStore;
@@ -39,9 +40,7 @@ import lombok.SneakyThrows;
 import lombok.val;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Property;
+import org.hibernate.criterion.*;
 import org.hibernate.transform.Transformers;
 
 import javax.inject.Inject;
@@ -132,7 +131,7 @@ public class DBTicketStore implements TicketStore {
             fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
     public List<TicketSkeleton> list(
             QueryTimeWindow timeWindow,
-            final List<TicketFilterFieldBasedCriteria> filters,
+            final List<TicketFieldFilter> filters,
             final int start,
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema) {
@@ -286,46 +285,102 @@ public class DBTicketStore implements TicketStore {
     }
 
     private static void translateFilter(
-            List<TicketFilterFieldBasedCriteria> filters,
+            List<TicketFieldFilter> filters,
             final Map<String, FieldSchema> relevantFields,
             DetachedCriteria rootCriteria) {
         var top = rootCriteria.createCriteria("fields");
         for (val filter : filters) {
             val fieldSchema = relevantFields.get(filter.getFieldSchemaId());
             val finalTop = top;
-            filter.accept(new TicketFilterVisitor<Void>() {
-                @Override
-                public Void visit(TicketEqualsCriteria equals) {
-                    switch (fieldSchema.getType()) {
-                        case STRING -> finalTop.add(Property.forName("stringValue").eq(equals.getValue()));
-                        case BOOLEAN -> finalTop.add(Property.forName("booleanValue").eq(equals.getValue()));
-                        case NUMBER -> finalTop.add(Property.forName("numberValue").eq(equals.getValue()));
-                        case DATE -> finalTop.add(Property.forName("dateValue").eq(equals.getValue()));
-                        case CHOICE, LOCATION -> {
-                            //NO OP
-                        }
-                    }
-                    return null;
-                }
-
-                @Override
-                public Void visit(TicketNotEqualsCriteria notEquals) {
-                    switch (fieldSchema.getType()) {
-                        case STRING -> finalTop.add(Property.forName("stringValue").ne(notEquals.getValue()));
-                        case BOOLEAN -> finalTop.add(Property.forName("booleanValue").ne(notEquals.getValue()));
-                        case NUMBER -> finalTop.add(Property.forName("numberValue").ne(notEquals.getValue()));
-                        case DATE -> finalTop.add(Property.forName("dateValue").ne(notEquals.getValue()));
-                        case CHOICE, LOCATION -> {
-                            //NO OP
-                        }
-                    }
-                    return null;
-                }
-            });
+            augmentFilter(filter, fieldSchema, finalTop);
             top = top.createCriteria("ticket")
                     .createCriteria("fields");
 
         }
+    }
+
+    private static void augmentFilter(TicketFieldFilter filter, FieldSchema fieldSchema, DetachedCriteria finalTop) {
+        filter.accept(new TicketFieldFilterVisitor<Void>() {
+            @Override
+            public Void visit(TicketFieldEquals equals) {
+                switch (fieldSchema.getType()) {
+                    case STRING -> finalTop.add(Property.forName("stringValue").eq(equals.getValue()));
+                    case BOOLEAN -> finalTop.add(Property.forName("booleanValue").eq(equals.getValue()));
+                    case NUMBER -> finalTop.add(Property.forName("numberValue").eq(equals.getValue()));
+                    case DATE -> finalTop.add(Property.forName("dateValue").eq(equals.getValue()));
+                    case CHOICE, LOCATION -> {
+                        //NO OP
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketFieldNotEquals notEquals) {
+                switch (fieldSchema.getType()) {
+                    case STRING -> finalTop.add(Property.forName("stringValue").ne(notEquals.getValue()));
+                    case BOOLEAN -> finalTop.add(Property.forName("booleanValue").ne(notEquals.getValue()));
+                    case NUMBER -> finalTop.add(Property.forName("numberValue").ne(notEquals.getValue()));
+                    case DATE -> finalTop.add(Property.forName("dateValue").ne(notEquals.getValue()));
+                    case CHOICE, LOCATION -> {
+                        //NO OP
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketFieldGreater greater) {
+                if (fieldSchema.getType() == FieldType.NUMBER) {
+                    finalTop.add(Property.forName("numberValue").gt(greater.getValue()));
+                }
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketFieldGreaterEquals greaterEquals) {
+                if (fieldSchema.getType() == FieldType.NUMBER) {
+                    finalTop.add(Property.forName("numberValue").ge(greaterEquals.getValue()));
+                }
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketFieldLesser lesser) {
+                if (fieldSchema.getType() == FieldType.NUMBER) {
+                    finalTop.add(Property.forName("numberValue").lt(lesser.getValue()));
+                }
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketFieldLesserEquals lesserEquals) {
+                if (fieldSchema.getType() == FieldType.NUMBER) {
+                    finalTop.add(Property.forName("numberValue").le(lesserEquals.getValue()));
+                }
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketFieldBetween between) {
+                if (fieldSchema.getType() == FieldType.NUMBER) {
+                    finalTop.add(Property.forName("numberValue").between(between.getMin(), between.getMax()));
+                }
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketFieldContainsChoices containsChoices) {
+                if (fieldSchema.getType() == FieldType.CHOICE) {
+                    val query = Restrictions.conjunction();
+                    containsChoices.getChoices()
+                            .forEach(choice -> query.add(Property.forName("choiceValue")
+                                                                 .like(choice, MatchMode.ANYWHERE)));
+                    finalTop.add(query);
+                }
+                return null;
+            }
+        });
     }
 }
 
