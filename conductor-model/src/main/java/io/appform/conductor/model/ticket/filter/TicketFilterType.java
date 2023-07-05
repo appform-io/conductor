@@ -31,6 +31,8 @@ public enum TicketFilterType {
     SUBJECT_EQUALS("Ticket is for given subject"),
     STATE_EQUALS("Ticket is in states"),
     PRIORITY_EQUALS("Ticket has given priority"),
+    CREATED_TIME_WINDOW("Tickets created in this window"),
+    UPDATED_TIME_WINDOW("Tickets updated in this window")
             ;
 
     @Getter

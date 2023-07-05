@@ -25,7 +25,10 @@ import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
 import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.fields.impl.*;
-import io.appform.conductor.model.ticket.filter.*;
+import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
+import io.appform.conductor.model.ticket.filter.TicketFieldFilterVisitor;
+import io.appform.conductor.model.ticket.filter.TicketFilter;
+import io.appform.conductor.model.ticket.filter.TicketFilterVisitor;
 import io.appform.conductor.model.ticket.filter.fieldfilters.*;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import io.appform.conductor.server.ticketmanagement.TicketFieldData;
@@ -39,7 +42,6 @@ import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.dropwizard.sharding.scroll.ScrollPointer;
 import io.appform.functionmetrics.MonitoredFunction;
-import io.dropwizard.util.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -147,18 +149,13 @@ public class DBTicketStore implements TicketStore {
     @Throws(value = STORE_LIST_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
     public TicketSkeletonListResult list(
-            QueryTimeWindow timeWindow,
             final List<TicketFilter> ticketFilters,
             final List<TicketFieldFilter> fieldFilters,
             final String start,
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema) {
-        val window = Objects.requireNonNullElse(timeWindow,
-                                                new QueryTimeWindow(Duration.days(1), new Date()));
         val criteria = DetachedCriteria.forClass(StoredTicketSkeleton.class, TICKETS_VALUE_FIELD_NAME)
                 .add(Property.forName("deleted").eq(false))
-                .add(Property.forName("updated")
-                             .gt(new Date(window.getFrom().getTime() - window.getDuration().toMilliseconds())))
                 .setProjection(Projections.projectionList()
                                        .add(Projections.distinct(Projections.property("ticketId")))
                                        .add(Projections.property("id"))
@@ -247,6 +244,24 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketPriorityEquals priorityEquals) {
                 criteria.add(Property.forName("priority").eq(priorityEquals.getPriority()));
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketsCreatedTimeWindow createdTimeWindow) {
+                criteria.add(Property.forName("created")
+                                     .gt(new Date(createdTimeWindow.getFrom()
+                                                          .getTime() - createdTimeWindow.getDuration()
+                                             .toMilliseconds())));
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketsUpdatedTimeWindow updatedTimeWindow) {
+                criteria.add(Property.forName("updated")
+                                     .gt(new Date(updatedTimeWindow.getFrom()
+                                                          .getTime() - updatedTimeWindow.getDuration()
+                                             .toMilliseconds())));
                 return null;
             }
         }));

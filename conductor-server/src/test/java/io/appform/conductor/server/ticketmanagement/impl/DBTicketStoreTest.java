@@ -23,7 +23,6 @@ import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.fields.impl.BooleanFieldValue;
 import io.appform.conductor.model.ticket.fields.impl.NumberFieldValue;
 import io.appform.conductor.model.ticket.fields.impl.StringFieldValue;
-import io.appform.conductor.model.ticket.filter.QueryTimeWindow;
 import io.appform.conductor.model.ticket.filter.fieldfilters.TicketFieldEquals;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
@@ -32,13 +31,11 @@ import io.appform.conductor.server.ticketmanagement.TicketFieldData;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
-import io.dropwizard.util.Duration;
 import lombok.val;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -147,15 +144,13 @@ class DBTicketStoreTest {
                                                                         100,
                                                                         null,
                                                                         null));
-        var list = store.list(new QueryTimeWindow(Duration.minutes(1), new Date()),
-                              List.of(),
+        var list = store.list(List.of(),
                               List.of(new TicketFieldEquals("TF003", 23.0),
                                       new TicketFieldEquals("TF004", "Random Value")
                                      ), null,
                               Integer.MAX_VALUE, relevantFieldSchema);
         assertEquals(2, list.getResults().size());
-        list = store.list(new QueryTimeWindow(Duration.minutes(1), new Date()),
-                          List.of(),
+        list = store.list(List.of(),
                           List.of(new TicketFieldEquals("TF003", 23.0),
                                   new TicketFieldEquals("TF002", "Random updated value"),
                                   new TicketFieldEquals("TF004", "Random Value")

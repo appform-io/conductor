@@ -88,6 +88,7 @@ public class StoredTicketSkeleton implements Serializable {
     private TicketPriority priority;
 
     @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<StoredFieldValue> fields;
 
     @Column(name = "deleted")
