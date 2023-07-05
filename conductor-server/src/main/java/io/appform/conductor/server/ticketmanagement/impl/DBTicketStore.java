@@ -27,6 +27,7 @@ import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.fields.impl.*;
 import io.appform.conductor.model.ticket.filter.*;
 import io.appform.conductor.model.ticket.filter.fieldfilters.*;
+import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import io.appform.conductor.server.ticketmanagement.TicketFieldData;
 import io.appform.conductor.server.ticketmanagement.TicketSkeleton;
 import io.appform.conductor.server.ticketmanagement.TicketSkeletonListResult;
@@ -110,7 +111,8 @@ public class DBTicketStore implements TicketStore {
             fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
     public Optional<TicketSkeleton> read(@Throws.RuntimeParam("id") final String ticketId, boolean readFields) {
         return ticketDao.get(ticketId,
-                             (UnaryOperator<Criteria>) criteria -> criteria.setFetchMode(FIELDS_VALUE_FIELD_NAME, FetchMode.JOIN))
+                             (UnaryOperator<Criteria>) criteria -> criteria.setFetchMode(FIELDS_VALUE_FIELD_NAME,
+                                                                                         FetchMode.JOIN))
                 .map(ticket -> toSummary(ticket, true));
     }
 
@@ -146,7 +148,8 @@ public class DBTicketStore implements TicketStore {
             fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
     public TicketSkeletonListResult list(
             QueryTimeWindow timeWindow,
-            final List<TicketFieldFilter> filters,
+            final List<TicketFilter> ticketFilters,
+            final List<TicketFieldFilter> fieldFilters,
             final String start,
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema) {
@@ -174,20 +177,79 @@ public class DBTicketStore implements TicketStore {
                                        .add(Projections.property("updated"))
                               )
                 .setResultTransformer(Transformers.aliasToBean(StoredTicketSkeleton.class));
-        translateFilter(filters, relevantFieldSchema, criteria);
+        applyTicketFilter(ticketFilters, criteria);
+        applyFieldFilters(fieldFilters, relevantFieldSchema, criteria);
         val pointer = Strings.isNullOrEmpty(start)
-                        ? null
-                        : mapper.readValue(Base64.getUrlDecoder().decode(start.getBytes(StandardCharsets.UTF_8)),
-                                               ScrollPointer.class);
+                      ? null
+                      : mapper.readValue(Base64.getUrlDecoder().decode(start.getBytes(StandardCharsets.UTF_8)),
+                                         ScrollPointer.class);
         val results = ticketDao.scrollUp(criteria, pointer, size, "id");
         return new TicketSkeletonListResult(
                 results.getResult()
-                .stream()
-                .map(ticket -> toSummary(ticket, false))
-                .toList(),
+                        .stream()
+                        .map(ticket -> toSummary(ticket, false))
+                        .toList(),
                 Base64.getUrlEncoder().encodeToString(
                         mapper.writeValueAsString(results.getPointer())
                                 .getBytes(StandardCharsets.UTF_8))); //Keep charset consistent
+    }
+
+    private void applyTicketFilter(List<TicketFilter> ticketFilters, DetachedCriteria criteria) {
+        ticketFilters.forEach(filter -> filter.accept(new TicketFilterVisitor<Void>() {
+            @Override
+            public Void visit(TicketWorkflowEquals workflowEquals) {
+                criteria.add(Property.forName("workflowId").eq(workflowEquals.getWorkflowId()));
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketCreatedBy createdBy) {
+                criteria.add(Property.forName("createdByUserId").eq(createdBy.getCreateByUserId()));
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketAssignedToGroup assignedToGroup) {
+                criteria.add(Property.forName("assignedToGroupId").eq(assignedToGroup.getAssignedGroupId()));
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketUnAssignedToGroup unAssignedToGroup) {
+                criteria.add(Property.forName("assignedToGroupId").isNull());
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketAssignedToUser assignedToUser) {
+                criteria.add(Property.forName("assignedToUserId").eq(assignedToUser.getAssignedUserId()));
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketUnAssignedToUser unAssignedToUser) {
+                criteria.add(Property.forName("assignedToUserId").isNull());
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketSubjectEquals subjectEquals) {
+                criteria.add(Property.forName("subjectId").eq(subjectEquals.getSubjectId()));
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketStateEquals stateEquals) {
+                criteria.add(Property.forName("ticketStateId").eq(stateEquals.getStateId()));
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketPriorityEquals priorityEquals) {
+                criteria.add(Property.forName("priority").eq(priorityEquals.getPriority()));
+                return null;
+            }
+        }));
     }
 
     private static TicketSkeleton toSummary(final StoredTicketSkeleton skeleton, boolean readFields) {
@@ -306,7 +368,7 @@ public class DBTicketStore implements TicketStore {
         return fieldValue;
     }
 
-    private static void translateFilter(
+    private static void applyFieldFilters(
             List<TicketFieldFilter> filters,
             final Map<String, FieldSchema> relevantFields,
             DetachedCriteria rootCriteria) {

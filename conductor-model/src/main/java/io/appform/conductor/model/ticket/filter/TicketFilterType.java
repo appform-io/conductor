@@ -23,14 +23,14 @@ import lombok.Getter;
  */
 public enum TicketFilterType {
     WORKFLOW_EQUALS("Workflow id matches"),
-    CREATED_BY_EQUALS("Ticket created by user"),
+    CREATED_BY("Ticket created by user"),
     ASSIGNED_TO_GROUP("Ticket is currently assigned to group"),
     UNASSIGNED_TO_GROUP("Ticket is currently unassigned to any group"),
     ASSIGNED_TO_USER("Ticket is currently assigned to user"),
     UNASSIGNED_TO_USER("Ticket is currently unassigned to any user"),
-    SUBJECT_MATCH("Ticket is for given subject"),
-    STATE_MATCH("Ticket is in states"),
-    PRIORITY("Ticket has given priority"),
+    SUBJECT_EQUALS("Ticket is for given subject"),
+    STATE_EQUALS("Ticket is in states"),
+    PRIORITY_EQUALS("Ticket has given priority"),
             ;
 
     @Getter

@@ -87,20 +87,7 @@ public class StoredTicketSkeleton implements Serializable {
     @Enumerated(EnumType.STRING)
     private TicketPriority priority;
 
-/*    @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
-    @Where(clause = "type='STRING'")
-    private Set<StoredTicketFieldValue> stringFields;
-
     @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
-    @Where(clause = "type='BOOLEAN'")
-    private Set<StoredTicketFieldValue> booleanFields;
-
-    @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
-    @Where(clause = "type='NUMBER'")
-    private Set<StoredTicketFieldValue> numberFields;*/
-
-    @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
-//    @Where(clause = "type='STRING'")
     private List<StoredFieldValue> fields;
 
     @Column(name = "deleted")

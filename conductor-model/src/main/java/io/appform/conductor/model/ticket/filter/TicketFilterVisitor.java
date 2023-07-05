@@ -16,17 +16,27 @@
 
 package io.appform.conductor.model.ticket.filter;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 
 /**
- * Filter based on ticket core properties and not fields
+ * Needed to handle subclass specific behaviour for {@link TicketFilter}
  */
-@Data
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class TicketFilter {
-    private final TicketFilterType type;
+public interface TicketFilterVisitor<T> {
+    T visit(TicketWorkflowEquals workflowEquals);
 
-    public abstract <T> T accept(final TicketFilterVisitor<T> visitor);
+    T visit(TicketCreatedBy createdBy);
+
+    T visit(TicketAssignedToGroup assignedToGroup);
+
+    T visit(TicketUnAssignedToGroup unAssignedToGroup);
+
+    T visit(TicketAssignedToUser assignedToUser);
+
+    T visit(TicketUnAssignedToUser unAssignedToUser);
+
+    T visit(TicketSubjectEquals subjectEquals);
+
+    T visit(TicketStateEquals stateEquals);
+
+    T visit(TicketPriorityEquals priorityEquals);
 }

@@ -148,12 +148,14 @@ class DBTicketStoreTest {
                                                                         null,
                                                                         null));
         var list = store.list(new QueryTimeWindow(Duration.minutes(1), new Date()),
+                              List.of(),
                               List.of(new TicketFieldEquals("TF003", 23.0),
                                       new TicketFieldEquals("TF004", "Random Value")
                                      ), null,
                               Integer.MAX_VALUE, relevantFieldSchema);
         assertEquals(2, list.getResults().size());
         list = store.list(new QueryTimeWindow(Duration.minutes(1), new Date()),
+                          List.of(),
                           List.of(new TicketFieldEquals("TF003", 23.0),
                                   new TicketFieldEquals("TF002", "Random updated value"),
                                   new TicketFieldEquals("TF004", "Random Value")

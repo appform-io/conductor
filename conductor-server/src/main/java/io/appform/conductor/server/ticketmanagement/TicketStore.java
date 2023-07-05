@@ -20,6 +20,7 @@ import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.filter.QueryTimeWindow;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
+import io.appform.conductor.model.ticket.filter.TicketFilter;
 
 import java.util.List;
 import java.util.Map;
@@ -53,7 +54,8 @@ public interface TicketStore {
 
     TicketSkeletonListResult list(
             final QueryTimeWindow timeWindow,
-            final List<TicketFieldFilter> filters,
+            final List<TicketFilter> ticketFilters,
+            final List<TicketFieldFilter> fieldFilters,
             final String start,
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema);

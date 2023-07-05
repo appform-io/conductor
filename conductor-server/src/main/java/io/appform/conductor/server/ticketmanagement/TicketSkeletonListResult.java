@@ -21,7 +21,7 @@ import lombok.Value;
 import java.util.List;
 
 /**
- *
+ * Resultset for a list query. Returns latest results first.
  */
 @Value
 public class TicketSkeletonListResult {
