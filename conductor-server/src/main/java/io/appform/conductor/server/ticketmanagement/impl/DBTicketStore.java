@@ -179,7 +179,7 @@ public class DBTicketStore implements TicketStore {
                         ? null
                         : mapper.readValue(Base64.getUrlDecoder().decode(start.getBytes(StandardCharsets.UTF_8)),
                                                ScrollPointer.class);
-        val results = ticketDao.since(criteria, pointer, size, "id");
+        val results = ticketDao.scrollUp(criteria, pointer, size, "id");
         return new TicketSkeletonListResult(
                 results.getResult()
                 .stream()
