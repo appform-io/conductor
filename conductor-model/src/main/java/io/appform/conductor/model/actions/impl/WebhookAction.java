@@ -19,6 +19,7 @@ package io.appform.conductor.model.actions.impl;
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
+import io.appform.conductor.model.workflow.Template;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
@@ -30,7 +31,7 @@ import java.util.Set;
 
 /**
  * Call an external or internal endpoint when this happens. The actual url
- * and paylod for the body are constructed using templates.
+ * and payload for the body are constructed using templates.
  */
 @Value
 @EqualsAndHashCode(callSuper = true)
@@ -66,10 +67,10 @@ public class WebhookAction extends Action {
     }
 
     /**
-     * A {@link org.apache.commons.text.StrSubstitutor} based template to generate URL for template.
+     * A {@link io.appform.conductor.model.workflow.Template} to generate URL for template.
      * Note that URL will be URL encoded post template evaluation
      */
-    String urlTemplate;
+    Template urlTemplate;
 
     /**
      * Type for call as detailed in {@link CallType}
@@ -77,10 +78,10 @@ public class WebhookAction extends Action {
     CallType callType;
 
     /**
-     * A {@link com.github.jknack.handlebars.Handlebars} based template to generate the body of the HTTP call.
+     * A {@link io.appform.conductor.model.workflow.Template} to generate the body of the HTTP call.
      * Note that body will only be passed for HTTP methods that allow for it.
      */
-    String payloadTemplate;
+    Template payloadTemplate;
 
     /**
      * The mimetype of the body
@@ -123,9 +124,9 @@ public class WebhookAction extends Action {
             String description,
             Date created,
             Date updated,
-            String urlTemplate,
+            Template urlTemplate,
             CallType callType,
-            String payloadTemplate,
+            Template payloadTemplate,
             String mimeType,
             Map<String, List<String>> additionalHeaders,
             Set<Integer> successCodes, CallMode callMode,

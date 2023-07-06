@@ -19,6 +19,7 @@ package io.appform.conductor.model.actions.impl;
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
+import io.appform.conductor.model.workflow.Template;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
@@ -34,10 +35,10 @@ import java.util.Date;
 public class AddCommentAction extends Action {
 
     /**
-     * A {@link com.github.jknack.handlebars.Handlebars} template to generate comment text from ticket summary and fields.
+     * A {@link io.appform.conductor.model.workflow.Template} to generate comment text from ticket summary and fields.
      * This template will be evaluated to generate the {@link io.appform.conductor.model.ticket.comments.Comment} content.
      */
-    String contentTemplate;
+    Template contentTemplate;
 
     public AddCommentAction(
             String id,
@@ -45,7 +46,7 @@ public class AddCommentAction extends Action {
             String description,
             Date created,
             Date updated,
-            String contentTemplate) {
+            Template contentTemplate) {
         super(ActionType.ADD_COMMENT, id, name, description, created, updated);
         this.contentTemplate = contentTemplate;
     }
