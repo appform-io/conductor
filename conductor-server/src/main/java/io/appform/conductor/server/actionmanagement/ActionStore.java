@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.workflow;
+package io.appform.conductor.server.actionmanagement;
 
-import lombok.Value;
+import io.appform.conductor.model.actions.Action;
+
+import java.util.Optional;
 
 /**
- * Definition for a rule
+ *
  */
-@Value
-public class Rule {
-    public enum RuleType {
-        JSON_RULE,
-        HOPE
-    }
-    RuleType type;
-    String rule;
+public interface ActionStore {
+    Optional<Action> read(final String actionId);
 }

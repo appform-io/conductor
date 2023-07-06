@@ -41,7 +41,9 @@ public enum ConductorErrorCode {
     WORKFLOW_ERROR_INVALID_ID(3001, "Invalid workflow ID: ${id}"),
     WORKFLOW_ERROR(3002, "Error in workflow management: ${message}"),
 
-
+    TICKET_MGMT_NO_WORKFLOW(4001, "No workflow found for given payload"),
+    TICKET_MGMT_NO_SCHEMA(4002, "No active schema found for ${workflowId}/${schemaId}"),
+    TICKET_SCHEMA_VALIDATION_FAILURE(4003, "There are schema validation failures."),
     ;
 
     private final int errorCode;

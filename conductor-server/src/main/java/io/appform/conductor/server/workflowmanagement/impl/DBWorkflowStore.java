@@ -40,6 +40,7 @@ import org.hibernate.criterion.Property;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
@@ -137,6 +138,22 @@ public class DBWorkflowStore implements WorkflowStore {
                 .orElse(null));
         log.info("Update for workflow {} application status: {}", workflowId, updated);
         return read(workflowId);
+    }
+
+    @Override
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredWorkflow.WORKFLOW_TABLE_NAME))
+    public List<Workflow> list(WorkflowState desiredState) {
+        //This is not very efficient, but should be behind a cache anyway
+        return wfDao.scatterGather(DetachedCriteria.forClass(StoredWorkflow.class)
+                                           .add(Property.forName("state").eq(desiredState)))
+                .stream()
+                .map(StoredWorkflow::getWorkflowId)
+                .map(this::read)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
     }
 
     @Override

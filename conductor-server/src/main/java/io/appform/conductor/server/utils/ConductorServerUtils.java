@@ -98,6 +98,24 @@ public class ConductorServerUtils {
         throw new ConductorException(errorCode, Map.of("message", message), null);
     }
 
+    public static void logicalError(ConductorErrorCode errorCode) {
+        logicalError(errorCode, Map.of());
+    }
+
+    public static void ensureCondition(boolean condition, ConductorErrorCode errorCode, Map<String, Object> context) {
+        if (!condition) {
+            logicalError(errorCode, context);
+        }
+    }
+
+    public static void ensureCondition(boolean condition, ConductorErrorCode errorCode) {
+        ensureCondition(condition, errorCode, Map.of());
+    }
+
+    public static void logicalError(ConductorErrorCode errorCode, Map<String, Object> context) {
+        throw new ConductorException(errorCode, context, null);
+    }
+
     public static <T> List<T> joinLists(List<T>... lists) {
         return Arrays.stream(lists).flatMap(Collection::stream).toList();
     }

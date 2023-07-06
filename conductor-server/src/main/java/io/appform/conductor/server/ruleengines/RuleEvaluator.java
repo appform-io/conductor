@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.workflow;
+package io.appform.conductor.server.ruleengines;
 
-import lombok.Value;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * Definition for a rule
+ *
  */
-@Value
-public class Rule {
-    public enum RuleType {
-        JSON_RULE,
-        HOPE
-    }
-    RuleType type;
-    String rule;
+public interface RuleEvaluator {
+    boolean evaluate(final String rule, final JsonNode data);
 }

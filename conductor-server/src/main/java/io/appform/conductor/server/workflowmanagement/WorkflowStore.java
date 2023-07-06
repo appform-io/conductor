@@ -19,7 +19,9 @@ package io.appform.conductor.server.workflowmanagement;
 import io.appform.conductor.model.workflow.Rule;
 import io.appform.conductor.model.workflow.TicketStateTransition;
 import io.appform.conductor.model.workflow.Workflow;
+import io.appform.conductor.model.workflow.WorkflowState;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
@@ -32,6 +34,8 @@ public interface WorkflowStore {
     Optional<Workflow> read(final String workflowId);
 
     Optional<Workflow> update(final String id, final UnaryOperator<Workflow> updater);
+
+    List<Workflow> list(final WorkflowState desiredState);
 
     boolean deleteWorkflow(final String id);
 

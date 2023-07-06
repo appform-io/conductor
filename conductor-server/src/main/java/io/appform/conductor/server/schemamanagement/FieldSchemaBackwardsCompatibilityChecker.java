@@ -20,97 +20,77 @@ import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldSchemaVisitor;
 import io.appform.conductor.model.schema.fields.*;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
-import lombok.Value;
 import lombok.val;
 import org.apache.commons.lang3.ClassUtils;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.List;
 import java.util.Optional;
 
 /**
  *
  */
 @Singleton
-public class FieldSchemaCompatibilityChecker {
+public class FieldSchemaBackwardsCompatibilityChecker {
     public enum ValidationStatus {
         SUCCESS,
         FAILURE
     }
 
-    @Value
-    public static class ValidationResult {
-        ValidationStatus status;
-        List<String> errors;
-
-        public static ValidationResult success() {
-            return new ValidationResult(ValidationStatus.SUCCESS, List.of());
-        }
-
-        public static ValidationResult failure(final String error) {
-            return failure(List.of(error));
-        }
-
-        public static ValidationResult failure(final List<String> errors) {
-            return new ValidationResult(ValidationStatus.FAILURE, errors);
-        }
-
-    }
-
     private final SchemaStore store;
 
     @Inject
-    public FieldSchemaCompatibilityChecker(SchemaStore store) {
+    public FieldSchemaBackwardsCompatibilityChecker(SchemaStore store) {
         this.store = store;
     }
 
-    public ValidationResult validate(final String schemaId, final FieldSchema updated) {
+    //TODO::implement type specific checks here
+    public SchemaOpValidationResult<Void> validate(final String schemaId, final FieldSchema updated) {
         val existing = store.getField(schemaId, updated.getId()).orElse(null);
         if (null == existing) {
-            return ValidationResult.failure("No field found for given id");
+            return SchemaOpValidationResult.failure("No field found for given id");
         }
         return updated.accept(new FieldSchemaVisitor<>() {
             @Override
-            public ValidationResult visit(StringFieldSchema stringField) {
+            public SchemaOpValidationResult<Void> visit(StringFieldSchema stringField) {
                 return cast(existing, StringFieldSchema.class)
-                        .map(d -> ValidationResult.success())
-                        .orElse(ValidationResult.failure(typeCastErrorMessage(existing, stringField)));
+                        .map(d -> SchemaOpValidationResult.<Void>success())
+                        .orElse(SchemaOpValidationResult.failure(typeCastErrorMessage(existing, stringField)));
             }
 
             @Override
-            public ValidationResult visit(NumberFieldSchema numberField) {
+            public SchemaOpValidationResult<Void> visit(NumberFieldSchema numberField) {
                 return cast(existing, NumberFieldSchema.class)
-                        .map(d -> ValidationResult.success())
-                        .orElse(ValidationResult.failure(typeCastErrorMessage(existing, numberField)));
+                        .map(d -> SchemaOpValidationResult.<Void>success())
+                        .orElse(SchemaOpValidationResult.failure(typeCastErrorMessage(existing, numberField)));
             }
 
             @Override
-            public ValidationResult visit(BooleanFieldSchema booleanField) {
+            public SchemaOpValidationResult<Void> visit(BooleanFieldSchema booleanField) {
                 return cast(existing, BooleanFieldSchema.class)
-                        .map(d -> ValidationResult.success())
-                        .orElse(ValidationResult.failure(typeCastErrorMessage(existing, booleanField)));
+                        .map(d -> SchemaOpValidationResult.<Void>success())
+                        .orElse(SchemaOpValidationResult.failure(typeCastErrorMessage(existing, booleanField)));
             }
 
             @Override
-            public ValidationResult visit(LocationFieldSchema locationField) {
+            public SchemaOpValidationResult<Void> visit(LocationFieldSchema locationField) {
                 return cast(existing, LocationFieldSchema.class)
-                        .map(d -> ValidationResult.success())
-                        .orElse(ValidationResult.failure(typeCastErrorMessage(existing, locationField)));
+                        .map(d -> SchemaOpValidationResult.<Void>success())
+                        .orElse(SchemaOpValidationResult.failure(typeCastErrorMessage(existing, locationField)));
             }
 
             @Override
-            public ValidationResult visit(DateFieldSchema dateField) {
+            public SchemaOpValidationResult<Void> visit(DateFieldSchema dateField) {
                 return cast(existing, DateFieldSchema.class)
-                        .map(d -> ValidationResult.success())
-                        .orElse(ValidationResult.failure(typeCastErrorMessage(existing, dateField)));
+                        .map(d -> SchemaOpValidationResult.<Void>success())
+                        .orElse(SchemaOpValidationResult.failure(typeCastErrorMessage(existing, dateField)));
             }
 
             @Override
-            public ValidationResult visit(ChoiceFieldSchema choiceField) {
+            public SchemaOpValidationResult<Void> visit(ChoiceFieldSchema choiceField) {
                 return cast(existing, ChoiceFieldSchema.class)
-                        .map(d -> ValidationResult.success())
-                        .orElse(ValidationResult.failure(typeCastErrorMessage(existing, choiceField)));
+                        .map(d -> SchemaOpValidationResult.<Void>success())
+                        .orElse(SchemaOpValidationResult.failure(typeCastErrorMessage(existing, choiceField)));
             }
         });
     }

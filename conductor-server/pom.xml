@@ -31,6 +31,8 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <hope-lang.version>2.0.2</hope-lang.version>
+        <json-smart.version>2.4.11</json-smart.version>
     </properties>
 
     <dependencies>
@@ -109,6 +111,42 @@
             <groupId>at.favre.lib</groupId>
             <artifactId>bcrypt</artifactId>
             <version>${bcrypt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.appform.hope</groupId>
+            <artifactId>hope-lang</artifactId>
+            <version>${hope-lang.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.minidev</groupId>
+                    <artifactId>json-smart</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+            <version>${json-smart.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.appform.rules</groupId>
+            <artifactId>json-rules</artifactId>
+            <version>1.0.14</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.appform.signals</groupId>
+            <artifactId>signals</artifactId>
+            <version>${signals.version}</version>
         </dependency>
     </dependencies>
     <build>

@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.workflow;
+package io.appform.conductor.server.utils;
 
 import lombok.Value;
 
 /**
- * Definition for a rule
+ * A pair class. Why doesn't java have this already ... ?!!
  */
 @Value
-public class Rule {
-    public enum RuleType {
-        JSON_RULE,
-        HOPE
-    }
-    RuleType type;
-    String rule;
+public class Pair<F,S> {
+    F first;
+    S second;
 }
