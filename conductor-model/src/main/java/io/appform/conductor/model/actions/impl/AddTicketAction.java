@@ -31,7 +31,7 @@ import java.util.Date;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class AddTicketActionAction extends Action {
+public class AddTicketAction extends Action {
 
     /**
      * The id of the action to be added. The action will be executed by manual intervention.
@@ -39,7 +39,7 @@ public class AddTicketActionAction extends Action {
      */
     String actionId;
 
-    public AddTicketActionAction(
+    public AddTicketAction(
             String id,
             String name,
             String description,

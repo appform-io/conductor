@@ -32,7 +32,7 @@ public interface ActionVisitor<T> {
 
     T visit(AddCommentAction addCommentAction);
 
-    T visit(AddTicketActionAction addTicketActionAction);
+    T visit(AddTicketAction addTicketAction);
 
     T visit(ChangePriorityAction changePriorityAction);
 

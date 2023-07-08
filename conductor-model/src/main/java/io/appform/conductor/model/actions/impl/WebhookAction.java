@@ -39,34 +39,6 @@ import java.util.Set;
 public class WebhookAction extends Action {
 
     /**
-     * HTTP verb for the call... is it a GET/POST etc
-     */
-    enum CallType {
-        GET,
-        PUT,
-        POST,
-        PATCH,
-        DELETE
-    }
-
-    /**
-     * Is the call sync or async
-     */
-    enum CallMode {
-        SYNC,
-        ASYNC
-    }
-
-    /**
-     * How the call will get retried in case of failures
-     */
-    enum RetryStrategy {
-        NO_RETRY,
-        FIXED_INTERVAL,
-        EXPONENTIAL_BACKOFF
-    }
-
-    /**
      * A {@link io.appform.conductor.model.workflow.Template} to generate URL for template.
      * Note that URL will be URL encoded post template evaluation
      */
@@ -89,9 +61,10 @@ public class WebhookAction extends Action {
     String mimeType;
 
     /**
-     * Any other additional headers that need to be passed. This can contain auth headers etc.
+     * A {@link io.appform.conductor.model.workflow.Template} to generate the headers that need to be passed for the HTTP call.
+     * Note: This can contain auth headers etc.
      */
-    Map<String, List<String>> additionalHeaders;
+    Template headersTemplate;
 
     /**
      * The HTTP response codes that will be considered as success. Once successful, no retry will kick in.
@@ -128,16 +101,18 @@ public class WebhookAction extends Action {
             CallType callType,
             Template payloadTemplate,
             String mimeType,
-            Map<String, List<String>> additionalHeaders,
-            Set<Integer> successCodes, CallMode callMode,
+            Template headersTemplate,
+            Set<Integer> successCodes,
+            CallMode callMode,
             int timeoutMs,
-            RetryStrategy retryStrategy, int numRetries) {
+            RetryStrategy retryStrategy,
+            int numRetries) {
         super(ActionType.WEBHOOK, id, name, description, created, updated);
         this.urlTemplate = urlTemplate;
         this.callType = callType;
         this.payloadTemplate = payloadTemplate;
         this.mimeType = mimeType;
-        this.additionalHeaders = additionalHeaders;
+        this.headersTemplate = headersTemplate;
         this.successCodes = successCodes;
         this.callMode = callMode;
         this.timeoutMs = timeoutMs;
@@ -148,5 +123,33 @@ public class WebhookAction extends Action {
     @Override
     public <T> T accept(ActionVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    /**
+     * HTTP verb for the call... is it a GET/POST etc
+     */
+    public enum CallType {
+        GET,
+        PUT,
+        POST,
+        PATCH,
+        DELETE
+    }
+
+    /**
+     * Is the call sync or async
+     */
+    public enum CallMode {
+        SYNC,
+        ASYNC
+    }
+
+    /**
+     * How the call will get retried in case of failures
+     */
+    public enum RetryStrategy {
+        NO_RETRY,
+        FIXED_INTERVAL,
+        EXPONENTIAL_BACKOFF
     }
 }
