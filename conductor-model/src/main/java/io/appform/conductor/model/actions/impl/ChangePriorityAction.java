@@ -20,6 +20,7 @@ import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.ticket.TicketPriority;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
@@ -36,6 +37,7 @@ import java.util.Date;
 public class ChangePriorityAction extends Action {
     TicketPriority priority;
 
+    @Builder
     public ChangePriorityAction(
             String id,
             String name,

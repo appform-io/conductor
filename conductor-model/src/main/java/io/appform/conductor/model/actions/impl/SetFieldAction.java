@@ -20,6 +20,7 @@ import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.ticket.fields.FieldValue;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -43,6 +44,7 @@ public class SetFieldAction extends Action {
      */
     FieldValue fieldValue;
 
+    @Builder
     public SetFieldAction(
             String id,
             String name,

@@ -20,6 +20,7 @@ import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionErrorHandlingStrategy;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
@@ -45,6 +46,7 @@ public class CompositionAction extends Action {
      */
     ActionErrorHandlingStrategy errorHandlingStrategy;
 
+    @Builder
     public CompositionAction(
             String id,
             String name,

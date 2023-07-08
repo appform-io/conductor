@@ -8,19 +8,20 @@ import io.appform.conductor.model.ticket.fields.impl.*;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.ChoicesStringConverter;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
+import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 @Entity
 @NoArgsConstructor
 @FieldNameConstants
 @ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
 @DiscriminatorValue(value = "SET_FIELD")
 public class StoredSetFieldAction extends StoredAction {
 
@@ -31,7 +32,7 @@ public class StoredSetFieldAction extends StoredAction {
     private String fieldSchemaId;
 
     @Embedded
-    private StoredFieldValue fieldValue;
+    private StoredFieldValue storedfieldValue;
 
     @Builder
     public StoredSetFieldAction(
@@ -43,7 +44,7 @@ public class StoredSetFieldAction extends StoredAction {
             StoredCompositionAction parentAction) {
         super(ActionType.SET_FIELD, actionId, name, description, parentAction);
         this.fieldSchemaId = fieldSchemaId;
-        this.fieldValue = toStoredField(fieldValue);
+        this.storedfieldValue = toStoredField(fieldValue);
     }
 
     @Override
@@ -100,6 +101,17 @@ public class StoredSetFieldAction extends StoredAction {
         return storedFieldValue;
     }
 
+    public FieldValue getFieldValue() {
+        return switch (storedfieldValue.getType()) {
+            case STRING -> new StringFieldValue(storedfieldValue.getStringValue());
+            case CHOICE -> new ChoiceFieldValue(storedfieldValue.getChoiceValue());
+            case BOOLEAN -> new BooleanFieldValue(storedfieldValue.isBooleanValue());
+            case NUMBER -> new NumberFieldValue(storedfieldValue.getNumberValue());
+            case LOCATION -> new LocationFieldValue(storedfieldValue.getLocationLatValue(), storedfieldValue.getLocationLonValue());
+            case DATE -> new DateFieldValue(storedfieldValue.getDateValue());
+        };
+    }
+
 
     //TODO: check if we should use single class ?
 
@@ -141,5 +153,16 @@ public class StoredSetFieldAction extends StoredAction {
 
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        StoredSetFieldAction that = (StoredSetFieldAction) o;
+        return Objects.equals(getId(), that.getId())  && Objects.equals(getActionId(), that.getActionId());
+    }
 
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

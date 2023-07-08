@@ -1,20 +1,24 @@
 package io.appform.conductor.server.actionmanagement.impl.models;
 
 import io.appform.conductor.model.actions.ActionType;
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import org.hibernate.Hibernate;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import java.io.Serial;
+import java.util.Objects;
 
 @Data
 @Entity
 @NoArgsConstructor
 @FieldNameConstants
 @ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
 @DiscriminatorValue(value = "ADD_TICKET_ACTION")
 public class StoredAddTicketAction extends StoredAction {
 
@@ -38,5 +42,18 @@ public class StoredAddTicketAction extends StoredAction {
     @Override
     public <T> T accept(StoredActionVisitor<T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        StoredAddTicketAction that = (StoredAddTicketAction) o;
+        return Objects.equals(getId(), that.getId())  && Objects.equals(getActionId(), that.getActionId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

@@ -20,6 +20,7 @@ import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.workflow.Template;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
@@ -91,6 +92,7 @@ public class WebhookAction extends Action {
      */
     int numRetries;
 
+    @Builder
     public WebhookAction(
             String id,
             String name,

@@ -19,6 +19,7 @@ package io.appform.conductor.model.actions.impl;
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
@@ -39,6 +40,7 @@ public class AddTicketAction extends Action {
      */
     String actionId;
 
+    @Builder
     public AddTicketAction(
             String id,
             String name,

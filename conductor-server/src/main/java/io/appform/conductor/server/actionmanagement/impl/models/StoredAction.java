@@ -25,7 +25,6 @@ import java.util.Date;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = StoredAction.Fields.type)
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-@NoArgsConstructor
 public abstract class StoredAction implements Serializable {
 
     public static final String ACTION_TABLE_NAME = "actions";
@@ -66,7 +65,6 @@ public abstract class StoredAction implements Serializable {
     private Date updated;
 
 
-    @Builder
     protected StoredAction(ActionType type,
                            String actionId,
                            String name,
