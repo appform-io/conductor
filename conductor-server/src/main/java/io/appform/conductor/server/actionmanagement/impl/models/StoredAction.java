@@ -16,14 +16,14 @@ import java.util.Date;
 
 @Entity
 @Table(name = StoredAction.ACTION_TABLE_NAME, uniqueConstraints = {
-        @UniqueConstraint(columnNames = {StoredAction.Fields.type})})
+        @UniqueConstraint(columnNames = {StoredAction.Fields.actionId})})
 @DynamicUpdate
 @Getter
 @Setter
 @ToString
 @FieldNameConstants
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = StoredAction.Fields.actionId)
+@DiscriminatorColumn(name = StoredAction.Fields.type)
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor
 public abstract class StoredAction implements Serializable {
