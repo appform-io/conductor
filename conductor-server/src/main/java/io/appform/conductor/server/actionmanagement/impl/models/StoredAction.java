@@ -2,6 +2,7 @@ package io.appform.conductor.server.actionmanagement.impl.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.appform.conductor.model.actions.ActionType;
+import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.annotations.*;
@@ -16,7 +17,7 @@ import java.util.Date;
 
 @Entity
 @Table(name = StoredAction.ACTION_TABLE_NAME, uniqueConstraints = {
-        @UniqueConstraint(columnNames = {StoredAction.Fields.actionId})})
+        @UniqueConstraint(columnNames = {"action_id"})})
 @DynamicUpdate
 @Getter
 @Setter
@@ -37,13 +38,14 @@ public abstract class StoredAction implements Serializable {
     private long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
+    @Column(name = "type", nullable = false, insertable=false, updatable = false, length = 45)
     private ActionType type;
 
-    @Column(name = "action_id", nullable = false)
+    @LookupKey
+    @Column(name = "action_id", nullable = false, length = 45)
     private String actionId;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 127)
     private String name;
 
     @Column(name = "description")
@@ -56,12 +58,12 @@ public abstract class StoredAction implements Serializable {
     @JoinColumn(name = "parent_action_id")
     private StoredAction parentAction;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = "timestamp")
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp")
     private Date updated;
 
 

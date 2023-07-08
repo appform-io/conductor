@@ -28,7 +28,7 @@ public class StoredSetFieldAction extends StoredAction {
     @Serial
     private static final long serialVersionUID = 3846412829595254898L;
 
-    @Column(name = "field_schema_id")
+    @Column(name = "field_schema_id", length = 45)
     private String fieldSchemaId;
 
     @Embedded
@@ -125,7 +125,7 @@ public class StoredSetFieldAction extends StoredAction {
         @Serial
         private static final long serialVersionUID = 6247847187624422131L;
 
-        @Column(name = "field_type")
+        @Column(name = "field_type", length = 45)
         @Enumerated(EnumType.STRING)
         private FieldType type;
 

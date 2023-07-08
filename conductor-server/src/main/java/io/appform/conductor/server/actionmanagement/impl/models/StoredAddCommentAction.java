@@ -25,10 +25,10 @@ public class StoredAddCommentAction extends StoredAction {
     private static final long serialVersionUID = 6008240787741643592L;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "content_template_type")
+    @Column(name = "content_template_type", length = 45)
     private Template.Type contentTemplateType;
 
-    @Column(name = "content_template")
+    @Column(name = "content_template", length = 1023)
     private String contentTemplate;
 
     @Builder

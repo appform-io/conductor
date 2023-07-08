@@ -25,7 +25,7 @@ public class StoredRouteToGroupAction extends StoredAction {
     @Serial
     private static final long serialVersionUID = 1128463869091495127L;
 
-    @Column(name = "group_id")
+    @Column(name = "group_id", length = 127)
     private String groupId;
 
     @Builder

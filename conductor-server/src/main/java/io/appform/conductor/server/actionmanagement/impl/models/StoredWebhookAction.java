@@ -27,46 +27,46 @@ public class StoredWebhookAction  extends StoredAction {
     private static final long serialVersionUID = 4616039718420722116L;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "call_type")
+    @Column(name = "call_type", length = 45)
     private WebhookAction.CallType callType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "call_mode")
+    @Column(name = "call_mode", length = 45)
     private WebhookAction.CallMode callMode;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "url_template_type")
+    @Column(name = "url_template_type", length = 45)
     private Template.Type urlTemplateType;
 
-    @Column(name = "url_template")
+    @Column(name = "url_template", length = 1023)
     private String urlTemplate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "headers_template_type")
+    @Column(name = "headers_template_type", length = 45)
     private Template.Type headersTemplateType;
 
-    @Column(name = "headers_template")
+    @Column(name = "headers_template", length = 1023)
     private String headersTemplate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payload_template_type")
+    @Column(name = "payload_template_type", length = 45)
     private Template.Type payloadTemplateType;
 
-    @Column(name = "payload_template")
+    @Column(name = "payload_template", length = 2047)
     private String payloadTemplate;
 
     @Convert(converter = WebhookActionSuccessCodesConverter.class)
-    @Column(name = "success_codes")
+    @Column(name = "success_codes", length = 127)
     private Set<Integer> successCodes;
 
-    @Column(name = "mime_type")
+    @Column(name = "mime_type", length = 127)
     private String mimeType;
 
     @Column(name = "timeout_ms")
     private int timeoutMs;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "retry_strategy")
+    @Column(name = "retry_strategy", length = 45)
     private WebhookAction.RetryStrategy retryStrategy;
 
     @Column(name = "num_retries")

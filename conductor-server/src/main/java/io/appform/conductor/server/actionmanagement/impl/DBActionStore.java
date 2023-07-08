@@ -17,6 +17,7 @@ import javax.inject.Singleton;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static io.appform.conductor.model.error.ConductorErrorCode.STORE_READ_ERROR;
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_WRITE_ERROR;
 
 @Singleton
@@ -40,7 +41,7 @@ public class DBActionStore implements ActionStore {
     @Override
     @MonitoredFunction
     @SneakyThrows
-    @Throws(value = STORE_WRITE_ERROR,
+    @Throws(value = STORE_READ_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredAction.ACTION_TABLE_NAME))
     public Optional<Action> read(@Throws.RuntimeParam("id") String actionId) {
         return actionLookupDao.get(actionId)
@@ -56,6 +57,7 @@ public class DBActionStore implements ActionStore {
                         .actionId(compositionAction.getId())
                         .name(compositionAction.getName())
                         .description(compositionAction.getDescription())
+                        .actionErrorHandlingStrategy(compositionAction.getErrorHandlingStrategy())
                         .build();
 
                 storedCompositionAction.setChildren(

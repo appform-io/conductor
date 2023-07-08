@@ -25,7 +25,7 @@ public class StoredAddTicketAction extends StoredAction {
     @Serial
     private static final long serialVersionUID = -282656827461451925L;
 
-    @Column(name = "ticket_action_id")
+    @Column(name = "ticket_action_id", length = 45)
     private String ticketActionId;
 
     @Builder

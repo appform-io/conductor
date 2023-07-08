@@ -26,13 +26,11 @@ public class StoredCompositionAction extends StoredAction {
     @Serial
     private static final long serialVersionUID = 5817562309411421599L;
 
-    @ToString.Exclude
-    @JsonIgnore
     @OneToMany(mappedBy = "parentAction", fetch = FetchType.EAGER)
     private List<StoredAction> children;
 
 
-    @Column(name = "action_error_handling")
+    @Column(name = "action_error_handling", length = 45)
     @Enumerated(EnumType.STRING)
     private ActionErrorHandlingStrategy actionErrorHandlingStrategy;
 

@@ -24,7 +24,7 @@ public class StoredChangePriorityAction extends StoredAction {
     @Serial
     private static final long serialVersionUID = -126501566609282753L;
 
-    @Column(name = "priority")
+    @Column(name = "priority", length = 45)
     @Enumerated(EnumType.STRING)
     private TicketPriority priority;
 
