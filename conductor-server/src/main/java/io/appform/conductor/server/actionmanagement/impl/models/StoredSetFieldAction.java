@@ -87,7 +87,7 @@ public class StoredSetFieldAction extends StoredAction {
             @Override
             public Void visit(LocationFieldValue locationFieldValue) {
                 storedFieldValue.setLocationLatValue(locationFieldValue.getLat())
-                        .setLocationLatValue(locationFieldValue.getLon());
+                        .setLocationLonValue(locationFieldValue.getLon());
                 return null;
 
             }

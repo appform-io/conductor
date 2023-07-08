@@ -370,7 +370,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(LocationFieldValue locationFieldValue) {
                 fieldValue.setLocationLatValue(locationFieldValue.getLat())
-                        .setLocationLatValue(locationFieldValue.getLon());
+                        .setLocationLonValue(locationFieldValue.getLon());
                 return null;
             }
 
