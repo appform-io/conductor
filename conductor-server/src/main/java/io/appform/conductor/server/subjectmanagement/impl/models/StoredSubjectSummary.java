@@ -20,6 +20,7 @@ import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.FieldNameConstants;
 import lombok.val;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.GenerationTime;
@@ -37,6 +38,7 @@ import java.util.Objects;
 @Table(name = StoredSubjectSummary.SUBJECT_TABLE_NAME)
 @Getter
 @Setter
+@FieldNameConstants
 @ToString
 @SQLDelete(sql = "update subject_summaries set deleted=true where external_id=?")
 public class StoredSubjectSummary {

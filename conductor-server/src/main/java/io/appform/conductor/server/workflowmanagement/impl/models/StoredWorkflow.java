@@ -22,6 +22,7 @@ import io.appform.conductor.model.workflow.TicketStateTransition;
 import io.appform.conductor.model.workflow.WorkflowState;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.*;
+import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
@@ -41,6 +42,7 @@ import java.util.Objects;
 @Table(name = StoredWorkflow.WORKFLOW_TABLE_NAME)
 @Getter
 @Setter
+@FieldNameConstants
 @ToString
 @NoArgsConstructor
 public class StoredWorkflow implements Serializable {

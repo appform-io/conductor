@@ -21,6 +21,7 @@ import io.appform.conductor.model.subject.SubjectIDVerificationStatus;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.FieldNameConstants;
 import lombok.val;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Generated;
@@ -44,6 +45,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
+@FieldNameConstants
 @SQLDelete(sql = "update subject_ids set deleted=true where external_id=?")
 public class StoredSubjectID {
     public static final String SUBJECT_ID_TABLE_NAME = "subject_ids";

@@ -47,8 +47,6 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.operatingUs
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class DBSchemaStore implements SchemaStore {
-    private static final String SCHEMA_ID_NAME = "schemaId";
-    private static final String FIELD_ID_NAME = "fieldId";
 
     private final LookupDao<StoredSchemaSummary> schemaDao;
     private final RelationalDao<StoredFieldSchema> fieldDao;
@@ -86,8 +84,8 @@ public class DBSchemaStore implements SchemaStore {
         return schemaDao.readOnlyExecutor(schemaId)
                 .readAugmentParent(fieldDao,
                                    DetachedCriteria.forClass(StoredFieldSchema.class)
-                                           .add(Property.forName("deleted").eq(false))
-                                           .add(Property.forName(SCHEMA_ID_NAME).eq(schemaId)),
+                                           .add(Property.forName(StoredFieldSchema.Fields.deleted).eq(false))
+                                           .add(Property.forName(StoredFieldSchema.Fields.schemaId).eq(schemaId)),
                                    0, Integer.MAX_VALUE,
                                    StoredSchemaSummary::setFields)
                 .execute()
@@ -121,8 +119,8 @@ public class DBSchemaStore implements SchemaStore {
     @MonitoredFunction
     @SneakyThrows
     @Throws(value = ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
-    public Optional<FieldSchema> addField(@Throws.RuntimeParam(SCHEMA_ID_NAME) String schemaId,
-                                          @Throws.RuntimeParam(FIELD_ID_NAME) String fieldId,
+    public Optional<FieldSchema> addField(@Throws.RuntimeParam(StoredFieldSchema.Fields.schemaId) String schemaId,
+                                          @Throws.RuntimeParam(StoredFieldSchema.Fields.fieldId) String fieldId,
                                           FieldSchema schema) {
         return fieldDao.save(schemaId, toStoredFieldSchema(schemaId, fieldId, schema))
                 .map(this::toFieldSchema);
@@ -132,22 +130,22 @@ public class DBSchemaStore implements SchemaStore {
     @MonitoredFunction
     @SneakyThrows
     @Throws(value = ConductorErrorCode.SCHEMA_FIELD_READ_FAILED)
-    public Optional<FieldSchema> getField(@Throws.RuntimeParam(SCHEMA_ID_NAME) String schemaId,
-                                          @Throws.RuntimeParam(FIELD_ID_NAME) String fieldId) {
+    public Optional<FieldSchema> getField(@Throws.RuntimeParam(StoredFieldSchema.Fields.schemaId) String schemaId,
+                                          @Throws.RuntimeParam(StoredFieldSchema.Fields.fieldId) String fieldId) {
         return fieldDao.select(schemaId, DetachedCriteria.forClass(StoredFieldSchema.class)
-                        .add(Property.forName(FIELD_ID_NAME).eq(fieldId)), 0, 1)
+                        .add(Property.forName(StoredFieldSchema.Fields.fieldId).eq(fieldId)), 0, 1)
                 .stream().findFirst().map(this::toFieldSchema);
     }
 
     @Override
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
-    public Optional<FieldSchema> updateField(@Throws.RuntimeParam(SCHEMA_ID_NAME) String schemaId,
-                                             @Throws.RuntimeParam(FIELD_ID_NAME) String fieldId,
+    public Optional<FieldSchema> updateField(@Throws.RuntimeParam(StoredFieldSchema.Fields.schemaId) String schemaId,
+                                             @Throws.RuntimeParam(StoredFieldSchema.Fields.fieldId) String fieldId,
                                              FieldSchema updated) {
         return Optional.ofNullable(fieldDao.lockAndGetExecutor(schemaId,
                                                                DetachedCriteria.forClass(StoredFieldSchema.class)
-                                                                       .add(Property.forName(FIELD_ID_NAME)
+                                                                       .add(Property.forName(StoredFieldSchema.Fields.fieldId)
                                                                                     .eq(fieldId)))
                                            .mutate(schema -> updateSchema(updated, schema))
                                            .execute())
@@ -157,10 +155,10 @@ public class DBSchemaStore implements SchemaStore {
     @Override
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
-    public boolean deleteField(@Throws.RuntimeParam(SCHEMA_ID_NAME) String schemaId,
-                               @Throws.RuntimeParam(FIELD_ID_NAME) String fieldId) {
+    public boolean deleteField(@Throws.RuntimeParam(StoredFieldSchema.Fields.schemaId) String schemaId,
+                               @Throws.RuntimeParam(StoredFieldSchema.Fields.fieldId) String fieldId) {
         return fieldDao.lockAndGetExecutor(schemaId, DetachedCriteria.forClass(StoredFieldSchema.class)
-                        .add(Property.forName(FIELD_ID_NAME).eq(fieldId)))
+                        .add(Property.forName(StoredFieldSchema.Fields.fieldId).eq(fieldId)))
                 .mutate(schema -> schema.setDeleted(true))
                 .execute() != null;
     }

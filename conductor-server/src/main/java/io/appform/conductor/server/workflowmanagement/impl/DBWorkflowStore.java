@@ -147,7 +147,7 @@ public class DBWorkflowStore implements WorkflowStore {
     public List<Workflow> list(WorkflowState desiredState) {
         //This is not very efficient, but should be behind a cache anyway
         return wfDao.scatterGather(DetachedCriteria.forClass(StoredWorkflow.class)
-                                           .add(Property.forName("state").eq(desiredState)))
+                                           .add(Property.forName(StoredWorkflow.Fields.state).eq(desiredState)))
                 .stream()
                 .map(StoredWorkflow::getWorkflowId)
                 .map(this::read)
@@ -326,8 +326,8 @@ public class DBWorkflowStore implements WorkflowStore {
 
     private static DetachedCriteria createCriteria(Class<?> clazz, String workflowId) {
         return DetachedCriteria.forClass(clazz)
-                .add(Property.forName("workflowId").eq(workflowId))
-                .add(Property.forName("deleted").eq(false));
+                .add(Property.forName(StoredWorkflow.Fields.workflowId).eq(workflowId))
+                .add(Property.forName(StoredWorkflow.Fields.deleted).eq(false));
     }
 
     private static TicketState toWire(final StoredTicketState state) {

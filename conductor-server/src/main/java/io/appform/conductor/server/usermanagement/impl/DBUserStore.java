@@ -100,7 +100,7 @@ public class DBUserStore implements UserStore {
     public Optional<UserSummary> getByEmail(@Throws.RuntimeParam("value") String email) {
         return userDao.scatterGather(
                         DetachedCriteria.forClass(StoredUser.class)
-                                .add(Property.forName("email").eq(email)))
+                                .add(Property.forName(StoredUser.Fields.email).eq(email)))
                 .stream()
                 .findAny()
                 .map(DBUserStore::toWire);

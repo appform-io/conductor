@@ -17,6 +17,7 @@
 package io.appform.conductor.server.usermanagement.impl.models;
 
 import lombok.*;
+import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
@@ -33,6 +34,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
+@FieldNameConstants
 @NoArgsConstructor
 public class StoredUserPassword {
     public static final String USER_PASSWORD_TABLE_NAME = "user_passwords";

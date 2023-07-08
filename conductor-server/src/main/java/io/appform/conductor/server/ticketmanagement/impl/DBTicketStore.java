@@ -64,15 +64,6 @@ import static io.appform.conductor.model.error.ConductorErrorCode.*;
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class DBTicketStore implements TicketStore {
-    private static final String FIELDS_VALUE_FIELD_NAME = "fields";
-    private static final String TICKETS_VALUE_FIELD_NAME = "ticket";
-    private static final String STRING_VALUE_FIELD_NAME = "stringValue";
-    private static final String NUMBER_VALUE_FIELD_NAME = "numberValue";
-    private static final String BOOLEAN_VALUE_FIELD_NAME = "booleanValue";
-    private static final String LOCATION_LAT_VALUE_FIELD_NAME = "locationLatValue";
-    private static final String LOCATION_LON_VALUE_FIELD_NAME = "locationLonValue";
-    private static final String CHOICE_VALUE_FIELD_NAME = "choiceValue";
-    private static final String DATE_VALUE_FIELD_NAME = "dateValue";
 
     private final LookupDao<StoredTicketSkeleton> ticketDao;
     private final RelationalDao<StoredFieldValue> fieldDao;
@@ -113,7 +104,7 @@ public class DBTicketStore implements TicketStore {
             fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
     public Optional<TicketSkeleton> read(@Throws.RuntimeParam("id") final String ticketId, boolean readFields) {
         return ticketDao.get(ticketId,
-                             (UnaryOperator<Criteria>) criteria -> criteria.setFetchMode(FIELDS_VALUE_FIELD_NAME,
+                             (UnaryOperator<Criteria>) criteria -> criteria.setFetchMode(StoredTicketSkeleton.Fields.fields,
                                                                                          FetchMode.JOIN))
                 .map(ticket -> toSummary(ticket, true));
     }
@@ -154,24 +145,24 @@ public class DBTicketStore implements TicketStore {
             final String start,
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema) {
-        val criteria = DetachedCriteria.forClass(StoredTicketSkeleton.class, TICKETS_VALUE_FIELD_NAME)
-                .add(Property.forName("deleted").eq(false))
+        val criteria = DetachedCriteria.forClass(StoredTicketSkeleton.class, StoredFieldValue.Fields.ticket)
+                .add(Property.forName(StoredTicketSkeleton.Fields.deleted).eq(false))
                 .setProjection(Projections.projectionList()
-                                       .add(Projections.distinct(Projections.property("ticketId")))
-                                       .add(Projections.property("id"))
-                                       .add(Projections.property("ticketId"))
-                                       .add(Projections.property("title"))
-                                       .add(Projections.property("description"))
-                                       .add(Projections.property("workflowId"))
-                                       .add(Projections.property("createdByUserId"))
-                                       .add(Projections.property("assignedToGroupId"))
-                                       .add(Projections.property("assignedToUserId"))
-                                       .add(Projections.property("subjectId"))
-                                       .add(Projections.property("ticketStateId"))
-                                       .add(Projections.property("priority"))
-                                       .add(Projections.property("deleted"))
-                                       .add(Projections.property("created"))
-                                       .add(Projections.property("updated"))
+                                       .add(Projections.distinct(Projections.property(StoredTicketSkeleton.Fields.ticketId)))
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.id))
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.ticketId))
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.title))
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.description))
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.workflowId))
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.createdByUserId))
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.assignedToGroupId))
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.assignedToUserId))
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.subjectId))
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.ticketStateId))
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.priority))
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.deleted))
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.created))
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.updated))
                               )
                 .setResultTransformer(Transformers.aliasToBean(StoredTicketSkeleton.class));
         applyTicketFilter(ticketFilters, criteria);
@@ -195,61 +186,61 @@ public class DBTicketStore implements TicketStore {
         ticketFilters.forEach(filter -> filter.accept(new TicketFilterVisitor<Void>() {
             @Override
             public Void visit(TicketWorkflowEquals workflowEquals) {
-                criteria.add(Property.forName("workflowId").eq(workflowEquals.getWorkflowId()));
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.workflowId).eq(workflowEquals.getWorkflowId()));
                 return null;
             }
 
             @Override
             public Void visit(TicketCreatedBy createdBy) {
-                criteria.add(Property.forName("createdByUserId").eq(createdBy.getCreateByUserId()));
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.createdByUserId).eq(createdBy.getCreateByUserId()));
                 return null;
             }
 
             @Override
             public Void visit(TicketAssignedToGroup assignedToGroup) {
-                criteria.add(Property.forName("assignedToGroupId").eq(assignedToGroup.getAssignedGroupId()));
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.assignedToGroupId).eq(assignedToGroup.getAssignedGroupId()));
                 return null;
             }
 
             @Override
             public Void visit(TicketUnAssignedToGroup unAssignedToGroup) {
-                criteria.add(Property.forName("assignedToGroupId").isNull());
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.assignedToGroupId).isNull());
                 return null;
             }
 
             @Override
             public Void visit(TicketAssignedToUser assignedToUser) {
-                criteria.add(Property.forName("assignedToUserId").eq(assignedToUser.getAssignedUserId()));
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.assignedToUserId).eq(assignedToUser.getAssignedUserId()));
                 return null;
             }
 
             @Override
             public Void visit(TicketUnAssignedToUser unAssignedToUser) {
-                criteria.add(Property.forName("assignedToUserId").isNull());
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.assignedToUserId).isNull());
                 return null;
             }
 
             @Override
             public Void visit(TicketSubjectEquals subjectEquals) {
-                criteria.add(Property.forName("subjectId").eq(subjectEquals.getSubjectId()));
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.subjectId).eq(subjectEquals.getSubjectId()));
                 return null;
             }
 
             @Override
             public Void visit(TicketStateEquals stateEquals) {
-                criteria.add(Property.forName("ticketStateId").eq(stateEquals.getStateId()));
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.ticketStateId).eq(stateEquals.getStateId()));
                 return null;
             }
 
             @Override
             public Void visit(TicketPriorityEquals priorityEquals) {
-                criteria.add(Property.forName("priority").eq(priorityEquals.getPriority()));
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.priority).eq(priorityEquals.getPriority()));
                 return null;
             }
 
             @Override
             public Void visit(TicketsCreatedTimeWindow createdTimeWindow) {
-                criteria.add(Property.forName("created")
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.created)
                                      .gt(new Date(createdTimeWindow.getFrom()
                                                           .getTime() - createdTimeWindow.getDuration()
                                              .toMilliseconds())));
@@ -258,7 +249,7 @@ public class DBTicketStore implements TicketStore {
 
             @Override
             public Void visit(TicketsUpdatedTimeWindow updatedTimeWindow) {
-                criteria.add(Property.forName("updated")
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.updated)
                                      .gt(new Date(updatedTimeWindow.getFrom()
                                                           .getTime() - updatedTimeWindow.getDuration()
                                              .toMilliseconds())));
@@ -387,13 +378,13 @@ public class DBTicketStore implements TicketStore {
             List<TicketFieldFilter> filters,
             final Map<String, FieldSchema> relevantFields,
             DetachedCriteria rootCriteria) {
-        var top = rootCriteria.createCriteria(FIELDS_VALUE_FIELD_NAME);
+        var top = rootCriteria.createCriteria(StoredTicketSkeleton.Fields.fields);
         for (val filter : filters) {
             val fieldSchema = relevantFields.get(filter.getFieldSchemaId());
             val finalTop = top;
             augmentFilter(filter, fieldSchema, finalTop);
-            top = top.createCriteria(TICKETS_VALUE_FIELD_NAME)
-                    .createCriteria(FIELDS_VALUE_FIELD_NAME);
+            top = top.createCriteria(StoredFieldValue.Fields.ticket)
+                    .createCriteria(StoredTicketSkeleton.Fields.fields);
 
         }
     }
@@ -405,10 +396,10 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldEquals equals) {
                 switch (fieldSchema.getType()) {
-                    case STRING -> finalTop.add(Property.forName(STRING_VALUE_FIELD_NAME).eq(equals.getValue()));
-                    case BOOLEAN -> finalTop.add(Property.forName(BOOLEAN_VALUE_FIELD_NAME).eq(equals.getValue()));
-                    case NUMBER -> finalTop.add(Property.forName(NUMBER_VALUE_FIELD_NAME).eq(equals.getValue()));
-                    case DATE -> finalTop.add(Property.forName(DATE_VALUE_FIELD_NAME).eq(equals.getValue()));
+                    case STRING -> finalTop.add(Property.forName(StoredFieldValue.Fields.stringValue).eq(equals.getValue()));
+                    case BOOLEAN -> finalTop.add(Property.forName(StoredFieldValue.Fields.booleanValue).eq(equals.getValue()));
+                    case NUMBER -> finalTop.add(Property.forName(StoredFieldValue.Fields.numberValue).eq(equals.getValue()));
+                    case DATE -> finalTop.add(Property.forName(StoredFieldValue.Fields.dateValue).eq(equals.getValue()));
                     case CHOICE, LOCATION -> {
                         //NO OP
                     }
@@ -419,10 +410,10 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldNotEquals notEquals) {
                 switch (fieldSchema.getType()) {
-                    case STRING -> finalTop.add(Property.forName(STRING_VALUE_FIELD_NAME).ne(notEquals.getValue()));
-                    case BOOLEAN -> finalTop.add(Property.forName(BOOLEAN_VALUE_FIELD_NAME).ne(notEquals.getValue()));
-                    case NUMBER -> finalTop.add(Property.forName(NUMBER_VALUE_FIELD_NAME).ne(notEquals.getValue()));
-                    case DATE -> finalTop.add(Property.forName(DATE_VALUE_FIELD_NAME).ne(notEquals.getValue()));
+                    case STRING -> finalTop.add(Property.forName(StoredFieldValue.Fields.stringValue).ne(notEquals.getValue()));
+                    case BOOLEAN -> finalTop.add(Property.forName(StoredFieldValue.Fields.booleanValue).ne(notEquals.getValue()));
+                    case NUMBER -> finalTop.add(Property.forName(StoredFieldValue.Fields.numberValue).ne(notEquals.getValue()));
+                    case DATE -> finalTop.add(Property.forName(StoredFieldValue.Fields.dateValue).ne(notEquals.getValue()));
                     case CHOICE, LOCATION -> {
                         //NO OP
                     }
@@ -433,7 +424,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldGreater greater) {
                 if (fieldSchema.getType() == FieldType.NUMBER) {
-                    finalTop.add(Property.forName(NUMBER_VALUE_FIELD_NAME).gt(greater.getValue()));
+                    finalTop.add(Property.forName(StoredFieldValue.Fields.numberValue).gt(greater.getValue()));
                 }
                 return null;
             }
@@ -441,7 +432,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldGreaterEquals greaterEquals) {
                 if (fieldSchema.getType() == FieldType.NUMBER) {
-                    finalTop.add(Property.forName(NUMBER_VALUE_FIELD_NAME).ge(greaterEquals.getValue()));
+                    finalTop.add(Property.forName(StoredFieldValue.Fields.numberValue).ge(greaterEquals.getValue()));
                 }
                 return null;
             }
@@ -449,7 +440,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldLesser lesser) {
                 if (fieldSchema.getType() == FieldType.NUMBER) {
-                    finalTop.add(Property.forName(NUMBER_VALUE_FIELD_NAME).lt(lesser.getValue()));
+                    finalTop.add(Property.forName(StoredFieldValue.Fields.numberValue).lt(lesser.getValue()));
                 }
                 return null;
             }
@@ -457,7 +448,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldLesserEquals lesserEquals) {
                 if (fieldSchema.getType() == FieldType.NUMBER) {
-                    finalTop.add(Property.forName(NUMBER_VALUE_FIELD_NAME).le(lesserEquals.getValue()));
+                    finalTop.add(Property.forName(StoredFieldValue.Fields.numberValue).le(lesserEquals.getValue()));
                 }
                 return null;
             }
@@ -465,7 +456,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldBetween between) {
                 if (fieldSchema.getType() == FieldType.NUMBER) {
-                    finalTop.add(Property.forName(NUMBER_VALUE_FIELD_NAME).between(between.getMin(), between.getMax()));
+                    finalTop.add(Property.forName(StoredFieldValue.Fields.numberValue).between(between.getMin(), between.getMax()));
                 }
                 return null;
             }
@@ -475,7 +466,7 @@ public class DBTicketStore implements TicketStore {
                 if (fieldSchema.getType() == FieldType.CHOICE) {
                     val query = Restrictions.conjunction();
                     containsChoices.getChoices()
-                            .forEach(choice -> query.add(Property.forName(CHOICE_VALUE_FIELD_NAME)
+                            .forEach(choice -> query.add(Property.forName(StoredFieldValue.Fields.choiceValue)
                                                                  .like(choice, MatchMode.ANYWHERE)));
                     finalTop.add(query);
                 }

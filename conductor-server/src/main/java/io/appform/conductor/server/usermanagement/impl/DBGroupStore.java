@@ -122,8 +122,8 @@ public class DBGroupStore implements GroupStore {
         return groupDao.lockAndGetExecutor(groupId)
                 .createOrUpdate(groupUsersDao,
                                 DetachedCriteria.forClass(StoredGroupUserMapping.class)
-                                        .add(Property.forName("groupId").eq(groupId))
-                                        .add(Property.forName("userId").eq(userId)),
+                                        .add(Property.forName(StoredGroupUserMapping.Fields.groupId).eq(groupId))
+                                        .add(Property.forName(StoredGroupUserMapping.Fields.userId).eq(userId)),
                                 existing -> existing.setDeleted(false),
                                 () -> new StoredGroupUserMapping(groupId, userId))
                 .execute() != null;
@@ -139,8 +139,8 @@ public class DBGroupStore implements GroupStore {
         return groupDao.lockAndGetExecutor(groupId)
                 .update(groupUsersDao,
                         DetachedCriteria.forClass(StoredGroupUserMapping.class)
-                                .add(Property.forName("groupId").eq(groupId))
-                                .add(Property.forName("userId").eq(userId)),
+                                .add(Property.forName(StoredGroupUserMapping.Fields.groupId).eq(groupId))
+                                .add(Property.forName(StoredGroupUserMapping.Fields.userId).eq(userId)),
                         existing -> existing.setDeleted(true),
                         () -> false)
                 .execute() != null;
@@ -155,8 +155,8 @@ public class DBGroupStore implements GroupStore {
         return groupUsersDao.select(
                         groupId,
                         DetachedCriteria.forClass(StoredGroupUserMapping.class)
-                                .add(Property.forName("groupId").eq(groupId))
-                                .add(Property.forName("deleted").eq(false)),
+                                .add(Property.forName(StoredGroupUserMapping.Fields.groupId).eq(groupId))
+                                .add(Property.forName(StoredGroupUserMapping.Fields.deleted).eq(false)),
                         start,
                         limit)
                 .stream()
@@ -171,8 +171,8 @@ public class DBGroupStore implements GroupStore {
     public List<Group> findGroupsForUser(String userId) {
         return get(groupUsersDao.scatterGather(
                         DetachedCriteria.forClass(StoredGroupUserMapping.class)
-                                .add(Property.forName("userId").eq(userId))
-                                .add(Property.forName("deleted").eq(false)),
+                                .add(Property.forName(StoredGroupUserMapping.Fields.userId).eq(userId))
+                                .add(Property.forName(StoredGroupUserMapping.Fields.deleted).eq(false)),
                         0,
                         Integer.MAX_VALUE)
                            .stream()
