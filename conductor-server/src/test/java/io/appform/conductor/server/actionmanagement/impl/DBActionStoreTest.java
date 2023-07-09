@@ -1,6 +1,7 @@
 package io.appform.conductor.server.actionmanagement.impl;
 
 import io.appform.conductor.model.actions.ActionErrorHandlingStrategy;
+import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.impl.*;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
@@ -78,18 +79,25 @@ class DBActionStoreTest {
                 .description("Testing description for CompositionAction")
                 .errorHandlingStrategy(ActionErrorHandlingStrategy.IGNORE)
                 .children(List.of(
-                        AddTicketAction.builder()
-                                .id("TestAddTicketAction")
-                                .name("TestingNameAddTicketAction")
-                                .description("Testing description for AddTicketAction")
-                                .actionId("NewAddTicketAction")
-                                .build(),
-                        AddCommentAction.builder()
-                                .id("TestAddCommentAction")
-                                .name("TestingNameAddCommentAction")
-                                .description("Testing description for AddCommentAction")
-                                .contentTemplate(new Template(Template.Type.HANDLEBARS, "CommentTemplate"))
-                                .build(),
+                        CompositionAction.builder()
+                                .id("TestNestedCompositionAction")
+                                .name("TestingNameNestedCompositionAction")
+                                .description("Testing description for  NestedCompositionAction")
+                                .errorHandlingStrategy(ActionErrorHandlingStrategy.FAIL)
+                                .children(List.of(
+                                        AddTicketAction.builder()
+                                                .id("TestAddTicketAction")
+                                                .name("TestingNameAddTicketAction")
+                                                .description("Testing description for AddTicketAction")
+                                                .actionId("NewAddTicketAction")
+                                                .build(),
+                                        AddCommentAction.builder()
+                                                .id("TestAddCommentAction")
+                                                .name("TestingNameAddCommentAction")
+                                                .description("Testing description for AddCommentAction")
+                                                .contentTemplate(new Template(Template.Type.HANDLEBARS, "CommentTemplate"))
+                                                .build()))
+                                        .build(),
                         ChangePriorityAction.builder()
                                 .id("TestChangePriorityAction")
                                 .name("TestingNameChangePriorityAction")
@@ -131,14 +139,26 @@ class DBActionStoreTest {
                 .orElse(null);
         assertNotNull(createdAction);
         assertEquals(compositeAction.getId(), createdAction.getId());
-        assertEquals(6, ((CompositionAction)createdAction).getChildren().size());
+        assertEquals(5, ((CompositionAction)createdAction).getChildren().size());
+        assertEquals(2, ((CompositionAction)((CompositionAction)createdAction).getChildren()
+                                                                .stream()
+                                                                .filter(child -> child.getType() == ActionType.COMPOSITION)
+                                                                .findFirst()
+                                                                .get())
+                                                        .getChildren().size());
         assertNotNull(createdAction.getCreated());
 
         val readAction = actionStore.read(compositeAction.getId())
                 .orElse(null);;
         assertNotNull(readAction);
         assertEquals(compositeAction.getId(), readAction.getId());
-        assertEquals(6, ((CompositionAction)readAction).getChildren().size());
+        assertEquals(5, ((CompositionAction)readAction).getChildren().size());
+        assertEquals(2, ((CompositionAction)((CompositionAction)readAction).getChildren()
+                                                            .stream()
+                                                            .filter(child -> child.getType() == ActionType.COMPOSITION)
+                                                            .findFirst()
+                                                            .get())
+                                                    .getChildren().size());
         assertNotNull(readAction.getCreated());
 
     }

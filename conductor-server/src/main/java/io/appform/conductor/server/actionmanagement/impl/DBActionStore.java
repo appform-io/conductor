@@ -35,66 +35,8 @@ public class DBActionStore implements ActionStore {
     @Throws(value = STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredAction.ACTION_TABLE_NAME))
     public Optional<Action> save(Action action) {
-        StoredAction storedAction = toDao(action);
-        return  storedAction.accept(new StoredActionVisitor<>() {
-
-            /**
-             * In case of self join, children needs to be saved explicitly.
-             * Sharding key for children will be same as that of CompositionAction
-             */
-            @Override
-            @SneakyThrows
-            public Optional<Action> visit(StoredCompositionAction storedCompositionAction) {
-                Optional<Action> compositeAction = actionRelationalDao.save(storedCompositionAction.getActionId(), storedCompositionAction)
-                        .map(DBActionStore.this::toDto);
-                for (StoredAction child : storedCompositionAction.getChildren()) {
-                    actionRelationalDao.save(storedCompositionAction.getActionId(), child);
-                }
-                return compositeAction;
-            }
-
-            @Override
-            @SneakyThrows
-            public Optional<Action> visit(StoredSetFieldAction storedSetFieldAction) {
-                return actionRelationalDao.save(storedSetFieldAction.getActionId(), storedSetFieldAction)
-                        .map(DBActionStore.this::toDto);
-            }
-
-            @Override
-            @SneakyThrows
-            public Optional<Action> visit(StoredAddCommentAction storedAddCommentAction) {
-                return actionRelationalDao.save(storedAddCommentAction.getActionId(), storedAddCommentAction)
-                        .map(DBActionStore.this::toDto);
-            }
-
-            @Override
-            @SneakyThrows
-            public Optional<Action> visit(StoredAddTicketAction storedAddTicketAction) {
-                return actionRelationalDao.save(storedAddTicketAction.getActionId(), storedAddTicketAction)
-                        .map(DBActionStore.this::toDto);
-            }
-
-            @Override
-            @SneakyThrows
-            public Optional<Action> visit(StoredChangePriorityAction storedChangePriorityAction) {
-                return actionRelationalDao.save(storedChangePriorityAction.getActionId(), storedChangePriorityAction)
-                        .map(DBActionStore.this::toDto);
-            }
-
-            @Override
-            @SneakyThrows
-            public Optional<Action> visit(StoredRouteToGroupAction storedRouteToGroupAction) {
-                return actionRelationalDao.save(storedRouteToGroupAction.getActionId(), storedRouteToGroupAction)
-                        .map(DBActionStore.this::toDto);
-            }
-
-            @Override
-            @SneakyThrows
-            public Optional<Action> visit(StoredWebhookAction storedWebhookAction) {
-                return actionRelationalDao.save(storedWebhookAction.getActionId(), storedWebhookAction)
-                        .map(DBActionStore.this::toDto);
-            }
-        });
+        StoredAction storedAction = toStored(action);
+        return save(storedAction.getActionId(), storedAction);
     }
 
 
@@ -109,11 +51,72 @@ public class DBActionStore implements ActionStore {
         return actionRelationalDao.select(actionId, criteria, 0, 1)
                 .stream()
                 .findFirst()
-                .map(this::toDto);
+                .map(this::toWired);
     }
 
+    private Optional<Action> save(String parentActionId, StoredAction storedAction) {
+        return storedAction.accept(new StoredActionVisitor<>() {
 
-    private StoredAction toDao(Action action) {
+            /**
+             * In case of self join, children needs to be saved explicitly.
+             * Sharding key for children will be same as that of CompositionAction
+             */
+            @Override
+            @SneakyThrows
+            public Optional<Action> visit(StoredCompositionAction storedCompositionAction) {
+                Optional<Action> compositeAction = actionRelationalDao.save(parentActionId, storedCompositionAction)
+                        .map(DBActionStore.this::toWired);
+                for (StoredAction child : storedCompositionAction.getChildren()) {
+                   save(parentActionId, child);
+                }
+                return compositeAction;
+            }
+
+            @Override
+            @SneakyThrows
+            public Optional<Action> visit(StoredSetFieldAction storedSetFieldAction) {
+                return actionRelationalDao.save(parentActionId, storedSetFieldAction)
+                        .map(DBActionStore.this::toWired);
+            }
+
+            @Override
+            @SneakyThrows
+            public Optional<Action> visit(StoredAddCommentAction storedAddCommentAction) {
+                return actionRelationalDao.save(parentActionId, storedAddCommentAction)
+                        .map(DBActionStore.this::toWired);
+            }
+
+            @Override
+            @SneakyThrows
+            public Optional<Action> visit(StoredAddTicketAction storedAddTicketAction) {
+                return actionRelationalDao.save(parentActionId, storedAddTicketAction)
+                        .map(DBActionStore.this::toWired);
+            }
+
+            @Override
+            @SneakyThrows
+            public Optional<Action> visit(StoredChangePriorityAction storedChangePriorityAction) {
+                return actionRelationalDao.save(parentActionId, storedChangePriorityAction)
+                        .map(DBActionStore.this::toWired);
+            }
+
+            @Override
+            @SneakyThrows
+            public Optional<Action> visit(StoredRouteToGroupAction storedRouteToGroupAction) {
+                return actionRelationalDao.save(parentActionId, storedRouteToGroupAction)
+                        .map(DBActionStore.this::toWired);
+            }
+
+            @Override
+            @SneakyThrows
+            public Optional<Action> visit(StoredWebhookAction storedWebhookAction) {
+                return actionRelationalDao.save(parentActionId, storedWebhookAction)
+                        .map(DBActionStore.this::toWired);
+            }
+        });
+    }
+
+    private StoredAction toStored(Action action) {
         return action.accept(new ActionVisitor<StoredAction>() {
             @Override
             public StoredAction visit(CompositionAction compositionAction) {
@@ -127,7 +130,7 @@ public class DBActionStore implements ActionStore {
                 storedCompositionAction.setChildren(
                         compositionAction.getChildren().stream()
                                 .map(child -> {
-                                    StoredAction storedChild = toDao(child);
+                                    StoredAction storedChild = toStored(child);
                                     storedChild.setParentAction(storedCompositionAction);
                                     return storedChild;
                                 }).collect(Collectors.toList()));
@@ -207,7 +210,7 @@ public class DBActionStore implements ActionStore {
         });
     }
 
-    private Action toDto(StoredAction storedAction) {
+    private Action toWired(StoredAction storedAction) {
         return storedAction.accept(new StoredActionVisitor<Action>() {
             @Override
             public Action visit(StoredSetFieldAction storedSetFieldAction) {
@@ -267,7 +270,7 @@ public class DBActionStore implements ActionStore {
                         .description(storedCompositionAction.getDescription())
                         .errorHandlingStrategy(storedCompositionAction.getActionErrorHandlingStrategy())
                         .children(storedCompositionAction.getChildren().stream()
-                                .map(child -> toDto(child))
+                                .map(child -> toWired(child))
                                 .collect(Collectors.toList()))
                         .created(storedCompositionAction.getCreated())
                         .updated(storedCompositionAction.getUpdated())
