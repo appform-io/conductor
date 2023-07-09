@@ -66,9 +66,7 @@ public class DBActionStore implements ActionStore {
             public Optional<Action> visit(StoredCompositionAction storedCompositionAction) {
                 Optional<Action> compositeAction = actionRelationalDao.save(parentActionId, storedCompositionAction)
                         .map(DBActionStore.this::toWired);
-                for (StoredAction child : storedCompositionAction.getChildren()) {
-                   save(parentActionId, child);
-                }
+                storedCompositionAction.getChildren().forEach(child -> save(parentActionId, child));
                 return compositeAction;
             }
 
