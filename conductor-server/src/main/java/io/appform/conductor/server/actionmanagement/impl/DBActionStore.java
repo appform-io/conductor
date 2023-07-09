@@ -7,10 +7,12 @@ import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.actionmanagement.impl.models.*;
-import io.appform.dropwizard.sharding.dao.LookupDao;
+import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Property;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -24,7 +26,7 @@ import static io.appform.conductor.model.error.ConductorErrorCode.STORE_WRITE_ER
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class DBActionStore implements ActionStore {
 
-    private final LookupDao<StoredAction> actionLookupDao;
+    private final RelationalDao<StoredAction> actionRelationalDao;
 
 
     @Override
@@ -33,8 +35,66 @@ public class DBActionStore implements ActionStore {
     @Throws(value = STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredAction.ACTION_TABLE_NAME))
     public Optional<Action> save(Action action) {
-        return actionLookupDao.save(toDao(action))
-                .map(this::toDto);
+        StoredAction storedAction = toDao(action);
+        return  storedAction.accept(new StoredActionVisitor<>() {
+
+            /**
+             * In case of self join, children needs to be saved explicitly.
+             * Sharding key for children will be same as that of CompositionAction
+             */
+            @Override
+            @SneakyThrows
+            public Optional<Action> visit(StoredCompositionAction storedCompositionAction) {
+                Optional<Action> compositeAction = actionRelationalDao.save(storedCompositionAction.getActionId(), storedCompositionAction)
+                        .map(DBActionStore.this::toDto);
+                for (StoredAction child : storedCompositionAction.getChildren()) {
+                    actionRelationalDao.save(storedCompositionAction.getActionId(), child);
+                }
+                return compositeAction;
+            }
+
+            @Override
+            @SneakyThrows
+            public Optional<Action> visit(StoredSetFieldAction storedSetFieldAction) {
+                return actionRelationalDao.save(storedSetFieldAction.getActionId(), storedSetFieldAction)
+                        .map(DBActionStore.this::toDto);
+            }
+
+            @Override
+            @SneakyThrows
+            public Optional<Action> visit(StoredAddCommentAction storedAddCommentAction) {
+                return actionRelationalDao.save(storedAddCommentAction.getActionId(), storedAddCommentAction)
+                        .map(DBActionStore.this::toDto);
+            }
+
+            @Override
+            @SneakyThrows
+            public Optional<Action> visit(StoredAddTicketAction storedAddTicketAction) {
+                return actionRelationalDao.save(storedAddTicketAction.getActionId(), storedAddTicketAction)
+                        .map(DBActionStore.this::toDto);
+            }
+
+            @Override
+            @SneakyThrows
+            public Optional<Action> visit(StoredChangePriorityAction storedChangePriorityAction) {
+                return actionRelationalDao.save(storedChangePriorityAction.getActionId(), storedChangePriorityAction)
+                        .map(DBActionStore.this::toDto);
+            }
+
+            @Override
+            @SneakyThrows
+            public Optional<Action> visit(StoredRouteToGroupAction storedRouteToGroupAction) {
+                return actionRelationalDao.save(storedRouteToGroupAction.getActionId(), storedRouteToGroupAction)
+                        .map(DBActionStore.this::toDto);
+            }
+
+            @Override
+            @SneakyThrows
+            public Optional<Action> visit(StoredWebhookAction storedWebhookAction) {
+                return actionRelationalDao.save(storedWebhookAction.getActionId(), storedWebhookAction)
+                        .map(DBActionStore.this::toDto);
+            }
+        });
     }
 
 
@@ -44,7 +104,11 @@ public class DBActionStore implements ActionStore {
     @Throws(value = STORE_READ_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredAction.ACTION_TABLE_NAME))
     public Optional<Action> read(@Throws.RuntimeParam("id") String actionId) {
-        return actionLookupDao.get(actionId)
+        DetachedCriteria criteria = DetachedCriteria.forClass(StoredAction.class)
+                .add(Property.forName(StoredAction.Fields.actionId).eq(actionId));
+        return actionRelationalDao.select(actionId, criteria, 0, 1)
+                .stream()
+                .findFirst()
                 .map(this::toDto);
     }
 

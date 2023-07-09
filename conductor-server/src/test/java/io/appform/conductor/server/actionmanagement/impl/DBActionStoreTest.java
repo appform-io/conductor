@@ -12,7 +12,7 @@ import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.actionmanagement.impl.models.StoredAction;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
-import io.appform.dropwizard.sharding.dao.LookupDao;
+import io.appform.dropwizard.sharding.dao.RelationalDao;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,8 +22,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
@@ -36,7 +35,7 @@ class DBActionStoreTest {
 
     @Test
     void testCreate(BalancedDBShardingBundle<TestConfig> bundle) {
-        val actionStore = new DBActionStore(createRealActionDao(bundle));
+        val actionStore = new DBActionStore(createRealActionRelationalDao(bundle));
         val createdAction = actionStore.save(AddTicketAction.builder()
                         .id("TestAddTicketAction1")
                         .name("TestingNameAddTicketAction")
@@ -51,7 +50,7 @@ class DBActionStoreTest {
 
     @Test
     void testRead(BalancedDBShardingBundle<TestConfig> bundle) {
-        val actionStore = new DBActionStore(createRealActionDao(bundle));
+        val actionStore = new DBActionStore(createRealActionRelationalDao(bundle));
         val createdAction = actionStore.save(AddCommentAction.builder()
                         .id("TestAddCommentAction1")
                         .name("TestingNameAddCommentAction")
@@ -71,8 +70,8 @@ class DBActionStoreTest {
     }
 
     @Test
-    void testCreateCompositeAction(BalancedDBShardingBundle<TestConfig> bundle) {
-        val actionStore = new DBActionStore(createRealActionDao(bundle));
+    void testCreateAndReadCompositeAction(BalancedDBShardingBundle<TestConfig> bundle) {
+        val actionStore = new DBActionStore(createRealActionRelationalDao(bundle));
         val compositeAction = CompositionAction.builder()
                 .id("TestCompositionAction1")
                 .name("TestingNameCompositionAction")
@@ -132,12 +131,14 @@ class DBActionStoreTest {
                 .orElse(null);
         assertNotNull(createdAction);
         assertEquals(compositeAction.getId(), createdAction.getId());
+        assertEquals(6, ((CompositionAction)createdAction).getChildren().size());
         assertNotNull(createdAction.getCreated());
 
         val readAction = actionStore.read(compositeAction.getId())
                 .orElse(null);;
         assertNotNull(readAction);
         assertEquals(compositeAction.getId(), readAction.getId());
+        assertEquals(6, ((CompositionAction)readAction).getChildren().size());
         assertNotNull(readAction.getCreated());
 
     }
@@ -145,9 +146,9 @@ class DBActionStoreTest {
 
     @Test
     void testSaveActionFailed(BalancedDBShardingBundle<TestConfig> bundle) throws Exception {
-        LookupDao<StoredAction> actionDao = createMockActionDao();
-        val actionStore = new DBActionStore(actionDao);
-        doThrow(NullPointerException.class).when(actionDao).save(any());
+        RelationalDao<StoredAction> actionRelationalDao = createMockActionRelationalDao();
+        val actionStore = new DBActionStore(actionRelationalDao);
+        doThrow(NullPointerException.class).when(actionRelationalDao).save(anyString(), any());
         try {
             actionStore.save(AddTicketAction.builder()
                     .id("TestNormalActionId1")
@@ -165,9 +166,9 @@ class DBActionStoreTest {
 
     @Test
     void testReadActionFailed(BalancedDBShardingBundle<TestConfig> bundle) throws Exception {
-        LookupDao<StoredAction> actionDao = createMockActionDao();
-        val actionStore = new DBActionStore(actionDao);
-        doThrow(NullPointerException.class).when(actionDao).get(anyString());
+        RelationalDao<StoredAction> actionRelationalDao = createMockActionRelationalDao();
+        val actionStore = new DBActionStore(actionRelationalDao);
+        doThrow(NullPointerException.class).when(actionRelationalDao).select(anyString(), any(), anyInt(), anyInt());
         try {
             actionStore.read("actionId1");
             fail("Should have thrown exception.");
@@ -178,12 +179,12 @@ class DBActionStoreTest {
 
     }
 
-    private LookupDao<StoredAction> createRealActionDao(BalancedDBShardingBundle<TestConfig> bundle) {
-        return bundle.createParentObjectDao(StoredAction.class);
+    private RelationalDao<StoredAction> createRealActionRelationalDao(BalancedDBShardingBundle<TestConfig> bundle) {
+        return bundle.createRelatedObjectDao(StoredAction.class);
     }
 
     @SuppressWarnings("unchecked")
-    private LookupDao<StoredAction> createMockActionDao() {
-        return (LookupDao<StoredAction>) mock(LookupDao.class);
+    private RelationalDao<StoredAction> createMockActionRelationalDao() {
+        return (RelationalDao<StoredAction>) mock(RelationalDao.class);
     }
 }

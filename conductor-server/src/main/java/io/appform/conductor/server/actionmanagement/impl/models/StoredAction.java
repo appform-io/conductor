@@ -9,6 +9,7 @@ import org.hibernate.annotations.*;
 import org.hibernate.annotations.Generated;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.io.Serial;
@@ -54,7 +55,7 @@ public abstract class StoredAction implements Serializable {
     @ToString.Exclude
     @JsonIgnore
     @NotFound(action = NotFoundAction.IGNORE)
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "parent_action_id")
     private StoredAction parentAction;
 
