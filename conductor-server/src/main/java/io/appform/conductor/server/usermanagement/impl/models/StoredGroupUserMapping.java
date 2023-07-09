@@ -18,6 +18,7 @@ package io.appform.conductor.server.usermanagement.impl.models;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldNameConstants;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
@@ -34,6 +35,7 @@ import java.util.Date;
                 @UniqueConstraint(name = "uk_user_group", columnNames = {"group_id", "user_id"})
         })
 @Data
+@FieldNameConstants
 @NoArgsConstructor
 public class StoredGroupUserMapping implements Serializable {
     private static final long serialVersionUID = -1854965130712240861L;

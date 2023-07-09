@@ -104,8 +104,8 @@ public class DBSessionStore implements SessionStore {
 
     private static DetachedCriteria sessionCriteria(String userId, String sessionId) {
         return DetachedCriteria.forClass(StoredUserSessionDetails.class)
-                .add(Property.forName("userId").eq(userId))
-                .add(Property.forName("sessionId").eq(sessionId));
+                .add(Property.forName(StoredUserSessionDetails.Fields.userId).eq(userId))
+                .add(Property.forName(StoredUserSessionDetails.Fields.sessionId).eq(sessionId));
     }
 
     private static UserSessionDetails toWire(StoredUserSessionDetails session) {
