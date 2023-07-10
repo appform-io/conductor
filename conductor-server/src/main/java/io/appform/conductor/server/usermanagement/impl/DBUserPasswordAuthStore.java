@@ -87,7 +87,7 @@ public class DBUserPasswordAuthStore implements UserPasswordAuthStore {
 
     private static DetachedCriteria createCriteria(String userId) {
         return DetachedCriteria.forClass(StoredUserPassword.class)
-                .add(Property.forName("userId").eq(userId));
+                .add(Property.forName(StoredUserPassword.Fields.userId).eq(userId));
     }
 
     private static UserPasswordAuthDetails toWire(final StoredUserPassword password) {

@@ -200,8 +200,8 @@ public class DBSubjectStore implements SubjectStore {
         val status = subjectDao.lockAndGetExecutor(globalSubjectId) //For safety
                 .update(subjectIdDao,
                         DetachedCriteria.forClass(StoredSubjectID.class)
-                                .add(Property.forName("extId").eq(idExtId))
-                                .add(Property.forName("subjectGlobalId").eq(globalSubjectId)),
+                                .add(Property.forName(StoredSubjectID.Fields.extId).eq(idExtId))
+                                .add(Property.forName(StoredSubjectID.Fields.subjectGlobalId).eq(globalSubjectId)),
                         subjectId -> {
                             val updated = updater.apply(toWire(subjectId));
                             return subjectId.setValue(updated.getValue())
@@ -221,7 +221,7 @@ public class DBSubjectStore implements SubjectStore {
     public List<SubjectSummary> lookupSummaryById(SubjectID id) {
         val subGlobalIds = fetchSubjectIdsFoId(id);
         return subjectDao.scatterGather(DetachedCriteria.forClass(StoredSubjectSummary.class)
-                                                .add(Property.forName("globalId").in(subGlobalIds)))
+                                                .add(Property.forName(StoredSubjectSummary.Fields.globalId).in(subGlobalIds)))
                 .stream()
                 .map(DBSubjectStore::toWireSummary)
                 .toList();
@@ -267,8 +267,8 @@ public class DBSubjectStore implements SubjectStore {
             @Throws.RuntimeParam("id") String extId,
             UnaryOperator<Address> updater) {
         val criteria = DetachedCriteria.forClass(StoredAddress.class)
-                .add(Property.forName("subjectGlobalId").eq(globalSubjectId))
-                .add(Property.forName("extId").eq(extId));
+                .add(Property.forName(StoredAddress.Fields.subjectGlobalId).eq(globalSubjectId))
+                .add(Property.forName(StoredAddress.Fields.extId).eq(extId));
         addressDao.update(globalSubjectId,
                           criteria,
                           stored -> {
@@ -294,8 +294,8 @@ public class DBSubjectStore implements SubjectStore {
             fixedParams = @Throws.Param(name = "type", value = StoredAddress.SUBJECT_ADDRESS_TABLE_NAME))
     public boolean deleteAddress(String globalSubjectId, String extId) {
         val criteria = DetachedCriteria.forClass(StoredAddress.class)
-                .add(Property.forName("subjectGlobalId").eq(globalSubjectId))
-                .add(Property.forName("extId").eq(extId));
+                .add(Property.forName(StoredAddress.Fields.subjectGlobalId).eq(globalSubjectId))
+                .add(Property.forName(StoredAddress.Fields.extId).eq(extId));
         return addressDao.update(globalSubjectId,
                                  criteria,
                                  stored -> stored.setDeleted(true));
@@ -309,8 +309,8 @@ public class DBSubjectStore implements SubjectStore {
     public List<Address> findAddressesForSubject(String globalSubjectId) {
         return addressDao.select(globalSubjectId,
                                  DetachedCriteria.forClass(StoredAddress.class)
-                                         .add(Property.forName("subjectGlobalId").eq(globalSubjectId))
-                                         .add(Property.forName("deleted").eq(false)),
+                                         .add(Property.forName(StoredAddress.Fields.subjectGlobalId).eq(globalSubjectId))
+                                         .add(Property.forName(StoredAddress.Fields.deleted).eq(false)),
                                  0,
                                  Integer.MAX_VALUE)
                 .stream()
@@ -395,9 +395,9 @@ public class DBSubjectStore implements SubjectStore {
 
     private List<String> fetchSubjectIdsFoId(SubjectID id) {
         return subjectIdDao.scatterGather(DetachedCriteria.forClass(StoredSubjectID.class)
-                                                  .add(Property.forName("type").eq(id.getType()))
-                                                  .add(Property.forName("subType").eq(id.getSubType()))
-                                                  .add(Property.forName("value").eq(id.getValue())),
+                                                  .add(Property.forName(StoredSubjectID.Fields.type).eq(id.getType()))
+                                                  .add(Property.forName(StoredSubjectID.Fields.subType).eq(id.getSubType()))
+                                                  .add(Property.forName(StoredSubjectID.Fields.value).eq(id.getValue())),
                                           0, Integer.MAX_VALUE)
                 .stream()
                 .map(StoredSubjectID::getSubjectGlobalId)

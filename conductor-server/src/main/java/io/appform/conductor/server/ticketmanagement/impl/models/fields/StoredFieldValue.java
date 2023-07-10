@@ -19,6 +19,7 @@ package io.appform.conductor.server.ticketmanagement.impl.models.fields;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
 import lombok.*;
+import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.GenerationTime;
 
@@ -39,6 +40,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
+@FieldNameConstants
 @NoArgsConstructor
 public class StoredFieldValue implements Serializable {
     public static final String TICKET_FIELD_VALUE_TABLE_NAME = "ticket_field_values";

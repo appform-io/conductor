@@ -20,6 +20,7 @@ import io.appform.conductor.model.subject.AddressType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.FieldNameConstants;
 import lombok.val;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Generated;
@@ -39,6 +40,7 @@ import java.util.Objects;
 })
 @Getter
 @Setter
+@FieldNameConstants
 @ToString
 @SQLDelete(sql = "update addresses set deleted=true where external_id=?")
 public class StoredAddress {

@@ -21,6 +21,7 @@ import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldNameConstants;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
@@ -35,6 +36,7 @@ import java.util.Date;
         @UniqueConstraint(name = "uk_sessions", columnNames = {"partition_id", "user_id", "session_id"})
 })
 @Data
+@FieldNameConstants
 @NoArgsConstructor
 public class StoredUserSessionDetails {
     public static final String SESSION_TABLE_NAME = "user_sessions";

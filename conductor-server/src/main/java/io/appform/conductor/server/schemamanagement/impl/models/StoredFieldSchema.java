@@ -18,6 +18,7 @@ package io.appform.conductor.server.schemamanagement.impl.models;
 
 import io.appform.conductor.model.schema.FieldType;
 import lombok.*;
+import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
@@ -36,6 +37,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
+@FieldNameConstants
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLDelete(sql = "update field_schemas set deleted=true where field_id=?")
 public abstract class StoredFieldSchema {
