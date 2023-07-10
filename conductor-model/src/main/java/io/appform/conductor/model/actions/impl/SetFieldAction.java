@@ -20,16 +20,13 @@ import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.ticket.fields.FieldValue;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
-import java.util.Date;
+import lombok.*;
 
 /**
  * Set the fieldValue for a field in the ticket
  */
-@lombok.Value
+@Getter
+@Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class SetFieldAction extends Action {
@@ -44,18 +41,8 @@ public class SetFieldAction extends Action {
      */
     FieldValue fieldValue;
 
-    @Builder
-    public SetFieldAction(
-            String id,
-            String name,
-            String description,
-            Date created,
-            Date updated,
-            String fieldSchemaId,
-            FieldValue fieldValue) {
-        super(ActionType.SET_FIELD, id, name, description, created, updated);
-        this.fieldSchemaId = fieldSchemaId;
-        this.fieldValue = fieldValue;
+    public SetFieldAction() {
+        super(ActionType.SET_FIELD);
     }
 
     @Override

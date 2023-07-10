@@ -1,10 +1,7 @@
 package io.appform.conductor.server.actionmanagement.impl.models;
 
 import io.appform.conductor.model.actions.ActionType;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 
@@ -14,12 +11,12 @@ import javax.persistence.Entity;
 import java.io.Serial;
 import java.util.Objects;
 
-@Data
+@Setter
+@Getter
 @Entity
-@NoArgsConstructor
 @FieldNameConstants
 @ToString(callSuper = true)
-@DiscriminatorValue(value = "ROUTE_TO_GROUP")
+@DiscriminatorValue(value = ActionType.ROUTE_TO_GROUP_TEXT)
 public class StoredRouteToGroupAction extends StoredAction {
 
     @Serial
@@ -29,14 +26,8 @@ public class StoredRouteToGroupAction extends StoredAction {
     private String groupId;
 
     @Builder
-    public StoredRouteToGroupAction(
-            String actionId,
-            String name,
-            String description,
-            String groupId,
-            StoredCompositionAction parentAction) {
-        super(ActionType.ROUTE_TO_GROUP, actionId, name, description, parentAction);
-        this.groupId = groupId;
+    public StoredRouteToGroupAction() {
+        super(ActionType.ROUTE_TO_GROUP);
     }
 
     @Override

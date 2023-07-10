@@ -10,8 +10,6 @@ public interface StoredActionVisitor<T> {
 
     T visit(StoredChangePriorityAction storedChangePriorityAction);
 
-    T visit(StoredCompositionAction storedCompositionAction);
-
     T visit(StoredRouteToGroupAction storedRouteToGroupAction);
 
     T visit(StoredWebhookAction storedWebhookAction);

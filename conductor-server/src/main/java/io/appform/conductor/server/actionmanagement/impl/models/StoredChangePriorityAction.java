@@ -2,10 +2,7 @@ package io.appform.conductor.server.actionmanagement.impl.models;
 
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.ticket.TicketPriority;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 
@@ -13,12 +10,12 @@ import javax.persistence.*;
 import java.io.Serial;
 import java.util.Objects;
 
-@Data
+@Getter
+@Setter
 @Entity
-@NoArgsConstructor
 @FieldNameConstants
 @ToString(callSuper = true)
-@DiscriminatorValue(value = "CHANGE_PRIORITY")
+@DiscriminatorValue(value = ActionType.CHANGE_PRIORITY_TEXT)
 public class StoredChangePriorityAction extends StoredAction {
 
     @Serial
@@ -28,15 +25,8 @@ public class StoredChangePriorityAction extends StoredAction {
     @Enumerated(EnumType.STRING)
     private TicketPriority priority;
 
-    @Builder
-    public StoredChangePriorityAction(
-            String actionId,
-            String name,
-            String description,
-            TicketPriority priority,
-            StoredCompositionAction parentAction) {
-        super(ActionType.CHANGE_PRIORITY, actionId, name, description, parentAction);
-        this.priority = priority;
+    public StoredChangePriorityAction() {
+        super(ActionType.CHANGE_PRIORITY);
     }
 
     @Override

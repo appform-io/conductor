@@ -17,12 +17,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-@Data
+@Getter
+@Setter
 @Entity
-@NoArgsConstructor
 @FieldNameConstants
 @ToString(callSuper = true)
-@DiscriminatorValue(value = "SET_FIELD")
+@DiscriminatorValue(value = ActionType.SET_FIELD_TEXT)
 public class StoredSetFieldAction extends StoredAction {
 
     @Serial
@@ -35,16 +35,8 @@ public class StoredSetFieldAction extends StoredAction {
     private StoredFieldValue storedfieldValue;
 
     @Builder
-    public StoredSetFieldAction(
-            String actionId,
-            String name,
-            String description,
-            String fieldSchemaId,
-            FieldValue fieldValue,
-            StoredCompositionAction parentAction) {
-        super(ActionType.SET_FIELD, actionId, name, description, parentAction);
-        this.fieldSchemaId = fieldSchemaId;
-        this.storedfieldValue = toStoredField(fieldValue);
+    public StoredSetFieldAction() {
+        super(ActionType.SET_FIELD);
     }
 
     @Override
@@ -53,7 +45,12 @@ public class StoredSetFieldAction extends StoredAction {
     }
 
 
-    public StoredFieldValue toStoredField(FieldValue fieldValue) {
+    public StoredSetFieldAction setFieldValue(FieldValue fieldValue) {
+        this.storedfieldValue = toStoredField(fieldValue);
+        return this;
+    }
+
+    private StoredFieldValue toStoredField(FieldValue fieldValue) {
 
         StoredFieldValue storedFieldValue = StoredFieldValue.builder()
                 .type(fieldValue.getType())

@@ -24,8 +24,6 @@ import io.appform.conductor.model.actions.impl.*;
  */
 public interface ActionVisitor<T> {
 
-    T visit(CompositionAction compositionAction);
-
     T visit(WebhookAction webhookAction);
 
     T visit(RouteToGroupAction routeToGroupAction);

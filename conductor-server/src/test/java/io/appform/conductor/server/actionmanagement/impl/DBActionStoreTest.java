@@ -1,25 +1,19 @@
 package io.appform.conductor.server.actionmanagement.impl;
 
-import io.appform.conductor.model.actions.ActionErrorHandlingStrategy;
-import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.impl.*;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
-import io.appform.conductor.model.ticket.TicketPriority;
-import io.appform.conductor.model.ticket.fields.impl.StringFieldValue;
 import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.actionmanagement.impl.models.StoredAction;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
-import io.appform.dropwizard.sharding.dao.RelationalDao;
+import io.appform.dropwizard.sharding.dao.LookupDao;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.List;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -36,13 +30,12 @@ class DBActionStoreTest {
 
     @Test
     void testCreate(BalancedDBShardingBundle<TestConfig> bundle) {
-        val actionStore = new DBActionStore(createRealActionRelationalDao(bundle));
-        val createdAction = actionStore.save(AddTicketAction.builder()
-                        .id("TestAddTicketAction1")
-                        .name("TestingNameAddTicketAction")
-                        .description("Testing description for AddTicketAction")
-                        .actionId("NewAddTicketAction")
-                        .build())
+        val actionStore = new DBActionStore(createRealActionLookupDao(bundle));
+        val createdAction = actionStore.save(new AddTicketAction()
+                        .setActionId("NewAddTicketAction")
+                        .setId("TestAddTicketAction1")
+                        .setName("TestingNameAddTicketAction")
+                        .setDescription("Testing description for AddTicketAction"))
                 .orElse(null);
         assertNotNull(createdAction);
         assertEquals("TestAddTicketAction1", createdAction.getId());
@@ -51,131 +44,37 @@ class DBActionStoreTest {
 
     @Test
     void testRead(BalancedDBShardingBundle<TestConfig> bundle) {
-        val actionStore = new DBActionStore(createRealActionRelationalDao(bundle));
-        val createdAction = actionStore.save(AddCommentAction.builder()
-                        .id("TestAddCommentAction1")
-                        .name("TestingNameAddCommentAction")
-                        .description("Testing description for AddCommentAction")
-                        .contentTemplate(new Template(Template.Type.HANDLEBARS, "CommentTemplate"))
-                        .build())
+        val actionStore = new DBActionStore(createRealActionLookupDao(bundle));
+        val createdAction = actionStore.save(new AddCommentAction()
+                        .setContentTemplate(new Template(Template.Type.HANDLEBARS, "CommentTemplate"))
+                        .setId("TestAddCommentAction1")
+                        .setName("TestingNameAddCommentAction")
+                        .setDescription("Testing description for AddCommentAction"))
                 .orElse(null);
         assertNotNull(createdAction);
         assertEquals("TestAddCommentAction1", createdAction.getId());
         assertNotNull(createdAction.getCreated());
 
         val readAction = actionStore.read(createdAction.getId())
-                .orElse(null);;
+                .orElse(null);
+        ;
         assertNotNull(readAction);
         assertEquals(createdAction.getId(), readAction.getId());
         assertNotNull(readAction.getCreated());
     }
 
-    @Test
-    void testCreateAndReadCompositeAction(BalancedDBShardingBundle<TestConfig> bundle) {
-        val actionStore = new DBActionStore(createRealActionRelationalDao(bundle));
-        val compositeAction = CompositionAction.builder()
-                .id("TestCompositionAction1")
-                .name("TestingNameCompositionAction")
-                .description("Testing description for CompositionAction")
-                .errorHandlingStrategy(ActionErrorHandlingStrategy.IGNORE)
-                .children(List.of(
-                        CompositionAction.builder()
-                                .id("TestNestedCompositionAction")
-                                .name("TestingNameNestedCompositionAction")
-                                .description("Testing description for  NestedCompositionAction")
-                                .errorHandlingStrategy(ActionErrorHandlingStrategy.FAIL)
-                                .children(List.of(
-                                        AddTicketAction.builder()
-                                                .id("TestAddTicketAction")
-                                                .name("TestingNameAddTicketAction")
-                                                .description("Testing description for AddTicketAction")
-                                                .actionId("NewAddTicketAction")
-                                                .build(),
-                                        AddCommentAction.builder()
-                                                .id("TestAddCommentAction")
-                                                .name("TestingNameAddCommentAction")
-                                                .description("Testing description for AddCommentAction")
-                                                .contentTemplate(new Template(Template.Type.HANDLEBARS, "CommentTemplate"))
-                                                .build()))
-                                        .build(),
-                        ChangePriorityAction.builder()
-                                .id("TestChangePriorityAction")
-                                .name("TestingNameChangePriorityAction")
-                                .description("Testing description for ChangePriorityAction")
-                                .priority(TicketPriority.HIGH)
-                                .build(),
-                        RouteToGroupAction.builder()
-                                .id("TestRouteToGroupAction")
-                                .name("TestingNameRouteToGroupAction")
-                                .description("Testing description for RouteToGroupAction")
-                                .groupId("groupId")
-                                .build(),
-                        SetFieldAction.builder()
-                                .id("TestSetFieldAction")
-                                .name("TestingNameSetFieldAction")
-                                .description("Testing description for SetFieldAction")
-                                .fieldSchemaId("fieldSchemaId")
-                                .fieldValue(new StringFieldValue("StringValue"))
-                                .build(),
-                        WebhookAction.builder()
-                                .id("TestWebhookAction")
-                                .name("TestingNameWebhookAction")
-                                .description("Testing description for WebhookAction")
-                                .callMode(WebhookAction.CallMode.SYNC)
-                                .callType(WebhookAction.CallType.POST)
-                                .urlTemplate(new Template(Template.Type.STRING_SUBSTITUTION,"urlTemplate"))
-                                .headersTemplate(new Template(Template.Type.STRING_SUBSTITUTION,"headersTemplate"))
-                                .payloadTemplate(new Template(Template.Type.STRING_SUBSTITUTION,"payloadTemplate"))
-                                .mimeType("application/pdf")
-                                .successCodes(Set.of(200,202))
-                                .timeoutMs(2000)
-                                .retryStrategy(WebhookAction.RetryStrategy.FIXED_INTERVAL)
-                                .numRetries(3)
-                                .build()
-                ))
-                .build();
-
-        val createdAction = actionStore.save(compositeAction)
-                .orElse(null);
-        assertNotNull(createdAction);
-        assertEquals(compositeAction.getId(), createdAction.getId());
-        assertEquals(5, ((CompositionAction)createdAction).getChildren().size());
-        assertEquals(2, ((CompositionAction)((CompositionAction)createdAction).getChildren()
-                                                                .stream()
-                                                                .filter(child -> child.getType() == ActionType.COMPOSITION)
-                                                                .findFirst()
-                                                                .get())
-                                                        .getChildren().size());
-        assertNotNull(createdAction.getCreated());
-
-        val readAction = actionStore.read(compositeAction.getId())
-                .orElse(null);;
-        assertNotNull(readAction);
-        assertEquals(compositeAction.getId(), readAction.getId());
-        assertEquals(5, ((CompositionAction)readAction).getChildren().size());
-        assertEquals(2, ((CompositionAction)((CompositionAction)readAction).getChildren()
-                                                            .stream()
-                                                            .filter(child -> child.getType() == ActionType.COMPOSITION)
-                                                            .findFirst()
-                                                            .get())
-                                                    .getChildren().size());
-        assertNotNull(readAction.getCreated());
-
-    }
-
 
     @Test
     void testSaveActionFailed(BalancedDBShardingBundle<TestConfig> bundle) throws Exception {
-        RelationalDao<StoredAction> actionRelationalDao = createMockActionRelationalDao();
-        val actionStore = new DBActionStore(actionRelationalDao);
-        doThrow(NullPointerException.class).when(actionRelationalDao).save(anyString(), any());
+        LookupDao<StoredAction> actionLookupDao = createMockActionLookupDao();
+        val actionStore = new DBActionStore(actionLookupDao);
+        doThrow(NullPointerException.class).when(actionLookupDao).save(any());
         try {
-            actionStore.save(AddTicketAction.builder()
-                    .id("TestNormalActionId1")
-                    .name("TestingName")
-                    .description("Testing description")
-                    .actionId("NewTicketActionId")
-                    .build());
+            actionStore.save(new AddTicketAction()
+                    .setActionId("NewTicketActionId")
+                    .setId("TestNormalActionId1")
+                    .setName("TestingName")
+                    .setDescription("Testing description"));
             fail("Should have thrown exception.");
         } catch (Exception e) {
             assertTrue(e instanceof ConductorException);
@@ -186,9 +85,9 @@ class DBActionStoreTest {
 
     @Test
     void testReadActionFailed(BalancedDBShardingBundle<TestConfig> bundle) throws Exception {
-        RelationalDao<StoredAction> actionRelationalDao = createMockActionRelationalDao();
-        val actionStore = new DBActionStore(actionRelationalDao);
-        doThrow(NullPointerException.class).when(actionRelationalDao).select(anyString(), any(), anyInt(), anyInt());
+        LookupDao<StoredAction> actionLookupDao = createMockActionLookupDao();
+        val actionStore = new DBActionStore(actionLookupDao);
+        doThrow(NullPointerException.class).when(actionLookupDao).get(anyString());
         try {
             actionStore.read("actionId1");
             fail("Should have thrown exception.");
@@ -199,12 +98,12 @@ class DBActionStoreTest {
 
     }
 
-    private RelationalDao<StoredAction> createRealActionRelationalDao(BalancedDBShardingBundle<TestConfig> bundle) {
-        return bundle.createRelatedObjectDao(StoredAction.class);
+    private LookupDao<StoredAction> createRealActionLookupDao(BalancedDBShardingBundle<TestConfig> bundle) {
+        return bundle.createParentObjectDao(StoredAction.class);
     }
 
     @SuppressWarnings("unchecked")
-    private RelationalDao<StoredAction> createMockActionRelationalDao() {
-        return (RelationalDao<StoredAction>) mock(RelationalDao.class);
+    private LookupDao<StoredAction> createMockActionLookupDao() {
+        return (LookupDao<StoredAction>) mock(LookupDao.class);
     }
 }

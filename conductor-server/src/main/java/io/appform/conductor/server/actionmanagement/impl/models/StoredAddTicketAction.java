@@ -1,10 +1,7 @@
 package io.appform.conductor.server.actionmanagement.impl.models;
 
 import io.appform.conductor.model.actions.ActionType;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 
@@ -14,12 +11,12 @@ import javax.persistence.Entity;
 import java.io.Serial;
 import java.util.Objects;
 
-@Data
 @Entity
-@NoArgsConstructor
+@Getter
+@Setter
 @FieldNameConstants
 @ToString(callSuper = true)
-@DiscriminatorValue(value = "ADD_TICKET_ACTION")
+@DiscriminatorValue(value = ActionType.ADD_TICKET_ACTION_TEXT)
 public class StoredAddTicketAction extends StoredAction {
 
     @Serial
@@ -28,15 +25,8 @@ public class StoredAddTicketAction extends StoredAction {
     @Column(name = "ticket_action_id", length = 45)
     private String ticketActionId;
 
-    @Builder
-    public StoredAddTicketAction(
-            String actionId,
-            String name,
-            String description,
-            String ticketActionId,
-            StoredCompositionAction parentAction) {
-        super(ActionType.ADD_TICKET_ACTION, actionId, name, description, parentAction);
-        this.ticketActionId = ticketActionId;
+    public StoredAddTicketAction() {
+        super(ActionType.ADD_TICKET_ACTION);
     }
 
     @Override

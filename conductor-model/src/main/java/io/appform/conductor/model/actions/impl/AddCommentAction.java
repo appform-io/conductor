@@ -20,17 +20,13 @@ import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.workflow.Template;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import lombok.Value;
-
-import java.util.Date;
+import lombok.*;
 
 /**
  * Add a {@link io.appform.conductor.model.ticket.comments.Comment} to the ticket.
  */
-@Value
+@Getter
+@Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class AddCommentAction extends Action {
@@ -41,16 +37,8 @@ public class AddCommentAction extends Action {
      */
     Template contentTemplate;
 
-    @Builder
-    public AddCommentAction(
-            String id,
-            String name,
-            String description,
-            Date created,
-            Date updated,
-            Template contentTemplate) {
-        super(ActionType.ADD_COMMENT, id, name, description, created, updated);
-        this.contentTemplate = contentTemplate;
+    public AddCommentAction() {
+        super(ActionType.ADD_COMMENT);
     }
 
     @Override

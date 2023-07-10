@@ -7,17 +7,14 @@ import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.actionmanagement.impl.models.*;
-import io.appform.dropwizard.sharding.dao.RelationalDao;
+import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Property;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_READ_ERROR;
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_WRITE_ERROR;
@@ -26,7 +23,7 @@ import static io.appform.conductor.model.error.ConductorErrorCode.STORE_WRITE_ER
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class DBActionStore implements ActionStore {
 
-    private final RelationalDao<StoredAction> actionRelationalDao;
+    private final LookupDao<StoredAction> actionDao;
 
 
     @Override
@@ -35,8 +32,8 @@ public class DBActionStore implements ActionStore {
     @Throws(value = STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredAction.ACTION_TABLE_NAME))
     public Optional<Action> save(Action action) {
-        StoredAction storedAction = toStored(action);
-        return save(storedAction.getActionId(), storedAction);
+        return actionDao.save(toStored(action))
+                .map(this::toWired);
     }
 
 
@@ -46,164 +43,81 @@ public class DBActionStore implements ActionStore {
     @Throws(value = STORE_READ_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredAction.ACTION_TABLE_NAME))
     public Optional<Action> read(@Throws.RuntimeParam("id") String actionId) {
-        DetachedCriteria criteria = DetachedCriteria.forClass(StoredAction.class)
-                .add(Property.forName(StoredAction.Fields.actionId).eq(actionId));
-        return actionRelationalDao.select(actionId, criteria, 0, 1)
-                .stream()
-                .findFirst()
+        return actionDao.get(actionId)
                 .map(this::toWired);
-    }
-
-    private Optional<Action> save(String parentActionId, StoredAction storedAction) {
-        return storedAction.accept(new StoredActionVisitor<>() {
-
-            /**
-             * In case of self join, children needs to be saved explicitly.
-             * Sharding key for children will be same as that of CompositionAction
-             */
-            @Override
-            @SneakyThrows
-            public Optional<Action> visit(StoredCompositionAction storedCompositionAction) {
-                Optional<Action> compositeAction = actionRelationalDao.save(parentActionId, storedCompositionAction)
-                        .map(DBActionStore.this::toWired);
-                storedCompositionAction.getChildren().forEach(child -> save(parentActionId, child));
-                return compositeAction;
-            }
-
-            @Override
-            @SneakyThrows
-            public Optional<Action> visit(StoredSetFieldAction storedSetFieldAction) {
-                return actionRelationalDao.save(parentActionId, storedSetFieldAction)
-                        .map(DBActionStore.this::toWired);
-            }
-
-            @Override
-            @SneakyThrows
-            public Optional<Action> visit(StoredAddCommentAction storedAddCommentAction) {
-                return actionRelationalDao.save(parentActionId, storedAddCommentAction)
-                        .map(DBActionStore.this::toWired);
-            }
-
-            @Override
-            @SneakyThrows
-            public Optional<Action> visit(StoredAddTicketAction storedAddTicketAction) {
-                return actionRelationalDao.save(parentActionId, storedAddTicketAction)
-                        .map(DBActionStore.this::toWired);
-            }
-
-            @Override
-            @SneakyThrows
-            public Optional<Action> visit(StoredChangePriorityAction storedChangePriorityAction) {
-                return actionRelationalDao.save(parentActionId, storedChangePriorityAction)
-                        .map(DBActionStore.this::toWired);
-            }
-
-            @Override
-            @SneakyThrows
-            public Optional<Action> visit(StoredRouteToGroupAction storedRouteToGroupAction) {
-                return actionRelationalDao.save(parentActionId, storedRouteToGroupAction)
-                        .map(DBActionStore.this::toWired);
-            }
-
-            @Override
-            @SneakyThrows
-            public Optional<Action> visit(StoredWebhookAction storedWebhookAction) {
-                return actionRelationalDao.save(parentActionId, storedWebhookAction)
-                        .map(DBActionStore.this::toWired);
-            }
-        });
     }
 
     private StoredAction toStored(Action action) {
         return action.accept(new ActionVisitor<StoredAction>() {
-            @Override
-            public StoredAction visit(CompositionAction compositionAction) {
-                final StoredCompositionAction storedCompositionAction =  StoredCompositionAction.builder()
-                        .actionId(compositionAction.getId())
-                        .name(compositionAction.getName())
-                        .description(compositionAction.getDescription())
-                        .actionErrorHandlingStrategy(compositionAction.getErrorHandlingStrategy())
-                        .build();
-
-                storedCompositionAction.setChildren(
-                        compositionAction.getChildren().stream()
-                                .map(child -> {
-                                    StoredAction storedChild = toStored(child);
-                                    storedChild.setParentAction(storedCompositionAction);
-                                    return storedChild;
-                                }).collect(Collectors.toList()));
-
-                return storedCompositionAction;
-            }
 
             @Override
             public StoredAction visit(WebhookAction webhookAction) {
-                return StoredWebhookAction.builder()
-                        .actionId(webhookAction.getId())
-                        .name(webhookAction.getName())
-                        .description(webhookAction.getDescription())
-                        .callType(webhookAction.getCallType())
-                        .callMode(webhookAction.getCallMode())
-                        .urlTemplate(webhookAction.getUrlTemplate())
-                        .headersTemplate(webhookAction.getHeadersTemplate())
-                        .payloadTemplate(webhookAction.getPayloadTemplate())
-                        .successCodes(webhookAction.getSuccessCodes())
-                        .mimeType(webhookAction.getMimeType())
-                        .timeoutMs(webhookAction.getTimeoutMs())
-                        .retryStrategy(webhookAction.getRetryStrategy())
-                        .numRetries(webhookAction.getNumRetries())
-                        .build();
+                return new StoredWebhookAction()
+                        .setCallType(webhookAction.getCallType())
+                        .setCallMode(webhookAction.getCallMode())
+                        .setUrlTemplateType(webhookAction.getUrlTemplate().getType())
+                        .setUrlTemplate(webhookAction.getUrlTemplate().getTemplate())
+                        .setHeadersTemplateType(webhookAction.getHeadersTemplate().getType())
+                        .setHeadersTemplate(webhookAction.getHeadersTemplate().getTemplate())
+                        .setPayloadTemplateType(webhookAction.getPayloadTemplate().getType())
+                        .setPayloadTemplate(webhookAction.getPayloadTemplate().getTemplate())
+                        .setSuccessCodes(webhookAction.getSuccessCodes())
+                        .setMimeType(webhookAction.getMimeType())
+                        .setTimeoutMs(webhookAction.getTimeoutMs())
+                        .setRetryStrategy(webhookAction.getRetryStrategy())
+                        .setNumRetries(webhookAction.getNumRetries())
+                        .setActionId(webhookAction.getId())
+                        .setName(webhookAction.getName())
+                        .setDescription(webhookAction.getDescription());
             }
 
             @Override
             public StoredAction visit(RouteToGroupAction routeToGroupAction) {
-                return StoredRouteToGroupAction.builder()
-                        .actionId(routeToGroupAction.getId())
-                        .name(routeToGroupAction.getName())
-                        .description(routeToGroupAction.getDescription())
-                        .groupId(routeToGroupAction.getGroupId())
-                        .build();
+                return new StoredRouteToGroupAction()
+                        .setGroupId(routeToGroupAction.getGroupId())
+                        .setActionId(routeToGroupAction.getId())
+                        .setName(routeToGroupAction.getName())
+                        .setDescription(routeToGroupAction.getDescription());
             }
 
             @Override
             public StoredAction visit(AddCommentAction addCommentAction) {
-                return StoredAddCommentAction.builder()
-                        .actionId(addCommentAction.getId())
-                        .name(addCommentAction.getName())
-                        .description(addCommentAction.getDescription())
-                        .contentTemplate(addCommentAction.getContentTemplate())
-                        .build();
+                return new StoredAddCommentAction()
+                        .setContentTemplateType(addCommentAction.getContentTemplate().getType())
+                        .setContentTemplate(addCommentAction.getContentTemplate().getTemplate())
+                        .setActionId(addCommentAction.getId())
+                        .setName(addCommentAction.getName())
+                        .setDescription(addCommentAction.getDescription());
             }
 
             @Override
             public StoredAction visit(AddTicketAction addTicketAction) {
-                return StoredAddTicketAction.builder()
-                        .actionId(addTicketAction.getId())
-                        .name(addTicketAction.getName())
-                        .description(addTicketAction.getDescription())
-                        .ticketActionId(addTicketAction.getActionId())
-                        .build();
+                return new StoredAddTicketAction()
+                        .setTicketActionId(addTicketAction.getActionId())
+                        .setActionId(addTicketAction.getId())
+                        .setName(addTicketAction.getName())
+                        .setDescription(addTicketAction.getDescription());
+
             }
 
             @Override
             public StoredAction visit(ChangePriorityAction changePriorityAction) {
-                return StoredChangePriorityAction.builder()
-                        .actionId(changePriorityAction.getId())
-                        .name(changePriorityAction.getName())
-                        .description(changePriorityAction.getDescription())
-                        .priority(changePriorityAction.getPriority())
-                        .build();
+                return new StoredChangePriorityAction()
+                        .setPriority(changePriorityAction.getPriority())
+                        .setActionId(changePriorityAction.getId())
+                        .setName(changePriorityAction.getName())
+                        .setDescription(changePriorityAction.getDescription());
             }
 
             @Override
             public StoredAction visit(SetFieldAction setFieldAction) {
-                return StoredSetFieldAction.builder()
-                        .actionId(setFieldAction.getId())
-                        .name(setFieldAction.getName())
-                        .description(setFieldAction.getDescription())
-                        .fieldSchemaId(setFieldAction.getFieldSchemaId())
-                        .fieldValue(setFieldAction.getFieldValue())
-                        .build();
+                return new StoredSetFieldAction()
+                        .setFieldSchemaId(setFieldAction.getFieldSchemaId())
+                        .setFieldValue(setFieldAction.getFieldValue())
+                        .setActionId(setFieldAction.getId())
+                        .setName(setFieldAction.getName())
+                        .setDescription(setFieldAction.getDescription());
+
             }
         });
     }
@@ -212,103 +126,82 @@ public class DBActionStore implements ActionStore {
         return storedAction.accept(new StoredActionVisitor<Action>() {
             @Override
             public Action visit(StoredSetFieldAction storedSetFieldAction) {
-                return SetFieldAction.builder()
-                        .id(storedSetFieldAction.getActionId())
-                        .name(storedSetFieldAction.getName())
-                        .description(storedSetFieldAction.getDescription())
-                        .fieldSchemaId(storedSetFieldAction.getFieldSchemaId())
-                        .fieldValue(storedSetFieldAction.getFieldValue())
-                        .created(storedSetFieldAction.getCreated())
-                        .updated(storedSetFieldAction.getUpdated())
-                        .build();
+                return new SetFieldAction()
+                        .setFieldSchemaId(storedSetFieldAction.getFieldSchemaId())
+                        .setFieldValue(storedSetFieldAction.getFieldValue())
+                        .setId(storedSetFieldAction.getActionId())
+                        .setName(storedSetFieldAction.getName())
+                        .setDescription(storedSetFieldAction.getDescription())
+                        .setCreated(storedSetFieldAction.getCreated())
+                        .setUpdated(storedSetFieldAction.getUpdated());
             }
 
             @Override
             public Action visit(StoredAddCommentAction storedAddCommentAction) {
-                return AddCommentAction.builder()
-                        .id(storedAddCommentAction.getActionId())
-                        .name(storedAddCommentAction.getName())
-                        .description(storedAddCommentAction.getDescription())
-                        .contentTemplate(new Template(storedAddCommentAction.getContentTemplateType(),
+                return new AddCommentAction()
+                        .setContentTemplate(new Template(storedAddCommentAction.getContentTemplateType(),
                                 storedAddCommentAction.getContentTemplate()))
-                        .created(storedAddCommentAction.getCreated())
-                        .updated(storedAddCommentAction.getUpdated())
-                        .build();
+                        .setId(storedAddCommentAction.getActionId())
+                        .setName(storedAddCommentAction.getName())
+                        .setDescription(storedAddCommentAction.getDescription())
+                        .setCreated(storedAddCommentAction.getCreated())
+                        .setUpdated(storedAddCommentAction.getUpdated());
             }
 
             @Override
             public Action visit(StoredAddTicketAction storedAddTicketAction) {
-                return AddTicketAction.builder()
-                        .id(storedAddTicketAction.getActionId())
-                        .name(storedAddTicketAction.getName())
-                        .description(storedAddTicketAction.getDescription())
-                        .actionId(storedAddTicketAction.getTicketActionId())
-                        .created(storedAddTicketAction.getCreated())
-                        .updated(storedAddTicketAction.getUpdated())
-                        .build();
+                return new AddTicketAction()
+                        .setActionId(storedAddTicketAction.getTicketActionId())
+                        .setId(storedAddTicketAction.getActionId())
+                        .setName(storedAddTicketAction.getName())
+                        .setDescription(storedAddTicketAction.getDescription())
+                        .setCreated(storedAddTicketAction.getCreated())
+                        .setUpdated(storedAddTicketAction.getUpdated());
             }
 
             @Override
             public Action visit(StoredChangePriorityAction storedChangePriorityAction) {
-                return ChangePriorityAction.builder()
-                        .id(storedChangePriorityAction.getActionId())
-                        .name(storedChangePriorityAction.getName())
-                        .description(storedChangePriorityAction.getDescription())
-                        .priority(storedChangePriorityAction.getPriority())
-                        .created(storedChangePriorityAction.getCreated())
-                        .updated(storedChangePriorityAction.getUpdated())
-                        .build();
-            }
-
-            @Override
-            public Action visit(StoredCompositionAction storedCompositionAction) {
-                return CompositionAction.builder()
-                        .id(storedCompositionAction.getActionId())
-                        .name(storedCompositionAction.getName())
-                        .description(storedCompositionAction.getDescription())
-                        .errorHandlingStrategy(storedCompositionAction.getActionErrorHandlingStrategy())
-                        .children(storedCompositionAction.getChildren().stream()
-                                .map(child -> toWired(child))
-                                .collect(Collectors.toList()))
-                        .created(storedCompositionAction.getCreated())
-                        .updated(storedCompositionAction.getUpdated())
-                        .build();
+                return new ChangePriorityAction()
+                        .setPriority(storedChangePriorityAction.getPriority())
+                        .setId(storedChangePriorityAction.getActionId())
+                        .setName(storedChangePriorityAction.getName())
+                        .setDescription(storedChangePriorityAction.getDescription())
+                        .setCreated(storedChangePriorityAction.getCreated())
+                        .setUpdated(storedChangePriorityAction.getUpdated());
             }
 
             @Override
             public Action visit(StoredRouteToGroupAction storedRouteToGroupAction) {
-                return RouteToGroupAction.builder()
-                        .id(storedRouteToGroupAction.getActionId())
-                        .name(storedRouteToGroupAction.getName())
-                        .description(storedRouteToGroupAction.getDescription())
-                        .groupId(storedRouteToGroupAction.getGroupId())
-                        .created(storedRouteToGroupAction.getCreated())
-                        .updated(storedRouteToGroupAction.getUpdated())
-                        .build();
+                return new RouteToGroupAction()
+                        .setGroupId(storedRouteToGroupAction.getGroupId())
+                        .setId(storedRouteToGroupAction.getActionId())
+                        .setName(storedRouteToGroupAction.getName())
+                        .setDescription(storedRouteToGroupAction.getDescription())
+                        .setCreated(storedRouteToGroupAction.getCreated())
+                        .setUpdated(storedRouteToGroupAction.getUpdated());
             }
 
             @Override
             public Action visit(StoredWebhookAction storedWebhookAction) {
-                return WebhookAction.builder()
-                        .id(storedWebhookAction.getActionId())
-                        .name(storedWebhookAction.getName())
-                        .description(storedWebhookAction.getDescription())
-                        .callType(storedWebhookAction.getCallType())
-                        .callMode(storedWebhookAction.getCallMode())
-                        .urlTemplate(new Template(storedWebhookAction.getUrlTemplateType(),
+                return new WebhookAction()
+                        .setCallType(storedWebhookAction.getCallType())
+                        .setCallMode(storedWebhookAction.getCallMode())
+                        .setUrlTemplate(new Template(storedWebhookAction.getUrlTemplateType(),
                                 storedWebhookAction.getUrlTemplate()))
-                        .headersTemplate(new Template(storedWebhookAction.getHeadersTemplateType(),
+                        .setHeadersTemplate(new Template(storedWebhookAction.getHeadersTemplateType(),
                                 storedWebhookAction.getHeadersTemplate()))
-                        .payloadTemplate(new Template(storedWebhookAction.getPayloadTemplateType(),
+                        .setPayloadTemplate(new Template(storedWebhookAction.getPayloadTemplateType(),
                                 storedWebhookAction.getPayloadTemplate()))
-                        .successCodes(storedWebhookAction.getSuccessCodes())
-                        .mimeType(storedWebhookAction.getMimeType())
-                        .timeoutMs(storedWebhookAction.getTimeoutMs())
-                        .retryStrategy(storedWebhookAction.getRetryStrategy())
-                        .numRetries(storedWebhookAction.getNumRetries())
-                        .created(storedWebhookAction.getCreated())
-                        .updated(storedWebhookAction.getUpdated())
-                        .build();
+                        .setSuccessCodes(storedWebhookAction.getSuccessCodes())
+                        .setMimeType(storedWebhookAction.getMimeType())
+                        .setTimeoutMs(storedWebhookAction.getTimeoutMs())
+                        .setRetryStrategy(storedWebhookAction.getRetryStrategy())
+                        .setNumRetries(storedWebhookAction.getNumRetries())
+                        .setId(storedWebhookAction.getActionId())
+                        .setName(storedWebhookAction.getName())
+                        .setDescription(storedWebhookAction.getDescription())
+                        .setCreated(storedWebhookAction.getCreated())
+                        .setUpdated(storedWebhookAction.getUpdated());
             }
         });
     }

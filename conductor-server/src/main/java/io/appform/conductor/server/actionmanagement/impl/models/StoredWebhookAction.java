@@ -3,10 +3,7 @@ package io.appform.conductor.server.actionmanagement.impl.models;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.impl.WebhookAction;
 import io.appform.conductor.model.workflow.Template;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 
@@ -15,12 +12,12 @@ import java.io.Serial;
 import java.util.Objects;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @Entity
-@NoArgsConstructor
 @FieldNameConstants
 @ToString(callSuper = true)
-@DiscriminatorValue(value = "WEBHOOK")
+@DiscriminatorValue(value = ActionType.WEBHOOK_TEXT)
 public class StoredWebhookAction  extends StoredAction {
 
     @Serial
@@ -72,36 +69,8 @@ public class StoredWebhookAction  extends StoredAction {
     @Column(name = "num_retries")
     private int numRetries;
 
-    @Builder
-    public StoredWebhookAction(
-            String actionId,
-            String name,
-            String description,
-            WebhookAction.CallType callType,
-            WebhookAction.CallMode callMode,
-            Template urlTemplate,
-            Template headersTemplate,
-            Template payloadTemplate,
-            Set<Integer> successCodes,
-            String mimeType,
-            int timeoutMs,
-            WebhookAction.RetryStrategy retryStrategy,
-            int numRetries,
-            StoredCompositionAction parentAction) {
-        super(ActionType.WEBHOOK, actionId, name, description, parentAction);
-        this.callType = callType;
-        this.callMode = callMode;
-        this.urlTemplateType = urlTemplate.getType();
-        this.urlTemplate = urlTemplate.getTemplate();
-        this.headersTemplateType = headersTemplate.getType();
-        this.headersTemplate = headersTemplate.getTemplate();
-        this.payloadTemplateType = payloadTemplate.getType();
-        this.payloadTemplate = payloadTemplate.getTemplate();
-        this.successCodes = successCodes;
-        this.mimeType = mimeType;
-        this.timeoutMs = timeoutMs;
-        this.retryStrategy = retryStrategy;
-        this.numRetries = numRetries;
+    public StoredWebhookAction() {
+        super(ActionType.WEBHOOK);
     }
 
     @Override

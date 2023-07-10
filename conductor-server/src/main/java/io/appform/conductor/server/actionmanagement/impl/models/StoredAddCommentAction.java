@@ -2,10 +2,7 @@ package io.appform.conductor.server.actionmanagement.impl.models;
 
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.workflow.Template;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 
@@ -13,12 +10,12 @@ import javax.persistence.*;
 import java.io.Serial;
 import java.util.Objects;
 
-@Data
 @Entity
-@NoArgsConstructor
+@Getter
+@Setter
 @FieldNameConstants
 @ToString(callSuper = true)
-@DiscriminatorValue(value = "ADD_COMMENT")
+@DiscriminatorValue(value = ActionType.ADD_COMMENT_TEXT)
 public class StoredAddCommentAction extends StoredAction {
 
     @Serial
@@ -31,16 +28,8 @@ public class StoredAddCommentAction extends StoredAction {
     @Column(name = "content_template", length = 1023)
     private String contentTemplate;
 
-    @Builder
-    public StoredAddCommentAction(
-            String actionId,
-            String name,
-            String description,
-            Template contentTemplate,
-            StoredCompositionAction parentAction) {
-        super(ActionType.ADD_COMMENT, actionId, name, description, parentAction);
-        this.contentTemplateType = contentTemplate.getType();
-        this.contentTemplate = contentTemplate.getTemplate();
+    public StoredAddCommentAction() {
+        super(ActionType.ADD_COMMENT);
     }
 
     @Override
