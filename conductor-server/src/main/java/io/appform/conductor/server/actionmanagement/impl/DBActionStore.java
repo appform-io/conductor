@@ -7,6 +7,7 @@ import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.actionmanagement.impl.models.*;
+import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredEmbeddedFieldValue;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.RequiredArgsConstructor;
@@ -113,7 +114,7 @@ public class DBActionStore implements ActionStore {
             public StoredAction visit(SetFieldAction setFieldAction) {
                 return new StoredSetFieldAction()
                         .setFieldSchemaId(setFieldAction.getFieldSchemaId())
-                        .setFieldValue(setFieldAction.getFieldValue())
+                        .setStoredFieldValue(new StoredEmbeddedFieldValue(setFieldAction.getFieldValue()))
                         .setActionId(setFieldAction.getId())
                         .setName(setFieldAction.getName())
                         .setDescription(setFieldAction.getDescription());
@@ -128,7 +129,7 @@ public class DBActionStore implements ActionStore {
             public Action visit(StoredSetFieldAction storedSetFieldAction) {
                 return new SetFieldAction()
                         .setFieldSchemaId(storedSetFieldAction.getFieldSchemaId())
-                        .setFieldValue(storedSetFieldAction.getFieldValue())
+                        .setFieldValue(storedSetFieldAction.getStoredFieldValue().getFieldValue())
                         .setId(storedSetFieldAction.getActionId())
                         .setName(storedSetFieldAction.getName())
                         .setDescription(storedSetFieldAction.getDescription())
