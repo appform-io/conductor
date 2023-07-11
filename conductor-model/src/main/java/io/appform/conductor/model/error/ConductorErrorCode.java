@@ -44,6 +44,8 @@ public enum ConductorErrorCode {
     TICKET_MGMT_NO_WORKFLOW(4001, "No workflow found for given payload"),
     TICKET_MGMT_NO_SCHEMA(4002, "No active schema found for ${workflowId}/${schemaId}"),
     TICKET_SCHEMA_VALIDATION_FAILURE(4003, "There are schema validation failures."),
+
+    DATA_FORMAT_ERROR(5001, "Error reading data. Format error. Conversion to: ${type}. Content: ${content}"),
     ;
 
     private final int errorCode;

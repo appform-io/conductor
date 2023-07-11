@@ -19,6 +19,7 @@ package io.appform.conductor.model.schema;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.appform.conductor.model.schema.fields.*;
+import io.appform.conductor.model.workflow.Rule;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -80,12 +81,12 @@ public abstract class FieldSchema {
     /**
      * Rule to configure when the field is visible
      */
-    private String visibilityCondition;
+    private Rule visibilityCondition;
 
     /**
      * Rule to configure when field is editable
      */
-    private String editableCondition;
+    private Rule editableCondition;
 
     /**
      * Is multiple selection allowed

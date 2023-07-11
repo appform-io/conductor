@@ -88,13 +88,13 @@ public class StoredWorkflow implements Serializable {
     private Date updated;
 
     @Transient
-    Map<String, TicketState> states;
+    transient Map<String, TicketState> states;
 
     @Transient
-    Map<String, List<TicketStateTransition>> ticketStateTransitions;
+    transient Map<String, List<TicketStateTransition>> ticketStateTransitions;
 
     @Transient
-    Map<String, Rule> rules;
+    transient Map<String, Rule> rules;
 
     @Override
     public boolean equals(Object o) {

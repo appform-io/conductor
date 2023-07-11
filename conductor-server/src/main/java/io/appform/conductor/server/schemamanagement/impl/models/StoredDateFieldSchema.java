@@ -17,6 +17,7 @@
 package io.appform.conductor.server.schemamanagement.impl.models;
 
 import io.appform.conductor.model.schema.FieldType;
+import io.appform.conductor.model.workflow.Rule;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -43,17 +44,17 @@ public class StoredDateFieldSchema extends StoredFieldSchema {
     }
 
     public StoredDateFieldSchema(
-            String schemaId,
-            String fieldId,
-            String name,
-            String displayName,
-            String description,
-            boolean required,
-            String parent,
-            String visibilityCondition,
-            String editableCondition,
-            boolean allowMultiple,
-            Date defaultValue) {
+            final String schemaId,
+            final String fieldId,
+            final String name,
+            final String displayName,
+            final String description,
+            final boolean required,
+            final String parent,
+            final Rule visibilityCondition,
+            final Rule editableCondition,
+            final boolean allowMultiple,
+            final Date defaultValue) {
         super(FieldType.DATE,
               schemaId,
               fieldId,

@@ -17,6 +17,8 @@
 package io.appform.conductor.server.schemamanagement.impl.models;
 
 import io.appform.conductor.model.schema.FieldType;
+import io.appform.conductor.model.workflow.Rule;
+import io.appform.conductor.server.utils.persistence.RuleConverter;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
@@ -70,11 +72,13 @@ public abstract class StoredFieldSchema {
     @Column(name = "parent_id")
     private String parent;
 
+    @Convert(converter = RuleConverter.class)
     @Column(name = "visibility_condition")
-    private String visibilityCondition;
+    private Rule visibilityCondition;
 
+    @Convert(converter = RuleConverter.class)
     @Column(name = "editable_condition")
-    private String editableCondition;
+    private Rule editableCondition;
 
     @Column(name = "allow_multiple")
     private boolean allowMultiple;
@@ -94,16 +98,16 @@ public abstract class StoredFieldSchema {
     public abstract <T> T accept(final StoredFieldSchemaVisitor<T> visitor);
 
     @SuppressWarnings("java:S107")
-    protected StoredFieldSchema(FieldType type,
-                                String schemaId,
-                                String fieldId, String name,
-                                String displayName,
-                                String description,
-                                boolean required,
-                                String parent,
-                                String visibilityCondition,
-                                String editableCondition,
-                                boolean allowMultiple) {
+    protected StoredFieldSchema(final FieldType type,
+                                final String schemaId,
+                                final String fieldId, String name,
+                                final String displayName,
+                                final String description,
+                                final boolean required,
+                                final String parent,
+                                final Rule visibilityCondition,
+                                final Rule editableCondition,
+                                final boolean allowMultiple) {
         this.type = type;
         this.schemaId = schemaId;
         this.fieldId = fieldId;

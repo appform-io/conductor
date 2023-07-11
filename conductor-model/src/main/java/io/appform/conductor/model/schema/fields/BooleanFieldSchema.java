@@ -19,6 +19,7 @@ package io.appform.conductor.model.schema.fields;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldSchemaVisitor;
 import io.appform.conductor.model.schema.FieldType;
+import io.appform.conductor.model.workflow.Rule;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
@@ -31,7 +32,6 @@ import java.util.Date;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@Jacksonized
 public class BooleanFieldSchema extends FieldSchema {
 
     /**
@@ -39,7 +39,9 @@ public class BooleanFieldSchema extends FieldSchema {
      */
     private boolean defaultValue;
 
+    @Jacksonized
     @Builder
+    @SuppressWarnings("java:S107")
     public BooleanFieldSchema(
             String id,
             String name,
@@ -47,8 +49,8 @@ public class BooleanFieldSchema extends FieldSchema {
             String description,
             boolean required,
             String parent,
-            String visibilityCondition,
-            String editableCondition,
+            Rule visibilityCondition,
+            Rule editableCondition,
             boolean allowMultiple,
             Date created,
             Date updated,

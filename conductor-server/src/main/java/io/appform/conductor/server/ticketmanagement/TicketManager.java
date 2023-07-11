@@ -93,7 +93,7 @@ public class TicketManager {
                                                     ? userStore.getById(skeleton.getAssignedToUserId()).orElse(null)
                                                    : null,
                                                    Objects.nonNull(skeleton.getSubjectId())
-                                                    ? subjectStore.getSubject(skeleton.getSubjectId()).orElse(null)
+                                                    ? subjectStore.getSubjectSummary(skeleton.getSubjectId()).orElse(null)
                                                    : null,
                                                    workflow.getStates().get(skeleton.getTicketStateId()),
                                                    skeleton.getPriority(),

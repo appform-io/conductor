@@ -230,8 +230,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                         .add(Property.forName("extId").eq(transitionId)),
                                 existing -> existing
                                         .setType(type)
-                                        .setRuleType(rule.getType())
-                                        .setRule(rule.getRule())
+                                        .setRule(rule)
                                         .setActionId(actionId),
                                 () -> new StoredTicketStateTransition()
                                         .setWorkflowId(workflowId)
@@ -239,8 +238,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                         .setFromState(from)
                                         .setToState(to)
                                         .setType(type)
-                                        .setRuleType(rule.getType())
-                                        .setRule(rule.getRule())
+                                        .setRule(rule)
                                         .setActionId(actionId))
                 .execute() != null;
         log.info("State transition create status for {}/{}: {}", workflowId, transitionId, updated);
@@ -346,7 +344,7 @@ public class DBWorkflowStore implements WorkflowStore {
                 state.getFromState(),
                 state.getToState(),
                 state.getType(),
-                new Rule(state.getRuleType(), state.getRule()),
+                state.getRule(),
                 state.getActionId(),
                 state.getCreated(),
                 state.getUpdated());
