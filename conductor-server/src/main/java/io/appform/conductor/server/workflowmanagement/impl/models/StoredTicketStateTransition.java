@@ -18,7 +18,11 @@ package io.appform.conductor.server.workflowmanagement.impl.models;
 
 import io.appform.conductor.model.workflow.Rule;
 import io.appform.conductor.model.workflow.TicketStateTransition;
-import lombok.*;
+import io.appform.conductor.server.utils.persistence.RuleConverter;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
@@ -61,12 +65,10 @@ public class StoredTicketStateTransition implements Serializable {
     @Enumerated(EnumType.STRING)
     private TicketStateTransition.TicketStateTransitionType type;
 
-    @Column(name = "rule_type")
-    @Enumerated(EnumType.STRING)
-    private Rule.RuleType ruleType;
-
+    @SuppressWarnings("java:S1948")
+    @Convert(converter = RuleConverter.class)
     @Column(name = "rule")
-    private String rule;
+    private Rule rule;
 
     @Column(name = "action_id")
     private String actionId;
