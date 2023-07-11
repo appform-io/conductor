@@ -2,6 +2,7 @@ package io.appform.conductor.server.actionmanagement.impl.models;
 
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.workflow.Template;
+import io.appform.conductor.server.utils.persistence.TemplateConverter;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
@@ -21,12 +22,10 @@ public class StoredAddCommentAction extends StoredAction {
     @Serial
     private static final long serialVersionUID = 6008240787741643592L;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "content_template_type", length = 45)
-    private Template.Type contentTemplateType;
-
+    @SuppressWarnings("java:S1948")
+    @Convert(converter = TemplateConverter.class)
     @Column(name = "content_template", length = 1023)
-    private String contentTemplate;
+    private Template contentTemplate;
 
     public StoredAddCommentAction() {
         super(ActionType.ADD_COMMENT);

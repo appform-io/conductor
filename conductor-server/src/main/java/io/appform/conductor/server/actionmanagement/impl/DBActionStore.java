@@ -57,12 +57,9 @@ public class DBActionStore implements ActionStore {
                 return new StoredWebhookAction()
                         .setCallType(webhookAction.getCallType())
                         .setCallMode(webhookAction.getCallMode())
-                        .setUrlTemplateType(webhookAction.getUrlTemplate().getType())
-                        .setUrlTemplate(webhookAction.getUrlTemplate().getTemplate())
-                        .setHeadersTemplateType(webhookAction.getHeadersTemplate().getType())
-                        .setHeadersTemplate(webhookAction.getHeadersTemplate().getTemplate())
-                        .setPayloadTemplateType(webhookAction.getPayloadTemplate().getType())
-                        .setPayloadTemplate(webhookAction.getPayloadTemplate().getTemplate())
+                        .setUrlTemplate(webhookAction.getUrlTemplate())
+                        .setHeadersTemplate(webhookAction.getHeadersTemplate())
+                        .setPayloadTemplate(webhookAction.getPayloadTemplate())
                         .setSuccessCodes(webhookAction.getSuccessCodes())
                         .setMimeType(webhookAction.getMimeType())
                         .setTimeoutMs(webhookAction.getTimeoutMs())
@@ -79,8 +76,7 @@ public class DBActionStore implements ActionStore {
             @Override
             public StoredAction visit(AddCommentAction addCommentAction) {
                 return new StoredAddCommentAction()
-                        .setContentTemplateType(addCommentAction.getContentTemplate().getType())
-                        .setContentTemplate(addCommentAction.getContentTemplate().getTemplate());
+                        .setContentTemplate(addCommentAction.getContentTemplate());
             }
 
             @Override
@@ -133,8 +129,7 @@ public class DBActionStore implements ActionStore {
                         .id(storedAddCommentAction.getActionId())
                         .name(storedAddCommentAction.getName())
                         .description(storedAddCommentAction.getDescription())
-                        .contentTemplate(new Template(storedAddCommentAction.getContentTemplateType(),
-                                storedAddCommentAction.getContentTemplate()))
+                        .contentTemplate(storedAddCommentAction.getContentTemplate())
                         .created(storedAddCommentAction.getCreated())
                         .updated(storedAddCommentAction.getUpdated())
                         .build();
@@ -184,12 +179,9 @@ public class DBActionStore implements ActionStore {
                         .description(storedWebhookAction.getDescription())
                         .callType(storedWebhookAction.getCallType())
                         .callMode(storedWebhookAction.getCallMode())
-                        .urlTemplate(new Template(storedWebhookAction.getUrlTemplateType(),
-                                storedWebhookAction.getUrlTemplate()))
-                        .headersTemplate(new Template(storedWebhookAction.getHeadersTemplateType(),
-                                storedWebhookAction.getHeadersTemplate()))
-                        .payloadTemplate(new Template(storedWebhookAction.getPayloadTemplateType(),
-                                storedWebhookAction.getPayloadTemplate()))
+                        .urlTemplate(storedWebhookAction.getUrlTemplate())
+                        .headersTemplate(storedWebhookAction.getHeadersTemplate())
+                        .payloadTemplate(storedWebhookAction.getPayloadTemplate())
                         .successCodes(storedWebhookAction.getSuccessCodes())
                         .mimeType(storedWebhookAction.getMimeType())
                         .timeoutMs(storedWebhookAction.getTimeoutMs())

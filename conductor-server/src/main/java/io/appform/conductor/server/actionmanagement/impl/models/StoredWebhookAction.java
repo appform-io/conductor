@@ -3,6 +3,7 @@ package io.appform.conductor.server.actionmanagement.impl.models;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.impl.WebhookAction;
 import io.appform.conductor.model.workflow.Template;
+import io.appform.conductor.server.utils.persistence.TemplateConverter;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
@@ -31,26 +32,21 @@ public class StoredWebhookAction  extends StoredAction {
     @Column(name = "call_mode", length = 45)
     private WebhookAction.CallMode callMode;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "url_template_type", length = 45)
-    private Template.Type urlTemplateType;
-
+    @SuppressWarnings("java:S1948")
+    @Convert(converter = TemplateConverter.class)
     @Column(name = "url_template", length = 1023)
-    private String urlTemplate;
+    private Template urlTemplate;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "headers_template_type", length = 45)
-    private Template.Type headersTemplateType;
-
+    //TODO:Move to map
+    @SuppressWarnings("java:S1948")
+    @Convert(converter = TemplateConverter.class)
     @Column(name = "headers_template", length = 1023)
-    private String headersTemplate;
+    private Template headersTemplate;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "payload_template_type", length = 45)
-    private Template.Type payloadTemplateType;
-
+    @SuppressWarnings("java:S1948")
+    @Convert(converter = TemplateConverter.class)
     @Column(name = "payload_template", length = 2047)
-    private String payloadTemplate;
+    private Template payloadTemplate;
 
     @Convert(converter = WebhookActionSuccessCodesConverter.class)
     @Column(name = "success_codes", length = 127)
