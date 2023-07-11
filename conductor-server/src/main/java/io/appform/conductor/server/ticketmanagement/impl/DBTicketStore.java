@@ -327,10 +327,10 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldEquals equals) {
                 switch (fieldSchema.getType()) {
-                    case STRING -> finalTop.add(Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, StoredEmbeddedFieldValue.Fields.stringValue)).eq(equals.getValue()));
-                    case BOOLEAN -> finalTop.add(Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, StoredEmbeddedFieldValue.Fields.booleanValue)).eq(equals.getValue()));
-                    case NUMBER -> finalTop.add(Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, StoredEmbeddedFieldValue.Fields.numberValue)).eq(equals.getValue()));
-                    case DATE -> finalTop.add(Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, StoredEmbeddedFieldValue.Fields.dateValue)).eq(equals.getValue()));
+                    case STRING -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.stringValue).eq(equals.getValue()));
+                    case BOOLEAN -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.booleanValue).eq(equals.getValue()));
+                    case NUMBER -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.numberValue).eq(equals.getValue()));
+                    case DATE -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.dateValue).eq(equals.getValue()));
                     case CHOICE, LOCATION -> {
                         //NO OP
                     }
@@ -341,10 +341,10 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldNotEquals notEquals) {
                 switch (fieldSchema.getType()) {
-                    case STRING -> finalTop.add(Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, StoredEmbeddedFieldValue.Fields.stringValue)).ne(notEquals.getValue()));
-                    case BOOLEAN -> finalTop.add(Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, StoredEmbeddedFieldValue.Fields.booleanValue)).ne(notEquals.getValue()));
-                    case NUMBER -> finalTop.add(Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, StoredEmbeddedFieldValue.Fields.numberValue)).ne(notEquals.getValue()));
-                    case DATE -> finalTop.add(Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, StoredEmbeddedFieldValue.Fields.dateValue)).ne(notEquals.getValue()));
+                    case STRING -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.stringValue).ne(notEquals.getValue()));
+                    case BOOLEAN -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.booleanValue).ne(notEquals.getValue()));
+                    case NUMBER -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.numberValue).ne(notEquals.getValue()));
+                    case DATE -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.dateValue).ne(notEquals.getValue()));
                     case CHOICE, LOCATION -> {
                         //NO OP
                     }
@@ -355,7 +355,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldGreater greater) {
                 if (fieldSchema.getType() == FieldType.NUMBER) {
-                    finalTop.add(Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, StoredEmbeddedFieldValue.Fields.numberValue)).gt(greater.getValue()));
+                    finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.numberValue).gt(greater.getValue()));
                 }
                 return null;
             }
@@ -363,7 +363,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldGreaterEquals greaterEquals) {
                 if (fieldSchema.getType() == FieldType.NUMBER) {
-                    finalTop.add(Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, StoredEmbeddedFieldValue.Fields.numberValue)).ge(greaterEquals.getValue()));
+                    finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.numberValue).ge(greaterEquals.getValue()));
                 }
                 return null;
             }
@@ -371,7 +371,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldLesser lesser) {
                 if (fieldSchema.getType() == FieldType.NUMBER) {
-                    finalTop.add(Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, StoredEmbeddedFieldValue.Fields.numberValue)).lt(lesser.getValue()));
+                    finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.numberValue).lt(lesser.getValue()));
                 }
                 return null;
             }
@@ -379,7 +379,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldLesserEquals lesserEquals) {
                 if (fieldSchema.getType() == FieldType.NUMBER) {
-                    finalTop.add(Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, StoredEmbeddedFieldValue.Fields.numberValue)).le(lesserEquals.getValue()));
+                    finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.numberValue).le(lesserEquals.getValue()));
                 }
                 return null;
             }
@@ -387,7 +387,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldBetween between) {
                 if (fieldSchema.getType() == FieldType.NUMBER) {
-                    finalTop.add(Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, StoredEmbeddedFieldValue.Fields.numberValue)).between(between.getMin(), between.getMax()));
+                    finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.numberValue).between(between.getMin(), between.getMax()));
                 }
                 return null;
             }
@@ -397,11 +397,15 @@ public class DBTicketStore implements TicketStore {
                 if (fieldSchema.getType() == FieldType.CHOICE) {
                     val query = Restrictions.conjunction();
                     containsChoices.getChoices()
-                            .forEach(choice -> query.add(Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, StoredEmbeddedFieldValue.Fields.choiceValue))
+                            .forEach(choice -> query.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.choiceValue)
                                                                  .like(choice, MatchMode.ANYWHERE)));
                     finalTop.add(query);
                 }
                 return null;
+            }
+
+            private Property fieldConstraint(String actualName) {
+                return Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, actualName));
             }
         });
     }
