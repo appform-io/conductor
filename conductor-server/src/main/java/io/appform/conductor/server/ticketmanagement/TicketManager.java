@@ -18,6 +18,7 @@ package io.appform.conductor.server.ticketmanagement;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.error.ConductorErrorCode;
+import io.appform.conductor.model.subject.SubjectID;
 import io.appform.conductor.model.ticket.TicketDetails;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.TicketSummary;
@@ -25,6 +26,7 @@ import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.subjectmanagement.SubjectStore;
+import io.appform.conductor.server.templateengines.TemplateEngine;
 import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.usermanagement.UserStore;
 import io.appform.conductor.server.utils.ConductorServerUtils;
@@ -53,30 +55,49 @@ public class TicketManager {
     private final ActionStore actionStore;
     private final WorkflowSelector workflowSelector;
     private final TicketFieldMapper fieldMapper;
+    private final TemplateEngine templateEngine;
     private final ObjectMapper mapper;
 
     @SneakyThrows
     public Optional<TicketDetails> createTicket(final Object payload) {
         val data = mapper.valueToTree(payload);
         val workflow = workflowSelector.findWorkflow(data).orElse(null);
-        ConductorServerUtils.ensureCondition(workflow != null, ConductorErrorCode.TICKET_MGMT_NO_WORKFLOW);
+        ConductorServerUtils.ensureCondition(!Objects.isNull(workflow), ConductorErrorCode.TICKET_MGMT_NO_WORKFLOW);
+        assert workflow != null;
         val schema = schemaStore.get(workflow.getSchemaId()).orElse(null);
         ConductorServerUtils.ensureCondition(schema != null,
                                              ConductorErrorCode.TICKET_MGMT_NO_SCHEMA,
                                              Map.of("workflowId", workflow.getId(),
-                                                    "schemaId", schema.getId()));
+                                                    "schemaId", workflow.getSchemaId()));
+        assert schema != null;
         val fieldMappingResult = fieldMapper.map(schema, data);
         ConductorServerUtils.ensureCondition(fieldMappingResult.getErrors().isEmpty(),
                                              ConductorErrorCode.TICKET_SCHEMA_VALIDATION_FAILURE,
                                              Map.of("errors", fieldMappingResult.getErrors()));
+        val sId = templateEngine.evaluateToObject(workflow.getSubjectIdTemplate(),
+                                                  data,
+                                                  SubjectID.class)
+                .orElse(null);
+        ConductorServerUtils.ensureCondition(!Objects.isNull(sId),
+                                             ConductorErrorCode.TICKET_SUBJECT_ID_EXTRACTION_FAILURE);
+        assert sId != null;
+        var subject = subjectStore.lookupSummaryById(sId).stream().findFirst().orElse(null);
+        if(null == subject) {
+            subject = subjectStore.saveSubject(List.of(sId),
+                                               UUID.randomUUID().toString(),
+                                               "",
+                                               null)
+                    .orElse(null);
+        }
+        Objects.requireNonNull(subject);
         return ticketStore.create(UUID.randomUUID().toString(),
-                                                null,
-                                                null,
-                                                workflow.getId(),
-                                                null,
-                                                workflow.getStartStateId(),
-                                                TicketPriority.MEDIUM,
-                                                Objects.requireNonNullElse(fieldMappingResult.getData(), List.of()))
+                                  templateEngine.evaluateToText(workflow.getTitleTemplate(), data).orElse("Default"),
+                                  templateEngine.evaluateToText(workflow.getDescriptionTemplate(), data).orElse(""),
+                                  workflow.getId(),
+                                  subject.getGlobalId(),
+                                  workflow.getStartStateId(),
+                                  TicketPriority.MEDIUM,
+                                  Objects.requireNonNullElse(fieldMappingResult.getData(), List.of()))
                 .map(skeleton -> ticketDetails(skeleton, workflow));
     }
 
@@ -87,13 +108,14 @@ public class TicketManager {
                                                    skeleton.getWorkflowId(),
                                                    userStore.getById(skeleton.getTicketId()).orElse(null),
                                                    Objects.nonNull(skeleton.getAssignedToGroupId())
-                                                    ? groupStore.get(skeleton.getAssignedToGroupId()).orElse(null)
+                                                   ? groupStore.get(skeleton.getAssignedToGroupId()).orElse(null)
                                                    : null,
                                                    Objects.nonNull(skeleton.getAssignedToUserId())
-                                                    ? userStore.getById(skeleton.getAssignedToUserId()).orElse(null)
+                                                   ? userStore.getById(skeleton.getAssignedToUserId()).orElse(null)
                                                    : null,
                                                    Objects.nonNull(skeleton.getSubjectId())
-                                                    ? subjectStore.getSubjectSummary(skeleton.getSubjectId()).orElse(null)
+                                                   ? subjectStore.getSubjectSummary(skeleton.getSubjectId())
+                                                           .orElse(null)
                                                    : null,
                                                    workflow.getStates().get(skeleton.getTicketStateId()),
                                                    skeleton.getPriority(),

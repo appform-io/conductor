@@ -51,6 +51,21 @@ public class Workflow {
     private final String schemaId;
 
     /**
+     * A template to create title from payload
+     */
+    private final Template titleTemplate;
+
+    /**
+     * A template to create description from payload
+     */
+    private final Template descriptionTemplate;
+
+    /**
+     * A template to extract subject ID from payload
+     */
+    private final Template subjectIdTemplate;
+
+    /**
      * List of all states for this workflow
      */
     private final Map<String, TicketState> states;

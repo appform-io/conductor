@@ -19,6 +19,7 @@ package io.appform.conductor.server.subjectmanagement.impl;
 import io.appform.conductor.model.subject.SubjectID;
 import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.subject.SubjectIDVerificationStatus;
+import io.appform.conductor.model.subject.SubjectSummary;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
@@ -48,21 +49,21 @@ class DBSubjectStoreTest {
         val ds = new DBSubjectStore(bundle.createParentObjectDao(StoredSubjectSummary.class),
                                     bundle.createRelatedObjectDao(StoredSubjectID.class),
                                     bundle.createRelatedObjectDao(StoredAddress.class));
-        val created = ds.saveSubject(List.of(new SubjectID(SubjectIDType.PHONE,
-                                             "NA",
-                                             null,
-                                             "9999999999",
-                                             false,
-                                             SubjectIDVerificationStatus.UNVERIFIED,
-                                             false,
-                                             null,
-                                             null)),
-                       "test",
-                       "Sad Robot",
-                       new Date())
+        SubjectSummary created = ds.saveSubject(List.of(new SubjectID(SubjectIDType.PHONE,
+                                                                      "NA",
+                                                                      null,
+                                                                      "9999999999",
+                                                                      false,
+                                                                      SubjectIDVerificationStatus.UNVERIFIED,
+                                                                      false,
+                                                                      null,
+                                                                      null)),
+                                                "test",
+                                                "Sad Robot",
+                                                new Date())
                 .orElse(null);
         assertNotNull(created);
-        assertEquals(created.getSummary(), ds.lookupSummaryById(new SubjectID(SubjectIDType.PHONE,
+        assertEquals(created, ds.lookupSummaryById(new SubjectID(SubjectIDType.PHONE,
                                                          "NA",
                                                          null,
                                                          "9999999999",

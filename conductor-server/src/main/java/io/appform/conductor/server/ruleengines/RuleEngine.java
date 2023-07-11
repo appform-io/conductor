@@ -17,7 +17,10 @@
 package io.appform.conductor.server.ruleengines;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.workflow.Rule;
+import io.appform.conductor.server.utils.ConductorServerUtils;
+import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -31,14 +34,19 @@ public class RuleEngine {
     private final Map<Rule.RuleType, RuleEvaluator> engines;
 
     @Inject
-    public RuleEngine(final HopeRuleEvaluator hopeRuleEvaluator,
-                      final JsonRuleEvaluator jsonRuleEvaluator) {
+    public RuleEngine(
+            final HopeRuleEvaluator hopeRuleEvaluator,
+            final JsonRuleEvaluator jsonRuleEvaluator) {
         this.engines = Map.of(Rule.RuleType.HOPE, hopeRuleEvaluator,
                               Rule.RuleType.JSON_RULE, jsonRuleEvaluator);
     }
 
     public boolean evaluate(final Rule rule, final JsonNode payload) {
-        return engines.get(rule.getType())
-                .evaluate(rule.getRule(), payload);
+        val engine = engines.get(rule.getType());
+        ConductorServerUtils.ensureCondition(null != engine,
+                                             ConductorErrorCode.INVALID_RULE_TYPE,
+                                             Map.of("type", rule.getType()));
+        assert engine != null;
+        return engine.evaluate(rule.getRule(), payload);
     }
 }

@@ -16,10 +16,7 @@
 
 package io.appform.conductor.server.workflowmanagement;
 
-import io.appform.conductor.model.workflow.Rule;
-import io.appform.conductor.model.workflow.TicketStateTransition;
-import io.appform.conductor.model.workflow.Workflow;
-import io.appform.conductor.model.workflow.WorkflowState;
+import io.appform.conductor.model.workflow.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +26,14 @@ import java.util.function.UnaryOperator;
  *
  */
 public interface WorkflowStore {
-    Optional<Workflow> create(final String workflowId, final String name, final String description, String schemaId);
+    Optional<Workflow> create(
+            final String workflowId,
+            final String name,
+            final String description,
+            final String schemaId,
+            final Template titleTemplate,
+            final Template descriptionTemplate,
+            final Template subjectIdTemplate);
 
     Optional<Workflow> read(final String workflowId);
 

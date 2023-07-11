@@ -20,10 +20,7 @@ import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.SchemaState;
-import io.appform.conductor.model.workflow.Rule;
-import io.appform.conductor.model.workflow.TicketStateTransition;
-import io.appform.conductor.model.workflow.Workflow;
-import io.appform.conductor.model.workflow.WorkflowState;
+import io.appform.conductor.model.workflow.*;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +47,13 @@ public class WorkflowManager {
     private final WorkflowStore workflowStore;
     private final SchemaStore schemaStore;
 
-    public Optional<Workflow> create(final String name, final String description, String schemaId) {
+    public Optional<Workflow> create(
+            final String name,
+            final String description,
+            final String schemaId,
+            final Template titleTemplate,
+            final Template descriptionTemplate,
+            final Template subjectIdTemplate) {
         val schema = schemaStore.get(schemaId)
                 .filter(s -> s.getState().equals(SchemaState.ACTIVE))
                 .orElse(null);
@@ -58,7 +61,7 @@ public class WorkflowManager {
                                      ConductorErrorCode.WORKFLOW_ERROR_INVALID_ID,
                                      "No active schema found for: " + schemaId);
         val workflowId = readableId(name);
-        return workflowStore.create(workflowId, name, description, schemaId);
+        return workflowStore.create(workflowId, name, description, schemaId, titleTemplate, descriptionTemplate, subjectIdTemplate);
     }
 
     public Optional<Workflow> read(final String workflowId) {

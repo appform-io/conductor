@@ -62,7 +62,7 @@ public class DBSubjectStore implements SubjectStore {
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredSubjectSummary.SUBJECT_TABLE_NAME))
-    public Optional<Subject> saveSubject(
+    public Optional<SubjectSummary> saveSubject(
             List<SubjectID> ids,
             @Throws.RuntimeParam("id") String globalSubjectId,
             String name,
@@ -86,7 +86,7 @@ public class DBSubjectStore implements SubjectStore {
                                  .toList())
                 .execute();
         return Optional.ofNullable(savedSummary)
-                .flatMap(summary -> getSubject(summary.getGlobalId()));
+                .flatMap(summary -> getSubjectSummary(summary.getGlobalId()));
     }
 
     @Override

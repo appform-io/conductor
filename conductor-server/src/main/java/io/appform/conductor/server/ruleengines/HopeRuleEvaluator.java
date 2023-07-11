@@ -23,9 +23,12 @@ import io.appform.hope.core.Evaluatable;
 import io.appform.hope.core.exceptions.errorstrategy.InjectValueErrorHandlingStrategy;
 import io.appform.hope.lang.HopeLangEngine;
 
+import javax.inject.Singleton;
+
 /**
- * An engine that evaluates a hope rule
+ * Evaluates a hope rule and returns true or false
  */
+@Singleton
 public class HopeRuleEvaluator implements RuleEvaluator {
     private final HopeLangEngine hopeLangEngine = HopeLangEngine.builder()
             .errorHandlingStrategy(new InjectValueErrorHandlingStrategy())

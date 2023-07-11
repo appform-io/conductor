@@ -20,6 +20,7 @@ import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
+import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
@@ -68,10 +69,20 @@ class WorkflowManagerTest {
                                                 bundle.createRelatedObjectDao(StoredWorkflowSelectionRule.class));
         val wfm = new WorkflowManager(workflowStore, schemaStore);
 
-        val wf = wfm.create("Test", "Test workflow", "S1").orElse(null);
+        val wf = wfm.create("Test",
+                            "Test workflow",
+                            "S1",
+                            Template.fixed("Test ticket"),
+                            Template.fixed("Test description"),
+                            Template.fixed("{}")).orElse(null);
         assertNotNull(wf);
         try {
-            wfm.create("Test", "Test workflow", "S1");
+            wfm.create("Test",
+                       "Test workflow",
+                       "S1",
+                       Template.fixed("Test ticket"),
+                       Template.fixed("Test description"),
+                       Template.fixed("{}"));
             fail("Should have thrown as it's a duplicate entry");
         }
         catch (ConductorException e) {

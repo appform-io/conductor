@@ -28,7 +28,7 @@ import java.util.function.UnaryOperator;
  */
 public interface SubjectStore {
 
-    Optional<Subject> saveSubject(List<SubjectID> ids, String globalSubjectId, String name, Date dob);
+    Optional<SubjectSummary> saveSubject(List<SubjectID> ids, String globalSubjectId, String name, Date dob);
 
     Optional<Subject> updateSubject(String globalSubjectId, UnaryOperator<Subject> updater);
 

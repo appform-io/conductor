@@ -17,6 +17,7 @@
 package io.appform.conductor.server.workflowmanagement.impl;
 
 import io.appform.conductor.model.workflow.Rule;
+import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.model.workflow.TicketStateTransition;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
@@ -47,7 +48,13 @@ class DBWorkflowStoreTest {
                 bundle.createRelatedObjectDao(StoredTicketState.class),
                 bundle.createRelatedObjectDao(StoredTicketStateTransition.class),
                 bundle.createRelatedObjectDao(StoredWorkflowSelectionRule.class));
-        val original = ds.create("TEST_WF", "Test Workflow", "For testing", "RandomSchema")
+        val original = ds.create("TEST_WF",
+                                 "Test Workflow",
+                                 "For testing",
+                                 "RandomSchema",
+                                 Template.fixed("Test ticket"),
+                                 Template.fixed("Test description"),
+                                 Template.fixed("{}"))
                 .orElse(null);
         assertNotNull(original);
         {

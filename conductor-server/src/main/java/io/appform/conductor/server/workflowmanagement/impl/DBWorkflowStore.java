@@ -19,10 +19,7 @@ package io.appform.conductor.server.workflowmanagement.impl;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.TicketState;
-import io.appform.conductor.model.workflow.Rule;
-import io.appform.conductor.model.workflow.TicketStateTransition;
-import io.appform.conductor.model.workflow.Workflow;
-import io.appform.conductor.model.workflow.WorkflowState;
+import io.appform.conductor.model.workflow.*;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketState;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketStateTransition;
@@ -68,11 +65,18 @@ public class DBWorkflowStore implements WorkflowStore {
             @Throws.RuntimeParam("id") String workflowId,
             String name,
             String description,
-            String schemaId) {
+            String schemaId,
+            Template titleTemplate,
+            Template descriptionTemplate,
+            Template subjectIdTemplate) {
         return wfDao.save(new StoredWorkflow()
                                   .setWorkflowId(workflowId)
                                   .setDisplayName(name)
                                   .setDescription(description)
+                                  .setSchemaId(schemaId)
+                                  .setTitleTemplate(titleTemplate)
+                                  .setDescriptionTemplate(descriptionTemplate)
+                                  .setSubjectIdTemplate(subjectIdTemplate)
                                   .setState(WorkflowState.INACTIVE))
                 .map(DBWorkflowStore::toWirePartial);
     }
@@ -114,6 +118,9 @@ public class DBWorkflowStore implements WorkflowStore {
                                         wf.getDisplayName(),
                                         wf.getDescription(),
                                         wf.getSchemaId(),
+                                        wf.getTitleTemplate(),
+                                        wf.getDescriptionTemplate(),
+                                        wf.getSubjectIdTemplate(),
                                         wf.getStates(),
                                         wf.getTicketStateTransitions(),
                                         wf.getStartStateId(),
@@ -313,6 +320,9 @@ public class DBWorkflowStore implements WorkflowStore {
                             wf.getDisplayName(),
                             wf.getDescription(),
                             wf.getSchemaId(),
+                            wf.getTitleTemplate(),
+                            wf.getDescriptionTemplate(),
+                            wf.getSubjectIdTemplate(),
                             Map.of(),
                             Map.of(),
                             wf.getStartStateId(),

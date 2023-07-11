@@ -44,8 +44,11 @@ public enum ConductorErrorCode {
     TICKET_MGMT_NO_WORKFLOW(4001, "No workflow found for given payload"),
     TICKET_MGMT_NO_SCHEMA(4002, "No active schema found for ${workflowId}/${schemaId}"),
     TICKET_SCHEMA_VALIDATION_FAILURE(4003, "There are schema validation failures."),
+    TICKET_SUBJECT_ID_EXTRACTION_FAILURE(4004, "Could not extract subject id from payload."),
 
     DATA_FORMAT_ERROR(5001, "Error reading data. Format error. Conversion to: ${type}. Content: ${content}"),
+    INVALID_RULE_TYPE(5002, "Unsupported rule type ${ruleType}"),
+    INVALID_TEMPLATE_TYPE(5003, "Unsupported template type ${templateType}"),
     ;
 
     private final int errorCode;

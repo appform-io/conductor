@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.workflow;
+package io.appform.conductor.server.templateengines;
 
-import lombok.Value;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.appform.conductor.model.workflow.Template;
 
-import java.io.Serial;
-import java.io.Serializable;
+import java.util.Optional;
 
 /**
- * Definition for a rule
+ * An interface to generate text from JSON payload
  */
-@Value
-public class Rule implements Serializable {
-    @Serial
-    private static final long serialVersionUID = -1543158608669117711L;
+public interface ObjectTemplateEvaluator {
 
-    public enum RuleType {
-        JSON_RULE,
-        HOPE
-    }
-    RuleType type;
-    String rule;
+    <T> Optional<T> evaluate(
+            final Template template,
+            final JsonNode payload,
+            final Class<T> clazz);
 }

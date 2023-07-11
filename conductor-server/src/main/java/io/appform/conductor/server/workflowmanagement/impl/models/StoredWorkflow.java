@@ -18,8 +18,10 @@ package io.appform.conductor.server.workflowmanagement.impl.models;
 
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.workflow.Rule;
+import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.model.workflow.TicketStateTransition;
 import io.appform.conductor.model.workflow.WorkflowState;
+import io.appform.conductor.server.utils.persistence.TemplateConverter;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
@@ -67,6 +69,18 @@ public class StoredWorkflow implements Serializable {
 
     @Column(name = "schema_id")
     private String schemaId;
+
+    @Convert(converter = TemplateConverter.class)
+    @Column(name = "title_template")
+    private Template titleTemplate;
+
+    @Convert(converter = TemplateConverter.class)
+    @Column(name = "description_template")
+    private Template descriptionTemplate;
+
+    @Convert(converter = TemplateConverter.class)
+    @Column(name = "subject_id_template")
+    private Template subjectIdTemplate;
 
     @Column(name = "start_state_id")
     private String startStateId;

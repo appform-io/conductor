@@ -14,34 +14,29 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ruleengines;
+package io.appform.conductor.server.templateengines;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
-import io.appform.jsonrules.Expression;
+import io.appform.conductor.model.workflow.Template;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Objects;
+import java.util.Optional;
 
 /**
- * Evaluates a json-rule and returns true or false
+ *
  */
 @Singleton
-public class JsonRuleEvaluator implements RuleEvaluator {
-    private final LoadingCache<String, Expression> ruleCache;
-
-    public JsonRuleEvaluator(ObjectMapper mapper) {
-        this.ruleCache = Caffeine.newBuilder()
-                .maximumSize(100_000)
-                .build(ruleString -> mapper.readValue(ruleString, Expression.class));
-    }
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
+public class FixedObjectTemplateEvaluator implements ObjectTemplateEvaluator {
+    private final ObjectMapper mapper;
 
     @Override
     @SneakyThrows
-    public boolean evaluate(String rule, JsonNode data) {
-        return Objects.requireNonNull(ruleCache.get(rule)).evaluate(data);
+    public <T> Optional<T> evaluate(Template template, JsonNode payload, Class<T> clazz) {
+        return Optional.of(mapper.treeToValue(payload, clazz));
     }
 }

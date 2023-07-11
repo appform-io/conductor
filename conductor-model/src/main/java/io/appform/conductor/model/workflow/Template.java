@@ -16,18 +16,47 @@
 
 package io.appform.conductor.model.workflow;
 
+import lombok.Getter;
 import lombok.Value;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.Set;
 
 /**
  * Represents a template that needs to be evaluated
  */
 @Value
-public class Template {
+public class Template implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 4389146888753490928L;
+
     public enum Type {
-        HANDLEBARS,
-        STRING_SUBSTITUTION
+        FIXED(Set.of(OutputType.TEXT, OutputType.OBJECT)),
+        HANDLEBARS(Set.of(OutputType.TEXT)),
+        STRING_SUBSTITUTION(Set.of(OutputType.TEXT)),
+
+        JSON_TEMPLATE(Set.of(OutputType.OBJECT))
+        ;
+
+        @Getter
+        private final Set<OutputType> outputTypes;
+
+        Type(Set<OutputType> outputTypes) {
+            this.outputTypes = outputTypes;
+        }
+    }
+
+    public enum OutputType {
+        TEXT,
+        OBJECT
     }
 
     Type type;
     String template;
+
+    public static Template fixed(String template) {
+        return new Template(Type.FIXED, template);
+    }
 }

@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.workflow;
+package io.appform.conductor.server.templateengines;
 
-import lombok.Value;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.appform.conductor.model.workflow.Template;
+import lombok.SneakyThrows;
 
-import java.io.Serial;
-import java.io.Serializable;
+import javax.inject.Singleton;
+import java.util.Optional;
 
 /**
- * Definition for a rule
+ *
  */
-@Value
-public class Rule implements Serializable {
-    @Serial
-    private static final long serialVersionUID = -1543158608669117711L;
+@Singleton
+public class FixedTextTemplateEvaluator implements TextTemplateEvaluator {
 
-    public enum RuleType {
-        JSON_RULE,
-        HOPE
+    @Override
+    @SneakyThrows
+    public Optional<String> evaluate(Template template, JsonNode payload) {
+        return Optional.of(template.getTemplate());
     }
-    RuleType type;
-    String rule;
 }
