@@ -31,11 +31,12 @@ class DBActionStoreTest {
     @Test
     void testCreate(BalancedDBShardingBundle<TestConfig> bundle) {
         val actionStore = new DBActionStore(createRealActionLookupDao(bundle));
-        val createdAction = actionStore.save(new AddTicketAction()
-                        .setActionId("NewAddTicketAction")
-                        .setId("TestAddTicketAction1")
-                        .setName("TestingNameAddTicketAction")
-                        .setDescription("Testing description for AddTicketAction"))
+        val createdAction = actionStore.save(AddTicketAction.builder()
+                        .actionId("NewAddTicketAction")
+                        .id("TestAddTicketAction1")
+                        .name("TestingNameAddTicketAction")
+                        .description("Testing description for AddTicketAction")
+                        .build())
                 .orElse(null);
         assertNotNull(createdAction);
         assertEquals("TestAddTicketAction1", createdAction.getId());
@@ -45,11 +46,12 @@ class DBActionStoreTest {
     @Test
     void testRead(BalancedDBShardingBundle<TestConfig> bundle) {
         val actionStore = new DBActionStore(createRealActionLookupDao(bundle));
-        val createdAction = actionStore.save(new AddCommentAction()
-                        .setContentTemplate(new Template(Template.Type.HANDLEBARS, "CommentTemplate"))
-                        .setId("TestAddCommentAction1")
-                        .setName("TestingNameAddCommentAction")
-                        .setDescription("Testing description for AddCommentAction"))
+        val createdAction = actionStore.save(AddCommentAction.builder()
+                        .contentTemplate(new Template(Template.Type.HANDLEBARS, "CommentTemplate"))
+                        .id("TestAddCommentAction1")
+                        .name("TestingNameAddCommentAction")
+                        .description("Testing description for AddCommentAction")
+                        .build())
                 .orElse(null);
         assertNotNull(createdAction);
         assertEquals("TestAddCommentAction1", createdAction.getId());
@@ -70,11 +72,12 @@ class DBActionStoreTest {
         val actionStore = new DBActionStore(actionLookupDao);
         doThrow(NullPointerException.class).when(actionLookupDao).save(any());
         try {
-            actionStore.save(new AddTicketAction()
-                    .setActionId("NewTicketActionId")
-                    .setId("TestNormalActionId1")
-                    .setName("TestingName")
-                    .setDescription("Testing description"));
+            actionStore.save(AddTicketAction.builder()
+                    .actionId("NewTicketActionId")
+                    .id("TestNormalActionId1")
+                    .name("TestingName")
+                    .description("Testing description")
+                    .build());
             fail("Should have thrown exception.");
         } catch (Exception e) {
             assertTrue(e instanceof ConductorException);

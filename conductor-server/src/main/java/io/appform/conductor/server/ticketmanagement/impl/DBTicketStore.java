@@ -290,7 +290,7 @@ public class DBTicketStore implements TicketStore {
     private static TicketField toWireField(final StoredFieldValue value) {
         return  new TicketField(value.getStoredEmbeddedFieldValue().getType(),
                                          value.getSchemaFieldId(),
-                                         value.getStoredEmbeddedFieldValue().getFieldValue(),
+                                         value.getStoredEmbeddedFieldValue().toFieldValue(),
                                          value.getCreated(),
                                          value.getUpdated());
     }

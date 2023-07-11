@@ -21,12 +21,13 @@ import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import lombok.*;
 
+import java.util.Date;
+
 
 /**
  * Add an {@link Action} to the ticket. Action must have been pre-configured in the system.
  */
-@Getter
-@Setter
+@Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class AddTicketAction extends Action {
@@ -37,8 +38,15 @@ public class AddTicketAction extends Action {
      */
     String actionId;
 
-    public AddTicketAction() {
-        super(ActionType.ADD_TICKET_ACTION);
+    @Builder
+    public AddTicketAction(String id,
+                           String name,
+                           String description,
+                           Date created,
+                           Date updated,
+                           String actionId) {
+        super(ActionType.ADD_TICKET_ACTION, id, name, description, created, updated);
+        this.actionId = actionId;
     }
 
     @Override

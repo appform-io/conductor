@@ -19,20 +19,32 @@ package io.appform.conductor.model.actions.impl;
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.Value;
+
+import java.util.Date;
 
 /**
  * Change ticket assignment and move it to the specified {@link Group}
  */
-@Getter
-@Setter
+@Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class RouteToGroupAction extends Action {
     String groupId;
 
-    public RouteToGroupAction() {
-        super(ActionType.ROUTE_TO_GROUP);
+    @Builder
+    public RouteToGroupAction(
+            String id,
+            String name,
+            String description,
+            Date created,
+            Date updated,
+            String groupId) {
+        super(ActionType.ROUTE_TO_GROUP, id, name, description, created, updated);
+        this.groupId = groupId;
     }
 
     @Override

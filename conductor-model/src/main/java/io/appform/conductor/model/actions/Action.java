@@ -16,9 +16,7 @@
 
 package io.appform.conductor.model.actions;
 
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Date;
 
@@ -26,7 +24,6 @@ import java.util.Date;
  * An action that can be taken as a transition
  */
 @Data
-@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class Action {
 
 
@@ -38,27 +35,27 @@ public abstract class Action {
     /**
      * Global ID for the action
      */
-    private String id;
+    private final String id;
 
     /**
      * Human-readable name for the action
      */
-    private String name;
+    private final String name;
 
     /**
      * Human-readable description of what the action does
      */
-    private String description;
+    private final String description;
 
     /**
      * Date when action was created
      */
-    private Date created;
+    private final Date created;
 
     /**
      * Date when action was last updated
      */
-    private Date updated;
+    private final Date updated;
 
     /**
      * Accept and execute an implementation of {@link ActionVisitor} to operate on subtypes

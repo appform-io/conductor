@@ -20,22 +20,33 @@ import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.ticket.TicketPriority;
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.Value;
 
+import java.util.Date;
 
 /**
  * Change ticket priority to the specified one.
  * Please check {@link io.appform.conductor.model.ticket.TicketPriority} to understand more.
  */
-@Getter
-@Setter
+@Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class ChangePriorityAction extends Action {
     TicketPriority priority;
 
-    public ChangePriorityAction() {
-        super(ActionType.CHANGE_PRIORITY);
+    @Builder
+    public ChangePriorityAction(
+            String id,
+            String name,
+            String description,
+            Date created,
+            Date updated,
+            TicketPriority priority) {
+        super(ActionType.CHANGE_PRIORITY, id, name, description, created, updated);
+        this.priority = priority;
     }
 
     @Override

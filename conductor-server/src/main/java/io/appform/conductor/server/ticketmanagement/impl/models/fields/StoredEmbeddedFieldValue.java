@@ -98,7 +98,7 @@ public class StoredEmbeddedFieldValue implements Serializable {
         });
     }
 
-    public FieldValue getFieldValue() {
+    public FieldValue toFieldValue() {
         return switch (getType()) {
             case STRING -> new StringFieldValue(getStringValue());
             case CHOICE -> new ChoiceFieldValue(getChoiceValue());

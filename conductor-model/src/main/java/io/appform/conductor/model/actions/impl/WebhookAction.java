@@ -20,16 +20,19 @@ import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.workflow.Template;
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.Value;
 
+import java.util.Date;
 import java.util.Set;
 
 /**
  * Call an external or internal endpoint when this happens. The actual url
  * and payload for the body are constructed using templates.
  */
-@Getter
-@Setter
+@Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class WebhookAction extends Action {
@@ -115,8 +118,32 @@ public class WebhookAction extends Action {
      */
     int numRetries;
 
-    public WebhookAction() {
-        super(ActionType.WEBHOOK);
+    @Builder
+    public WebhookAction(
+            String id,
+            String name,
+            String description,
+            Date created,
+            Date updated,
+            Template urlTemplate,
+            CallType callType,
+            Template payloadTemplate,
+            String mimeType,
+            Template headersTemplate,
+            Set<Integer> successCodes, CallMode callMode,
+            int timeoutMs,
+            RetryStrategy retryStrategy, int numRetries) {
+        super(ActionType.WEBHOOK, id, name, description, created, updated);
+        this.urlTemplate = urlTemplate;
+        this.callType = callType;
+        this.payloadTemplate = payloadTemplate;
+        this.mimeType = mimeType;
+        this.headersTemplate = headersTemplate;
+        this.successCodes = successCodes;
+        this.callMode = callMode;
+        this.timeoutMs = timeoutMs;
+        this.retryStrategy = retryStrategy;
+        this.numRetries = numRetries;
     }
 
     @Override

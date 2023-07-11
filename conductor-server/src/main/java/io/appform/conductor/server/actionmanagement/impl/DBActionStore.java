@@ -12,6 +12,7 @@ import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -49,7 +50,7 @@ public class DBActionStore implements ActionStore {
     }
 
     private StoredAction toStored(Action action) {
-        return action.accept(new ActionVisitor<StoredAction>() {
+        val storedAction =   action.accept(new ActionVisitor<StoredAction>() {
 
             @Override
             public StoredAction visit(WebhookAction webhookAction) {
@@ -66,143 +67,140 @@ public class DBActionStore implements ActionStore {
                         .setMimeType(webhookAction.getMimeType())
                         .setTimeoutMs(webhookAction.getTimeoutMs())
                         .setRetryStrategy(webhookAction.getRetryStrategy())
-                        .setNumRetries(webhookAction.getNumRetries())
-                        .setActionId(webhookAction.getId())
-                        .setName(webhookAction.getName())
-                        .setDescription(webhookAction.getDescription());
+                        .setNumRetries(webhookAction.getNumRetries());
             }
 
             @Override
             public StoredAction visit(RouteToGroupAction routeToGroupAction) {
                 return new StoredRouteToGroupAction()
-                        .setGroupId(routeToGroupAction.getGroupId())
-                        .setActionId(routeToGroupAction.getId())
-                        .setName(routeToGroupAction.getName())
-                        .setDescription(routeToGroupAction.getDescription());
+                        .setGroupId(routeToGroupAction.getGroupId());
             }
 
             @Override
             public StoredAction visit(AddCommentAction addCommentAction) {
                 return new StoredAddCommentAction()
                         .setContentTemplateType(addCommentAction.getContentTemplate().getType())
-                        .setContentTemplate(addCommentAction.getContentTemplate().getTemplate())
-                        .setActionId(addCommentAction.getId())
-                        .setName(addCommentAction.getName())
-                        .setDescription(addCommentAction.getDescription());
+                        .setContentTemplate(addCommentAction.getContentTemplate().getTemplate());
             }
 
             @Override
             public StoredAction visit(AddTicketAction addTicketAction) {
                 return new StoredAddTicketAction()
-                        .setTicketActionId(addTicketAction.getActionId())
-                        .setActionId(addTicketAction.getId())
-                        .setName(addTicketAction.getName())
-                        .setDescription(addTicketAction.getDescription());
+                        .setTicketActionId(addTicketAction.getActionId());
 
             }
 
             @Override
             public StoredAction visit(ChangePriorityAction changePriorityAction) {
                 return new StoredChangePriorityAction()
-                        .setPriority(changePriorityAction.getPriority())
-                        .setActionId(changePriorityAction.getId())
-                        .setName(changePriorityAction.getName())
-                        .setDescription(changePriorityAction.getDescription());
+                        .setPriority(changePriorityAction.getPriority());
             }
 
             @Override
             public StoredAction visit(SetFieldAction setFieldAction) {
                 return new StoredSetFieldAction()
                         .setFieldSchemaId(setFieldAction.getFieldSchemaId())
-                        .setStoredFieldValue(new StoredEmbeddedFieldValue(setFieldAction.getFieldValue()))
-                        .setActionId(setFieldAction.getId())
-                        .setName(setFieldAction.getName())
-                        .setDescription(setFieldAction.getDescription());
+                        .setStoredFieldValue(new StoredEmbeddedFieldValue(setFieldAction.getFieldValue()));
 
             }
         });
+
+        storedAction.setActionId(action.getId())
+                .setName(action.getName())
+                .setDescription(action.getDescription());
+
+        return storedAction;
     }
 
     private Action toWired(StoredAction storedAction) {
         return storedAction.accept(new StoredActionVisitor<Action>() {
             @Override
             public Action visit(StoredSetFieldAction storedSetFieldAction) {
-                return new SetFieldAction()
-                        .setFieldSchemaId(storedSetFieldAction.getFieldSchemaId())
-                        .setFieldValue(storedSetFieldAction.getStoredFieldValue().getFieldValue())
-                        .setId(storedSetFieldAction.getActionId())
-                        .setName(storedSetFieldAction.getName())
-                        .setDescription(storedSetFieldAction.getDescription())
-                        .setCreated(storedSetFieldAction.getCreated())
-                        .setUpdated(storedSetFieldAction.getUpdated());
+                return SetFieldAction.builder()
+                        .id(storedSetFieldAction.getActionId())
+                        .name(storedSetFieldAction.getName())
+                        .description(storedSetFieldAction.getDescription())
+                        .fieldSchemaId(storedSetFieldAction.getFieldSchemaId())
+                        .fieldValue(storedSetFieldAction.getStoredFieldValue().toFieldValue())
+                        .created(storedSetFieldAction.getCreated())
+                        .updated(storedSetFieldAction.getUpdated())
+                        .build();
             }
 
             @Override
             public Action visit(StoredAddCommentAction storedAddCommentAction) {
-                return new AddCommentAction()
-                        .setContentTemplate(new Template(storedAddCommentAction.getContentTemplateType(),
+                return AddCommentAction.builder()
+                        .id(storedAddCommentAction.getActionId())
+                        .name(storedAddCommentAction.getName())
+                        .description(storedAddCommentAction.getDescription())
+                        .contentTemplate(new Template(storedAddCommentAction.getContentTemplateType(),
                                 storedAddCommentAction.getContentTemplate()))
-                        .setId(storedAddCommentAction.getActionId())
-                        .setName(storedAddCommentAction.getName())
-                        .setDescription(storedAddCommentAction.getDescription())
-                        .setCreated(storedAddCommentAction.getCreated())
-                        .setUpdated(storedAddCommentAction.getUpdated());
+                        .created(storedAddCommentAction.getCreated())
+                        .updated(storedAddCommentAction.getUpdated())
+                        .build();
             }
 
             @Override
             public Action visit(StoredAddTicketAction storedAddTicketAction) {
-                return new AddTicketAction()
-                        .setActionId(storedAddTicketAction.getTicketActionId())
-                        .setId(storedAddTicketAction.getActionId())
-                        .setName(storedAddTicketAction.getName())
-                        .setDescription(storedAddTicketAction.getDescription())
-                        .setCreated(storedAddTicketAction.getCreated())
-                        .setUpdated(storedAddTicketAction.getUpdated());
+                return AddTicketAction.builder()
+                        .id(storedAddTicketAction.getActionId())
+                        .name(storedAddTicketAction.getName())
+                        .description(storedAddTicketAction.getDescription())
+                        .actionId(storedAddTicketAction.getTicketActionId())
+                        .created(storedAddTicketAction.getCreated())
+                        .updated(storedAddTicketAction.getUpdated())
+                        .build();
             }
 
             @Override
             public Action visit(StoredChangePriorityAction storedChangePriorityAction) {
-                return new ChangePriorityAction()
-                        .setPriority(storedChangePriorityAction.getPriority())
-                        .setId(storedChangePriorityAction.getActionId())
-                        .setName(storedChangePriorityAction.getName())
-                        .setDescription(storedChangePriorityAction.getDescription())
-                        .setCreated(storedChangePriorityAction.getCreated())
-                        .setUpdated(storedChangePriorityAction.getUpdated());
+                return ChangePriorityAction.builder()
+                        .id(storedChangePriorityAction.getActionId())
+                        .name(storedChangePriorityAction.getName())
+                        .description(storedChangePriorityAction.getDescription())
+                        .priority(storedChangePriorityAction.getPriority())
+                        .created(storedChangePriorityAction.getCreated())
+                        .updated(storedChangePriorityAction.getUpdated())
+                        .build();
             }
 
             @Override
             public Action visit(StoredRouteToGroupAction storedRouteToGroupAction) {
-                return new RouteToGroupAction()
-                        .setGroupId(storedRouteToGroupAction.getGroupId())
-                        .setId(storedRouteToGroupAction.getActionId())
-                        .setName(storedRouteToGroupAction.getName())
-                        .setDescription(storedRouteToGroupAction.getDescription())
-                        .setCreated(storedRouteToGroupAction.getCreated())
-                        .setUpdated(storedRouteToGroupAction.getUpdated());
+                return RouteToGroupAction.builder()
+                        .id(storedRouteToGroupAction.getActionId())
+                        .name(storedRouteToGroupAction.getName())
+                        .description(storedRouteToGroupAction.getDescription())
+                        .groupId(storedRouteToGroupAction.getGroupId())
+                        .created(storedRouteToGroupAction.getCreated())
+                        .updated(storedRouteToGroupAction.getUpdated())
+                        .build();
             }
 
             @Override
             public Action visit(StoredWebhookAction storedWebhookAction) {
-                return new WebhookAction()
-                        .setCallType(storedWebhookAction.getCallType())
-                        .setCallMode(storedWebhookAction.getCallMode())
-                        .setUrlTemplate(new Template(storedWebhookAction.getUrlTemplateType(),
+                return WebhookAction.builder()
+                        .id(storedWebhookAction.getActionId())
+                        .name(storedWebhookAction.getName())
+                        .description(storedWebhookAction.getDescription())
+                        .callType(storedWebhookAction.getCallType())
+                        .callMode(storedWebhookAction.getCallMode())
+                        .urlTemplate(new Template(storedWebhookAction.getUrlTemplateType(),
                                 storedWebhookAction.getUrlTemplate()))
-                        .setHeadersTemplate(new Template(storedWebhookAction.getHeadersTemplateType(),
+                        .headersTemplate(new Template(storedWebhookAction.getHeadersTemplateType(),
                                 storedWebhookAction.getHeadersTemplate()))
-                        .setPayloadTemplate(new Template(storedWebhookAction.getPayloadTemplateType(),
+                        .payloadTemplate(new Template(storedWebhookAction.getPayloadTemplateType(),
                                 storedWebhookAction.getPayloadTemplate()))
-                        .setSuccessCodes(storedWebhookAction.getSuccessCodes())
-                        .setMimeType(storedWebhookAction.getMimeType())
-                        .setTimeoutMs(storedWebhookAction.getTimeoutMs())
-                        .setRetryStrategy(storedWebhookAction.getRetryStrategy())
-                        .setNumRetries(storedWebhookAction.getNumRetries())
-                        .setId(storedWebhookAction.getActionId())
-                        .setName(storedWebhookAction.getName())
-                        .setDescription(storedWebhookAction.getDescription())
-                        .setCreated(storedWebhookAction.getCreated())
-                        .setUpdated(storedWebhookAction.getUpdated());
+                        .successCodes(storedWebhookAction.getSuccessCodes())
+                        .mimeType(storedWebhookAction.getMimeType())
+                        .timeoutMs(storedWebhookAction.getTimeoutMs())
+                        .retryStrategy(storedWebhookAction.getRetryStrategy())
+                        .numRetries(storedWebhookAction.getNumRetries())
+                        .id(storedWebhookAction.getActionId())
+                        .name(storedWebhookAction.getName())
+                        .description(storedWebhookAction.getDescription())
+                        .created(storedWebhookAction.getCreated())
+                        .updated(storedWebhookAction.getUpdated())
+                        .build();
             }
         });
     }
