@@ -18,6 +18,7 @@ package io.appform.conductor.server.ticketmanagement.impl.models.fields;
 
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
+import io.appform.conductor.server.utils.persistence.StringListConverter;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
@@ -78,7 +79,7 @@ public class StoredFieldValue implements Serializable {
     private double locationLonValue;
 
     @Column(name = "choices_value")
-    @Convert(converter = ChoicesStringConverter.class)
+    @Convert(converter = StringListConverter.class)
     private List<String> choiceValue;
 
     @Column(name = "date_value")

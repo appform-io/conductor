@@ -19,6 +19,7 @@ package io.appform.conductor.server.workflowmanagement.impl.models;
 import io.appform.conductor.model.workflow.Rule;
 import io.appform.conductor.model.workflow.TicketStateTransition;
 import io.appform.conductor.server.utils.persistence.RuleConverter;
+import io.appform.conductor.server.utils.persistence.StringListConverter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -31,6 +32,7 @@ import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -70,8 +72,9 @@ public class StoredTicketStateTransition implements Serializable {
     @Column(name = "rule")
     private Rule rule;
 
+    @Convert(converter = StringListConverter.class)
     @Column(name = "action_id")
-    private String actionId;
+    private List<String> actionIds;
 
     @Column
     private boolean deleted;

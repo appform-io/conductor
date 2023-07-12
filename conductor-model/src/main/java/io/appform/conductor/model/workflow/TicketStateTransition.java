@@ -19,6 +19,7 @@ package io.appform.conductor.model.workflow;
 import lombok.Value;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * A defined state transition in a workflow
@@ -68,9 +69,9 @@ public class TicketStateTransition {
     Rule rule;
 
     /**
-     * Action to be performed when the transition is successful
+     * Actions to be performed when the transition is successful
      */
-    String actionId;
+    List<String> actionIds;
 
     /**
      * Creation date for the transition

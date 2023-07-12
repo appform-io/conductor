@@ -24,6 +24,7 @@ import io.appform.conductor.model.ticket.filter.TicketFilter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.UnaryOperator;
 
 /**
  * A place to store {@link io.appform.conductor.model.ticket.TicketSummary}
@@ -41,6 +42,11 @@ public interface TicketStore {
             final List<TicketFieldData> fields);
 
     Optional<TicketSkeleton> read(String ticketId, boolean readFields);
+
+    Optional<TicketSkeleton> update(
+            final String ticketId,
+            final UnaryOperator<TicketSkeleton> updater,
+            final List<TicketFieldData> fields);
 
     Optional<TicketSkeleton> update(
             final String ticketId,

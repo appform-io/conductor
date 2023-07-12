@@ -41,6 +41,6 @@ public class StringSubstitutionTextTemplateEvaluator implements TextTemplateEval
     @SneakyThrows
     public Optional<String> evaluate(Template template, JsonNode payload) {
         return Optional.of(StringSubstitutor.replace(
-                template.getTemplate(), mapper.convertValue(payload, new TypeReference<Map<String, Object>>() {})));
+                template.getTemplate(), mapper.convertValue(payload, new TypeReference<Map<String, String>>() {})));
     }
 }

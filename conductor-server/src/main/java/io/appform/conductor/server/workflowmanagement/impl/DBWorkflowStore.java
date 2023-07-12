@@ -230,7 +230,7 @@ public class DBWorkflowStore implements WorkflowStore {
             String to,
             TicketStateTransition.TicketStateTransitionType type,
             Rule rule,
-            String actionId) {
+            List<String> actionIds) {
         val updated = wfDao.lockAndGetExecutor(workflowId)
                 .createOrUpdate(tstrnDao,
                                 createCriteria(StoredTicketStateTransition.class, workflowId)
@@ -238,7 +238,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                 existing -> existing
                                         .setType(type)
                                         .setRule(rule)
-                                        .setActionId(actionId),
+                                        .setActionIds(actionIds),
                                 () -> new StoredTicketStateTransition()
                                         .setWorkflowId(workflowId)
                                         .setExtId(transitionId)
@@ -246,7 +246,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                         .setToState(to)
                                         .setType(type)
                                         .setRule(rule)
-                                        .setActionId(actionId))
+                                        .setActionIds(actionIds))
                 .execute() != null;
         log.info("State transition create status for {}/{}: {}", workflowId, transitionId, updated);
         return read(workflowId);
@@ -355,7 +355,7 @@ public class DBWorkflowStore implements WorkflowStore {
                 state.getToState(),
                 state.getType(),
                 state.getRule(),
-                state.getActionId(),
+                state.getActionIds(),
                 state.getCreated(),
                 state.getUpdated());
     }

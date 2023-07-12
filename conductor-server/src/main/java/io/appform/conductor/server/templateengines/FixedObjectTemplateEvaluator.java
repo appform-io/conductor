@@ -37,6 +37,6 @@ public class FixedObjectTemplateEvaluator implements ObjectTemplateEvaluator {
     @Override
     @SneakyThrows
     public <T> Optional<T> evaluate(Template template, JsonNode payload, Class<T> clazz) {
-        return Optional.of(mapper.treeToValue(payload, clazz));
+        return Optional.of(mapper.readValue(template.getTemplate(), clazz));
     }
 }

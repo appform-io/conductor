@@ -159,7 +159,7 @@ public class WorkflowManager {
             String to,
             TicketStateTransition.TicketStateTransitionType type,
             Rule rule,
-            String actionId) {
+            List<String> actionIds) {
         val wf = workflowStore.read(workflowId).orElse(null);
         ensureNotNull(workflowId, wf);
         val fromState = wf.getStates().get(from);
@@ -181,7 +181,7 @@ public class WorkflowManager {
                                                              to,
                                                              type,
                                                              rule,
-                                                             actionId);
+                                                             actionIds);
         ensure(updated.filter(workflow -> workflow.getTicketStateTransitions()
                                .getOrDefault(from, List.of())
                                .stream()
@@ -211,7 +211,7 @@ public class WorkflowManager {
                                                                   existing.getTo(),
                                                                   type,
                                                                   rule,
-                                                                  existing.getActionId());
+                                                                  existing.getActionIds());
                 });
     }
 
@@ -232,7 +232,7 @@ public class WorkflowManager {
                                                                   existing.getTo(),
                                                                   existing.getType(),
                                                                   rule,
-                                                                  existing.getActionId());
+                                                                  existing.getActionIds());
                 });
 
     }
@@ -240,7 +240,7 @@ public class WorkflowManager {
     public Optional<Workflow> updateTransitionAction(
             String workflowId,
             String transitionId,
-            String actionId) {
+            List<String> actionIds) {
         return handleTransition(
                 workflowId,
                 transitionId,
@@ -250,7 +250,7 @@ public class WorkflowManager {
                                                                                existing.getTo(),
                                                                                existing.getType(),
                                                                                existing.getRule(),
-                                                                               actionId));
+                                                                               actionIds));
 
     }
 

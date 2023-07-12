@@ -18,6 +18,7 @@ package io.appform.conductor.server.utils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
@@ -25,11 +26,20 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
+import io.appform.conductor.model.schema.FieldSchema;
+import io.appform.conductor.model.schema.Schema;
+import io.appform.conductor.model.ticket.TicketDetails;
+import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
+import io.appform.conductor.model.ticket.fields.TicketField;
+import io.appform.conductor.model.ticket.fields.impl.*;
 import io.appform.conductor.server.usermanagement.CurrentUserSessionStore;
 import lombok.experimental.UtilityClass;
 import lombok.val;
 
+import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -102,6 +112,14 @@ public class ConductorServerUtils {
         logicalError(errorCode, Map.of());
     }
 
+    public static void ensureNonNull(@Nullable final Object testObject, ConductorErrorCode errorCode) {
+        ensureNonNull(testObject, errorCode, Map.of());
+    }
+
+    public static void ensureNonNull(@Nullable final Object testObject, ConductorErrorCode errorCode, Map<String, Object> context) {
+        ensureCondition(null != testObject, errorCode, context);
+    }
+
     public static void ensureCondition(boolean condition, ConductorErrorCode errorCode, Map<String, Object> context) {
         if (!condition) {
             logicalError(errorCode, context);
@@ -118,5 +136,67 @@ public class ConductorServerUtils {
 
     public static <T> List<T> joinLists(List<T>... lists) {
         return Arrays.stream(lists).flatMap(Collection::stream).toList();
+    }
+
+    public static JsonNode ticketToJsonNode(
+            final ObjectMapper mapper,
+            final TicketDetails ticket,
+            final Schema schema) {
+        val fieldSchemaMap = schema.getFields().stream().collect(Collectors.toUnmodifiableMap(FieldSchema::getId,
+                                                                                              Function.identity()));
+        val node = mapper.createObjectNode();
+        node.set("summary", mapper.valueToTree(ticket.getSummary()));
+        val fields = mapper.createObjectNode();
+        node.set("fields", fields);
+        ticket.getFields()
+                .forEach(field -> fields.set(fieldSchemaMap.get(field.getFieldSchemaId()).getName(),
+                                             mapValueToJsonNode(mapper, field)));
+        return node;
+    }
+
+    public static JsonNode mapValueToJsonNode(ObjectMapper mapper, TicketField field) {
+        return field.getFieldValue().accept(new FieldValueVisitor<>() {
+            @Override
+            public JsonNode visit(StringFieldValue stringFieldValue) {
+                return mapper.createObjectNode()
+                        .textNode(stringFieldValue.getValue());
+            }
+
+            @Override
+            public JsonNode visit(ChoiceFieldValue choiceFieldValue) {
+                val choices = mapper.createArrayNode();
+                Objects.requireNonNullElse(choiceFieldValue.getValue(), List.<String>of())
+                        .forEach(choices::add);
+                return choices;
+            }
+
+            @Override
+            public JsonNode visit(BooleanFieldValue booleanFieldValue) {
+                return mapper.createObjectNode()
+                        .booleanNode(booleanFieldValue.isValue());
+            }
+
+            @Override
+            public JsonNode visit(NumberFieldValue numberFieldValue) {
+                return mapper.createObjectNode()
+                        .numberNode(numberFieldValue.getValue());
+            }
+
+            @Override
+            public JsonNode visit(LocationFieldValue locationFieldValue) {
+                val loc = mapper.createObjectNode();
+                loc.set("lat", mapper.createObjectNode().numberNode(locationFieldValue.getLat()));
+                loc.set("lon", mapper.createObjectNode().numberNode(locationFieldValue.getLon()));
+                return loc;
+            }
+
+            @Override
+            public JsonNode visit(DateFieldValue dateFieldValue) {
+                return mapper.createObjectNode()
+                        .numberNode(dateFieldValue.getValue()
+                                            .toInstant()
+                                            .toEpochMilli());
+            }
+        });
     }
 }

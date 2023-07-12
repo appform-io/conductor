@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ticketmanagement.impl.models.fields;
+package io.appform.conductor.server.ticketmanagement;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
-import java.util.Arrays;
+import io.appform.conductor.model.ticket.TicketDetails;
+import lombok.Value;
+
 import java.util.List;
-import java.util.Objects;
 
 /**
  *
  */
-@Converter
-public class ChoicesStringConverter implements AttributeConverter<List<String>, String> {
-    @Override
-    public String convertToDatabaseColumn(List<String> attribute) {
-        return null == attribute ? "" : String.join(",", attribute);
-    }
-
-    @Override
-    public List<String> convertToEntityAttribute(String dbData) {
-        return Arrays.asList(Objects.requireNonNullElse(dbData, "").split(","));
-    }
+@Value
+public final class EvaluationData {
+    TicketDetails ticket;
+    List<TicketFieldData> newFieldValues;
 }

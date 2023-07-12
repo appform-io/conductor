@@ -45,6 +45,10 @@ public enum ConductorErrorCode {
     TICKET_MGMT_NO_SCHEMA(4002, "No active schema found for ${workflowId}/${schemaId}"),
     TICKET_SCHEMA_VALIDATION_FAILURE(4003, "There are schema validation failures."),
     TICKET_SUBJECT_ID_EXTRACTION_FAILURE(4004, "Could not extract subject id from payload."),
+    TICKET_NO_TRANSITION(4005, "Could not find any transition for ticket ${ticketId}." +
+            " Workflow: ${workflow}. Current state: ${state}"),
+    TICKET_MGMT_NO_ACTION(4006, "No action found for ${ticketId}/$workflowId}/${actionId}"),
+
 
     DATA_FORMAT_ERROR(5001, "Error reading data. Format error. Conversion to: ${type}. Content: ${content}"),
     INVALID_RULE_TYPE(5002, "Unsupported rule type ${ruleType}"),

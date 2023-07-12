@@ -45,17 +45,17 @@ import java.util.stream.StreamSupport;
 public class TicketFieldMapper {
 
     public SchemaOpValidationResult<List<TicketFieldData>> map(final Schema schema, final JsonNode data) {
-        val fields = data.get("fields");
-        if (fields.isEmpty() || fields.isNull()) {
+        val fields = data.fields();
+/*        if (fields.isEmpty() || fields.isNull()) {
             return SchemaOpValidationResult.failure("Payload does not contain map of fields");
-        }
+        }*/
         val schemaId = schema.getId();
         val fieldsMap = schema.getFields()
                 .stream()
                 .collect(Collectors.toMap(FieldSchema::getId, Function.identity()));
         val errors = new ArrayList<String>();
         val ticketFields = new ArrayList<TicketFieldData>();
-        for (Iterator<Map.Entry<String, JsonNode>> it = fields.fields(); it.hasNext(); ) {
+        for (Iterator<Map.Entry<String, JsonNode>> it = fields; it.hasNext(); ) {
             val field = it.next();
             val fieldData = field.getValue();
             val fieldName = field.getKey();
@@ -70,7 +70,7 @@ public class TicketFieldMapper {
                 errors.addAll(results.getFirst());
             }
             else {
-                ticketFields.add(new TicketFieldData(schemaId, results.getSecond()));
+                ticketFields.add(new TicketFieldData(fieldId, results.getSecond()));
             }
         }
         if (!errors.isEmpty()) {

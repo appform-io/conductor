@@ -29,7 +29,8 @@ public enum TicketFilterType {
     ASSIGNED_TO_USER("Ticket is currently assigned to user"),
     UNASSIGNED_TO_USER("Ticket is currently unassigned to any user"),
     SUBJECT_EQUALS("Ticket is for given subject"),
-    STATE_EQUALS("Ticket is in states"),
+    STATE_EQUALS("Ticket state equals"),
+    STATE_IN("Ticket is in states"),
     PRIORITY_EQUALS("Ticket has given priority"),
     CREATED_TIME_WINDOW("Tickets created in this window"),
     UPDATED_TIME_WINDOW("Tickets updated in this window")

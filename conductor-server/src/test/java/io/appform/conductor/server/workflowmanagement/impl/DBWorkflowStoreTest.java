@@ -31,6 +31,8 @@ import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -83,7 +85,7 @@ class DBWorkflowStoreTest {
                                                       "INTERMEDIATE_1",
                                                       TicketStateTransition.TicketStateTransitionType.EVALUATED,
                                                       new Rule(Rule.RuleType.JSON_RULE, "{}"),
-                                                      "NO_ACTION")
+                                                      List.of("NO_ACTION"))
                     .orElse(null);
             assertEquals(1, updated.getTicketStateTransitions().size());
             assertEquals(1, updated.getTicketStateTransitions().get("START").size());
@@ -95,7 +97,7 @@ class DBWorkflowStoreTest {
                                                       "INTERMEDIATE_2",
                                                       TicketStateTransition.TicketStateTransitionType.EVALUATED,
                                                       new Rule(Rule.RuleType.JSON_RULE, "{}"),
-                                                      "NO_ACTION")
+                                                      List.of("NO_ACTION"))
                     .orElse(null);
             assertEquals(1, updated.getTicketStateTransitions().size());
             assertEquals(2, updated.getTicketStateTransitions().get("START").size());
@@ -107,7 +109,7 @@ class DBWorkflowStoreTest {
                                                       "END",
                                                       TicketStateTransition.TicketStateTransitionType.DEFAULT,
                                                       new Rule(Rule.RuleType.JSON_RULE, "{}"),
-                                                      "NO_ACTION")
+                                                      List.of("NO_ACTION"))
                     .orElse(null);
             assertEquals(2, updated.getTicketStateTransitions().size());
             assertEquals(1, updated.getTicketStateTransitions().get("INTERMEDIATE_1").size());
@@ -119,7 +121,7 @@ class DBWorkflowStoreTest {
                                                       "END",
                                                       TicketStateTransition.TicketStateTransitionType.DEFAULT,
                                                       new Rule(Rule.RuleType.JSON_RULE, "{}"),
-                                                      "NO_ACTION")
+                                                      List.of("NO_ACTION"))
                     .orElse(null);
             assertEquals(3, updated.getTicketStateTransitions().size());
             assertEquals(1, updated.getTicketStateTransitions().get("INTERMEDIATE_2").size());

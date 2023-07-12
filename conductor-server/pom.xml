@@ -31,7 +31,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <hope-lang.version>2.0.2</hope-lang.version>
+        <hope-lang.version>2.0.3</hope-lang.version>
         <json-smart.version>2.4.11</json-smart.version>
     </properties>
 
