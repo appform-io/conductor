@@ -19,6 +19,7 @@ package io.appform.conductor.model.actions.impl;
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
@@ -34,6 +35,7 @@ import java.util.Date;
 public class RouteToGroupAction extends Action {
     String groupId;
 
+    @Builder
     public RouteToGroupAction(
             String id,
             String name,

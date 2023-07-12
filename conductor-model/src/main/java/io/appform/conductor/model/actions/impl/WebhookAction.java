@@ -20,12 +20,12 @@ import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.workflow.Template;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,7 +41,7 @@ public class WebhookAction extends Action {
     /**
      * HTTP verb for the call... is it a GET/POST etc
      */
-    enum CallType {
+    public enum CallType {
         GET,
         PUT,
         POST,
@@ -52,7 +52,7 @@ public class WebhookAction extends Action {
     /**
      * Is the call sync or async
      */
-    enum CallMode {
+    public enum CallMode {
         SYNC,
         ASYNC
     }
@@ -60,7 +60,7 @@ public class WebhookAction extends Action {
     /**
      * How the call will get retried in case of failures
      */
-    enum RetryStrategy {
+    public enum RetryStrategy {
         NO_RETRY,
         FIXED_INTERVAL,
         EXPONENTIAL_BACKOFF
@@ -89,9 +89,10 @@ public class WebhookAction extends Action {
     String mimeType;
 
     /**
-     * Any other additional headers that need to be passed. This can contain auth headers etc.
+     * A {@link io.appform.conductor.model.workflow.Template} to generate the header value that need to be passed for the HTTP call.
+     * Note: This can contain auth headers etc.
      */
-    Map<String, List<String>> additionalHeaders;
+    Map<String, Template> headerTemplates;
 
     /**
      * The HTTP response codes that will be considered as success. Once successful, no retry will kick in.
@@ -118,6 +119,7 @@ public class WebhookAction extends Action {
      */
     int numRetries;
 
+    @Builder
     public WebhookAction(
             String id,
             String name,
@@ -128,7 +130,7 @@ public class WebhookAction extends Action {
             CallType callType,
             Template payloadTemplate,
             String mimeType,
-            Map<String, List<String>> additionalHeaders,
+            Map<String,Template> headerTemplates,
             Set<Integer> successCodes, CallMode callMode,
             int timeoutMs,
             RetryStrategy retryStrategy, int numRetries) {
@@ -137,7 +139,7 @@ public class WebhookAction extends Action {
         this.callType = callType;
         this.payloadTemplate = payloadTemplate;
         this.mimeType = mimeType;
-        this.additionalHeaders = additionalHeaders;
+        this.headerTemplates = headerTemplates;
         this.successCodes = successCodes;
         this.callMode = callMode;
         this.timeoutMs = timeoutMs;

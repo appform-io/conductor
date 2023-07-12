@@ -24,15 +24,13 @@ import io.appform.conductor.model.actions.impl.*;
  */
 public interface ActionVisitor<T> {
 
-    T visit(CompositionAction compositionAction);
-
     T visit(WebhookAction webhookAction);
 
     T visit(RouteToGroupAction routeToGroupAction);
 
     T visit(AddCommentAction addCommentAction);
 
-    T visit(AddTicketActionAction addTicketActionAction);
+    T visit(AddTicketAction addTicketAction);
 
     T visit(ChangePriorityAction changePriorityAction);
 
