@@ -23,12 +23,7 @@ import lombok.Getter;
  * Types of actions that can be performed. The action itself can be part of a transition, or part of a ticket.
  */
 public enum ActionType {
-    COMPOSITION("Composition of other actions") {
-        @Override
-        public <T> T accept(ActionTypeVisitor<T> visitor) {
-            return visitor.visitComposition();
-        }
-    },
+
     WEBHOOK("Webhook") {
         @Override
         public <T> T accept(ActionTypeVisitor<T> visitor) {
@@ -69,6 +64,13 @@ public enum ActionType {
 
     ;
 
+    public static final String WEBHOOK_TEXT = "WEBHOOK";
+    public static final String ROUTE_TO_GROUP_TEXT = "ROUTE_TO_GROUP";
+    public static final String ADD_COMMENT_TEXT = "ADD_COMMENT";
+    public static final String ADD_TICKET_ACTION_TEXT = "ADD_TICKET_ACTION";
+    public static final String CHANGE_PRIORITY_TEXT = "CHANGE_PRIORITY";
+    public static final String SET_FIELD_TEXT = "SET_FIELD";
+
     @Getter
     private final String displayName;
 
@@ -90,12 +92,6 @@ public enum ActionType {
      * @param <T> Return type of operation
      */
     public interface ActionTypeVisitor<T> {
-
-        /**
-         * Perform an operation specific to {@link ActionType#COMPOSITION}
-         * @return Results of the operation
-         */
-        T visitComposition();
 
         /**
          * Perform an operation specific to {@link ActionType#WEBHOOK}

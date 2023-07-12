@@ -16,10 +16,11 @@
 
 package io.appform.conductor.server.ticketmanagement.impl.models.fields;
 
-import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
-import io.appform.conductor.server.utils.persistence.StringListConverter;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.GenerationTime;
@@ -28,7 +29,6 @@ import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -59,31 +59,8 @@ public class StoredFieldValue implements Serializable {
     @Column(name = "schema_field_id")
     private String schemaFieldId;
 
-    @Column
-    @Enumerated(EnumType.STRING)
-    private FieldType type;
-
-    @Column(name = "string_value")
-    private String stringValue;
-
-    @Column(name = "boolean_value")
-    private boolean booleanValue;
-
-    @Column(name = "number_value")
-    private double numberValue;
-
-    @Column(name = "location_lat_value")
-    private double locationLatValue;
-
-    @Column(name = "location_lon_value")
-    private double locationLonValue;
-
-    @Column(name = "choices_value")
-    @Convert(converter = StringListConverter.class)
-    private List<String> choiceValue;
-
-    @Column(name = "date_value")
-    private Date dateValue;
+    @Embedded
+    private StoredEmbeddedFieldValue storedEmbeddedFieldValue;
 
     @Column(name = "deleted")
     private boolean deleted;

@@ -25,4 +25,5 @@ import java.util.Optional;
  */
 public interface ActionStore {
     Optional<Action> read(final String actionId);
+    Optional<Action> save(final Action action);
 }
