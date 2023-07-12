@@ -15,6 +15,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 
+import java.util.Map;
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
@@ -63,6 +66,39 @@ class DBActionStoreTest {
         assertNotNull(readAction);
         assertEquals(createdAction.getId(), readAction.getId());
         assertNotNull(readAction.getCreated());
+    }
+
+    @Test
+    void testCreateAndReadWebhookAction(BalancedDBShardingBundle<TestConfig> bundle) {
+        val actionStore = new DBActionStore(createRealActionLookupDao(bundle));
+        val createdAction = actionStore.save(WebhookAction.builder()
+                        .id("TestWebhookAction")
+                        .name("TestingNameWebhookAction")
+                        .description("Testing description for WebhookAction")
+                        .callMode(WebhookAction.CallMode.SYNC)
+                        .callType(WebhookAction.CallType.POST)
+                        .urlTemplate(new Template(Template.Type.STRING_SUBSTITUTION,"urlTemplate"))
+                        .headerTemplates(Map.of("headerName1", new Template(Template.Type.STRING_SUBSTITUTION,"headersTemplate")))
+                        .payloadTemplate(new Template(Template.Type.STRING_SUBSTITUTION,"payloadTemplate"))
+                        .mimeType("application/pdf")
+                        .successCodes(Set.of(200,202))
+                        .timeoutMs(2000)
+                        .retryStrategy(WebhookAction.RetryStrategy.FIXED_INTERVAL)
+                        .numRetries(3)
+                        .build())
+                .orElse(null);
+        assertNotNull(createdAction);
+        assertEquals("TestWebhookAction", createdAction.getId());
+        assertNotNull(createdAction.getCreated());
+        assertEquals(1, ((WebhookAction)createdAction).getHeaderTemplates().size());
+
+        val readAction = actionStore.read(createdAction.getId())
+                .orElse(null);
+        assertNotNull(readAction);
+        assertEquals(createdAction.getId(), readAction.getId());
+        assertNotNull(readAction.getCreated());
+        assertEquals(1, ((WebhookAction)readAction).getHeaderTemplates().size());
+
     }
 
 

@@ -4,7 +4,6 @@ import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.actions.impl.*;
 import io.appform.conductor.model.error.Throws;
-import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.actionmanagement.impl.models.*;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredEmbeddedFieldValue;
@@ -17,6 +16,7 @@ import lombok.val;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_READ_ERROR;
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_WRITE_ERROR;
@@ -54,17 +54,28 @@ public class DBActionStore implements ActionStore {
 
             @Override
             public StoredAction visit(WebhookAction webhookAction) {
-                return new StoredWebhookAction()
+                val storedWebhookAction =  new StoredWebhookAction()
                         .setCallType(webhookAction.getCallType())
                         .setCallMode(webhookAction.getCallMode())
                         .setUrlTemplate(webhookAction.getUrlTemplate())
-                        .setHeadersTemplate(webhookAction.getHeadersTemplate())
                         .setPayloadTemplate(webhookAction.getPayloadTemplate())
                         .setSuccessCodes(webhookAction.getSuccessCodes())
                         .setMimeType(webhookAction.getMimeType())
                         .setTimeoutMs(webhookAction.getTimeoutMs())
                         .setRetryStrategy(webhookAction.getRetryStrategy())
                         .setNumRetries(webhookAction.getNumRetries());
+
+                storedWebhookAction.setHeaderTemplates(webhookAction.getHeaderTemplates()
+                        .entrySet()
+                        .stream()
+                        .map(header ->
+                                new StoredWebhookActionHeaderTemplate()
+                                        .setActive(true)
+                                        .setAction(storedWebhookAction)
+                                        .setName(header.getKey())
+                                        .setTemplate(header.getValue())
+                        ).collect(Collectors.toList()));
+                return storedWebhookAction;
             }
 
             @Override
@@ -180,7 +191,11 @@ public class DBActionStore implements ActionStore {
                         .callType(storedWebhookAction.getCallType())
                         .callMode(storedWebhookAction.getCallMode())
                         .urlTemplate(storedWebhookAction.getUrlTemplate())
-                        .headersTemplate(storedWebhookAction.getHeadersTemplate())
+                        .headerTemplates(storedWebhookAction.getHeaderTemplates()
+                                .stream()
+                                .filter(StoredWebhookActionHeaderTemplate::isActive)
+                                .collect(Collectors.toMap(StoredWebhookActionHeaderTemplate::getName,
+                                        StoredWebhookActionHeaderTemplate::getTemplate)))
                         .payloadTemplate(storedWebhookAction.getPayloadTemplate())
                         .successCodes(storedWebhookAction.getSuccessCodes())
                         .mimeType(storedWebhookAction.getMimeType())

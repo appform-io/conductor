@@ -26,6 +26,7 @@ import lombok.ToString;
 import lombok.Value;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -88,10 +89,10 @@ public class WebhookAction extends Action {
     String mimeType;
 
     /**
-     * A {@link io.appform.conductor.model.workflow.Template} to generate the headers that need to be passed for the HTTP call.
+     * A {@link io.appform.conductor.model.workflow.Template} to generate the header value that need to be passed for the HTTP call.
      * Note: This can contain auth headers etc.
      */
-    Template headersTemplate;
+    Map<String, Template> headerTemplates;
 
     /**
      * The HTTP response codes that will be considered as success. Once successful, no retry will kick in.
@@ -129,7 +130,7 @@ public class WebhookAction extends Action {
             CallType callType,
             Template payloadTemplate,
             String mimeType,
-            Template headersTemplate,
+            Map<String,Template> headerTemplates,
             Set<Integer> successCodes, CallMode callMode,
             int timeoutMs,
             RetryStrategy retryStrategy, int numRetries) {
@@ -138,7 +139,7 @@ public class WebhookAction extends Action {
         this.callType = callType;
         this.payloadTemplate = payloadTemplate;
         this.mimeType = mimeType;
-        this.headersTemplate = headersTemplate;
+        this.headerTemplates = headerTemplates;
         this.successCodes = successCodes;
         this.callMode = callMode;
         this.timeoutMs = timeoutMs;

@@ -10,6 +10,7 @@ import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 import java.io.Serial;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -37,11 +38,8 @@ public class StoredWebhookAction  extends StoredAction {
     @Column(name = "url_template", length = 1023)
     private Template urlTemplate;
 
-    //TODO:Move to map
-    @SuppressWarnings("java:S1948")
-    @Convert(converter = TemplateConverter.class)
-    @Column(name = "headers_template", length = 1023)
-    private Template headersTemplate;
+    @OneToMany(mappedBy = "action",  fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<StoredWebhookActionHeaderTemplate> headerTemplates;
 
     @SuppressWarnings("java:S1948")
     @Convert(converter = TemplateConverter.class)
