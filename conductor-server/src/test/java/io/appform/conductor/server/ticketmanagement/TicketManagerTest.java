@@ -60,6 +60,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.ticketToJsonNode;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -136,7 +137,7 @@ class TicketManagerTest {
                                                            "FIRST_NAME_COLLECTED",
                                                            TicketStateTransition.TicketStateTransitionType.EVALUATED,
                                                            new Rule(Rule.RuleType.HOPE,
-                                                                    "pointer.exists('/fields/firstName') == true"),
+                                                                    "pointer.exists('/ticket/fields/firstName') == true"),
                                                            List.of(),
                                                            new Date(),
                                                            new Date())),
@@ -145,7 +146,7 @@ class TicketManagerTest {
                                                                           "FULL_NAME_COLLECTED",
                                                                           TicketStateTransition.TicketStateTransitionType.EVALUATED,
                                                                           new Rule(Rule.RuleType.HOPE,
-                                                                                   "pointer.exists('/fields/lastName') == " +
+                                                                                   "pointer.exists('/ticket/fields/lastName') == " +
                                                                                            "true"),
                                                                           List.of(),
                                                                           new Date(),
@@ -213,12 +214,14 @@ class TicketManagerTest {
                                                                    """));
         assertTrue(res.isPresent());
         System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(ticketToJsonNode(mapper, res.get(), schema)));
+        assertEquals("FIRST_NAME_COLLECTED", res.get().getSummary().getTicketState().getId());
         val res2 = ticketManager.processRaw(mapper.readTree("""
                                                                     {
                                                                       "lastName" : "Sinha"
                                                                    }
                                                                     """));
         System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(ticketToJsonNode(mapper, res2.get(), schema)));
+        assertEquals("FULL_NAME_COLLECTED", res2.get().getSummary().getTicketState().getId());
     }
 
 }

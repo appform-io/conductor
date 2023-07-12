@@ -19,12 +19,11 @@ package io.appform.conductor.server.actionmanagement;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionExecutionResult;
-import io.appform.conductor.model.ticket.TicketDetails;
-import io.appform.conductor.server.ticketmanagement.TicketFieldData;
-import lombok.NonNull;
+import io.appform.conductor.model.actions.ActionVisitor;
+import io.appform.conductor.model.actions.impl.*;
+import io.appform.conductor.model.schema.Schema;
+import io.appform.conductor.model.workflow.Workflow;
 import lombok.Value;
-
-import java.util.List;
 
 /**
  *
@@ -33,12 +32,43 @@ public class ActionExecutor {
 
     @Value
     public static class ActionEvalData {
-        @NonNull TicketDetails ticket;
-        List<TicketFieldData> newFields;
+        Workflow workflow;
+        Schema schema;
+        JsonNode ticket;
         JsonNode payload;
     }
 
     public ActionExecutionResult execute(final Action action, final ActionEvalData data) {
-        return null;
+        return action.accept(new ActionVisitor<>() {
+            @Override
+            public ActionExecutionResult visit(WebhookAction webhookAction) {
+                return null;
+            }
+
+            @Override
+            public ActionExecutionResult visit(RouteToGroupAction routeToGroupAction) {
+                return null;
+            }
+
+            @Override
+            public ActionExecutionResult visit(AddCommentAction addCommentAction) {
+                return null;
+            }
+
+            @Override
+            public ActionExecutionResult visit(AddTicketAction addTicketAction) {
+                return null;
+            }
+
+            @Override
+            public ActionExecutionResult visit(ChangePriorityAction changePriorityAction) {
+                return null;
+            }
+
+            @Override
+            public ActionExecutionResult visit(SetFieldAction setFieldAction) {
+                return null;
+            }
+        });
     }
 }

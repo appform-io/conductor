@@ -43,6 +43,7 @@ import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.usermanagement.UserStore;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.workflowmanagement.WorkflowSelector;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -96,7 +97,6 @@ public class TicketManager {
         }
         return runTransitions(payload,
                               workflow,
-                              fieldMappingResult.getData(),
                               subject,
                               ticket,
                               schema);
@@ -105,14 +105,15 @@ public class TicketManager {
     private Optional<TicketDetails> runTransitions(
             JsonNode payload,
             Workflow workflow,
-            List<TicketFieldData> fields,
             SubjectSummary subject,
-            TicketDetails ticket,
+            @NonNull TicketDetails ticket,
             Schema schema) {
         var evalTicket = ticket;
+        val evalDataJson = mapper.createObjectNode();
+        evalDataJson.set("payload", payload);
         do {
-//            val evalData = new EvaluationData(evalTicket, fields);
-            val evalDataJson = ConductorServerUtils.ticketToJsonNode(mapper, evalTicket, schema);
+
+            evalDataJson.set("ticket", ConductorServerUtils.ticketToJsonNode(mapper, evalTicket, schema));
             val ticketSummary = evalTicket.getSummary();
             val currState = ticketSummary.getTicketState();
             val ticketId = ticketSummary.getId();
@@ -136,12 +137,9 @@ public class TicketManager {
                                 .equals(TicketStateTransition.TicketStateTransitionType.DEFAULT))
                         .findAny()
                         .orElse(null);
-/*                    .orElseThrow(() -> ConductorException.builder()
-                            .errorCode(ConductorErrorCode.TICKET_NO_TRANSITION)
-                            .context(Map.of("ticketId", evalTicket.getSummary().getId(),
-                                            "workflow", evalTicket.getSummary().getWorkflowId(),
-                                            "state", evalTicket.getSummary().getTicketState().getId()))
-                            .build());*/
+            }
+            else {
+                log.debug("Found matching transition: {}", matchingTransition);
             }
             if (null == matchingTransition) {
                 log.info("No possible transitions found for ticket: {}. Will stop state machine execution.", ticketId);
@@ -155,10 +153,11 @@ public class TicketManager {
                      ticketId,
                      evalTicket.getSummary().getTicketState().getDisplayName());
             for (val actionId : matchingTransition.getActionIds()) {
-                //Always read the updated evalTicket data before applying new transitions
-                val actionExecutionData = new ActionExecutor.ActionEvalData(evalTicket,
-                                                                            fields,
-                                                                            payload);
+                val actionExecutionData = new ActionExecutor.ActionEvalData(
+                        workflow,
+                        schema,
+                        ConductorServerUtils.ticketToJsonNode(mapper, evalTicket, schema),
+                        payload);
                 val action = actionStore.read(actionId)
                         .orElseThrow(() -> ConductorException.builder()
                                 .errorCode(ConductorErrorCode.TICKET_MGMT_NO_ACTION)
@@ -168,6 +167,7 @@ public class TicketManager {
                                 .build());
                 val result = actionExecutor.execute(action, actionExecutionData);
                 log.info("Status for action execution: {}", result);
+                //Always read the updated evalTicket data before applying new transitions
                 evalTicket = readDetails(workflow, subject, ticketId);
             }
         } while (true);

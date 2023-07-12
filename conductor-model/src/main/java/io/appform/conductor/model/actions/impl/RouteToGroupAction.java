@@ -27,7 +27,7 @@ import lombok.Value;
 import java.util.Date;
 
 /**
- * Change ticket assignment and move it to the specified {@link Group}
+ * Change ticket assignment and move it to the specified {@link io.appform.conductor.model.usermgmt.Group}
  */
 @Value
 @EqualsAndHashCode(callSuper = true)
