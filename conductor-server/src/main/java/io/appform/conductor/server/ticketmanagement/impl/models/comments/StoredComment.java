@@ -39,7 +39,7 @@ import java.util.Objects;
 @FieldNameConstants
 @NoArgsConstructor
 public class StoredComment implements Serializable {
-    public static final String TICKET_COMMENTS_TABLE_NAME = "ticket_field_values";
+    public static final String TICKET_COMMENTS_TABLE_NAME = "tickegit t_comments";
 
    @Serial
    private static final long serialVersionUID = -5044362079995936712L;
