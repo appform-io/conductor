@@ -45,6 +45,7 @@ import io.appform.conductor.server.templateengines.StringSubstitutionTextTemplat
 import io.appform.conductor.server.templateengines.TemplateEngine;
 import io.appform.conductor.server.ticketmanagement.impl.DBTicketStore;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
+import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredAttachment;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredCommentSkeleton;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
 import io.appform.conductor.server.usermanagement.GroupStore;
@@ -178,6 +179,7 @@ class TicketManagerTest {
         val ts = new DBTicketStore(bundle.createParentObjectDao(StoredTicketSkeleton.class),
                                    bundle.createRelatedObjectDao(StoredFieldValue.class),
                                    bundle.createRelatedObjectDao(StoredCommentSkeleton.class),
+                                   bundle.createRelatedObjectDao(StoredAttachment.class),
                                    mapper);
         val sStore = mock(SchemaStore.class);
         when(sStore.get(anyString())).thenReturn(Optional.of(schema));

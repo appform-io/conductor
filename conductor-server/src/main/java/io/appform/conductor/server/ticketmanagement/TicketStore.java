@@ -16,13 +16,17 @@
 
 package io.appform.conductor.server.ticketmanagement;
 
+import com.google.common.net.MediaType;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.comments.Attachment;
+import io.appform.conductor.model.ticket.comments.Comment;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import lombok.NonNull;
 
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -74,13 +78,15 @@ public interface TicketStore {
                       List.of());
     }
 
-    default Optional<TicketSkeleton> setField(final String ticketId,
-                                              @NonNull TicketFieldData field) {
+    default Optional<TicketSkeleton> setField(
+            final String ticketId,
+            @NonNull TicketFieldData field) {
         return setFields(ticketId, List.of(field));
     }
 
-    default Optional<TicketSkeleton> setFields(final String ticketId,
-                                              @NonNull List<TicketFieldData> fields) {
+    default Optional<TicketSkeleton> setFields(
+            final String ticketId,
+            @NonNull List<TicketFieldData> fields) {
         return update(ticketId, ticket -> ticket, fields);
     }
 
@@ -108,16 +114,34 @@ public interface TicketStore {
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema);
 
-    Optional<CommentSkeleton> addComment(final String ticketId,
-                                         String commentId, final String comment,
-                                         final String inReplyTo);
+    Optional<Comment> addComment(
+            final String ticketId,
+            String commentId, final String comment,
+            final String inReplyTo);
 
-    List<CommentSkeleton> listComments(
+    List<Comment> listComments(
             final String ticketId,
             final int from,
             final int size);
-    List<CommentSkeleton> repliesToComment(final String ticketId,
-                                           final String replyToId,
-                                           final int from,
-                                           final int size);
+
+    List<Comment> repliesToComment(
+            final String ticketId,
+            final String replyToId,
+            final int from,
+            final int size);
+
+    Optional<Attachment> registerAttachment(
+            final String ticketId,
+            final String attchmentId,
+            final MediaType type,
+            final URL url,
+            final long sizeInBytes,
+            boolean encrypted);
+
+    List<Attachment> listAttachments(final String ticketId,
+                                     final int from,
+                                     final int size);
+
+    boolean deleteAttachment(final String ticketId,
+                             final String attachmentId);
 }

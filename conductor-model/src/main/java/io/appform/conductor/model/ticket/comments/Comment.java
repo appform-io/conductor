@@ -16,11 +16,9 @@
 
 package io.appform.conductor.model.ticket.comments;
 
-import io.appform.conductor.model.usermgmt.UserSummary;
 import lombok.Value;
 
 import java.util.Date;
-import java.util.List;
 
 /**
  * Represents comment type in a ticket
@@ -36,7 +34,7 @@ public class Comment {
     /**
      *  Author of the comment
      */
-    UserSummary author;
+    String author;
 
     /**
      * The text content
@@ -47,11 +45,6 @@ public class Comment {
      * This message id to which this is a reply to
      */
     String replyToId;
-
-    /**
-     * Attachments for this comment. For example pictures, test results etc
-     */
-    List<Attachment> attachments;
 
     /**
      * True if comment has been deleted

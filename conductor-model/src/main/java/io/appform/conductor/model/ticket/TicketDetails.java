@@ -17,7 +17,6 @@
 package io.appform.conductor.model.ticket;
 
 import io.appform.conductor.model.actions.Action;
-import io.appform.conductor.model.ticket.comments.Comment;
 import io.appform.conductor.model.ticket.fields.TicketField;
 
 import java.util.List;
@@ -38,11 +37,6 @@ public class TicketDetails {
      * Each field is governed by the corresponding {@link io.appform.conductor.model.schema.FieldSchema}.
      */
     List<TicketField> fields;
-
-    /**
-     * List of {@link Comment} objects associated with this ticket
-     */
-    List<Comment> comments;
 
     /**
      * Ticket specific manual actions. For example a API call to be triggered manually for outbound calling.

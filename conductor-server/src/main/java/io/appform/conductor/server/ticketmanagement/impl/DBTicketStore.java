@@ -18,10 +18,13 @@ package io.appform.conductor.server.ticketmanagement.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+import com.google.common.net.MediaType;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.comments.Attachment;
+import io.appform.conductor.model.ticket.comments.Comment;
 import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilterVisitor;
@@ -31,6 +34,7 @@ import io.appform.conductor.model.ticket.filter.fieldfilters.*;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import io.appform.conductor.server.ticketmanagement.*;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
+import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredAttachment;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredCommentSkeleton;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredEmbeddedFieldValue;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
@@ -48,6 +52,7 @@ import org.hibernate.criterion.*;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.UnaryOperator;
@@ -64,6 +69,7 @@ public class DBTicketStore implements TicketStore {
     private final LookupDao<StoredTicketSkeleton> ticketDao;
     private final RelationalDao<StoredFieldValue> fieldDao;
     private final RelationalDao<StoredCommentSkeleton> commentDao;
+    private final RelationalDao<StoredAttachment> attachmentDao;
     private final ObjectMapper mapper;
 
     @Override
@@ -193,7 +199,7 @@ public class DBTicketStore implements TicketStore {
     @SneakyThrows
     @Throws(value = STORE_RELATED_ENTITY_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredCommentSkeleton.TICKET_COMMENTS_TABLE_NAME))
-    public Optional<CommentSkeleton> addComment(
+    public Optional<Comment> addComment(
             @Throws.RuntimeParam("id") String ticketId,
             @Throws.RuntimeParam("subId") String commentId,
             String comment,
@@ -205,7 +211,7 @@ public class DBTicketStore implements TicketStore {
                                        .setAuthor(ConductorServerUtils.operatingUserId())
                                        .setContent(comment)
                                        .setReplyToId(inReplyTo))
-                .map(DBTicketStore::toCommentSkeleton);
+                .map(DBTicketStore::toComment);
     }
 
 
@@ -214,7 +220,7 @@ public class DBTicketStore implements TicketStore {
     @SneakyThrows
     @Throws(value = STORE_RELATED_ENTITY_LIST_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredCommentSkeleton.TICKET_COMMENTS_TABLE_NAME))
-    public List<CommentSkeleton> listComments(
+    public List<Comment> listComments(
             @Throws.RuntimeParam("id") String ticketId,
             int from,
             int size) {
@@ -231,8 +237,8 @@ public class DBTicketStore implements TicketStore {
     @SneakyThrows
     @Throws(value = STORE_RELATED_ENTITY_LIST_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredCommentSkeleton.TICKET_COMMENTS_TABLE_NAME))
-    public List<CommentSkeleton> repliesToComment(
-            String ticketId,
+    public List<Comment> repliesToComment(
+            @Throws.RuntimeParam("id") String ticketId,
             String replyToId,
             int from,
             int size) {
@@ -243,6 +249,67 @@ public class DBTicketStore implements TicketStore {
                                     .add(Property.forName(StoredCommentSkeleton.Fields.deleted).eq(false)),
                             from,
                             size);
+    }
+
+    @Override
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = STORE_RELATED_ENTITY_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredAttachment.TICKET_ATTACHMENTS_TABLE_NAME))
+    public Optional<Attachment> registerAttachment(
+            @Throws.RuntimeParam("id") String ticketId,
+            @Throws.RuntimeParam("subId") String attachmentId,
+            MediaType type,
+            URL url,
+            long sizeInBytes,
+            boolean encrypted) {
+        return attachmentDao.save(ticketId,
+                                  new StoredAttachment()
+                                          .setAttachmentId(attachmentId)
+                                          .setTicketId(ticketId)
+                                          .setCreator(ConductorServerUtils.operatingUserId())
+                                          .setMediaType(type)
+                                          .setUrl(url)
+                                          .setEncrypted(encrypted)
+                                          .setSizeInBytes(sizeInBytes))
+                .map(DBTicketStore::toAttachment);
+    }
+
+
+    @Override
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = STORE_RELATED_ENTITY_LIST_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredAttachment.TICKET_ATTACHMENTS_TABLE_NAME))
+    public List<Attachment> listAttachments(
+            @Throws.RuntimeParam("id") String ticketId,
+            int from,
+            int size) {
+        return attachmentDao.select(ticketId,
+                                    DetachedCriteria.forClass(StoredAttachment.class)
+                                            .add(Property.forName(StoredAttachment.Fields.ticketId).eq(ticketId))
+                                            .add(Property.forName(StoredAttachment.Fields.deleted).eq(false)),
+                                    from,
+                                    size)
+                .stream()
+                .map(DBTicketStore::toAttachment)
+                .toList();
+    }
+
+    @Override
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = STORE_RELATED_ENTITY_UPDATE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredAttachment.TICKET_ATTACHMENTS_TABLE_NAME))
+    public boolean deleteAttachment(
+            @Throws.RuntimeParam("id") String ticketId,
+            @Throws.RuntimeParam("subId") String attachmentId) {
+        return attachmentDao.update(ticketId,
+                                    DetachedCriteria.forClass(StoredAttachment.class)
+                                            .add(Property.forName(StoredAttachment.Fields.ticketId).eq(ticketId))
+                                            .add(Property.forName(StoredAttachment.Fields.attachmentId)
+                                                         .eq(attachmentId)),
+                                    storedAttachment -> storedAttachment.setDeleted(true));
     }
 
 
@@ -502,7 +569,7 @@ public class DBTicketStore implements TicketStore {
         });
     }
 
-    private List<CommentSkeleton> listComments(
+    private List<Comment> listComments(
             String ticketId,
             DetachedCriteria criteria,
             int from,
@@ -512,21 +579,30 @@ public class DBTicketStore implements TicketStore {
                                  from,
                                  size)
                 .stream()
-                .map(DBTicketStore::toCommentSkeleton)
+                .map(DBTicketStore::toComment)
                 .toList();
     }
 
-    private static CommentSkeleton toCommentSkeleton(StoredCommentSkeleton storedCommentSkeleton) {
-        return new CommentSkeleton(storedCommentSkeleton.getCommentId(),
-                                   storedCommentSkeleton.getAuthor(),
-                                   storedCommentSkeleton.getContent(),
-                                   storedCommentSkeleton.getReplyToId(),
-                                   List.of(),
-                                   storedCommentSkeleton.isDeleted(),
-                                   storedCommentSkeleton.getCreated(),
-                                   storedCommentSkeleton.getUpdated());
+    private static Comment toComment(StoredCommentSkeleton storedCommentSkeleton) {
+        return new Comment(storedCommentSkeleton.getCommentId(),
+                           storedCommentSkeleton.getAuthor(),
+                           storedCommentSkeleton.getContent(),
+                           storedCommentSkeleton.getReplyToId(),
+                           storedCommentSkeleton.isDeleted(),
+                           storedCommentSkeleton.getCreated(),
+                           storedCommentSkeleton.getUpdated());
     }
 
+    private static Attachment toAttachment(StoredAttachment storedAttachment) {
+        return new Attachment(storedAttachment.getAttachmentId(),
+                              storedAttachment.getCreator(),
+                              storedAttachment.getMediaType(),
+                              storedAttachment.getUrl(),
+                              storedAttachment.getSizeInBytes(),
+                              storedAttachment.isEncrypted(),
+                              storedAttachment.getCreated(),
+                              storedAttachment.getUpdated());
+    }
 }
 
 

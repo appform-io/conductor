@@ -16,17 +16,21 @@
 
 package io.appform.conductor.server.ticketmanagement.impl.models.comments;
 
+import com.google.common.net.MediaType;
+import io.appform.conductor.server.utils.persistence.MediaTypeConverter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 
 import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
+import java.net.URL;
 import java.util.Date;
 import java.util.Objects;
 
@@ -34,18 +38,17 @@ import java.util.Objects;
  * DB representation for {@link org.hibernate.annotations.Comment}
  */
 @Entity
-@Table(name = StoredCommentSkeleton.TICKET_COMMENTS_TABLE_NAME,
+@Table(name = StoredAttachment.TICKET_ATTACHMENTS_TABLE_NAME,
     indexes = {
-        @Index(name = "idx_comment_for_ticket", columnList = "ticket_id, deleted"),
-        @Index(name = "idx_replies_for_ticket_comment", columnList = "ticket_id, reply_to_id, deleted"),
+        @Index(name = "idx_attachment_for_ticket", columnList = "ticket_id, deleted"),
     })
 @Getter
 @Setter
 @ToString
 @FieldNameConstants
 @NoArgsConstructor
-public class StoredCommentSkeleton implements Serializable {
-    public static final String TICKET_COMMENTS_TABLE_NAME = "ticket_comments";
+public class StoredAttachment implements Serializable {
+    public static final String TICKET_ATTACHMENTS_TABLE_NAME = "ticket_attachments";
 
    @Serial
    private static final long serialVersionUID = -5044362079995936712L;
@@ -57,28 +60,36 @@ public class StoredCommentSkeleton implements Serializable {
     @Column(name = "ticket_id", nullable = false)
     private String ticketId;
 
-    @Column(name = "comment_id", unique = true)
-    private String commentId;
+    @Column(name = "attachment_id", unique = true)
+    private String attachmentId;
 
     @Column
-    private String author;
+    private String creator;
+
+    @SuppressWarnings("java:S1948")
+    @Convert(converter = MediaTypeConverter.class)
+    @Column
+    private MediaType mediaType;
 
     @Column
-    private String content;
+    private URL url;
 
-    @Column(name = "reply_to_id")
-    private String replyToId;
+    @Column(name = "size_in_bytes")
+    private long sizeInBytes;
+
+    @Column
+    boolean encrypted;
 
     @Column(name = "deleted")
     private boolean deleted;
 
     @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @org.hibernate.annotations.Generated(value = GenerationTime.INSERT)
+    @Generated(value = GenerationTime.INSERT)
     private Date created;
 
     @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
             updatable = false, insertable = false)
-    @org.hibernate.annotations.Generated(value = GenerationTime.ALWAYS)
+    @Generated(value = GenerationTime.ALWAYS)
     private Date updated;
 
     @Override
@@ -89,7 +100,7 @@ public class StoredCommentSkeleton implements Serializable {
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
             return false;
         }
-        StoredCommentSkeleton that = (StoredCommentSkeleton) o;
+        StoredAttachment that = (StoredAttachment) o;
         return Objects.equals(getId(), that.getId());
     }
 

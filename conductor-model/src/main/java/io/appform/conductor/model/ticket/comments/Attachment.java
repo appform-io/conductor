@@ -34,6 +34,11 @@ public class Attachment {
     String id;
 
     /**
+     * Creator of this attachment
+     */
+    String creator;
+
+    /**
      * MIME type for the file
      */
     MediaType type;
