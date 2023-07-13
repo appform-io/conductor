@@ -27,7 +27,6 @@ import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.List;
 
 /**
  * Executes a {@link RouteToGroupAction}
@@ -48,9 +47,9 @@ public class RouteToGroupActionExecutor {
                      action.getGroupId());
             return ActionExecutionResult.FAILURE;
         }
-        if(ticketStore.update(ticketId,
-                              ticket -> ticket.setAssignedToGroupId(action.getGroupId()),
-                              List.of()).isPresent()) {
+        if(ticketStore.assignToGroup(ticketId, action.getGroupId())
+                .filter(ticket -> ticket.getAssignedToGroupId().equals(action.getGroupId()))
+                .isPresent()) {
             return ActionExecutionResult.SUCCESS;
         }
         log.error("Failed to route ticket {} to group {}", ticketId, group.getName());

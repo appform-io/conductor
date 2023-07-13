@@ -27,7 +27,6 @@ import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.List;
 
 /**
  * Executes a {@link SetFieldAction}
@@ -40,9 +39,12 @@ public class SetFieldActionExecutor {
 
     public ActionExecutionResult run(SetFieldAction action, final ActionExecutor.ActionEvalData evalData) {
         val ticketId = evalData.getTicket().getSummary().getId();
-        if(ticketStore.update(ticketId,
-                              ticket -> ticket,
-                              List.of(new TicketFieldData(action.getFieldSchemaId(), action.getFieldValue()))).isPresent()) {
+        if (ticketStore.setField(ticketId,
+                                 new TicketFieldData(action.getFieldSchemaId(), action.getFieldValue()))
+                .filter(ticket -> ticket.getFields()
+                        .stream()
+                        .anyMatch(field -> field.getFieldSchemaId().equals(action.getFieldSchemaId())))
+                .isPresent()) {
             return ActionExecutionResult.SUCCESS;
         }
         log.error("Failed to add field {} to ticket {}", action.getFieldSchemaId(), ticketId);

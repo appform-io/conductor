@@ -26,7 +26,6 @@ import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.List;
 
 /**
  * Executes a {@link ChangePriorityAction}
@@ -39,9 +38,9 @@ public class ChangePriorityActionExecutor {
 
     public ActionExecutionResult run(ChangePriorityAction action, final ActionExecutor.ActionEvalData evalData) {
         val ticketId = evalData.getTicket().getSummary().getId();
-        if(ticketStore.update(ticketId,
-                              ticket -> ticket.setPriority(action.getPriority()),
-                              List.of()).isPresent()) {
+        if(ticketStore.changePriority(ticketId, action.getPriority())
+                .filter(ticket -> ticket.getPriority().equals(action.getPriority()))
+                .isPresent()) {
             return ActionExecutionResult.SUCCESS;
         }
         log.error("Failed to change priority for ticket {} to {}", ticketId, action.getPriority());

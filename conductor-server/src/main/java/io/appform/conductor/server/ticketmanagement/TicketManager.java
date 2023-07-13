@@ -185,11 +185,8 @@ public class TicketManager {
             Workflow workflow,
             TicketDetails ticket,
             TicketStateTransition finalMatchingTransition) {
-        return ticketStore.update(ticket.getSummary().getId(),
-                                  t -> t.setTicketStateId(workflow.getStates()
-                                                                  .get(finalMatchingTransition.getTo())
-                                                                  .getId()),
-                                  List.of());
+        return ticketStore.updateState(ticket.getSummary().getId(),
+                                       workflow.getStates().get(finalMatchingTransition.getTo()));
     }
 
     private SubjectID extractSubjectId(JsonNode payload, Workflow workflow) {
