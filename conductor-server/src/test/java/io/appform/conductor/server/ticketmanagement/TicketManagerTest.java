@@ -214,7 +214,7 @@ class TicketManagerTest {
                                               mapper);
         val res = ticketManager.processRaw(mapper.readTree("""
                                                                    {
-                                                                     "firstName" : "Santanu"                                       
+                                                                     "firstName" : "Santanu"
                                                                    }
                                                                    """));
         assertTrue(res.isPresent());

@@ -18,10 +18,8 @@ package io.appform.conductor.server.actionmanagement.executors;
 
 import io.appform.conductor.model.actions.ActionExecutionResult;
 import io.appform.conductor.model.actions.impl.ChangePriorityAction;
-import io.appform.conductor.model.actions.impl.RouteToGroupAction;
 import io.appform.conductor.server.actionmanagement.ActionExecutor;
 import io.appform.conductor.server.ticketmanagement.TicketStore;
-import io.appform.conductor.server.usermanagement.GroupStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -31,13 +29,12 @@ import javax.inject.Singleton;
 import java.util.List;
 
 /**
- * Executes a {@link RouteToGroupAction}
+ * Executes a {@link ChangePriorityAction}
  */
 @Slf4j
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class ChangePriorityActionExecutor {
-    private final GroupStore groupStore;
     private final TicketStore ticketStore;
 
     public ActionExecutionResult run(ChangePriorityAction action, final ActionExecutor.ActionEvalData evalData) {
