@@ -108,4 +108,16 @@ public interface TicketStore {
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema);
 
+    Optional<CommentSkeleton> addComment(final String ticketId,
+                                         String commentId, final String comment,
+                                         final String inReplyTo);
+
+    List<CommentSkeleton> listComments(
+            final String ticketId,
+            final int from,
+            final int size);
+    List<CommentSkeleton> repliesToComment(final String ticketId,
+                                           final String replyToId,
+                                           final int from,
+                                           final int size);
 }

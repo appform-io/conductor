@@ -32,14 +32,18 @@ import java.util.Objects;
  * DB representation for {@link org.hibernate.annotations.Comment}
  */
 @Entity
-@Table(name = StoredFieldValue.TICKET_FIELD_VALUE_TABLE_NAME)
+@Table(name = StoredFieldValue.TICKET_FIELD_VALUE_TABLE_NAME,
+    indexes = {
+        @Index(name = "idx_comment_for_ticket", columnList = "ticket_id, deleted"),
+        @Index(name = "idx_replies_for_ticket_comment", columnList = "ticket_id, reply_to_id, deleted"),
+    })
 @Getter
 @Setter
 @ToString
 @FieldNameConstants
 @NoArgsConstructor
-public class StoredComment implements Serializable {
-    public static final String TICKET_COMMENTS_TABLE_NAME = "tickegit t_comments";
+public class StoredCommentSkeleton implements Serializable {
+    public static final String TICKET_COMMENTS_TABLE_NAME = "ticket_comments";
 
    @Serial
    private static final long serialVersionUID = -5044362079995936712L;
@@ -50,6 +54,9 @@ public class StoredComment implements Serializable {
 
     @Column(name = "ticket_id", nullable = false)
     private String ticketId;
+
+    @Column(name = "comment_id", unique = true)
+    private String commentId;
 
     @Column
     private String author;
@@ -82,7 +89,7 @@ public class StoredComment implements Serializable {
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
             return false;
         }
-        StoredComment that = (StoredComment) o;
+        StoredCommentSkeleton that = (StoredCommentSkeleton) o;
         return Objects.equals(getId(), that.getId());
     }
 

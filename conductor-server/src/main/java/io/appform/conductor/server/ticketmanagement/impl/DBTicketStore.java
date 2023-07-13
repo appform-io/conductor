@@ -29,11 +29,9 @@ import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilterVisitor;
 import io.appform.conductor.model.ticket.filter.fieldfilters.*;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
-import io.appform.conductor.server.ticketmanagement.TicketFieldData;
-import io.appform.conductor.server.ticketmanagement.TicketSkeleton;
-import io.appform.conductor.server.ticketmanagement.TicketSkeletonListResult;
-import io.appform.conductor.server.ticketmanagement.TicketStore;
+import io.appform.conductor.server.ticketmanagement.*;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
+import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredCommentSkeleton;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredEmbeddedFieldValue;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
 import io.appform.conductor.server.utils.ConductorServerUtils;
@@ -65,6 +63,7 @@ public class DBTicketStore implements TicketStore {
 
     private final LookupDao<StoredTicketSkeleton> ticketDao;
     private final RelationalDao<StoredFieldValue> fieldDao;
+    private final RelationalDao<StoredCommentSkeleton> commentDao;
     private final ObjectMapper mapper;
 
     @Override
@@ -188,6 +187,64 @@ public class DBTicketStore implements TicketStore {
                         mapper.writeValueAsString(results.getPointer())
                                 .getBytes(StandardCharsets.UTF_8))); //Keep charset consistent
     }
+
+    @Override
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = STORE_RELATED_ENTITY_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredCommentSkeleton.TICKET_COMMENTS_TABLE_NAME))
+    public Optional<CommentSkeleton> addComment(
+            @Throws.RuntimeParam("id") String ticketId,
+            @Throws.RuntimeParam("subId") String commentId,
+            String comment,
+            String inReplyTo) {
+        return commentDao.save(ticketId,
+                               new StoredCommentSkeleton()
+                                       .setTicketId(ticketId)
+                                       .setCommentId(commentId)
+                                       .setAuthor(ConductorServerUtils.operatingUserId())
+                                       .setContent(comment)
+                                       .setReplyToId(inReplyTo))
+                .map(DBTicketStore::toCommentSkeleton);
+    }
+
+
+    @Override
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = STORE_RELATED_ENTITY_LIST_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredCommentSkeleton.TICKET_COMMENTS_TABLE_NAME))
+    public List<CommentSkeleton> listComments(
+            @Throws.RuntimeParam("id") String ticketId,
+            int from,
+            int size) {
+        return listComments(ticketId,
+                            DetachedCriteria.forClass(StoredCommentSkeleton.class)
+                                    .add(Property.forName(StoredCommentSkeleton.Fields.ticketId).eq(ticketId))
+                                    .add(Property.forName(StoredCommentSkeleton.Fields.deleted).eq(false)),
+                            from,
+                            size);
+    }
+
+    @Override
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = STORE_RELATED_ENTITY_LIST_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredCommentSkeleton.TICKET_COMMENTS_TABLE_NAME))
+    public List<CommentSkeleton> repliesToComment(
+            String ticketId,
+            String replyToId,
+            int from,
+            int size) {
+        return listComments(ticketId,
+                            DetachedCriteria.forClass(StoredCommentSkeleton.class)
+                                    .add(Property.forName(StoredCommentSkeleton.Fields.ticketId).eq(ticketId))
+                                    .add(Property.forName(StoredCommentSkeleton.Fields.replyToId).eq(replyToId))
+                                    .add(Property.forName(StoredCommentSkeleton.Fields.deleted).eq(false)),
+                            from,
+                            size);
+    }
+
 
     private void applyTicketFilter(List<TicketFilter> ticketFilters, DetachedCriteria criteria) {
         ticketFilters.forEach(filter -> filter.accept(new TicketFilterVisitor<Void>() {
@@ -314,11 +371,11 @@ public class DBTicketStore implements TicketStore {
     }
 
     private static TicketField toWireField(final StoredFieldValue value) {
-        return  new TicketField(value.getStoredEmbeddedFieldValue().getType(),
-                                         value.getSchemaFieldId(),
-                                         value.getStoredEmbeddedFieldValue().toFieldValue(),
-                                         value.getCreated(),
-                                         value.getUpdated());
+        return new TicketField(value.getStoredEmbeddedFieldValue().getType(),
+                               value.getSchemaFieldId(),
+                               value.getStoredEmbeddedFieldValue().toFieldValue(),
+                               value.getCreated(),
+                               value.getUpdated());
     }
 
     private static StoredFieldValue toStoredField(
@@ -353,10 +410,14 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldEquals equals) {
                 switch (fieldSchema.getType()) {
-                    case STRING -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.stringValue).eq(equals.getValue()));
-                    case BOOLEAN -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.booleanValue).eq(equals.getValue()));
-                    case NUMBER -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.numberValue).eq(equals.getValue()));
-                    case DATE -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.dateValue).eq(equals.getValue()));
+                    case STRING ->
+                            finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.stringValue).eq(equals.getValue()));
+                    case BOOLEAN ->
+                            finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.booleanValue).eq(equals.getValue()));
+                    case NUMBER ->
+                            finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.numberValue).eq(equals.getValue()));
+                    case DATE ->
+                            finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.dateValue).eq(equals.getValue()));
                     case CHOICE, LOCATION -> {
                         //NO OP
                     }
@@ -367,10 +428,14 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldNotEquals notEquals) {
                 switch (fieldSchema.getType()) {
-                    case STRING -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.stringValue).ne(notEquals.getValue()));
-                    case BOOLEAN -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.booleanValue).ne(notEquals.getValue()));
-                    case NUMBER -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.numberValue).ne(notEquals.getValue()));
-                    case DATE -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.dateValue).ne(notEquals.getValue()));
+                    case STRING -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.stringValue).ne(
+                            notEquals.getValue()));
+                    case BOOLEAN -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.booleanValue).ne(
+                            notEquals.getValue()));
+                    case NUMBER -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.numberValue).ne(
+                            notEquals.getValue()));
+                    case DATE ->
+                            finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.dateValue).ne(notEquals.getValue()));
                     case CHOICE, LOCATION -> {
                         //NO OP
                     }
@@ -413,7 +478,8 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldBetween between) {
                 if (fieldSchema.getType() == FieldType.NUMBER) {
-                    finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.numberValue).between(between.getMin(), between.getMax()));
+                    finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.numberValue).between(between.getMin(),
+                                                                                                      between.getMax()));
                 }
                 return null;
             }
@@ -435,6 +501,32 @@ public class DBTicketStore implements TicketStore {
             }
         });
     }
+
+    private List<CommentSkeleton> listComments(
+            String ticketId,
+            DetachedCriteria criteria,
+            int from,
+            int size) throws Exception {
+        return commentDao.select(ticketId,
+                                 criteria,
+                                 from,
+                                 size)
+                .stream()
+                .map(DBTicketStore::toCommentSkeleton)
+                .toList();
+    }
+
+    private static CommentSkeleton toCommentSkeleton(StoredCommentSkeleton storedCommentSkeleton) {
+        return new CommentSkeleton(storedCommentSkeleton.getCommentId(),
+                                   storedCommentSkeleton.getAuthor(),
+                                   storedCommentSkeleton.getContent(),
+                                   storedCommentSkeleton.getReplyToId(),
+                                   List.of(),
+                                   storedCommentSkeleton.isDeleted(),
+                                   storedCommentSkeleton.getCreated(),
+                                   storedCommentSkeleton.getUpdated());
+    }
+
 }
 
 

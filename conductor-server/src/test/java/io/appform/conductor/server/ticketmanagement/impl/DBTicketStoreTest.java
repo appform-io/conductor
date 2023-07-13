@@ -29,6 +29,7 @@ import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.ticketmanagement.TicketFieldData;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
+import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredCommentSkeleton;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.val;
@@ -61,6 +62,7 @@ class DBTicketStoreTest {
     void testCRUD(final BalancedDBShardingBundle<TestConfig> bundle) {
         val store = new DBTicketStore(bundle.createParentObjectDao(StoredTicketSkeleton.class),
                                       bundle.createRelatedObjectDao(StoredFieldValue.class),
+                                      bundle.createRelatedObjectDao(StoredCommentSkeleton.class),
                                       MAPPER);
         val created = store.create("T001",
                                    "Test",
