@@ -22,23 +22,38 @@ import io.appform.conductor.model.actions.ActionExecutionResult;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.actions.impl.*;
 import io.appform.conductor.model.schema.Schema;
+import io.appform.conductor.model.ticket.TicketDetails;
 import io.appform.conductor.model.workflow.Workflow;
+import io.appform.conductor.server.actionmanagement.executors.ChangePriorityActionExecutor;
+import io.appform.conductor.server.actionmanagement.executors.RouteToGroupActionExecutor;
+import io.appform.conductor.server.actionmanagement.executors.SetFieldActionExecutor;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 /**
- *
+ * Executes an action
  */
+@Singleton
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class ActionExecutor {
+
+    private final RouteToGroupActionExecutor routeToGroupActionExecutor;
+    private final ChangePriorityActionExecutor changePriorityActionExecutor;
+    private final SetFieldActionExecutor setFieldActionExecutor;
 
     @Value
     public static class ActionEvalData {
         Workflow workflow;
         Schema schema;
-        JsonNode ticket;
+        TicketDetails ticket;
+        JsonNode ticketJson;
         JsonNode payload;
     }
 
-    public ActionExecutionResult execute(final Action action, final ActionEvalData data) {
+    public ActionExecutionResult execute(final Action action, final ActionEvalData evalData) {
         return action.accept(new ActionVisitor<>() {
             @Override
             public ActionExecutionResult visit(WebhookAction webhookAction) {
@@ -47,7 +62,7 @@ public class ActionExecutor {
 
             @Override
             public ActionExecutionResult visit(RouteToGroupAction routeToGroupAction) {
-                return null;
+                return routeToGroupActionExecutor.run(routeToGroupAction, evalData);
             }
 
             @Override
@@ -62,12 +77,12 @@ public class ActionExecutor {
 
             @Override
             public ActionExecutionResult visit(ChangePriorityAction changePriorityAction) {
-                return null;
+                return changePriorityActionExecutor.run(changePriorityAction, evalData);
             }
 
             @Override
             public ActionExecutionResult visit(SetFieldAction setFieldAction) {
-                return null;
+                return setFieldActionExecutor.run(setFieldAction, evalData);
             }
         });
     }

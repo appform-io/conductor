@@ -156,6 +156,7 @@ public class TicketManager {
                 val actionExecutionData = new ActionExecutor.ActionEvalData(
                         workflow,
                         schema,
+                        evalTicket,
                         ConductorServerUtils.ticketToJsonNode(mapper, evalTicket, schema),
                         payload);
                 val action = actionStore.read(actionId)

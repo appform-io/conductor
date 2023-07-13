@@ -17,6 +17,8 @@
 package io.appform.conductor.server.ticketmanagement;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.appform.conductor.model.actions.Action;
+import io.appform.conductor.model.actions.ActionExecutionResult;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.schema.TicketState;
@@ -195,6 +197,9 @@ class TicketManagerTest {
                                     new FixedObjectTemplateEvaluator(mapper));
         val workflowSelector = new WorkflowSelector(wStore, re);
         workflowSelector.start();
+        val actionExecutor = mock(ActionExecutor.class);
+        when(actionExecutor.execute(any(Action.class), any(ActionExecutor.ActionEvalData.class)))
+                .thenReturn(ActionExecutionResult.SUCCESS);
         val ticketManager = new TicketManager(ts,
                                               sStore,
                                               uStore,
@@ -205,7 +210,7 @@ class TicketManagerTest {
                                               new TicketFieldMapper(),
                                               re,
                                               te,
-                                              new ActionExecutor(),
+                                              actionExecutor,
                                               mapper);
         val res = ticketManager.processRaw(mapper.readTree("""
                                                                    {
