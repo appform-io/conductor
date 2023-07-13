@@ -24,6 +24,7 @@ import io.appform.conductor.model.actions.impl.*;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.ticket.TicketDetails;
 import io.appform.conductor.model.workflow.Workflow;
+import io.appform.conductor.server.actionmanagement.executors.AddCommentActionExecutor;
 import io.appform.conductor.server.actionmanagement.executors.ChangePriorityActionExecutor;
 import io.appform.conductor.server.actionmanagement.executors.RouteToGroupActionExecutor;
 import io.appform.conductor.server.actionmanagement.executors.SetFieldActionExecutor;
@@ -43,6 +44,7 @@ public class ActionExecutor {
     private final RouteToGroupActionExecutor routeToGroupActionExecutor;
     private final ChangePriorityActionExecutor changePriorityActionExecutor;
     private final SetFieldActionExecutor setFieldActionExecutor;
+    private final AddCommentActionExecutor addCommentActionExecutor;
 
     @Value
     public static class ActionEvalData {
@@ -57,6 +59,7 @@ public class ActionExecutor {
         return action.accept(new ActionVisitor<>() {
             @Override
             public ActionExecutionResult visit(WebhookAction webhookAction) {
+                //TODO
                 return null;
             }
 
@@ -67,11 +70,12 @@ public class ActionExecutor {
 
             @Override
             public ActionExecutionResult visit(AddCommentAction addCommentAction) {
-                return null;
+                return addCommentActionExecutor.run(addCommentAction, evalData);
             }
 
             @Override
             public ActionExecutionResult visit(AddTicketAction addTicketAction) {
+                //TODO
                 return null;
             }
 

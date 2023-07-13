@@ -306,7 +306,7 @@ public class TicketManager {
                                                    skeleton.getCreated(),
                                                    skeleton.getUpdated()),
                                  skeleton.getFields(),
-                                 List.of(), //TODO::COMMENTS
+                                 List.of(), //Do not load comments
                                  List.of()); //TODO::ACTION
     }
 
