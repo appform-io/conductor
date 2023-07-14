@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,22 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.config;
+package io.appform.conductor.server.ui.views;
 
-import io.appform.dropwizard.sharding.config.ShardedHibernateFactory;
-import io.dropwizard.Configuration;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import lombok.Value;
+import ru.vyarus.guicey.gsp.views.template.TemplateView;
 
 /**
- *
+ * Renders the homepage
  */
-@Data
+@Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class AppConfig extends Configuration {
+public class HomeView extends TemplateView {
 
-/*    @NotNull
-    @Valid
-    private AuthConfig auth;*/
-
-    @NotNull
-    @Valid
-    private ShardedHibernateFactory db;
-
+    public HomeView() {
+        super("templates/home.hbs");
+    }
 }

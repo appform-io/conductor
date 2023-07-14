@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,28 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.config;
+package io.appform.conductor.server.resources;
 
-import io.appform.dropwizard.sharding.config.ShardedHibernateFactory;
-import io.dropwizard.Configuration;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import io.appform.conductor.server.ui.views.HomeView;
+import lombok.extern.slf4j.Slf4j;
+import ru.vyarus.guicey.gsp.views.template.Template;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 
 /**
  *
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class AppConfig extends Configuration {
+@Slf4j
+@Path("/ui")
+@Template
+@Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
+public class UI {
 
-/*    @NotNull
-    @Valid
-    private AuthConfig auth;*/
-
-    @NotNull
-    @Valid
-    private ShardedHibernateFactory db;
-
+    @GET
+    public HomeView home() {
+        return new HomeView();
+    }
 }

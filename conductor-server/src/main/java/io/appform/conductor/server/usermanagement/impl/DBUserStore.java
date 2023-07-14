@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.usermanagement.impl;
 
+import com.google.common.base.Strings;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.usermgmt.UserState;
@@ -58,7 +59,9 @@ public class DBUserStore implements UserStore {
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = USER_TABLE_NAME))
     public Optional<UserSummary> create(@Throws.RuntimeParam("id") String name, UserType userType, String email) {
-        val userId = ConductorServerUtils.normalize(name);
+        val userId = Strings.isNullOrEmpty(email)
+                        ? ConductorServerUtils.normalize(name)
+                        : email;
         return userDao.save(
                         new StoredUser(
                                 userId,

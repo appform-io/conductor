@@ -35,7 +35,7 @@ import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import io.appform.conductor.server.ticketmanagement.*;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredAttachment;
-import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredCommentSkeleton;
+import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredComment;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredEmbeddedFieldValue;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
 import io.appform.conductor.server.utils.ConductorServerUtils;
@@ -60,7 +60,7 @@ import java.util.function.UnaryOperator;
 import static io.appform.conductor.model.error.ConductorErrorCode.*;
 
 /**
- *
+ * An RDBMS based implementation for {@link TicketStore}
  */
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
@@ -68,7 +68,7 @@ public class DBTicketStore implements TicketStore {
 
     private final LookupDao<StoredTicketSkeleton> ticketDao;
     private final RelationalDao<StoredFieldValue> fieldDao;
-    private final RelationalDao<StoredCommentSkeleton> commentDao;
+    private final RelationalDao<StoredComment> commentDao;
     private final RelationalDao<StoredAttachment> attachmentDao;
     private final ObjectMapper mapper;
 
@@ -198,14 +198,14 @@ public class DBTicketStore implements TicketStore {
     @MonitoredFunction
     @SneakyThrows
     @Throws(value = STORE_RELATED_ENTITY_WRITE_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = StoredCommentSkeleton.TICKET_COMMENTS_TABLE_NAME))
+            fixedParams = @Throws.Param(name = "type", value = StoredComment.TICKET_COMMENTS_TABLE_NAME))
     public Optional<Comment> addComment(
             @Throws.RuntimeParam("id") String ticketId,
             @Throws.RuntimeParam("subId") String commentId,
             String comment,
             String inReplyTo) {
         return commentDao.save(ticketId,
-                               new StoredCommentSkeleton()
+                               new StoredComment()
                                        .setTicketId(ticketId)
                                        .setCommentId(commentId)
                                        .setAuthor(ConductorServerUtils.operatingUserId())
@@ -219,15 +219,15 @@ public class DBTicketStore implements TicketStore {
     @MonitoredFunction
     @SneakyThrows
     @Throws(value = STORE_RELATED_ENTITY_LIST_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = StoredCommentSkeleton.TICKET_COMMENTS_TABLE_NAME))
+            fixedParams = @Throws.Param(name = "type", value = StoredComment.TICKET_COMMENTS_TABLE_NAME))
     public List<Comment> listComments(
             @Throws.RuntimeParam("id") String ticketId,
             int from,
             int size) {
         return listComments(ticketId,
-                            DetachedCriteria.forClass(StoredCommentSkeleton.class)
-                                    .add(Property.forName(StoredCommentSkeleton.Fields.ticketId).eq(ticketId))
-                                    .add(Property.forName(StoredCommentSkeleton.Fields.deleted).eq(false)),
+                            DetachedCriteria.forClass(StoredComment.class)
+                                    .add(Property.forName(StoredComment.Fields.ticketId).eq(ticketId))
+                                    .add(Property.forName(StoredComment.Fields.deleted).eq(false)),
                             from,
                             size);
     }
@@ -236,17 +236,17 @@ public class DBTicketStore implements TicketStore {
     @MonitoredFunction
     @SneakyThrows
     @Throws(value = STORE_RELATED_ENTITY_LIST_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = StoredCommentSkeleton.TICKET_COMMENTS_TABLE_NAME))
+            fixedParams = @Throws.Param(name = "type", value = StoredComment.TICKET_COMMENTS_TABLE_NAME))
     public List<Comment> repliesToComment(
             @Throws.RuntimeParam("id") String ticketId,
             String replyToId,
             int from,
             int size) {
         return listComments(ticketId,
-                            DetachedCriteria.forClass(StoredCommentSkeleton.class)
-                                    .add(Property.forName(StoredCommentSkeleton.Fields.ticketId).eq(ticketId))
-                                    .add(Property.forName(StoredCommentSkeleton.Fields.replyToId).eq(replyToId))
-                                    .add(Property.forName(StoredCommentSkeleton.Fields.deleted).eq(false)),
+                            DetachedCriteria.forClass(StoredComment.class)
+                                    .add(Property.forName(StoredComment.Fields.ticketId).eq(ticketId))
+                                    .add(Property.forName(StoredComment.Fields.replyToId).eq(replyToId))
+                                    .add(Property.forName(StoredComment.Fields.deleted).eq(false)),
                             from,
                             size);
     }
@@ -583,14 +583,14 @@ public class DBTicketStore implements TicketStore {
                 .toList();
     }
 
-    private static Comment toComment(StoredCommentSkeleton storedCommentSkeleton) {
-        return new Comment(storedCommentSkeleton.getCommentId(),
-                           storedCommentSkeleton.getAuthor(),
-                           storedCommentSkeleton.getContent(),
-                           storedCommentSkeleton.getReplyToId(),
-                           storedCommentSkeleton.isDeleted(),
-                           storedCommentSkeleton.getCreated(),
-                           storedCommentSkeleton.getUpdated());
+    private static Comment toComment(StoredComment storedComment) {
+        return new Comment(storedComment.getCommentId(),
+                           storedComment.getAuthor(),
+                           storedComment.getContent(),
+                           storedComment.getReplyToId(),
+                           storedComment.isDeleted(),
+                           storedComment.getCreated(),
+                           storedComment.getUpdated());
     }
 
     private static Attachment toAttachment(StoredAttachment storedAttachment) {

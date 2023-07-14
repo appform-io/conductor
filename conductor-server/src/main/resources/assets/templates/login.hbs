@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A ticket management system">
+    <meta name="author" content="Santanu Sinha">
+    <link rel="icon" href="favicon.ico">
+
+    <title>CONDUCTOR</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <!--    <link href="/open-iconic-master/font/css/open-iconic-bootstrap.css" rel="stylesheet">-->
+    <link href="/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+
+    {{#block "page_css_includes"}}
+
+    {{/block}}
+    <link href="/css/conductor.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <!--<link href="album.css" rel="stylesheet">-->
+    <style>
+        {{#block "page_css"}}
+
+    {{/block}}
+
+    </style>
+</head>
+<body>
+<header>
+<!--    <nav class="navbar navbar-expand-lg navbar-dark bg-primary justify-content-right">
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <a class="navbar-brand cm-icon mb-0 ms-2 h1" href="/" style="font-size: x-large;"><img
+                    src="/images/conductor.png" width="45" height="45" alt=""><span class="ms-1">CONDUCTOR</span></a>
+            <ul class="navbar-nav mr-auto mt-2 mt-lg-0"></ul>
+        </div>
+
+    </nav>-->
+</header>
+<main role="main" class="container-fluid">
+    <section class="mt-5">
+        <div class="row text-center justify-content-center">
+            <div class="col"><span class="h1">CONDUCTOR</span></div>
+        </div>
+    </section>
+    <section class="mt-5">
+        <div class="row justify-content-center">
+            <div class="col-sm-12 col-md-4 border-end border-5">
+                <div class="row border-bottom border-1 border-dark me-2 mb-2">
+                    <div class="col">
+                        <span class="h3">Login</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <form>
+                            <div class="row g-3 align-items-center m-2">
+                                <div class="col-3 text-end">
+                                    <label for="userId" class="col-form-label fw-bold">E-Mail</label>
+                                </div>
+                                <div class="col">
+                                    <input type="email" id="userId" class="form-control border border-dark bg-light" required>
+                                </div>
+                            </div>
+                            <div class="row g-3 align-items-center m-2">
+                                <div class="col-3 text-end">
+                                    <label for="password" class="col-form-label fw-bold">Password</label>
+                                </div>
+                                <div class="col">
+                                    <input type="password" id="password" class="form-control  border border-dark bg-light" required>
+                                </div>
+                            </div>
+                            <div class="row g-3 m-2 float-end">
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-outline-primary mb-3">Login</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-4">
+                <div class="row border-bottom border-1 border-dark ms-2 mb-2">
+                    <div class="col">
+                        <span class="h3">Register</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <form>
+                            <div class="row g-3 align-items-center m-2">
+                                <div class="col-3 text-end">
+                                    <label for="newName" class="col-form-label fw-bold">Name</label>
+                                </div>
+                                <div class="col">
+                                    <input type="email" id="newName" class="form-control border border-dark bg-light" required>
+                                </div>
+                            </div>
+                            <div class="row g-3 align-items-center m-2">
+                                <div class="col-3 text-end">
+                                    <label for="newUserId" class="col-form-label fw-bold">E-Mail</label>
+                                </div>
+                                <div class="col">
+                                    <input type="email" id="newUserId" class="form-control border border-dark bg-light" required>
+                                </div>
+                            </div>
+                            <div class="row g-3 align-items-center m-2">
+                                <div class="col-3 text-end">
+                                    <label for="newPassword" class="col-form-label fw-bold">Password</label>
+                                </div>
+                                <div class="col">
+                                    <input type="password" id="newPassword" class="form-control  border border-dark bg-light" required>
+                                </div>
+                            </div>
+                            <div class="row g-3 m-2 float-end">
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-outline-primary mb-3">Register</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+</main>
+<script src="/js/jquery-3.7.0.min.js"></script>
+<script src="/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

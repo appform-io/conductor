@@ -1,0 +1,57 @@
+server:
+  applicationConnectors:
+    - type: http
+      port: 10000
+  adminConnectors:
+    - type: http
+      port: 10001
+  applicationContextPath: /
+  requestLog:
+    appenders:
+      - type: console
+        timeZone: IST
+
+logging:
+  level: INFO
+  loggers:
+    io.appform.conductor: DEBUG
+
+  appenders:
+    - type: console
+      threshold: TRACE
+      timeZone: IST
+      logFormat: "%(%-5level) [%date] [%logger{0} - %X{appId}] %message%n"
+
+db:
+  shards:
+    - driverClass: org.mariadb.jdbc.Driver
+      user: root
+      password: password
+      url: jdbc:mariadb://localhost/conductor_shard1?createDatabaseIfNotExist=true
+      properties:
+        charSet: UTF-8
+        hibernate.dialect: org.hibernate.dialect.MariaDBDialect
+        hibernate.hbm2ddl.auto: update
+        hibernate.show_sql: true
+      maxWaitForConnection: 1s
+      validationQuery: "/* MyApplication Health Check */ SELECT 1"
+      minSize: 8
+      maxSize: 8
+      initialSize: 8
+      checkConnectionWhileIdle: false
+
+    - driverClass: org.mariadb.jdbc.Driver
+      user: root
+      password: password
+      url: jdbc:mariadb://localhost/conductor_shard2?createDatabaseIfNotExist=true
+      properties:
+        charSet: UTF-8
+        hibernate.dialect: org.hibernate.dialect.MariaDBDialect
+        hibernate.hbm2ddl.auto: update
+        hibernate.show_sql: true
+      maxWaitForConnection: 1s
+      validationQuery: "/* MyApplication Health Check */ SELECT 1"
+      minSize: 8
+      maxSize: 8
+      initialSize: 8
+      checkConnectionWhileIdle: false

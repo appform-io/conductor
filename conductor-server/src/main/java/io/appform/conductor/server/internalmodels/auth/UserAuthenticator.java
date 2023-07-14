@@ -72,7 +72,7 @@ public class UserAuthenticator {
     }
 
     /**
-     * Authenticate a user or a session based onthe provided data
+     * Authenticate a user or a session based on the provided data
      * @param authData The data to be validated
      * @return A user session or empty
      */

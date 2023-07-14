@@ -23,24 +23,23 @@ import io.appform.conductor.server.usermanagement.UserPasswordAuthStore;
 import io.appform.conductor.server.usermanagement.impl.models.StoredUserPassword;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.functionmetrics.MonitoredFunction;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Property;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 /**
  *
  */
+@Singleton
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class DBUserPasswordAuthStore implements UserPasswordAuthStore {
-
-    @Inject
-    public DBUserPasswordAuthStore(RelationalDao<StoredUserPassword> passwordDao) {
-        this.passwordDao = passwordDao;
-    }
 
     private final RelationalDao<StoredUserPassword> passwordDao;
 

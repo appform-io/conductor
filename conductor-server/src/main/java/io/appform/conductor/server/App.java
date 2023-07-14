@@ -16,20 +16,65 @@
 
 package io.appform.conductor.server;
 
+import com.google.inject.Stage;
+import io.appform.conductor.server.config.AppConfig;
+import io.appform.conductor.server.ui.HandlebarsViewRenderer;
 import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
+import io.appform.dropwizard.sharding.config.ShardedHibernateFactory;
+import io.appform.functionmetrics.FunctionMetricsManager;
 import io.dropwizard.Application;
-import io.dropwizard.Configuration;
+import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
+import io.dropwizard.configuration.SubstitutingSourceProvider;
+import io.dropwizard.server.AbstractServerFactory;
+import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import lombok.val;
+import ru.vyarus.dropwizard.guice.GuiceBundle;
+import ru.vyarus.dropwizard.guice.module.installer.feature.health.HealthCheckInstaller;
+import ru.vyarus.guicey.gsp.ServerPagesBundle;
 
 /**
- *
+ * Main app for conductor
  */
-public class App extends Application<Configuration> {
+public class App extends Application<AppConfig> {
+
     @Override
-    public void run(Configuration configuration, Environment environment) throws Exception {
+    public void initialize(Bootstrap<AppConfig> bootstrap) {
+        super.initialize(bootstrap);
+        bootstrap.setConfigurationSourceProvider(
+                new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(),
+                                               new EnvironmentVariableSubstitutor(true)));
+        val dbShardingBundle = new BalancedDBShardingBundle<AppConfig>("io.appform.conductor.server") {
+            @Override
+            protected ShardedHibernateFactory getConfig(AppConfig appConfig) {
+                return appConfig.getDb();
+            }
+        };
+        bootstrap.addBundle(dbShardingBundle);
+
+        bootstrap.addBundle(
+                GuiceBundle.builder()
+                        .enableAutoConfig("io.appform.conductor.server")
+                        .modules(new ConductorModule(dbShardingBundle))
+                        .installers(HealthCheckInstaller.class)
+                        .bundles(ServerPagesBundle.builder()
+                                         .addViewRenderers(new HandlebarsViewRenderer())
+                                         .build())
+                        .bundles(ServerPagesBundle.app("ui", "/assets/", "/")
+                                         .mapViews("/ui")
+                                         .requireRenderers("handlebars")
+                                         .build())
+                        .printDiagnosticInfo()
+                        .build(Stage.PRODUCTION));
+    }
+
+    @Override
+    public void run(AppConfig configuration, Environment environment) {
         val objectMapper = environment.getObjectMapper();
         ConductorServerUtils.configureMapper(objectMapper);
+        ((AbstractServerFactory) configuration.getServerFactory()).setJerseyRootPath("/apis/*");
+        FunctionMetricsManager.initialize("io.appform.conductor", environment.metrics());
     }
 
     public static void main(String[] args) throws Exception {

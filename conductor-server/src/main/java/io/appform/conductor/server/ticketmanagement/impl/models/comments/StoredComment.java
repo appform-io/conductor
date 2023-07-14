@@ -34,7 +34,7 @@ import java.util.Objects;
  * DB representation for {@link org.hibernate.annotations.Comment}
  */
 @Entity
-@Table(name = StoredCommentSkeleton.TICKET_COMMENTS_TABLE_NAME,
+@Table(name = StoredComment.TICKET_COMMENTS_TABLE_NAME,
     indexes = {
         @Index(name = "idx_comment_for_ticket", columnList = "ticket_id, deleted"),
         @Index(name = "idx_replies_for_ticket_comment", columnList = "ticket_id, reply_to_id, deleted"),
@@ -44,7 +44,7 @@ import java.util.Objects;
 @ToString
 @FieldNameConstants
 @NoArgsConstructor
-public class StoredCommentSkeleton implements Serializable {
+public class StoredComment implements Serializable {
     public static final String TICKET_COMMENTS_TABLE_NAME = "ticket_comments";
 
    @Serial
@@ -89,7 +89,7 @@ public class StoredCommentSkeleton implements Serializable {
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
             return false;
         }
-        StoredCommentSkeleton that = (StoredCommentSkeleton) o;
+        StoredComment that = (StoredComment) o;
         return Objects.equals(getId(), that.getId());
     }
 

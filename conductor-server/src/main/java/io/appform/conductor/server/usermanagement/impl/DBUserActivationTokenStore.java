@@ -24,27 +24,25 @@ import io.appform.conductor.server.usermanagement.UserActivationTokenStore;
 import io.appform.conductor.server.usermanagement.impl.models.StoredUserActivationToken;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.functionmetrics.MonitoredFunction;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
- * An implementation to store {@link UserActivationToken}
- * to RDBMS
+ * An implementation to store {@link UserActivationToken} to RDBMS
  */
+@Singleton
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class DBUserActivationTokenStore implements UserActivationTokenStore {
 
     private final LookupDao<StoredUserActivationToken> tokenDao;
-
-    @Inject
-    public DBUserActivationTokenStore(LookupDao<StoredUserActivationToken> tokenDao) {
-        this.tokenDao = tokenDao;
-    }
 
     @Override
     @MonitoredFunction

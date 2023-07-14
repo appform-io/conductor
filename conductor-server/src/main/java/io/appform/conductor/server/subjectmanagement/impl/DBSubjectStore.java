@@ -26,6 +26,7 @@ import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectSu
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.functionmetrics.MonitoredFunction;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -42,21 +43,12 @@ import java.util.function.UnaryOperator;
  */
 @Singleton
 @Slf4j
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class DBSubjectStore implements SubjectStore {
 
     private final LookupDao<StoredSubjectSummary> subjectDao;
     private final RelationalDao<StoredSubjectID> subjectIdDao;
     private final RelationalDao<StoredAddress> addressDao;
-
-    @Inject
-    public DBSubjectStore(
-            LookupDao<StoredSubjectSummary> subjectDao,
-            RelationalDao<StoredSubjectID> subjectIdDao,
-            RelationalDao<StoredAddress> addressDao) {
-        this.subjectDao = subjectDao;
-        this.subjectIdDao = subjectIdDao;
-        this.addressDao = addressDao;
-    }
 
     @Override
     @MonitoredFunction

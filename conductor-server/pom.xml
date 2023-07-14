@@ -33,6 +33,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hope-lang.version>2.0.3</hope-lang.version>
         <json-smart.version>2.4.11</json-smart.version>
+        <guicey-server-pages.version>5.6.1-1</guicey-server-pages.version>
+
     </properties>
 
     <dependencies>
@@ -47,6 +49,10 @@
             <version>${dropwizard.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-views</artifactId>
+        </dependency>
+        <dependency>
             <groupId>ru.vyarus</groupId>
             <artifactId>dropwizard-guicey</artifactId>
             <version>${dw-guicey.version}</version>
@@ -54,7 +60,7 @@
         <dependency>
             <groupId>ru.vyarus.guicey</groupId>
             <artifactId>guicey-server-pages</artifactId>
-            <version>0.7.0</version>
+            <version>${guicey-server-pages.version}</version>
         </dependency>
         <dependency>
             <groupId>io.appform.dropwizard.sharding</groupId>

@@ -23,6 +23,7 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import io.appform.jsonrules.Expression;
 import lombok.SneakyThrows;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Objects;
 
@@ -33,6 +34,7 @@ import java.util.Objects;
 public class JsonRuleEvaluator implements RuleEvaluator {
     private final LoadingCache<String, Expression> ruleCache;
 
+    @Inject
     public JsonRuleEvaluator(ObjectMapper mapper) {
         this.ruleCache = Caffeine.newBuilder()
                 .maximumSize(100_000)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,15 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.config;
+package io.appform.conductor.server.ui;
 
-import io.appform.dropwizard.sharding.config.ShardedHibernateFactory;
-import io.dropwizard.Configuration;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import io.appform.conductor.server.utils.dev.IgnoreGenerated;
 
 /**
  *
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class AppConfig extends Configuration {
-
-/*    @NotNull
-    @Valid
-    private AuthConfig auth;*/
-
-    @NotNull
-    @Valid
-    private ShardedHibernateFactory db;
+@IgnoreGenerated
+@SuppressWarnings("unused")
+public class CustomHelpers {
 
 }
