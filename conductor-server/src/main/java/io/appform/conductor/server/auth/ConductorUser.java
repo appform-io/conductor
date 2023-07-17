@@ -14,28 +14,23 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.resources;
+package io.appform.conductor.server.auth;
 
-import lombok.extern.slf4j.Slf4j;
-import ru.vyarus.guicey.gsp.views.template.Template;
-import ru.vyarus.guicey.gsp.views.template.TemplateView;
+import io.appform.conductor.model.usermgmt.UserSession;
+import lombok.NonNull;
+import lombok.Value;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import java.security.Principal;
 
 /**
  *
  */
-@Slf4j
-@Path("/ui/login")
-@Template
-@Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
-public class LoginPage {
+@Value
+public class ConductorUser implements Principal {
+    @NonNull UserSession userSession;
 
-    @GET
-    public TemplateView loginPage() {
-        return new TemplateView("templates/login.hbs");
+    @Override
+    public String getName() {
+        return userSession.getUser().getSummary().getName();
     }
 }

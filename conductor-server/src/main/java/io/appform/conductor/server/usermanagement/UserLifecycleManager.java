@@ -19,10 +19,9 @@ package io.appform.conductor.server.usermanagement;
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.google.common.base.Strings;
 import io.appform.conductor.model.usermgmt.*;
+import io.appform.conductor.server.auth.UserAuthValidator;
 import io.appform.conductor.server.internalmodels.auth.PasswordAuthData;
-import io.appform.conductor.server.internalmodels.auth.UserAuthenticator;
 import io.appform.conductor.server.internalmodels.auth.UserTokenAuthData;
-import io.appform.conductor.server.utils.ConductorServerUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
@@ -31,6 +30,7 @@ import javax.inject.Provider;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * User lifecycle manager
@@ -56,7 +56,7 @@ public class UserLifecycleManager {
     private final Provider<UserStore> userStore;
     private final Provider<UserPasswordAuthStore> passwordAuthStore;
     private final Provider<UserActivationTokenStore> userActivationTokenStore;
-    private final UserAuthenticator userAuthenticator;
+    private final UserAuthValidator userAuthValidator;
     private final Provider<GroupStore> groupStore;
 
     @Inject
@@ -64,12 +64,12 @@ public class UserLifecycleManager {
             Provider<UserStore> userStore,
             Provider<UserPasswordAuthStore> passwordAuthStore,
             Provider<UserActivationTokenStore> userActivationTokenStore,
-            UserAuthenticator userAuthenticator,
+            UserAuthValidator userAuthValidator,
             Provider<GroupStore> groupStore) {
         this.userStore = userStore;
         this.passwordAuthStore = passwordAuthStore;
         this.userActivationTokenStore = userActivationTokenStore;
-        this.userAuthenticator = userAuthenticator;
+        this.userAuthValidator = userAuthValidator;
         this.groupStore = groupStore;
     }
 
@@ -84,16 +84,25 @@ public class UserLifecycleManager {
      * @return Materialized user details.
      */
     public Optional<UserSummary> createUser(String name, String email, String password) {
-        final String userId = ConductorServerUtils.normalize(name);
         val userDetails = userStore.get()
-                .create(name, UserType.HUMAN, email)
-                .orElse(null);
-        if (null == userDetails) {
-            log.error("Could not create user with email: {}", email);
-            return Optional.empty();
-        }
-        passwordAuthStore.get().set(userId, hash(password));
-        return createToken(userId, userDetails);
+                .create(name, UserType.HUMAN, email);
+        userDetails.ifPresent(user -> {
+            passwordAuthStore.get().set(user.getId(), hash(password));
+            createToken(user.getId());
+        });
+        return userDetails;
+    }
+
+    public Optional<UserActivationToken> openToken(String userId) {
+        return userActivationTokenStore.get()
+                .getForUser(userId, Set.of(UserActivationTokenState.UNVALIDATED));
+    }
+
+    public Optional<UserSummary> showToken(String token) {
+        return userActivationTokenStore.get()
+                .getById(token)
+                .map(UserActivationToken::getUserId)
+                .flatMap(id -> userStore.get().getById(id));
     }
 
     /**
@@ -135,7 +144,7 @@ public class UserLifecycleManager {
         }
 
         val userId = userToken.getUserId();
-        val userSession = userAuthenticator.authenticate(new PasswordAuthData(userId, password)).orElse(null);
+        val userSession = userAuthValidator.authenticate(new PasswordAuthData(userId, password)).orElse(null);
         if (null == userSession) {
             log.error("No valid user for token {} userID {}", token, userId);
             return Optional.empty();
@@ -154,9 +163,9 @@ public class UserLifecycleManager {
                     .orElse(null);
             if (null != updatedDetails) {
                 return Optional.of(new UserSession(new User(updatedDetails,
+                                                            Set.of(),
                                                             userSession.getUser().getGroups(),
-                                                            userSession.getUser()
-                                                                    .getSkills()),
+                                                            userSession.getUser().getSkills()),
                                                    userSession.getSessionId(),
                                                    userSession.getState(),
                                                    userSession.getType(),
@@ -181,7 +190,7 @@ public class UserLifecycleManager {
      */
     public Optional<UserSession> loginUser(String userId, String password) {
         //Get a validated user
-        return userAuthenticator.authenticate(new PasswordAuthData(userId, password));
+        return userAuthValidator.authenticate(new PasswordAuthData(userId, password));
     }
 
     /**
@@ -190,7 +199,7 @@ public class UserLifecycleManager {
      * @param token The JWT token for a session
      */
     public Optional<UserSession> validateToken(String token) {
-        return userAuthenticator.authenticate(new UserTokenAuthData(token));
+        return userAuthValidator.authenticate(new UserTokenAuthData(token));
     }
 
     /**
@@ -281,7 +290,7 @@ public class UserLifecycleManager {
     }
 
 
-    private Optional<UserSummary> createToken(String userId, UserSummary userDetails) {
+    private void createToken(String userId) {
         val token = userActivationTokenStore.get()
                 .generate(userId, new Date(new Date().getTime() + DEFAULT_TOKEN_VALIDITY_MS))
                 .orElse(null);
@@ -293,7 +302,6 @@ public class UserLifecycleManager {
             log.info("Token for user: {} is [{}]", userId, token);
         }
         //TODO::SEND EVENT TO BUS
-        return Optional.of(userDetails);
     }
 
 

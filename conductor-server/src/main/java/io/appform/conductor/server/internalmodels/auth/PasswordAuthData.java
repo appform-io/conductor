@@ -28,12 +28,12 @@ import lombok.Value;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class PasswordAuthData extends UserAuthData {
-    String userId;
+    String email;
     String password;
 
-    public PasswordAuthData(String userId, String password) {
+    public PasswordAuthData(String email, String password) {
         super(UserAuthType.PASSWORD);
-        this.userId = userId;
+        this.email = email;
         this.password = password;
     }
 

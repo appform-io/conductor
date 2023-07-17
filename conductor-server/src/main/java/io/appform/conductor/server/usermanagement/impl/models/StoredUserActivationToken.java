@@ -21,6 +21,7 @@ import io.appform.conductor.model.usermgmt.UserActivationTokenState;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.*;
+import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
@@ -33,10 +34,12 @@ import java.util.Objects;
  * DB model for {@link UserActivationToken}
  */
 @Entity
-@Table(name = StoredUserActivationToken.ACTIVATION_TOKEN_TABLE_NAME)
+@Table(name = StoredUserActivationToken.ACTIVATION_TOKEN_TABLE_NAME,
+        indexes = @Index(name = "idx_tokens_for_user", columnList = "user_id"))
 @Getter
 @Setter
 @ToString
+@FieldNameConstants
 @NoArgsConstructor
 public class StoredUserActivationToken {
     public static final String ACTIVATION_TOKEN_TABLE_NAME = "user_activation_links";

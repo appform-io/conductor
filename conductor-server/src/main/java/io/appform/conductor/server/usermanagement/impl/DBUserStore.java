@@ -58,7 +58,8 @@ public class DBUserStore implements UserStore {
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = USER_TABLE_NAME))
-    public Optional<UserSummary> create(@Throws.RuntimeParam("id") String name, UserType userType, String email) {
+    public Optional<UserSummary> create(
+            String name, UserType userType, @Throws.RuntimeParam("id") String email) {
         val userId = Strings.isNullOrEmpty(email)
                         ? ConductorServerUtils.normalize(name)
                         : email;

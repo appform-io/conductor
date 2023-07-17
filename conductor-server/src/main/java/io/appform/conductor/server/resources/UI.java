@@ -20,6 +20,7 @@ import io.appform.conductor.server.ui.views.HomeView;
 import lombok.extern.slf4j.Slf4j;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
+import javax.annotation.security.PermitAll;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -32,6 +33,7 @@ import javax.ws.rs.core.MediaType;
 @Path("/ui")
 @Template
 @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
+@PermitAll
 public class UI {
 
     @GET

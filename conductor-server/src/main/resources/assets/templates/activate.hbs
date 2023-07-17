@@ -1,0 +1,35 @@
+{{#partial "content"}}
+    <section>
+        <div class="row justify-content-center">
+            <div class="col-sm-12 col-md-4">
+                <form method="post" action="/login/activate/{{token}}">
+                    <div class="row g-3 m-2">
+                        <div class="col-3 text-end">
+                            <label for="name" class="col-form-label fw-bold">Name (Please double-check)</label>
+                        </div>
+                        <div class="col">
+                            <input type="text" id="name" class="form-control border border-dark bg-light" disabled
+                                   value="{{name}}">
+                        </div>
+                    </div>
+                    <div class="row g-3 m-2">
+                        <div class="col-3 text-end">
+                            <label for="password" class="col-form-label fw-bold">Password</label>
+                        </div>
+                        <div class="col">
+                            <input type="password" id="password" name="password"
+                                   class="form-control  border border-dark bg-light" required>
+                        </div>
+                    </div>
+                    <div class="row g-3 m-2">
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-outline-primary mb-3">Activate</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </section>
+{{/partial}}
+{{> common/base}}

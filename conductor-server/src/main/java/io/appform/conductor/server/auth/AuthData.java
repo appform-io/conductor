@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.usermgmt;
+package io.appform.conductor.server.auth;
 
-import io.appform.conductor.model.auth.Permission;
 import lombok.Value;
 
-import java.util.Collection;
-import java.util.Set;
-
 /**
- * A detailed view of a user in the system
+ * Extracted auth data to be used by {@link io.appform.conductor.server.auth.ConductorAuthenticator}
+ * and {@link io.appform.conductor.server.auth.ConductorAuthorizer}
  */
 @Value
-public class User {
-    UserSummary summary;
-    Set<Permission> permissions;
-    Collection<Group> groups;
-    Set<Skill> skills;
+public class AuthData {
+    AuthSource source;
+    String token;
 }

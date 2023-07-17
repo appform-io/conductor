@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ticketmanagement.impl.models.comments;
+package io.appform.conductor.server.auth.impl.models;
 
-import com.google.common.net.MediaType;
-import io.appform.conductor.server.utils.persistence.MediaTypeConverter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -30,55 +28,37 @@ import org.hibernate.annotations.GenerationTime;
 import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
-import java.net.URL;
 import java.util.Date;
 import java.util.Objects;
 
 /**
- * DB representation for {@link org.hibernate.annotations.Comment}
+ *
  */
 @Entity
-@Table(name = StoredAttachment.TICKET_ATTACHMENTS_TABLE_NAME,
-    indexes = {
-        @Index(name = "idx_attachment_for_ticket", columnList = "ticket_id, deleted"),
-    })
+@Table(name = StoredUserRoleMapping.USER_ROLE_MAPPING_TABLE_NAME,
+        indexes = {
+                @Index(name = "uk_user_roles", columnList = "user_id, role_id", unique = true),
+        })
 @Getter
 @Setter
 @ToString
 @FieldNameConstants
 @NoArgsConstructor
-public class StoredAttachment implements Serializable {
-    public static final String TICKET_ATTACHMENTS_TABLE_NAME = "ticket_attachments";
+public class StoredUserRoleMapping implements Serializable {
+    public static final String USER_ROLE_MAPPING_TABLE_NAME = "user_role_mappings";
 
     @Serial
-    private static final long serialVersionUID = -5698876015229760326L;
+    private static final long serialVersionUID = 8332369056839193904L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private String id;
 
-    @Column(name = "ticket_id", nullable = false)
-    private String ticketId;
+    @Column(name = "user_id", nullable = false)
+    private String userId;
 
-    @Column(name = "attachment_id", unique = true)
-    private String attachmentId;
+    @Column(name = "role_id", nullable = false)
+    private String roleId;
 
-    @Column
-    private String creator;
-
-    @SuppressWarnings("java:S1948")
-    @Convert(converter = MediaTypeConverter.class)
-    @Column
-    private MediaType mediaType;
-
-    @Column
-    private URL url;
-
-    @Column(name = "size_in_bytes")
-    private long sizeInBytes;
-
-    @Column
-    boolean encrypted;
 
     @Column(name = "deleted")
     private boolean deleted;
@@ -100,7 +80,7 @@ public class StoredAttachment implements Serializable {
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
             return false;
         }
-        StoredAttachment that = (StoredAttachment) o;
+        StoredUserRoleMapping that = (StoredUserRoleMapping) o;
         return Objects.equals(getId(), that.getId());
     }
 

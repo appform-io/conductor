@@ -55,3 +55,7 @@ db:
       maxSize: 8
       initialSize: 8
       checkConnectionWhileIdle: false
+
+auth:
+  signingSecret: "t1ArsjdSJqWdVSPAW2tMQ4Z1Ck0T9J9j"
+  sessionDuration: 30d

@@ -16,10 +16,11 @@
 
 package io.appform.conductor.server.config;
 
+import io.dropwizard.util.Duration;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
-import java.time.Duration;
+
 
 /**
  *
@@ -29,5 +30,5 @@ public class AuthConfig {
     @NotEmpty
     private String signingSecret;
 
-    private Duration sessionTime;
+    private Duration sessionDuration;
 }

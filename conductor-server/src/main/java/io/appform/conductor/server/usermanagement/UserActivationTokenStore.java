@@ -17,9 +17,11 @@
 package io.appform.conductor.server.usermanagement;
 
 import io.appform.conductor.model.usermgmt.UserActivationToken;
+import io.appform.conductor.model.usermgmt.UserActivationTokenState;
 
 import java.util.Date;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -29,5 +31,8 @@ public interface UserActivationTokenStore {
 
     Optional<UserActivationToken> generate(String userId, Date validTill);
     Optional<UserActivationToken> getById(String token);
+
+    Optional<UserActivationToken> getForUser(String userId, Set<UserActivationTokenState> requiredStates);
+
     boolean update(String token, Consumer<UserActivationToken> handler);
 }

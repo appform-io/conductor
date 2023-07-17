@@ -41,4 +41,6 @@ public class AppConfig extends Configuration {
     @Valid
     private ShardedHibernateFactory db;
 
+    @NotNull
+    private AuthConfig auth;
 }

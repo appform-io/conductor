@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.usermgmt;
+package io.appform.conductor.server.ui.views;
 
-import io.appform.conductor.model.auth.Permission;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.Value;
-
-import java.util.Collection;
-import java.util.Set;
+import ru.vyarus.guicey.gsp.views.template.TemplateView;
 
 /**
- * A detailed view of a user in the system
+ * Renders user activation page
  */
 @Value
-public class User {
-    UserSummary summary;
-    Set<Permission> permissions;
-    Collection<Group> groups;
-    Set<Skill> skills;
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class ActivationView extends TemplateView {
+    String token;
+    String name;
+    public ActivationView(String token, String name) {
+        super("templates/activate.hbs");
+        this.token = token;
+        this.name = name;
+    }
 }

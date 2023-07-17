@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ticketmanagement.impl.models.comments;
+package io.appform.conductor.server.auth.impl.models;
 
-import com.google.common.net.MediaType;
-import io.appform.conductor.server.utils.persistence.MediaTypeConverter;
+import io.appform.conductor.model.auth.Permission;
+import io.appform.conductor.server.utils.persistence.PermissionsConverter;
+import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -30,55 +31,44 @@ import org.hibernate.annotations.GenerationTime;
 import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
-import java.net.URL;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Set;
 
 /**
- * DB representation for {@link org.hibernate.annotations.Comment}
+ *
  */
 @Entity
-@Table(name = StoredAttachment.TICKET_ATTACHMENTS_TABLE_NAME,
-    indexes = {
-        @Index(name = "idx_attachment_for_ticket", columnList = "ticket_id, deleted"),
-    })
+@Table(name = StoredRole.ROLES_TABLE_NAME)
 @Getter
 @Setter
 @ToString
 @FieldNameConstants
 @NoArgsConstructor
-public class StoredAttachment implements Serializable {
-    public static final String TICKET_ATTACHMENTS_TABLE_NAME = "ticket_attachments";
+public class StoredRole implements Serializable {
+    public static final String ROLES_TABLE_NAME = "roles";
 
-    @Serial
-    private static final long serialVersionUID = -5698876015229760326L;
+   @Serial
+   private static final long serialVersionUID = 3350870151031507009L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "ticket_id", nullable = false)
-    private String ticketId;
-
-    @Column(name = "attachment_id", unique = true)
-    private String attachmentId;
+    @LookupKey
+    @Column(name = "role_id", nullable = false, unique = true)
+    private String roleId;
 
     @Column
-    private String creator;
+    String name;
+
+    @Column
+    String description;
 
     @SuppressWarnings("java:S1948")
-    @Convert(converter = MediaTypeConverter.class)
     @Column
-    private MediaType mediaType;
-
-    @Column
-    private URL url;
-
-    @Column(name = "size_in_bytes")
-    private long sizeInBytes;
-
-    @Column
-    boolean encrypted;
+    @Convert(converter = PermissionsConverter.class)
+    Set<Permission> permissions;
 
     @Column(name = "deleted")
     private boolean deleted;
@@ -100,7 +90,7 @@ public class StoredAttachment implements Serializable {
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
             return false;
         }
-        StoredAttachment that = (StoredAttachment) o;
+        StoredRole that = (StoredRole) o;
         return Objects.equals(getId(), that.getId());
     }
 

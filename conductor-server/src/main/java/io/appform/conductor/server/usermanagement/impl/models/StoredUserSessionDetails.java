@@ -47,7 +47,7 @@ public class StoredUserSessionDetails {
     @Column(name = "session_id", nullable = false, length = 45)
     private String sessionId;
 
-    @Column(name = "user_id", unique = true, nullable = false, length = 45)
+    @Column(name = "user_id", nullable = false, length = 45)
     private String userId;
 
     @Column

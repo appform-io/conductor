@@ -26,19 +26,20 @@
 
     {{/block}}
 
+
     </style>
 </head>
 <body>
 <header>
-<!--    <nav class="navbar navbar-expand-lg navbar-dark bg-primary justify-content-right">
+    <!--    <nav class="navbar navbar-expand-lg navbar-dark bg-primary justify-content-right">
 
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <a class="navbar-brand cm-icon mb-0 ms-2 h1" href="/" style="font-size: x-large;"><img
-                    src="/images/conductor.png" width="45" height="45" alt=""><span class="ms-1">CONDUCTOR</span></a>
-            <ul class="navbar-nav mr-auto mt-2 mt-lg-0"></ul>
-        </div>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <a class="navbar-brand cm-icon mb-0 ms-2 h1" href="/" style="font-size: x-large;"><img
+                        src="/images/conductor.png" width="45" height="45" alt=""><span class="ms-1">CONDUCTOR</span></a>
+                <ul class="navbar-nav mr-auto mt-2 mt-lg-0"></ul>
+            </div>
 
-    </nav>-->
+        </nav>-->
 </header>
 <main role="main" class="container-fluid">
     <section class="mt-5">
@@ -56,13 +57,14 @@
                 </div>
                 <div class="row">
                     <div class="col">
-                        <form>
+                        <form method="post" action="/login">
                             <div class="row g-3 align-items-center m-2">
                                 <div class="col-3 text-end">
-                                    <label for="userId" class="col-form-label fw-bold">E-Mail</label>
+                                    <label for="email" class="col-form-label fw-bold">E-Mail</label>
                                 </div>
                                 <div class="col">
-                                    <input type="email" id="userId" class="form-control border border-dark bg-light" required>
+                                    <input type="email" id="email" name="email" class="form-control border border-dark bg-light"
+                                           required>
                                 </div>
                             </div>
                             <div class="row g-3 align-items-center m-2">
@@ -70,7 +72,8 @@
                                     <label for="password" class="col-form-label fw-bold">Password</label>
                                 </div>
                                 <div class="col">
-                                    <input type="password" id="password" class="form-control  border border-dark bg-light" required>
+                                    <input type="password" id="password" name="password"
+                                           class="form-control  border border-dark bg-light" required>
                                 </div>
                             </div>
                             <div class="row g-3 m-2 float-end">
@@ -90,21 +93,23 @@
                 </div>
                 <div class="row">
                     <div class="col">
-                        <form>
+                        <form method="post" action="/login/register">
                             <div class="row g-3 align-items-center m-2">
                                 <div class="col-3 text-end">
                                     <label for="newName" class="col-form-label fw-bold">Name</label>
                                 </div>
                                 <div class="col">
-                                    <input type="email" id="newName" class="form-control border border-dark bg-light" required>
+                                    <input type="text" id="newName" name="newName"
+                                           class="form-control border border-dark bg-light" required>
                                 </div>
                             </div>
                             <div class="row g-3 align-items-center m-2">
                                 <div class="col-3 text-end">
-                                    <label for="newUserId" class="col-form-label fw-bold">E-Mail</label>
+                                    <label for="newEmail" class="col-form-label fw-bold">E-Mail</label>
                                 </div>
                                 <div class="col">
-                                    <input type="email" id="newUserId" class="form-control border border-dark bg-light" required>
+                                    <input type="email" id="newEmail" name="newEmail"
+                                           class="form-control border border-dark bg-light" required>
                                 </div>
                             </div>
                             <div class="row g-3 align-items-center m-2">
@@ -112,7 +117,8 @@
                                     <label for="newPassword" class="col-form-label fw-bold">Password</label>
                                 </div>
                                 <div class="col">
-                                    <input type="password" id="newPassword" class="form-control  border border-dark bg-light" required>
+                                    <input type="password" id="newPassword" name="newPassword"
+                                           class="form-control  border border-dark bg-light" required>
                                 </div>
                             </div>
                             <div class="row g-3 m-2 float-end">

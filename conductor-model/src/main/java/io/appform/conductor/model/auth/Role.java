@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.usermgmt;
+package io.appform.conductor.model.auth;
 
-import io.appform.conductor.model.auth.Permission;
 import lombok.Value;
 
-import java.util.Collection;
+import java.util.Date;
 import java.util.Set;
 
 /**
- * A detailed view of a user in the system
+ * A role is a logical collection of permissions that can be assigned to a user
  */
 @Value
-public class User {
-    UserSummary summary;
+public class Role {
+    String id;
+    String name;
+    String description;
     Set<Permission> permissions;
-    Collection<Group> groups;
-    Set<Skill> skills;
+    Date created;
+    Date updated;
 }

@@ -27,11 +27,15 @@ import io.appform.functionmetrics.MonitoredFunction;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Property;
+import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Date;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -65,6 +69,21 @@ public class DBUserActivationTokenStore implements UserActivationTokenStore {
             fixedParams = @Throws.Param(name = "type", value = StoredUserActivationToken.ACTIVATION_TOKEN_TABLE_NAME))
     public Optional<UserActivationToken> getById(@Throws.RuntimeParam("id") String token) {
         return tokenDao.get(token)
+                .map(DBUserActivationTokenStore::toWire);
+    }
+
+    @Override
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredUserActivationToken.ACTIVATION_TOKEN_TABLE_NAME))
+    public Optional<UserActivationToken> getForUser(String userId, Set<UserActivationTokenState> requiredStates) {
+        return tokenDao.scatterGather(DetachedCriteria.forClass(StoredUserActivationToken.class)
+                                              .add(Property.forName(StoredUserActivationToken.Fields.userId).eq(userId))
+                                              .add(Restrictions.in(StoredUserActivationToken.Fields.state,
+                                                                   requiredStates)))
+                .stream()
+                .findAny()
                 .map(DBUserActivationTokenStore::toWire);
     }
 

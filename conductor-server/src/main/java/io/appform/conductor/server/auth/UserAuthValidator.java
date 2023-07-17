@@ -14,28 +14,32 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.internalmodels.auth;
+package io.appform.conductor.server.auth;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import io.appform.conductor.model.usermgmt.*;
 import io.appform.conductor.server.config.AuthConfig;
+import io.appform.conductor.server.internalmodels.auth.PasswordAuthData;
+import io.appform.conductor.server.internalmodels.auth.UserAuthData;
+import io.appform.conductor.server.internalmodels.auth.UserAuthDataVisitor;
+import io.appform.conductor.server.internalmodels.auth.UserTokenAuthData;
 import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.usermanagement.SessionStore;
 import io.appform.conductor.server.usermanagement.UserPasswordAuthStore;
 import io.appform.conductor.server.usermanagement.UserStore;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jose4j.jwa.AlgorithmConstraints;
-import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
-import org.jose4j.jwe.JsonWebEncryption;
-import org.jose4j.jwe.KeyManagementAlgorithmIdentifiers;
+import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.NumericDate;
 import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
-import org.jose4j.keys.AesKey;
+import org.jose4j.keys.HmacKey;
 
 import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
@@ -49,30 +53,21 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.errorMessag
  * Handles authentication requests
  */
 @Slf4j
-public class UserAuthenticator {
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
+public class UserAuthValidator {
     private final UserStore userStore;
     private final GroupStore groupStore;
     private final UserPasswordAuthStore passwordAuthStore;
     private final SessionStore sessionStore;
+    private final RoleStore roleStore;
+    private final UserRoleMappingStore roleMappingStore;
 
     private final AuthConfig authConfig;
 
-    @Inject
-    public UserAuthenticator(
-            UserStore userStore,
-            GroupStore groupStore,
-            UserPasswordAuthStore passwordAuthStore,
-            SessionStore sessionStore,
-            AuthConfig authConfig) {
-        this.userStore = userStore;
-        this.groupStore = groupStore;
-        this.passwordAuthStore = passwordAuthStore;
-        this.sessionStore = sessionStore;
-        this.authConfig = authConfig;
-    }
 
     /**
      * Authenticate a user or a session based on the provided data
+     *
      * @param authData The data to be validated
      * @return A user session or empty
      */
@@ -81,6 +76,8 @@ public class UserAuthenticator {
                                                          groupStore,
                                                          passwordAuthStore,
                                                          sessionStore,
+                                                         roleStore,
+                                                         roleMappingStore,
                                                          authConfig));
     }
 
@@ -88,6 +85,8 @@ public class UserAuthenticator {
                                          GroupStore groupStore,
                                          UserPasswordAuthStore passwordAuthStore,
                                          SessionStore sessionStore,
+                                         RoleStore roleStore,
+                                         UserRoleMappingStore roleMappingStore,
                                          AuthConfig authConfig) implements UserAuthDataVisitor<Optional<UserSession>> {
 
         private static final EnumSet<UserState> TERMINAL_USER_STATES
@@ -95,19 +94,19 @@ public class UserAuthenticator {
 
         @Override
         public Optional<UserSession> visit(PasswordAuthData passwordAuthData) {
-            val userId = passwordAuthData.getUserId();
+            val email = passwordAuthData.getEmail();
             val password = passwordAuthData.getPassword();
             val user = userStore
-                    .getById(userId);
+                    .getByEmail(email);
             val passwordData = user
                     .flatMap(userData -> passwordAuthStore.get(userData.getId()))
                     .orElse(null);
             if (null == passwordData) {
-                log.error("No valid user found for userID: {}", userId);
+                log.error("No valid user found for userID: {}", email);
                 return Optional.empty();
             }
-            val passwordVerified = matchHash(userId, password, passwordData.getPassword());
-            val updatedPasswordData = passwordAuthStore.update(userId, passwordDetails -> {
+            val passwordVerified = matchHash(email, password, passwordData.getPassword());
+            val updatedPasswordData = passwordAuthStore.update(email, passwordDetails -> {
                         val attempts = passwordDetails.getFailedPasswordAttempts() + 1;
                         if (passwordVerified) {
                             passwordDetails.setFailedPasswordAttempts(0);
@@ -120,16 +119,16 @@ public class UserAuthenticator {
                     .orElse(null);
             if (null != updatedPasswordData) {
                 if (updatedPasswordData.getFailedPasswordAttempts() > 3) {
-                    userStore.updateState(userId, UserState.LOCKED);
-                    log.warn("User {} has been locked due to too many failed password attempts.", userId);
+                    userStore.updateState(email, UserState.LOCKED);
+                    log.warn("User {} has been locked due to too many failed password attempts.", email);
                 }
                 else {
                     log.error("Password validation failure for user {}. [attempts: {}]",
-                              userId, updatedPasswordData.getFailedPasswordAttempts());
+                              email, updatedPasswordData.getFailedPasswordAttempts());
                 }
             }
             else {
-                log.warn("No password info found for user: {}", userId);
+                log.warn("No password info found for user: {}", email);
             }
             if (passwordVerified) {
                 return user
@@ -148,9 +147,8 @@ public class UserAuthenticator {
                     .setExpectedIssuer("Conductor")
                     .setExpectedAudience(UserType.HUMAN.name(), UserType.SYSTEM.name())
                     .setVerificationKey(verificationKey(authConfig))
-                    .setJweContentEncryptionAlgorithmConstraints(
-                            new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT,
-                                                     ContentEncryptionAlgorithmIdentifiers.AES_128_CBC_HMAC_SHA_256))
+                    .setJwsAlgorithmConstraints(AlgorithmConstraints.ConstraintType.PERMIT,
+                                                AlgorithmIdentifiers.HMAC_SHA256)
                     .build();
             val token = tokenData.getToken();
             try {
@@ -162,6 +160,7 @@ public class UserAuthenticator {
                         .flatMap(userSummary -> sessionStore.getById(userId, sessionId)
                                 .map(sessionDetails -> new UserSession(
                                         new User(userSummary,
+                                                 roleStore.permissionsForRoles(roleMappingStore.rolesForUser(userId)),
                                                  groupStore.findGroupsForUser(userSummary.getId()),
                                                  Set.of()),
                                         sessionDetails.getId(),
@@ -190,12 +189,11 @@ public class UserAuthenticator {
             if (null != session.getExpiry()) {
                 claims.setExpirationTime(NumericDate.fromMilliseconds(session.getExpiry().getTime()));
             }
-            val jwe = new JsonWebEncryption();
-            jwe.setAlgorithmHeaderValue(KeyManagementAlgorithmIdentifiers.A128KW);
-            jwe.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_256_CBC_HMAC_SHA_512);
-            jwe.setKey(verificationKey(authConfig));
-            jwe.setPayload(claims.toJson());
-            return jwe.getCompactSerialization();
+            val jws = new JsonWebSignature();
+            jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.HMAC_SHA256);
+            jws.setKey(verificationKey(authConfig));
+            jws.setPayload(claims.toJson());
+            return jws.getCompactSerialization();
         }
 
         private static boolean isUserActionable(final UserSummary userDetails) {
@@ -213,12 +211,17 @@ public class UserAuthenticator {
         }
 
         private Optional<UserSession> createSession(final UserSummary userSummary) {
-            val user = new User(userSummary, groupStore.findGroupsForUser(userSummary.getId()), Set.of());
+            val user = new User(userSummary,
+                                roleStore.permissionsForRoles(roleMappingStore.rolesForUser(userSummary.getId())),
+                                groupStore.findGroupsForUser(userSummary.getId()),
+                                Set.of());
             val sessionType = switch (userSummary.getType()) {
                 case HUMAN -> SessionType.DYNAMIC;
                 case SYSTEM -> SessionType.STATIC;
             };
-            val defaultSessionDuration = Objects.requireNonNullElse(authConfig.getSessionTime(), Duration.ofDays(30));
+            val defaultSessionDuration = Duration.ofMillis(Objects.requireNonNullElse(authConfig.getSessionDuration(),
+                                                                                      io.dropwizard.util.Duration.days(
+                                                                                              30)).toMilliseconds());
             val expiry = switch (sessionType) {
                 case DYNAMIC -> Date.from(Instant.now().plus(defaultSessionDuration));
                 case STATIC -> null;
@@ -233,7 +236,7 @@ public class UserAuthenticator {
         }
     }
 
-    private static AesKey verificationKey(AuthConfig authConfig) {
-        return new AesKey(authConfig.getSigningSecret().getBytes(StandardCharsets.UTF_8));
+    private static HmacKey verificationKey(AuthConfig authConfig) {
+        return new HmacKey(authConfig.getSigningSecret().getBytes(StandardCharsets.UTF_8));
     }
 }

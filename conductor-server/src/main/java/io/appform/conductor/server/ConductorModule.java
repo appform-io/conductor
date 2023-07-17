@@ -23,7 +23,14 @@ import com.google.inject.Singleton;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.actionmanagement.impl.DBActionStore;
 import io.appform.conductor.server.actionmanagement.impl.models.StoredAction;
+import io.appform.conductor.server.auth.UserRoleMappingStore;
+import io.appform.conductor.server.auth.impl.DBRoleStore;
+import io.appform.conductor.server.auth.RoleStore;
+import io.appform.conductor.server.auth.impl.DBUserRoleMappingStore;
+import io.appform.conductor.server.auth.impl.models.StoredRole;
+import io.appform.conductor.server.auth.impl.models.StoredUserRoleMapping;
 import io.appform.conductor.server.config.AppConfig;
+import io.appform.conductor.server.config.AuthConfig;
 import io.appform.conductor.server.schemamanagement.impl.DBSchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.models.StoredFieldSchema;
@@ -72,11 +79,20 @@ public class ConductorModule extends AbstractModule {
         bind(UserActivationTokenStore.class).to(DBUserActivationTokenStore.class);
         bind(UserPasswordAuthStore.class).to(DBUserPasswordAuthStore.class);
 
+        bind(RoleStore.class).to(DBRoleStore.class);
+        bind(UserRoleMappingStore.class).to(DBUserRoleMappingStore.class);
+
         bind(SubjectStore.class).to(DBSubjectStore.class);
         bind(ActionStore.class).to(DBActionStore.class);
         bind(SchemaStore.class).to(DBSchemaStore.class);
         bind(WorkflowStore.class).to(DBWorkflowStore.class);
         bind(TicketStore.class).to(DBTicketStore.class);
+    }
+
+    @Provides
+    @Singleton
+    public AuthConfig authConfig(final AppConfig appConfig) {
+        return appConfig.getAuth();
     }
 
     @Provides
@@ -113,6 +129,18 @@ public class ConductorModule extends AbstractModule {
     @Singleton
     public RelationalDao<StoredUserPassword> passwordDao() {
         return dbBundle.createRelatedObjectDao(StoredUserPassword.class);
+    }
+
+    @Provides
+    @Singleton
+    public LookupDao<StoredRole> roleDao() {
+        return dbBundle.createParentObjectDao(StoredRole.class);
+    }
+
+    @Provides
+    @Singleton
+    public RelationalDao<StoredUserRoleMapping> userRoleDao() {
+        return dbBundle.createRelatedObjectDao(StoredUserRoleMapping.class);
     }
 
     @Provides
@@ -203,6 +231,5 @@ public class ConductorModule extends AbstractModule {
     @Singleton
     public RelationalDao<StoredAttachment> attachmentDao() {
         return dbBundle.createRelatedObjectDao(StoredAttachment.class);
-
     }
 }
