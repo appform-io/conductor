@@ -31,7 +31,7 @@
                         </div>
                         <div class="col">
                             <select id="permissions" name="permissions" class="form-control border border-dark bg-light"
-                                    multiple size="10">
+                                    multiple size="10" required>
                                 {{#each permissions}}
                                     <option value="{{this}}">{{readable this}}</option>
                                 {{/each}}

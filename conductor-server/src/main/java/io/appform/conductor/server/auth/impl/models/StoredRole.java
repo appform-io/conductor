@@ -52,6 +52,9 @@ public class StoredRole implements Serializable {
     private static final long serialVersionUID = 3350870151031507009L;
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
     @LookupKey
     @Column(name = "role_id", nullable = false, unique = true)
     private String roleId;
@@ -88,7 +91,7 @@ public class StoredRole implements Serializable {
             return false;
         }
         StoredRole that = (StoredRole) o;
-        return Objects.equals(getRoleId(), that.getRoleId());
+        return Objects.equals(getId(), that.getId());
     }
 
     @Override

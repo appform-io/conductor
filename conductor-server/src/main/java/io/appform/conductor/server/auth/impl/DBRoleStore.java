@@ -59,15 +59,14 @@ public class DBRoleStore implements RoleStore {
             String name,
             String description,
             Set<Permission> permissions) {
-        val existing = roleDao.get(roleId).filter(role -> !role.isDeleted()).orElse(null);
-        if(null != existing) {
-            return Optional.of(existing).map(DBRoleStore::toRole);
-        }
-        return roleDao.save(new StoredRole()
-                                    .setRoleId(roleId)
-                                    .setName(name)
-                                    .setDescription(description)
-                                    .setPermissions(permissions))
+        return roleDao.createOrUpdate(roleId,
+                                      role -> role.setDeleted(false)
+                                              .setDescription(description),
+                                      () -> new StoredRole()
+                                              .setRoleId(roleId)
+                                              .setName(name)
+                                              .setDescription(description)
+                                              .setPermissions(permissions))
                 .map(DBRoleStore::toRole);
     }
 
