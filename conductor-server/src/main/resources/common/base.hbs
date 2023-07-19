@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="A ticket management system">
     <meta name="author" content="Santanu Sinha">
-    <link rel="icon" href="favicon.ico">
+    <link rel="icon" href="/favicon.ico">
 
     <title>CONDUCTOR</title>
 
@@ -13,7 +13,7 @@
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <!--    <link href="/open-iconic-master/font/css/open-iconic-bootstrap.css" rel="stylesheet">-->
     <link href="/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     {{#block "page_css_includes"}}
 
     {{/block}}
@@ -27,28 +27,84 @@
     </style>
 </head>
 <body>
-<header>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary justify-content-right">
+<main role="main" class="container-fluid overflow-hidden">
+    <div class="row vh-100 overflow-auto">
+        <div class="col-12 col-sm-3 col-xl-2 px-sm-2 px-0 bg-dark d-flex sticky-top">
+            <div class="d-flex flex-sm-column flex-row flex-grow-1 align-items-center align-items-sm-start px-3 pt-2 pb-2 text-white">
+                <!--                    <a href="/" class="d-flex align-items-center pb-sm-3 mb-md-0 me-md-auto text-white text-decoration-none">-->
+                <!--                        <span class="fs-5">B<span class="d-none d-sm-inline">rand</span></span>-->
+                <!--                    </a>-->
+                <a class="d-flex align-items-center pb-sm-3 mb-md-0 me-md-auto text-white  text-decoration-none" href="/" style="font-size: x-large;"><img
+                        src="/images/conductor.png" width="45" height="45" alt=""><span class="ms-1">CONDUCTOR</span></a>
+                <ul class="nav nav-pills flex-sm-column flex-row flex-nowrap flex-shrink-1 flex-sm-grow-0 flex-grow-1 mb-sm-auto mb-0 justify-content-center align-items-center align-items-sm-start" id="menu">
+                    <li class="nav-item">
+                        <a href="/" class="fs-5 nav-link px-sm-0 px-2 text-white">
+                            <i class="bi fs-3 bi-house"></i><span class="ms-1 d-none d-sm-inline">Home</span>
+                        </a>
+                    </li>
 
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <a class="navbar-brand cm-icon mb-0 ms-2 h1" href="/" style="font-size: x-large;"><img
-                    src="/images/conductor.png" width="45" height="45" alt=""><span class="ms-1">CONDUCTOR</span></a>
-            <ul class="navbar-nav mr-auto mt-2 mt-lg-0"></ul>
-        </div>
-
-    </nav>
-</header>
-<main role="main" class="container-fluid">
-    {{#if error}}
-        <section>
-            <div class="alert alert-danger" role="alert">
-                <b>Error:</b> {{error}}
+                    <li>
+                        <a href="/tickets" class="fs-5 nav-link px-sm-0 px-2  text-white">
+                            <i class="bi fs-3 bi-ticket"></i><span class="ms-1 d-none d-sm-inline">Tickets</span></a>
+                    </li>
+                    <li>
+                        <a href="/subjects" class="fs-5 nav-link px-sm-0 px-2  text-white">
+                            <i class="bi fs-3 bi-people"></i><span class="ms-1 d-none d-sm-inline">Subjects</span></a>
+                    </li>
+                    <li>
+                        <a href="/analytics" class="fs-5 nav-link px-sm-0 px-2  text-white">
+                            <i class="bi fs-3 bi-bar-chart"></i><span class="ms-1 d-none d-sm-inline">Analytics</span></a>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="fs-5 nav-link dropdown-toggle px-sm-0 px-2  text-white" id="dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi fs-3 bi-gear-wide-connected"></i><span class="ms-1 d-none d-sm-inline">Administration</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdown">
+                            <li><a class="dropdown-item" href="/admin/roles">Roles</a></li>
+<!--                            <li>
+                                <hr class="dropdown-divider">
+                            </li>-->
+                            <li><a class="dropdown-item" href="/admin/groups">Groups</a></li>
+                            <li><a class="dropdown-item" href="/admin/users">Users</a></li>
+                            <li><a class="dropdown-item" href="/admin/schema">Schema Management</a></li>
+                            <li><a class="dropdown-item" href="/admin/workflow">Workflow Management</a></li>
+                        </ul>
+                    </li>
+<!--                    <li>
+                        <a href="#" class="nav-link px-sm-0 px-2">
+                            <i class="fs-5 bi-grid"></i><span class="ms-1 d-none d-sm-inline">Products</span></a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link px-sm-0 px-2">
+                            <i class="fs-5 bi-people"></i><span class="ms-1 d-none d-sm-inline">Customers</span> </a>
+                    </li>-->
+                </ul>
+                <div class="dropdown py-sm-4 mt-sm-auto ms-auto ms-sm-0 flex-shrink-1">
+                    <a href="#" class="fs-4 d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                        <!--                            <img src="https://github.com/mdo.png" alt="hugenerd" width="28" height="28" class="rounded-circle">-->
+                        {{#with currentUser}}
+                            {{#with summary}}
+                                <i class="bi bi-person-circle"></i><span class="d-none d-sm-inline mx-1">{{name}}</span>
+                            {{/with}}
+                        {{/with}}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
+                        <li><a class="dropdown-item" href="#">Profile</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="#">Sign out</a></li>
+                    </ul>
+                </div>
             </div>
-        </section>
-    {{/if}}
-    {{#block "content"}}
+        </div>
+        <div class="col d-flex flex-column h-100 mt-4">
+            {{#block "content"}}
 
-    {{/block}}
+            {{/block}}
+        </div>
+    </div>
+
 </main>
 <script src="/js/swal.js"></script>
 <script src="/js/jquery-3.7.0.min.js"></script>
@@ -188,12 +244,30 @@ $(document).ready(function() {
         return data;
     }
 
-	$('.data-table').DataTable({
-		paging: false,
-		ordering: false,
-		info: false,
-		"dom":' <"search"f><"top"l>rt<"bottom"ip><"clear">'
-	});
+    //Sets up data table with external search box
+    $('.data-table').each(function() {
+        const tableElement = $(this);
+        const table = tableElement.DataTable({
+            paging: false,
+            ordering: false,
+            info: false,
+            //"dom":' <"search"f><"top"r>rt<"bottom"ip><"clear">'
+            "dom":'t'
+        });
+        const searchBoxName = tableElement.attr('data-table-search');
+        if(searchBoxName) {
+            const searchBox = $(searchBoxName);
+            if(searchBox) {
+                searchBox.on('keyup', function(e) {
+                    const text = $(this).val();
+                    table.search(text).draw();
+                });
+            }
+        }
+    });
+
+
+
 
 	$('.post-button').on('click', function(e) {
 	    e.preventDefault();

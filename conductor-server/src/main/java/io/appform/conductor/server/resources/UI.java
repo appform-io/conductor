@@ -16,7 +16,9 @@
 
 package io.appform.conductor.server.resources;
 
+import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.ui.views.HomeView;
+import io.dropwizard.auth.Auth;
 import lombok.extern.slf4j.Slf4j;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
@@ -37,7 +39,7 @@ import javax.ws.rs.core.MediaType;
 public class UI {
 
     @GET
-    public HomeView home() {
-        return new HomeView();
+    public HomeView home(@Auth ConductorUser user) {
+        return new HomeView(user.getUserSession().getUser());
     }
 }

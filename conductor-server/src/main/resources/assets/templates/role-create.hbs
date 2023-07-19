@@ -1,0 +1,51 @@
+{{#partial "content"}}
+    <section>
+        <div class="row text-center justify-content-center">
+            <div class="col-auto"><h2>Create A New Role</h2></div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-sm-12 col-md-6">
+                <form method="post" action="/admin/roles/create">
+                    <div class="row g-3 m-2">
+                        <div class="col-3 text-end">
+                            <label for="name" class="col-form-label fw-bold">Name</label>
+                        </div>
+                        <div class="col">
+                            <input type="text" id="name" name="name" class="form-control border border-dark bg-light"
+                                   maxlength="45" placeholder="Role Name" required>
+                        </div>
+                    </div>
+                    <div class="row g-3 m-2">
+                        <div class="col-3 text-end">
+                            <label for="description" class="col-form-label fw-bold">Description</label>
+                        </div>
+                        <div class="col">
+                            <textarea id="description" name="description"
+                                   class="form-control border border-dark bg-light"
+                                      placeholder="A description for the role"></textarea>
+                        </div>
+                    </div>
+                    <div class="row g-3 m-2">
+                        <div class="col-3 text-end">
+                            <label for="permissions" class="col-form-label fw-bold">Permissions</label>
+                        </div>
+                        <div class="col">
+                            <select id="permissions" name="permissions" class="form-control border border-dark bg-light"
+                                    multiple size="10">
+                                {{#each permissions}}
+                                    <option value="{{this}}">{{readable this}}</option>
+                                {{/each}}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-3 justify-content-center m-2">
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-outline-primary mb-3">Create</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+{{/partial}}
+{{> common/base}}

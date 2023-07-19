@@ -16,20 +16,25 @@
 
 package io.appform.conductor.server.ui.views;
 
+import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.usermgmt.User;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
+import java.util.Set;
+
 /**
- * Renders the homepage
+ *
  */
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class HomeView extends BaseLoggedInView {
+public class CreateRoleView extends BaseLoggedInView {
+    Set<Permission> permissions;
 
-    public HomeView(User user) {
-        super("templates/home.hbs", user);
+    public CreateRoleView(User currentUser, Set<Permission> permissions) {
+        super("templates/role-create.hbs", currentUser);
+        this.permissions = permissions;
     }
 }

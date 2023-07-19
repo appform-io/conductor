@@ -17,19 +17,18 @@
 package io.appform.conductor.server.ui.views;
 
 import io.appform.conductor.model.usermgmt.User;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import lombok.Value;
+import lombok.Getter;
+import ru.vyarus.guicey.gsp.views.template.TemplateView;
 
 /**
- * Renders the homepage
+ * A view for logged in user
  */
-@Value
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class HomeView extends BaseLoggedInView {
+@Getter
+public abstract class BaseLoggedInView extends TemplateView {
+    private final User currentUser;
 
-    public HomeView(User user) {
-        super("templates/home.hbs", user);
+    protected BaseLoggedInView(String templatePath, User currentUser) {
+        super(templatePath);
+        this.currentUser = currentUser;
     }
 }

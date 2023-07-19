@@ -14,22 +14,11 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views;
-
-import io.appform.conductor.model.usermgmt.User;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import lombok.Value;
+package io.appform.conductor.model.utils;
 
 /**
- * Renders the homepage
+ *
  */
-@Value
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class HomeView extends BaseLoggedInView {
-
-    public HomeView(User user) {
-        super("templates/home.hbs", user);
-    }
+public interface Displayable {
+    String displayText();
 }

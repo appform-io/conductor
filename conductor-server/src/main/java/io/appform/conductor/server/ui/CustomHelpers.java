@@ -16,7 +16,9 @@
 
 package io.appform.conductor.server.ui;
 
+import io.appform.conductor.model.utils.Displayable;
 import io.appform.conductor.server.utils.dev.IgnoreGenerated;
+import org.apache.commons.text.WordUtils;
 
 /**
  *
@@ -24,5 +26,10 @@ import io.appform.conductor.server.utils.dev.IgnoreGenerated;
 @IgnoreGenerated
 @SuppressWarnings("unused")
 public class CustomHelpers {
-
+    public String readable(Object input) {
+        if(input instanceof Displayable) {
+            return ((Displayable)input).displayText();
+        }
+        return WordUtils.capitalizeFully(input.toString().replace('_', ' '));
+    }
 }

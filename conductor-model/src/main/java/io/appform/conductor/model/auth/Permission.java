@@ -16,6 +16,7 @@
 
 package io.appform.conductor.model.auth;
 
+import io.appform.conductor.model.utils.Displayable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,18 +26,18 @@ import lombok.RequiredArgsConstructor;
  *
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public enum Permission {
-    ADMIN(Values.ADMIN),
-    SCHEMA_READ(Values.SCHEMA_READ),
-    SCHEMA_WRITE(Values.SCHEMA_WRITE),
-    SCHEMA_APPROVE(Values.SCHEMA_APPROVE),
-    WORKFLOW_READ(Values.WORKFLOW_APPROVE),
-    WORKFLOW_WRITE(Values.WORKFLOW_WRITE),
-    WORKFLOW_APPROVE(Values.WORKFLOW_APPROVE),
-    ACTION_READ(Values.ACTION_READ),
-    ACTION_WRITE(Values.ACTION_WRITE),
-    TICKET_READ(Values.TICKET_READ),
-    TICKET_WRITE(Values.TICKET_WRITE)
+public enum Permission implements Displayable {
+    ADMIN(Values.ADMIN, "Administration tasks"),
+    SCHEMA_READ(Values.SCHEMA_READ, "Read a schema"),
+    SCHEMA_WRITE(Values.SCHEMA_WRITE, "Write a schema"),
+    SCHEMA_APPROVE(Values.SCHEMA_APPROVE, "Approve Schema changes"),
+    WORKFLOW_READ(Values.WORKFLOW_READ, "Read a workflow"),
+    WORKFLOW_WRITE(Values.WORKFLOW_WRITE, "Create/Update workflow"),
+    WORKFLOW_APPROVE(Values.WORKFLOW_APPROVE, "Approve workflow changes"),
+    ACTION_READ(Values.ACTION_READ, "Read action details"),
+    ACTION_WRITE(Values.ACTION_WRITE, "Configure new action"),
+    TICKET_READ(Values.TICKET_READ, "See ticket details"),
+    TICKET_WRITE(Values.TICKET_WRITE, "Create/Update a ticket")
     ;
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -56,5 +57,12 @@ public enum Permission {
 
     @Getter
     private final String value;
+    @Getter
+    private final String displayText;
+
+    @Override
+    public String displayText() {
+        return displayText;
+    }
 
 }

@@ -75,14 +75,6 @@ public class Login {
                 .orElse(Response.seeOther(URI.create("/")).build());
     }
 
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @POST
-    public Response login(@FormParam("email") final String email,
-                          @FormParam("password") final String password) {
-        return userLifecycleManager.loginUser(email, password)
-                .map(Login::newSessionResponse)
-                .orElse(Response.seeOther(URI.create("/")).build());
-    }
 
     @Path("/activate/{token}")
     @POST
@@ -93,6 +85,16 @@ public class Login {
                 .map(Login::newSessionResponse)
                 .orElse(Response.seeOther(URI.create("/")).build());
     }
+
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @POST
+    public Response login(@FormParam("email") final String email,
+                          @FormParam("password") final String password) {
+        return userLifecycleManager.loginUser(email, password)
+                .map(Login::newSessionResponse)
+                .orElse(Response.seeOther(URI.create("/")).build());
+    }
+
 
     private static Response newSessionResponse(UserSession userSession) {
         return Response.seeOther(URI.create("/"))
