@@ -37,7 +37,7 @@ import java.util.Objects;
 @Entity
 @Table(name = StoredUserRoleMapping.USER_ROLE_MAPPING_TABLE_NAME,
         indexes = {
-                @Index(name = "uk_user_roles", columnList = "user_id, role_id", unique = true),
+                @Index(name = "uk_user_role", columnList = "user_id", unique = true),
         })
 @Getter
 @Setter
@@ -51,7 +51,8 @@ public class StoredUserRoleMapping implements Serializable {
     private static final long serialVersionUID = 8332369056839193904L;
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
 
     @Column(name = "user_id", nullable = false)
     private String userId;

@@ -24,10 +24,7 @@ import io.appform.conductor.server.internalmodels.auth.PasswordAuthData;
 import io.appform.conductor.server.internalmodels.auth.UserAuthData;
 import io.appform.conductor.server.internalmodels.auth.UserAuthDataVisitor;
 import io.appform.conductor.server.internalmodels.auth.UserTokenAuthData;
-import io.appform.conductor.server.usermanagement.GroupStore;
-import io.appform.conductor.server.usermanagement.SessionStore;
-import io.appform.conductor.server.usermanagement.UserPasswordAuthStore;
-import io.appform.conductor.server.usermanagement.UserStore;
+import io.appform.conductor.server.usermanagement.*;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +40,7 @@ import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.keys.HmacKey;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -62,7 +60,7 @@ public class UserAuthValidator {
     private final SessionStore sessionStore;
     private final RoleStore roleStore;
     private final UserRoleMappingStore roleMappingStore;
-
+    private final Provider<UserLifecycleManager> userLifecycleManager;
     private final AuthConfig authConfig;
 
 
@@ -79,6 +77,7 @@ public class UserAuthValidator {
                                                          sessionStore,
                                                          roleStore,
                                                          roleMappingStore,
+                                                         userLifecycleManager,
                                                          authConfig));
     }
 
@@ -88,6 +87,7 @@ public class UserAuthValidator {
                                          SessionStore sessionStore,
                                          RoleStore roleStore,
                                          UserRoleMappingStore roleMappingStore,
+                                         Provider<UserLifecycleManager> userLifecycleManager,
                                          AuthConfig authConfig) implements UserAuthDataVisitor<Optional<UserSession>> {
 
         private static final EnumSet<UserState> TERMINAL_USER_STATES
@@ -164,10 +164,7 @@ public class UserAuthValidator {
                         .filter(AuthenticationVisitor::isUserActionable)
                         .flatMap(userSummary -> sessionStore.getById(userId, sessionId)
                                 .map(sessionDetails -> new UserSession(
-                                        new User(userSummary,
-                                                 roleStore.permissionsForRoles(roleMappingStore.rolesForUser(userId)),
-                                                 groupStore.findGroupsForUser(userSummary.getId()),
-                                                 Set.of()),
+                                        userLifecycleManager.get().userDetails(sessionDetails.getUserId()).orElseThrow(),
                                         sessionDetails.getId(),
                                         sessionDetails.getState(),
                                         sessionDetails.getType(),
@@ -216,10 +213,7 @@ public class UserAuthValidator {
         }
 
         private Optional<UserSession> createSession(final UserSummary userSummary) {
-            val user = new User(userSummary,
-                                roleStore.permissionsForRoles(roleMappingStore.rolesForUser(userSummary.getId())),
-                                groupStore.findGroupsForUser(userSummary.getId()),
-                                Set.of());
+            val user = userLifecycleManager.get().userDetails(userSummary.getId()).orElseThrow();
             val sessionType = switch (userSummary.getType()) {
                 case HUMAN -> SessionType.DYNAMIC;
                 case SYSTEM -> SessionType.STATIC;

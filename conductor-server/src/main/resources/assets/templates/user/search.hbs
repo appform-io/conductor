@@ -1,0 +1,22 @@
+{{#partial "content"}}
+    <section>
+        <div class="row">
+            <div class="col-sm-12 col-md-4">
+                <h2>Search for User</h2>
+            </div>
+            <div class="col-sm-12 col-md-4">
+                <form class="row" method="post" action="/admin/users/email">
+                    <div class="col-12">
+                        <div class="input-group border border-dark">
+                            <span class="input-group-text" id="search-box"><i class="bi fs2 bi-envelope-at"></i></span>
+                            <input type="email" class="form-control form-control-sm  bg-light data-table-search"
+                                   id="email" name="email"
+                                   placeholder="Search by email" aria-label="Search email" aria-describedby="search-box">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+{{/partial}}
+{{> common/base}}

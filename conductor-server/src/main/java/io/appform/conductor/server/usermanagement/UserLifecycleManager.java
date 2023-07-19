@@ -19,9 +19,13 @@ package io.appform.conductor.server.usermanagement;
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.google.common.base.Strings;
 import io.appform.conductor.model.usermgmt.*;
+import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserAuthValidator;
+import io.appform.conductor.server.auth.UserRoleMappingStore;
 import io.appform.conductor.server.internalmodels.auth.PasswordAuthData;
 import io.appform.conductor.server.internalmodels.auth.UserTokenAuthData;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
@@ -39,6 +43,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.normalize;
  */
 
 @Slf4j
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class UserLifecycleManager {
     /**
      * Default validity for {@link UserActivationToken}
@@ -56,23 +61,23 @@ public class UserLifecycleManager {
 
 
     private final Provider<UserStore> userStore;
+    private final Provider<RoleStore> roleStore;
+    private final Provider<UserRoleMappingStore> roleMappingStore;
     private final Provider<UserPasswordAuthStore> passwordAuthStore;
     private final Provider<UserActivationTokenStore> userActivationTokenStore;
     private final UserAuthValidator userAuthValidator;
     private final Provider<GroupStore> groupStore;
 
-    @Inject
-    public UserLifecycleManager(
-            Provider<UserStore> userStore,
-            Provider<UserPasswordAuthStore> passwordAuthStore,
-            Provider<UserActivationTokenStore> userActivationTokenStore,
-            UserAuthValidator userAuthValidator,
-            Provider<GroupStore> groupStore) {
-        this.userStore = userStore;
-        this.passwordAuthStore = passwordAuthStore;
-        this.userActivationTokenStore = userActivationTokenStore;
-        this.userAuthValidator = userAuthValidator;
-        this.groupStore = groupStore;
+    public Optional<User> userDetails(@NonNull final String userId) {
+        val roleId = roleMappingStore.get().roleForUser(userId).orElse(null);
+        return userStore.get().getById(userId)
+                .map(userSummary -> new User(userSummary,
+                                             Strings.isNullOrEmpty(roleId) ? null
+                                                                           : roleStore.get().read(roleId).orElse(null),
+                                             Strings.isNullOrEmpty(roleId) ? Set.of()
+                                                                           : roleStore.get().permissionsForRoles(List.of(roleId)),
+                                             groupStore.get().findGroupsForUser(userSummary.getId()),
+                                             Set.of()));
     }
 
     /**
@@ -164,15 +169,13 @@ public class UserLifecycleManager {
                     .updateState(userId, UserState.ACTIVE)
                     .orElse(null);
             if (null != updatedDetails) {
-                return Optional.of(new UserSession(new User(updatedDetails,
-                                                            Set.of(),
-                                                            userSession.getUser().getGroups(),
-                                                            userSession.getUser().getSkills()),
-                                                   userSession.getSessionId(),
-                                                   userSession.getState(),
-                                                   userSession.getType(),
-                                                   userSession.getExpiry(),
-                                                   userSession.getJwt()));
+                return userDetails(userId)
+                        .map(user -> new UserSession(user,
+                                                     userSession.getSessionId(),
+                                                     userSession.getState(),
+                                                     userSession.getType(),
+                                                     userSession.getExpiry(),
+                                                     userSession.getJwt()));
             }
             else {
                 log.error("User state could not be updated to ACTIVE for {}", userId);
@@ -186,7 +189,7 @@ public class UserLifecycleManager {
     /**
      * Login a user and create a new session.
      *
-     * @param email   Userid for the user
+     * @param email    Userid for the user
      * @param password Password for the user
      * @return A new user session
      */

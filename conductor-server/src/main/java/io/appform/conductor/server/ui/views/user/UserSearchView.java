@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.usermgmt;
+package io.appform.conductor.server.ui.views.user;
 
-import io.appform.conductor.model.auth.Permission;
-import io.appform.conductor.model.auth.Role;
-import lombok.Value;
-
-import java.util.Collection;
-import java.util.Set;
+import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.ui.views.BaseLoggedInView;
 
 /**
- * A detailed view of a user in the system
+ *
  */
-@Value
-public class User {
-    UserSummary summary;
-    Role assignedRole;
-    Set<Permission> permissions;
-    Collection<Group> groups;
-    Set<Skill> skills;
+public final class UserSearchView extends BaseLoggedInView {
+    public UserSearchView(User currentUser) {
+        super("templates/user/search.hbs", currentUser);
+    }
 }

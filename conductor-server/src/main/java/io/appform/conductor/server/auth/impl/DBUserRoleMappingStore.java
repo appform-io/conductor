@@ -28,7 +28,7 @@ import org.hibernate.criterion.Property;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.List;
+import java.util.Optional;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_RELATED_ENTITY_LIST_ERROR;
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_RELATED_ENTITY_WRITE_ERROR;
@@ -49,11 +49,14 @@ public class DBUserRoleMappingStore implements UserRoleMappingStore {
     public boolean assignRoleToUser(
             @Throws.RuntimeParam("id") String userId,
             @Throws.RuntimeParam("subId") String roleId) {
-        return userRolesDao.save(userId, new StoredUserRoleMapping()
-                        .setId(userId + "-" + roleId)
-                        .setUserId(userId)
-                        .setRoleId(roleId)
-                        .setDeleted(false))
+        return userRolesDao.createOrUpdate(userId,
+                                           DetachedCriteria.forClass(StoredUserRoleMapping.class)
+                                                   .add(Property.forName(StoredUserRoleMapping.Fields.userId)
+                                                                .eq(userId)),
+                                           existing -> existing.setRoleId(roleId).setDeleted(false),
+                                           () -> new StoredUserRoleMapping()
+                                                   .setUserId(userId)
+                                                   .setRoleId(roleId))
                 .filter(mapping -> !mapping.isDeleted())
                 .isPresent();
     }
@@ -75,14 +78,14 @@ public class DBUserRoleMappingStore implements UserRoleMappingStore {
     @SneakyThrows
     @Throws(value = STORE_RELATED_ENTITY_LIST_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredUserRoleMapping.USER_ROLE_MAPPING_TABLE_NAME))
-    public List<String> rolesForUser(@Throws.RuntimeParam("id") String userId) {
+    public Optional<String> roleForUser(@Throws.RuntimeParam("id") String userId) {
         return userRolesDao.select(userId,
                                    DetachedCriteria.forClass(StoredUserRoleMapping.class)
                                            .add(Property.forName(StoredUserRoleMapping.Fields.deleted).eq(false)),
                                    0,
-                                   Integer.MAX_VALUE)
+                                   1)
                 .stream()
                 .map(StoredUserRoleMapping::getRoleId)
-                .toList();
+                .findAny();
     }
 }

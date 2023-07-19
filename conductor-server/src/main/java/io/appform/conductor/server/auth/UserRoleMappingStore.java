@@ -16,7 +16,7 @@
 
 package io.appform.conductor.server.auth;
 
-import java.util.List;
+import java.util.Optional;
 
 /**
  *
@@ -25,5 +25,5 @@ public interface UserRoleMappingStore {
     boolean assignRoleToUser(final String userId, final String roleId);
     boolean revokeRoleFromUser(final String userId, final String roleId);
 
-    List<String> rolesForUser(final String userId);
+    Optional<String> roleForUser(final String userId);
 }
