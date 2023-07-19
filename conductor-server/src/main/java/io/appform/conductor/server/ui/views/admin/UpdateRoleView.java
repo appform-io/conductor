@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views;
+package io.appform.conductor.server.ui.views.admin;
 
-import io.appform.conductor.model.auth.Role;
+import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -30,11 +31,17 @@ import java.util.List;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class ListRolesView extends BaseLoggedInView {
-    List<Role> roles;
+public class UpdateRoleView extends BaseLoggedInView {
+    String id;
+    String name;
+    String description;
+    Map<Permission, Boolean> permissions;
 
-    public ListRolesView(User currentUser, List<Role> roles) {
-        super("templates/role-list.hbs", currentUser);
-        this.roles = roles;
+    public UpdateRoleView(User user, String id, String name, String description, Map<Permission, Boolean> permissions) {
+        super("templates/admin/role-update.hbs", user);
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.permissions = permissions;
     }
 }
