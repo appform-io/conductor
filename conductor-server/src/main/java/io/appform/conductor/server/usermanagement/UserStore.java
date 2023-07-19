@@ -30,7 +30,7 @@ import java.util.function.UnaryOperator;
  */
 public interface UserStore {
 
-    Optional<UserSummary> create(String name, UserType type, String email);
+    Optional<UserSummary> create(String userId, String name, UserType type, String email);
     Optional<UserSummary> getById(String userId);
     List<UserSummary> getByIds(List<String> userIds);
     Optional<UserSummary> getByEmail(String email);

@@ -54,7 +54,7 @@ public class StoredUserActivationToken {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
-    @Column(name = "email", unique = true, nullable = false)
+    @Column(name = "valid_till", unique = true, nullable = false)
     private Date validTill;
 
     @Column(name = "partitionId", nullable = false)

@@ -17,6 +17,7 @@
 package io.appform.conductor.server.auth;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
+import com.google.common.base.Strings;
 import io.appform.conductor.model.usermgmt.*;
 import io.appform.conductor.server.config.AuthConfig;
 import io.appform.conductor.server.internalmodels.auth.PasswordAuthData;
@@ -94,19 +95,23 @@ public class UserAuthValidator {
 
         @Override
         public Optional<UserSession> visit(PasswordAuthData passwordAuthData) {
-            val email = passwordAuthData.getEmail();
             val password = passwordAuthData.getPassword();
-            val user = userStore
-                    .getByEmail(email);
+            val user = Strings.isNullOrEmpty(passwordAuthData.getEmail())
+                       ? userStore.getById(passwordAuthData.getUserId())
+                       : userStore.getByEmail(passwordAuthData.getEmail());
             val passwordData = user
                     .flatMap(userData -> passwordAuthStore.get(userData.getId()))
                     .orElse(null);
             if (null == passwordData) {
-                log.error("No valid user found for userID: {}", email);
+                log.error("No valid user found for userID: {}",
+                          Strings.isNullOrEmpty(passwordAuthData.getEmail())
+                          ? passwordAuthData.getUserId()
+                          : passwordAuthData.getEmail());
                 return Optional.empty();
             }
-            val passwordVerified = matchHash(email, password, passwordData.getPassword());
-            val updatedPasswordData = passwordAuthStore.update(email, passwordDetails -> {
+            val userId = user.get().getId();
+            val passwordVerified = matchHash(userId, password, passwordData.getPassword());
+            val updatedPasswordData = passwordAuthStore.update(userId, passwordDetails -> {
                         val attempts = passwordDetails.getFailedPasswordAttempts() + 1;
                         if (passwordVerified) {
                             passwordDetails.setFailedPasswordAttempts(0);
@@ -119,16 +124,16 @@ public class UserAuthValidator {
                     .orElse(null);
             if (null != updatedPasswordData) {
                 if (updatedPasswordData.getFailedPasswordAttempts() > 3) {
-                    userStore.updateState(email, UserState.LOCKED);
-                    log.warn("User {} has been locked due to too many failed password attempts.", email);
+                    userStore.updateState(userId, UserState.LOCKED);
+                    log.warn("User {} has been locked due to too many failed password attempts.", userId);
                 }
                 else {
                     log.error("Password validation failure for user {}. [attempts: {}]",
-                              email, updatedPasswordData.getFailedPasswordAttempts());
+                              userId, updatedPasswordData.getFailedPasswordAttempts());
                 }
             }
             else {
-                log.warn("No password info found for user: {}", email);
+                log.warn("No password info found for user: {}", userId);
             }
             if (passwordVerified) {
                 return user

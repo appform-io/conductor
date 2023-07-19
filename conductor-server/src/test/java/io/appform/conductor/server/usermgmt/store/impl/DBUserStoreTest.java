@@ -52,7 +52,7 @@ class DBUserStoreTest {
     @Test
     void testCreate(BalancedDBShardingBundle<TestConfig> bundle) {
         val userStore = new DBUserStore(createRealUserDao(bundle));
-        val createdUser = userStore.create("Test", UserType.HUMAN, "test@test.com")
+        val createdUser = userStore.create("test", "Test", UserType.HUMAN, "test@test.com")
                 .orElse(null);
         assertNotNull(createdUser);
         assertEquals("Test", createdUser.getName());
@@ -62,7 +62,7 @@ class DBUserStoreTest {
     @Test
     void testGetById(BalancedDBShardingBundle<TestConfig> bundle) {
         val userStore = new DBUserStore(createRealUserDao(bundle));
-        val newUser = userStore.create("Test", UserType.HUMAN, "test@test.com")
+        val newUser = userStore.create("test", "Test", UserType.HUMAN, "test@test.com")
                 .orElse(null);
         assertNotNull(newUser);
         val newId = newUser.getId();
@@ -79,7 +79,7 @@ class DBUserStoreTest {
         val users = new ArrayList<UserSummary>();
         IntStream.range(0, numOfUsers).forEach(
                 i -> {
-                    val newUser = userStore.create("Test" + i, UserType.HUMAN, "test" + i + "@gmail.com")
+                    val newUser = userStore.create("test" + i, "Test" + i, UserType.HUMAN, "test" + i + "@gmail.com")
                             .orElse(null);
                     assertNotNull(newUser);
                     val newId = newUser.getId();
@@ -123,7 +123,7 @@ class DBUserStoreTest {
     @Test
     void testGetByEmail(BalancedDBShardingBundle<TestConfig> bundle) {
         val userStore = new DBUserStore(createRealUserDao(bundle));
-        val newUser = userStore.create("Test", UserType.HUMAN, "test@test.com")
+        val newUser = userStore.create("test", "Test", UserType.HUMAN, "test@test.com")
                 .orElse(null);
         assertNotNull(newUser);
         val newEmail = newUser.getEmail();
@@ -135,8 +135,8 @@ class DBUserStoreTest {
     @Test
     void testUpdate(BalancedDBShardingBundle<TestConfig> bundle) {
         val userStore = new DBUserStore(createRealUserDao(bundle));
-        val newUser1 = userStore.create("Test1", UserType.HUMAN, "test1@test.com").orElse(null);
-        val newUser2 = userStore.create("Test2", UserType.HUMAN, "test2@test.com").orElse(null);
+        val newUser1 = userStore.create("test1", "Test1", UserType.HUMAN, "test1@test.com").orElse(null);
+        val newUser2 = userStore.create("test2", "Test2", UserType.HUMAN, "test2@test.com").orElse(null);
         assertNotNull(newUser1);
         assertNotNull(newUser2);
         val newId1 = newUser1.getId();
@@ -211,8 +211,7 @@ class DBUserStoreTest {
         try {
             List<String> idList = new ArrayList<>();
             val length = 5;
-            IntStream.range(0, length).forEach(i ->
-                                                       idList.add("userId" + i));
+            IntStream.range(0, length).forEach(i -> idList.add("userId" + i));
             userStore.getByIds(idList);
             fail("Should have thrown exception.");
         }
@@ -247,7 +246,7 @@ class DBUserStoreTest {
         doThrow(NullPointerException.class).when(userDao).save(any(StoredUser.class));
 
         try {
-            userStore.create("Test", UserType.HUMAN, "test@test.com");
+            userStore.create("test", "Test", UserType.HUMAN, "test@test.com");
             fail("Should have thrown exception");
         }
         catch (Exception e) {

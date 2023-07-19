@@ -60,7 +60,7 @@ public class Login {
             @FormParam("newName") @NotEmpty final String newName,
             @FormParam("newEmail") @NotEmpty @Email final String newEmail,
             @FormParam("newPassword") @NotEmpty final String newPassword) {
-        return userLifecycleManager.createUser(newName, newEmail, newPassword)
+        return userLifecycleManager.createHumanUser(newName, newEmail, newPassword)
                 .map(UserSummary::getId)
                 .flatMap(userLifecycleManager::openToken)
                 .map(token -> Response.seeOther(URI.create("/login/activate/" + token.getToken())).build())
