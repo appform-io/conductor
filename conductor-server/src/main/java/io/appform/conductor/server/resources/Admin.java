@@ -22,9 +22,9 @@ import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserRoleMappingStore;
-import io.appform.conductor.server.ui.views.admin.CreateRoleView;
-import io.appform.conductor.server.ui.views.admin.ListRolesView;
-import io.appform.conductor.server.ui.views.admin.UpdateRoleView;
+import io.appform.conductor.server.ui.views.admin.RoleCreateView;
+import io.appform.conductor.server.ui.views.admin.RolesListView;
+import io.appform.conductor.server.ui.views.admin.RoleUpdateView;
 import io.appform.conductor.server.ui.views.admin.UserAdminView;
 import io.appform.conductor.server.ui.views.user.UserSearchView;
 import io.appform.conductor.server.usermanagement.UserLifecycleManager;
@@ -46,7 +46,7 @@ import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.*;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.normalize;
+import static io.appform.conductor.server.utils.ConductorServerUtils.lowerSnake;
 
 /**
  * Administration ui
@@ -65,13 +65,13 @@ public class Admin {
     @GET
     @Path("/roles")
     public Response renderRolesList(@Auth ConductorUser user) {
-        return Response.ok(new ListRolesView(user.getUserSession().getUser(), roleStore.list())).build();
+        return Response.ok(new RolesListView(user.getUserSession().getUser(), roleStore.list())).build();
     }
 
     @GET
     @Path("/roles/create")
     public Response renderCreateRoleView(@Auth ConductorUser user) {
-        return Response.ok(new CreateRoleView(user.getUserSession().getUser(), EnumSet.allOf(Permission.class)
+        return Response.ok(new RoleCreateView(user.getUserSession().getUser(), EnumSet.allOf(Permission.class)
         )).build();
     }
 
@@ -82,7 +82,7 @@ public class Admin {
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("permissions") @NotEmpty List<Permission> permissions) {
-        return roleStore.create(normalize(name), name, description, Set.copyOf(permissions))
+        return roleStore.create(lowerSnake(name), name, description, Set.copyOf(permissions))
                 .map(role -> Response.seeOther(URI.create("/admin/roles")).build())
                 .orElse(Response.seeOther(URI.create("/")).build());
     }
@@ -98,7 +98,7 @@ public class Admin {
                     Arrays.stream(Permission.values())
                             .forEach(permission -> permissions.put(permission,
                                                                    role.getPermissions().contains(permission)));
-                    return Response.ok(new UpdateRoleView(user.getUserSession().getUser(),
+                    return Response.ok(new RoleUpdateView(user.getUserSession().getUser(),
                                                           roleId,
                                                           role.getName(),
                                                           role.getDescription(),

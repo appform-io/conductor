@@ -1,0 +1,52 @@
+{{#partial "content"}}
+    <section>
+        <div class="row mb-2">
+            <div class="col-sm-12 col-md-7"><h2>Schema</h2></div>
+            <div class="col-sm-12 col-md-5 d-flex justify-content-end">
+                <div class="btn-toolbar" role="toolbar">
+                    <div class="btn-group me-2" role="group">
+                        <div class="input-group border border-dark col-3">
+                            <span class="input-group-text" id="search-box"><i class="bi fs2 bi-search"></i></span>
+                            <input type="text" class="form-control form-control-sm  bg-light data-table-search"
+                                   id="schema-search"
+                                   placeholder="Search Schema" aria-label="Search Schema" aria-describedby="search-box">
+                        </div>
+                    </div>
+                    <div class="btn-group" role="group">
+                        <a href="/manage/schema/create" class="btn btn-sm btn-outline-dark"><i
+                                class="bi fs2 bi-plus-lg"></i>Create</a>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col">
+                <table class="table table-bordered border-dark data-table" data-table-search="#roles-search">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>State</th>
+                        <th>Created</th>
+                        <th>Last Updated</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#each schemas}}
+                        <tr>
+                            <td><a href="/manage/schema/{{id}}">{{name}}</td>
+                            <td>{{description}}</td>
+                            <td>{{state}}</td>
+                            <td>{{created}}</td>
+                            <td>{{updated}}</td>
+                        </tr>
+                    {{/each}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+{{/partial}}
+{{> common/base}}

@@ -16,14 +16,11 @@
 
 package io.appform.conductor.server.ui.views.admin;
 
-import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
-
-import java.util.Set;
 
 /**
  *
@@ -31,11 +28,9 @@ import java.util.Set;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class CreateRoleView extends BaseLoggedInView {
-    Set<Permission> permissions;
+public class SchemaCreateView extends BaseLoggedInView {
 
-    public CreateRoleView(User currentUser, Set<Permission> permissions) {
-        super("templates/admin/role-create.hbs", currentUser);
-        this.permissions = permissions;
+    public SchemaCreateView(User currentUser) {
+        super("templates/manage/schema-create.hbs", currentUser);
     }
 }

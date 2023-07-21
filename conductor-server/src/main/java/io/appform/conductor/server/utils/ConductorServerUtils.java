@@ -62,19 +62,28 @@ public class ConductorServerUtils {
         return c.getWeekYear();
     }
 
-    public static String normalize(final String value) {
+    public static String lowerSnake(final String value) {
         return value
+                .trim()
                 .toLowerCase()
+                .replaceAll("\\p{Space}", "_")
+                .replaceAll("\\p{Punct}","_");
+    }
+    public static String upperSnake(final String value) {
+        return value
+                .trim()
+                .toUpperCase()
+                .replaceAll("\\p{Space}", "_")
                 .replaceAll("\\p{Punct}","_");
     }
 
     public static String readableId(final String... values) {
         val value = String.join("_", values);
-        return normalize(value).toUpperCase();
+        return lowerSnake(value).toUpperCase();
     }
 
     public static String readableId(final String value) {
-        return normalize(value).toUpperCase();
+        return lowerSnake(value).toUpperCase();
     }
 
 

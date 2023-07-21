@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.normalize;
+import static io.appform.conductor.server.utils.ConductorServerUtils.lowerSnake;
 
 /**
  * User lifecycle manager
@@ -92,7 +92,7 @@ public class UserLifecycleManager {
      */
     public Optional<UserSummary> createHumanUser(String name, String email, String password) {
         val userDetails = userStore.get()
-                .create(normalize(email), name, UserType.HUMAN, email);
+                .create(lowerSnake(email), name, UserType.HUMAN, email);
         userDetails.ifPresent(user -> {
             passwordAuthStore.get().set(user.getId(), hash(password));
             createToken(user.getId());

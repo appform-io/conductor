@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static io.appform.conductor.model.schema.SchemaState.INACTIVE;
-import static io.appform.conductor.server.utils.ConductorServerUtils.normalize;
+import static io.appform.conductor.server.utils.ConductorServerUtils.lowerSnake;
 import static io.appform.conductor.server.utils.ConductorServerUtils.operatingUserId;
 
 /**
@@ -58,7 +58,7 @@ public class DBSchemaStore implements SchemaStore {
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredSchemaSummary.SCHEMA_TABLE_NAME))
     public Optional<SchemaSummary> create(@Throws.RuntimeParam("id") String name, String description) {
-        val schemaId = normalize(name);
+        val schemaId = lowerSnake(name);
         return schemaDao.save(new StoredSchemaSummary(schemaId,
                                                       name,
                                                       description,
@@ -90,6 +90,14 @@ public class DBSchemaStore implements SchemaStore {
                                    StoredSchemaSummary::setFields)
                 .execute()
                 .map(this::toSchema);
+    }
+
+    @Override
+    public List<SchemaSummary> list() {
+        return schemaDao.scatterGather(DetachedCriteria.forClass(StoredSchemaSummary.class))
+                .stream()
+                .map(DBSchemaStore::toSummary)
+                .toList();
     }
 
     @Override

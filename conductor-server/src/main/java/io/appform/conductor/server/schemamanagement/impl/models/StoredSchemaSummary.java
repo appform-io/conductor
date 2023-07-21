@@ -67,11 +67,11 @@ public class StoredSchemaSummary {
     @Column(name = "state_changed_by", length = 45)
     private String stateChangedBy;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
+    @Column(name = "created", columnDefinition = "timestamp default current_timestamp", updatable = false, insertable = false)
     @Generated(value = GenerationTime.INSERT)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
+    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp on update current_timestamp",
             updatable = false, insertable = false)
     @Generated(value = GenerationTime.ALWAYS)
     private Date updated;

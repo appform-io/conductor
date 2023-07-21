@@ -62,7 +62,7 @@ public class DBGroupStore implements GroupStore {
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredGroup.GROUP_TABLE_NAME))
     public Optional<Group> create(@Throws.RuntimeParam("id") String name, String description) {
-        return groupDao.save(new StoredGroup(ConductorServerUtils.normalize(name), name, description))
+        return groupDao.save(new StoredGroup(ConductorServerUtils.lowerSnake(name), name, description))
                 .map(DBGroupStore::toWire);
     }
 

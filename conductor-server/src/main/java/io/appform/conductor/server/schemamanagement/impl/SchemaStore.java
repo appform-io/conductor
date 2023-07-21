@@ -21,6 +21,7 @@ import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.schema.SchemaSummary;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -32,6 +33,8 @@ public interface SchemaStore {
     Optional<SchemaSummary> getSummary(final String schemaId);
 
     Optional<Schema> get(final String schemaId);
+
+    List<SchemaSummary> list();
 
     Optional<SchemaSummary> updateDescription(final String schemaId, final String description);
 
