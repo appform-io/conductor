@@ -19,11 +19,11 @@ package io.appform.conductor.server.resources;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.schema.fields.*;
+import io.appform.conductor.model.workflow.WorkflowState;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
-import io.appform.conductor.server.ui.views.admin.SchemaCreateView;
-import io.appform.conductor.server.ui.views.admin.SchemaDetailsView;
-import io.appform.conductor.server.ui.views.admin.SchemaListView;
+import io.appform.conductor.server.ui.views.manage.*;
+import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
@@ -42,8 +42,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.EnumSet;
 
+import static io.appform.conductor.server.utils.ConductorServerUtils.lowerSnake;
 import static io.appform.conductor.server.utils.ConductorServerUtils.upperSnake;
 
 /**
@@ -56,6 +57,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.upperSnake;
 @PermitAll
 public class Manage {
     private final SchemaStore schemaStore;
+    private final WorkflowStore workflowStore;
 
     @GET
     @Path("/schema")
@@ -111,7 +113,7 @@ public class Manage {
     @POST
     @Path("/schema/{schemaId}/fields/add")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response updateSchemaDescription(
+    public Response addField(
             @Auth ConductorUser user,
             @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId,
             @FormParam("fieldName") @NotEmpty @Length(max = 45) final String fieldName,
@@ -125,6 +127,7 @@ public class Manage {
             @FormParam("fieldNumberMin") final double fieldNumberMin,
             @FormParam("fieldNumberMax") final double fieldNumberMax) {
         val name = CaseUtils.toCamelCase(fieldName.trim(), false, ' ');
+        //TODO::DEFAULT VALUE TO BE PREFILLED
         val fs = switch (fieldType) {
             case STRING -> StringFieldSchema.builder()
                     .name(name)
@@ -167,8 +170,85 @@ public class Manage {
                     .build();
         };
         return schemaStore.addField(schemaId, schemaId + "-" + name, fs)
-                .filter(Objects::nonNull)
                 .map(f -> Response.seeOther(URI.create("/manage/schema/" + schemaId)).build())
                 .orElse(Response.seeOther(URI.create("/manage/schema")).build());
+    }
+
+    @GET
+    @Path("/workflow")
+    public Response renderWorkflowList(@Auth ConductorUser user) {
+        return Response.ok(new WorkflowListView(user.getUserSession().getUser(),
+                                                workflowStore.list(EnumSet.allOf(WorkflowState.class))))
+                .build();
+    }
+
+    @GET
+    @Path("/workflow/create")
+    public Response renderWorkflowCreateScreen(@Auth ConductorUser user) {
+        return Response.ok(new WorkflowCreateView(user.getUserSession().getUser(),
+                                                  schemaStore.list()
+                                                          .stream()
+                                                          .filter(schemaSummary -> schemaSummary.getState()
+                                                                  .equals(SchemaState.ACTIVE))
+                                                          .toList()))
+                .build();
+    }
+
+    @POST
+    @Path("/workflow/create")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response createWorkflow(
+            @Auth ConductorUser user,
+            @FormParam("name") @NotEmpty @Length(max = 45) final String name,
+            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("schemaId") @NotEmpty @Length(max = 255) final String schemaId,
+            @FormParam("titleTemplate") @NotEmpty @Length(max = 4096) final String titleTemplate,
+            @FormParam("descriptionTemplate") @NotEmpty @Length(max = 4096) final String descriptionTemplate,
+            @FormParam("subjectTemplate") @NotEmpty @Length(max = 4096) final String subjectTemplate) {
+        return workflowStore.create(lowerSnake(name),
+                             name,
+                             description,
+                             schemaId,
+                                    template(titleTemplate),
+                                    template(descriptionTemplate),
+                                    template(subjectTemplate))
+                .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
+                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+    }
+
+    @GET
+    @Path("/workflow/{workflowId}")
+    public Response renderWorkflowDetailsScreen(@Auth ConductorUser user,
+                                                @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
+        return workflowStore.read(workflowId)
+                .flatMap(workflow -> schemaStore.get(workflow.getSchemaId())
+                        .map(schema -> new WorkflowDetailsView(user.getUserSession().getUser(), workflow, schema)))
+                .map(view -> Response.ok(view).build())
+                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+    }
+
+    @POST
+    @Path("/workflow/{workflowId}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response updateWorkflow(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("titleTemplate") @NotEmpty @Length(max = 4096) final String titleTemplate,
+            @FormParam("descriptionTemplate") @NotEmpty @Length(max = 4096) final String descriptionTemplate,
+            @FormParam("subjectTemplate") @NotEmpty @Length(max = 4096) final String subjectTemplate) {
+        return workflowStore.update(workflowId,
+                             workflow -> workflow.setDescription(description)
+                                     .setTitleTemplate(template(titleTemplate))
+                                     .setDescriptionTemplate(template(descriptionTemplate))
+                                     .setSubjectIdTemplate(template(subjectTemplate)))
+                .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
+                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+    }
+
+
+    private static io.appform.conductor.model.workflow.Template template(String templateValue) {
+        return new io.appform.conductor.model.workflow.Template(io.appform.conductor.model.workflow.Template.Type.HANDLEBARS,
+                                                                templateValue);
     }
 }

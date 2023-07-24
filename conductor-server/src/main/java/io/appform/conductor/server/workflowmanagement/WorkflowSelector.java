@@ -81,7 +81,7 @@ public class WorkflowSelector implements Managed {
         log.debug("Refresh called at {}", currTime);
         val stamp = lock.writeLock();
         try {
-            val ruleWfMap = workflowStore.list(WorkflowState.ACTIVE)
+            val ruleWfMap = workflowStore.list(Set.of(WorkflowState.ACTIVE))
                     .stream()
                     .flatMap(workflow -> workflow.getSelectionRules().values().stream().map(rule -> new Pair<>(rule, workflow)))
                     .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));

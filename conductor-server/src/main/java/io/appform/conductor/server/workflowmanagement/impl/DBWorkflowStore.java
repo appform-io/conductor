@@ -34,12 +34,14 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Property;
+import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -140,6 +142,9 @@ public class DBWorkflowStore implements WorkflowStore {
                     val updatedObj = updater.apply(toWirePartial(wf));
                     return wf.setDescription(updatedObj.getDescription())
                             .setStartStateId(updatedObj.getStartStateId())
+                            .setTitleTemplate(updatedObj.getTitleTemplate())
+                            .setDescriptionTemplate(updatedObj.getDescriptionTemplate())
+                            .setSubjectIdTemplate(updatedObj.getSubjectIdTemplate())
                             .setState(updatedObj.getState());
                 })
                 .orElse(null));
@@ -151,10 +156,10 @@ public class DBWorkflowStore implements WorkflowStore {
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredWorkflow.WORKFLOW_TABLE_NAME))
-    public List<Workflow> list(WorkflowState desiredState) {
+    public List<Workflow> list(Set<WorkflowState> desiredState) {
         //This is not very efficient, but should be behind a cache anyway
         return wfDao.scatterGather(DetachedCriteria.forClass(StoredWorkflow.class)
-                                           .add(Property.forName(StoredWorkflow.Fields.state).eq(desiredState)))
+                                           .add(Restrictions.in(StoredWorkflow.Fields.state, desiredState)))
                 .stream()
                 .map(StoredWorkflow::getWorkflowId)
                 .map(this::read)

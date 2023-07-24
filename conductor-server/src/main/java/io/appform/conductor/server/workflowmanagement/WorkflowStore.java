@@ -20,6 +20,7 @@ import io.appform.conductor.model.workflow.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.UnaryOperator;
 
 /**
@@ -39,7 +40,7 @@ public interface WorkflowStore {
 
     Optional<Workflow> update(final String id, final UnaryOperator<Workflow> updater);
 
-    List<Workflow> list(final WorkflowState desiredState);
+    List<Workflow> list(final Set<WorkflowState> desiredState);
 
     boolean deleteWorkflow(final String id);
 

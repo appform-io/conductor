@@ -1,0 +1,90 @@
+{{#partial "content"}}
+    {{#with workflow}}
+        <section>
+            <div class="row text-center justify-content-center">
+                <div class="col-auto"><h2>Details for Workflow {{displayName}}</h2></div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-12">
+                    <form method="post" action="/manage/workflow/{{id}}" id="workflow-update">
+                        <div class="row g-3 m-2">
+                            <div class="col-3 text-end">
+                                <label for="name" class="col-form-label fw-bold">Name</label>
+                            </div>
+                            <div class="col-6 p-2">
+                                {{displayName}}
+                            </div>
+                        </div>
+                        <div class="row g-3 m-2">
+                            <div class="col-3 text-end">
+                                <label for="description" class="col-form-label fw-bold">Description</label>
+                            </div>
+                            <div class="col-6">
+                            <textarea id="description" name="description"
+                                      class="form-control border border-dark bg-light"
+                                      placeholder="A description for the workflow"
+                                      maxlength="255">{{description}}</textarea>
+                            </div>
+                        </div>
+                        <div class="row g-3 m-2">
+                            <div class="col-3 text-end">
+                                <label for="schemaId" class="col-form-label fw-bold">Ticket Schema</label>
+                            </div>
+                            <div class="col-6">
+                                {{../schema/name}}
+                            </div>
+                        </div>
+                        <div class="row g-3 m-2">
+                            <div class="col-3 text-end">
+                                <label for="titleTemplate" class="col-form-label fw-bold">Title Template</label>
+                            </div>
+                            <div class="col-6">
+                                {{#with titleTemplate}}
+                                    <textarea id="titleTemplate" name="titleTemplate"
+                                              class="form-control border border-dark bg-light"
+                                              placeholder="Handlebars template to extract ticket title from raw payload" required>{{template}}</textarea>
+                                {{/with}}
+                            </div>
+                        </div>
+                        <div class="row g-3 m-2">
+                            <div class="col-3 text-end">
+                                <label for="descriptionTemplate" class="col-form-label fw-bold">Description Template</label>
+                            </div>
+                            <div class="col-6">
+                                {{#with descriptionTemplate}}
+                                    <textarea id="descriptionTemplate" name="descriptionTemplate"
+                                              class="form-control border border-dark bg-light"
+                                              placeholder="Handlebars template to extract ticket description from raw payload">{{template}}</textarea>
+                                {{/with}}
+                            </div>
+                        </div>
+                        <div class="row g-3 m-2">
+                            <div class="col-3 text-end">
+                                <label for="subjectTemplate" class="col-form-label fw-bold">Subject ID Template</label>
+                            </div>
+                            <div class="col-6">
+                            {{#with subjectIdTemplate}}
+                                <textarea id="subjectTemplate" name="subjectTemplate"
+                                          class="form-control border border-dark bg-light"
+                                          placeholder="Handlebars template to extract subject from raw payload">{{template}}</textarea>
+                            {{/with}}
+                            </div>
+                        </div>
+                        <div class="row g-3 justify-content-center m-2">
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-outline-primary mb-3">Save</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+        <section></section>
+    {{/with}}
+{{/partial}}
+
+
+{{#partial "page_js"}}
+
+{{/partial}}
+{{> common/base}}

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.admin;
+package io.appform.conductor.server.ui.views.manage;
 
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -29,11 +30,13 @@ import lombok.Value;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class SchemaDetailsView extends BaseLoggedInView {
+public class WorkflowDetailsView extends BaseLoggedInView {
+    Workflow workflow;
     Schema schema;
 
-    public SchemaDetailsView(User currentUser, Schema schema) {
-        super("templates/manage/schema-details.hbs", currentUser);
+    public WorkflowDetailsView(User currentUser, Workflow workflow, Schema schema) {
+        super("templates/manage/workflow-details.hbs", currentUser);
+        this.workflow = workflow;
         this.schema = schema;
     }
 }

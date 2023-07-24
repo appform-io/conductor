@@ -53,17 +53,17 @@ public class Workflow {
     /**
      * A template to create title from payload
      */
-    private final Template titleTemplate;
+    private Template titleTemplate;
 
     /**
      * A template to create description from payload
      */
-    private final Template descriptionTemplate;
+    private Template descriptionTemplate;
 
     /**
      * A template to extract subject ID from payload
      */
-    private final Template subjectIdTemplate;
+    private Template subjectIdTemplate;
 
     /**
      * List of all states for this workflow

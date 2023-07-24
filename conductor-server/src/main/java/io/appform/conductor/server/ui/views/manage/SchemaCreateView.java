@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.admin;
+package io.appform.conductor.server.ui.views.manage;
 
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
