@@ -33,6 +33,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Property;
 import org.hibernate.criterion.Restrictions;
 
@@ -189,12 +190,13 @@ public class DBWorkflowStore implements WorkflowStore {
             boolean terminal) {
         val updated = wfDao.lockAndGetExecutor(workflowId)
                 .createOrUpdate(tsDao,
-                                createCriteria(StoredTicketState.class, workflowId)
-                                        .add(Property.forName("extId").eq(stateId)),
+                                createCriteria(StoredTicketState.class, workflowId, false)
+                                        .add(Property.forName(StoredTicketState.Fields.extId).eq(stateId)),
                                 existing -> existing
                                         .setDisplayName(displayName)
                                         .setDescription(description)
-                                        .setTerminal(terminal),
+                                        .setTerminal(terminal)
+                                        .setDeleted(false),
                                 () -> new StoredTicketState()
                                         .setWorkflowId(workflowId)
                                         .setExtId(stateId)
@@ -338,9 +340,17 @@ public class DBWorkflowStore implements WorkflowStore {
     }
 
     private static DetachedCriteria createCriteria(Class<?> clazz, String workflowId) {
-        return DetachedCriteria.forClass(clazz)
+        return createCriteria(clazz, workflowId, true);
+    }
+
+    private static DetachedCriteria createCriteria(Class<?> clazz, String workflowId, boolean skipDeleted) {
+        val criteria = DetachedCriteria.forClass(clazz)
                 .add(Property.forName(StoredWorkflow.Fields.workflowId).eq(workflowId))
-                .add(Property.forName(StoredWorkflow.Fields.deleted).eq(false));
+                .addOrder(Order.asc(StoredWorkflow.Fields.created));
+        if(skipDeleted) {
+            criteria.add(Property.forName(StoredWorkflow.Fields.deleted).eq(false));
+        }
+        return criteria;
     }
 
     private static TicketState toWire(final StoredTicketState state) {

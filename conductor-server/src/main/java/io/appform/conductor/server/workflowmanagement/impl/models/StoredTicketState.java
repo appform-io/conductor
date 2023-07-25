@@ -17,6 +17,7 @@
 package io.appform.conductor.server.workflowmanagement.impl.models;
 
 import lombok.*;
+import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
@@ -39,6 +40,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
+@FieldNameConstants
 @NoArgsConstructor
 public class StoredTicketState implements Serializable {
     public static final String WF_STATE_TABLE_NAME = "workflow_states";

@@ -206,9 +206,9 @@ public class Manage {
             @FormParam("descriptionTemplate") @NotEmpty @Length(max = 4096) final String descriptionTemplate,
             @FormParam("subjectTemplate") @NotEmpty @Length(max = 4096) final String subjectTemplate) {
         return workflowStore.create(lowerSnake(name),
-                             name,
-                             description,
-                             schemaId,
+                                    name,
+                                    description,
+                                    schemaId,
                                     template(titleTemplate),
                                     template(descriptionTemplate),
                                     template(subjectTemplate))
@@ -218,8 +218,9 @@ public class Manage {
 
     @GET
     @Path("/workflow/{workflowId}")
-    public Response renderWorkflowDetailsScreen(@Auth ConductorUser user,
-                                                @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
+    public Response renderWorkflowDetailsScreen(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
         return workflowStore.read(workflowId)
                 .flatMap(workflow -> schemaStore.get(workflow.getSchemaId())
                         .map(schema -> new WorkflowDetailsView(user.getUserSession().getUser(), workflow, schema)))
@@ -238,14 +239,43 @@ public class Manage {
             @FormParam("descriptionTemplate") @NotEmpty @Length(max = 4096) final String descriptionTemplate,
             @FormParam("subjectTemplate") @NotEmpty @Length(max = 4096) final String subjectTemplate) {
         return workflowStore.update(workflowId,
-                             workflow -> workflow.setDescription(description)
-                                     .setTitleTemplate(template(titleTemplate))
-                                     .setDescriptionTemplate(template(descriptionTemplate))
-                                     .setSubjectIdTemplate(template(subjectTemplate)))
+                                    workflow -> workflow.setDescription(description)
+                                            .setTitleTemplate(template(titleTemplate))
+                                            .setDescriptionTemplate(template(descriptionTemplate))
+                                            .setSubjectIdTemplate(template(subjectTemplate)))
                 .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
                 .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
     }
 
+    @POST
+    @Path("/workflow/{workflowId}/states/add")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response createState(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @FormParam("stateName") @NotEmpty @Length(max = 45) final String stateName,
+            @FormParam("stateDescription") @Length(max = 255) final String stateDescription,
+            @FormParam("stateIsTerminal") @DefaultValue("false") final boolean stateIsTerminal) {
+        return workflowStore.createOrUpdateState(workflowId,
+                                                 workflowId + lowerSnake(stateName),
+                                                 stateName,
+                                                 stateDescription,
+                                                 stateIsTerminal)
+                .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
+                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+    }
+
+    @POST
+    @Path("/workflow/{workflowId}/states/{stateId}/delete")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response deleteState(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @PathParam("stateId") @NotEmpty @Length(max = 45) final String stateId) {
+        return workflowStore.deleteState(workflowId, stateId)
+                .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
+                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+    }
 
     private static io.appform.conductor.model.workflow.Template template(String templateValue) {
         return new io.appform.conductor.model.workflow.Template(io.appform.conductor.model.workflow.Template.Type.HANDLEBARS,
