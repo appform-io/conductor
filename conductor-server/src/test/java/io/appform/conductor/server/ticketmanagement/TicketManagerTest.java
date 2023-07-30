@@ -66,8 +66,7 @@ import java.util.Optional;
 import static io.appform.conductor.server.utils.ConductorServerUtils.ticketToJsonNode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -190,7 +189,7 @@ class TicketManagerTest {
         val aStore = mock(ActionStore.class);
         when(aStore.read(anyString())).thenReturn(Optional.empty());
         val wStore = mock(WorkflowStore.class);
-        when(wStore.list(any(WorkflowState.class))).thenReturn(List.of(workflow));
+        when(wStore.list(anySet())).thenReturn(List.of(workflow));
         val suStore = new DBSubjectStore(bundle.createParentObjectDao(StoredSubjectSummary.class),
                                          bundle.createRelatedObjectDao(StoredSubjectID.class),
                                          bundle.createRelatedObjectDao(StoredAddress.class));

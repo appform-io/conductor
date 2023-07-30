@@ -35,8 +35,16 @@ import io.appform.conductor.model.ticket.fields.impl.*;
 import io.appform.conductor.server.usermanagement.CurrentUserSessionStore;
 import lombok.experimental.UtilityClass;
 import lombok.val;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -208,4 +216,27 @@ public class ConductorServerUtils {
             }
         });
     }
+
+    public static CloseableHttpClient createHttpClient() {
+        val connectionTimeout = Duration.ofSeconds(2);
+        val connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setDefaultMaxPerRoute(100);
+        connectionManager.setMaxTotal(Integer.MAX_VALUE);
+        connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom()
+                .setConnectTimeout(Timeout.of(connectionTimeout))
+                .setSocketTimeout(Timeout.of(connectionTimeout))
+                .setValidateAfterInactivity(TimeValue.ofSeconds(10))
+                .setTimeToLive(TimeValue.ofHours(1))
+                .build());
+        val requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(Timeout.of(connectionTimeout))
+                .setResponseTimeout(Timeout.of(connectionTimeout))
+                .build();
+        return HttpClients.custom()
+                .disableRedirectHandling()
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(requestConfig)
+                .build();
+    }
+
 }
