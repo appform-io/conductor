@@ -15,11 +15,13 @@ import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_READ_ERROR;
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_WRITE_ERROR;
+import static java.util.stream.Collectors.toList;
 
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
@@ -47,6 +49,18 @@ public class DBActionStore implements ActionStore {
     public Optional<Action> read(@Throws.RuntimeParam("id") String actionId) {
         return actionDao.get(actionId)
                 .map(this::toWired);
+    }
+
+    @Override
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = STORE_READ_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredAction.ACTION_TABLE_NAME))
+    public List<Action> read(@Throws.RuntimeParam("id") List<String> actions) {
+        return actionDao.get(actions)
+                .stream()
+                .map(this::toWired)
+                .collect(Collectors.toList());
     }
 
     private StoredAction toStored(Action action) {

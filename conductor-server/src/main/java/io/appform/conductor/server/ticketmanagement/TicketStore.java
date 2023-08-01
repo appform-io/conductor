@@ -114,6 +114,13 @@ public interface TicketStore {
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema);
 
+    boolean addAction(final String ticketId,
+                      final String actionId);
+
+    List<String> listActions(final String ticketId,
+                             final int from,
+                             final int size);
+
     Optional<Comment> addComment(
             final String ticketId,
             String commentId, final String comment,

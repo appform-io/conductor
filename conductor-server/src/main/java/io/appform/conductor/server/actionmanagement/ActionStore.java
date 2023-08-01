@@ -18,6 +18,7 @@ package io.appform.conductor.server.actionmanagement;
 
 import io.appform.conductor.model.actions.Action;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -25,5 +26,6 @@ import java.util.Optional;
  */
 public interface ActionStore {
     Optional<Action> read(final String actionId);
+    List<Action> read(final List<String> actionId);
     Optional<Action> save(final Action action);
 }

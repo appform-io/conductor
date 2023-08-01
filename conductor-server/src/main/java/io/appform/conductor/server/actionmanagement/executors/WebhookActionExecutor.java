@@ -27,6 +27,9 @@ import java.util.concurrent.TimeUnit;
 
 import static io.appform.conductor.model.actions.impl.WebhookAction.CallType.GET;
 
+/**
+ * Executes a {@link WebhookAction}
+ */
 @Slf4j
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = {@Inject})

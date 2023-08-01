@@ -18,6 +18,7 @@ package io.appform.conductor.server.ticketmanagement;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.Schema;
@@ -289,6 +290,8 @@ public class TicketManager {
             final TicketSkeleton skeleton,
             final Workflow workflow,
             SubjectSummary subject) {
+        val actionIds = ticketStore.listActions(skeleton.getTicketId(), 0, Integer.MAX_VALUE);
+        val actions =  actionIds.isEmpty() ? List.<Action>of() : actionStore.read(actionIds);
         return new TicketDetails(new TicketSummary(skeleton.getTicketId(),
                                                    skeleton.getTitle(),
                                                    skeleton.getDescription(),
@@ -306,7 +309,7 @@ public class TicketManager {
                                                    skeleton.getCreated(),
                                                    skeleton.getUpdated()),
                                  skeleton.getFields(),
-                                 List.of()); //TODO::ACTION
+                actions);
     }
 
 }

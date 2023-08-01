@@ -1,7 +1,5 @@
 package io.appform.conductor.server.actionmanagement.executors;
 
-import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -17,11 +15,16 @@ import io.appform.conductor.server.templateengines.TemplateEngine;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.dropwizard.jackson.Jackson;
 import lombok.val;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 import java.util.Set;
+
+import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.like;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.http.ResponseDefinition.notFound;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 @WireMockTest
@@ -55,15 +58,15 @@ public class WebhookActionExecutorTest {
 
 
         //stub the response
-        WireMock.stubFor(WireMock.post("/update/subject/1234567890/details")
+        stubFor(post("/update/subject/1234567890/details")
                 .withHeader("AuthorizationForId", new EqualToPattern("userId"))
-                .willReturn(ResponseDefinitionBuilder.like(ResponseDefinition.okForJson("{\"status\":\"ACCEPTED\"}"))));
+                .willReturn(like(ResponseDefinition.okForJson("{\"status\":\"ACCEPTED\"}"))));
 
         //call execute method
         val actionExecutionResult =  webhookActionExecutor.run(webhookAction, actionEvalData);
 
         //verify the response
-        Assertions.assertEquals(ActionExecutionResult.SUCCESS, actionExecutionResult);
+        assertEquals(ActionExecutionResult.SUCCESS, actionExecutionResult);
     }
 
     @Test
@@ -94,14 +97,14 @@ public class WebhookActionExecutorTest {
 
 
         //stub the response
-        WireMock.stubFor(WireMock.post("/update2/subject/1234567890/details")
+        stubFor(post("/update2/subject/1234567890/details")
                 .withHeader("AuthorizationForId", new EqualToPattern("userId"))
-                .willReturn(ResponseDefinitionBuilder.like(ResponseDefinition.notFound())));
+                .willReturn(like(notFound())));
 
         //call execute method
         val actionExecutionResult =  webhookActionExecutor.run(webhookAction, actionEvalData);
 
         //verify the response
-        Assertions.assertEquals(ActionExecutionResult.FAILURE, actionExecutionResult);
+        assertEquals(ActionExecutionResult.FAILURE, actionExecutionResult);
     }
 }

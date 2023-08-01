@@ -34,6 +34,7 @@ import io.appform.conductor.model.ticket.filter.fieldfilters.*;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import io.appform.conductor.server.ticketmanagement.*;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
+import io.appform.conductor.server.ticketmanagement.impl.models.actions.StoredTicketAction;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredAttachment;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredComment;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredEmbeddedFieldValue;
@@ -70,6 +71,7 @@ public class DBTicketStore implements TicketStore {
     private final RelationalDao<StoredFieldValue> fieldDao;
     private final RelationalDao<StoredComment> commentDao;
     private final RelationalDao<StoredAttachment> attachmentDao;
+    private final RelationalDao<StoredTicketAction> ticketActionDao;
     private final ObjectMapper mapper;
 
     @Override
@@ -194,6 +196,37 @@ public class DBTicketStore implements TicketStore {
                                 .getBytes(StandardCharsets.UTF_8))); //Keep charset consistent
     }
 
+
+    @Override
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = STORE_RELATED_ENTITY_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredTicketAction.TICKET_ACTION_TABLE_NAME))
+    public boolean addAction(String ticketId, String actionId) {
+        return  ticketActionDao.save(ticketId, new StoredTicketAction()
+                        .setTicketId(ticketId)
+                        .setActionId(actionId))
+                .isPresent();
+    }
+
+
+    @Override
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = STORE_RELATED_ENTITY_LIST_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredTicketAction.TICKET_ACTION_TABLE_NAME))
+    public List<String> listActions(
+            @Throws.RuntimeParam("id") String ticketId,
+            int from,
+            int size) {
+        return listActions(ticketId,
+                DetachedCriteria.forClass(StoredTicketAction.class)
+                        .add(Property.forName(StoredTicketAction.Fields.ticketId).eq(ticketId))
+                        .add(Property.forName(StoredTicketAction.Fields.deleted).eq(false)),
+                from,
+                size);
+    }
+
     @Override
     @MonitoredFunction
     @SneakyThrows
@@ -213,7 +246,6 @@ public class DBTicketStore implements TicketStore {
                                        .setReplyToId(inReplyTo))
                 .map(DBTicketStore::toComment);
     }
-
 
     @Override
     @MonitoredFunction
@@ -567,6 +599,20 @@ public class DBTicketStore implements TicketStore {
                 return Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, actualName));
             }
         });
+    }
+
+    private List<String> listActions(
+            String ticketId,
+            DetachedCriteria criteria,
+            int from,
+            int size) throws Exception {
+        return ticketActionDao.select(ticketId,
+                                 criteria,
+                                 from,
+                                 size)
+                .stream()
+                .map(StoredTicketAction::getActionId)
+                .toList();
     }
 
     private List<Comment> listComments(

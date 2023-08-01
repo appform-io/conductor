@@ -43,6 +43,7 @@ public class ActionExecutor {
     private final SetFieldActionExecutor setFieldActionExecutor;
     private final AddCommentActionExecutor addCommentActionExecutor;
     private final WebhookActionExecutor webhookActionExecutor;
+    private final AddTicketActionExecutor addTicketActionExecutor;
 
     @Value
     public static class ActionEvalData {
@@ -72,8 +73,7 @@ public class ActionExecutor {
 
             @Override
             public ActionExecutionResult visit(AddTicketAction addTicketAction) {
-                //TODO
-                return null;
+                return addTicketActionExecutor.run(addTicketAction, evalData);
             }
 
             @Override
