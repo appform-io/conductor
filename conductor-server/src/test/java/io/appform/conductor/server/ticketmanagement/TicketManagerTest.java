@@ -58,16 +58,12 @@ import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.ticketToJsonNode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -129,11 +125,11 @@ class TicketManagerTest {
                                 new Date());
         val states = Map.of(
                 "START",
-                new TicketState("START", "Start", "", false, new Date(), new Date()),
+                new TicketState("START", "Start", "", false, List.of(), List.of(), List.of(), new Date(), new Date()),
                 "FIRST_NAME_COLLECTED",
-                new TicketState("FIRST_NAME_COLLECTED", "First name collected", "", false, new Date(), new Date()),
+                new TicketState("FIRST_NAME_COLLECTED", "First name collected", "", false, List.of(), List.of(), List.of(), new Date(), new Date()),
                 "FULL_NAME_COLLECTED",
-                new TicketState("FULL_NAME_COLLECTED", "Full name collected", "", true, new Date(), new Date())
+                new TicketState("FULL_NAME_COLLECTED", "Full name collected", "", true, List.of(), List.of(), List.of(), new Date(), new Date())
                            );
         val transitions = Map.of(
                 "START", List.of(new TicketStateTransition("S_F_N_C",
@@ -190,7 +186,7 @@ class TicketManagerTest {
         val aStore = mock(ActionStore.class);
         when(aStore.read(anyString())).thenReturn(Optional.empty());
         val wStore = mock(WorkflowStore.class);
-        when(wStore.list(any(WorkflowState.class))).thenReturn(List.of(workflow));
+        when(wStore.list(anySet())).thenReturn(List.of(workflow));
         val suStore = new DBSubjectStore(bundle.createParentObjectDao(StoredSubjectSummary.class),
                                          bundle.createRelatedObjectDao(StoredSubjectID.class),
                                          bundle.createRelatedObjectDao(StoredAddress.class));

@@ -18,7 +18,6 @@ package io.appform.conductor.server.workflowmanagement;
 
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
-import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.workflow.*;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
@@ -80,19 +79,54 @@ public class WorkflowManager {
             final String workflowId,
             final String displayName,
             final String description,
-            final boolean terminal) {
+            final boolean terminal,
+            List<String> allowedActions,
+            List<String> editableFields,
+            List<String> visibleFields) {
         val stateId = workflowId + "_" + readableId(displayName);
         val wf = workflowStore.read(workflowId).orElse(null);
         ensureNotNull(workflowId, wf);
         ensure(!wf.getStates().containsKey(stateId),
                ConductorErrorCode.WORKFLOW_ERROR, "State with id " + stateId + " already exists");
-        val updated = workflowStore.createOrUpdateState(workflowId, stateId, displayName, description, terminal);
+        val updated = workflowStore.createOrUpdateState(workflowId,
+                                                        stateId,
+                                                        displayName,
+                                                        description,
+                                                        terminal,
+                                                        allowedActions,
+                                                        editableFields,
+                                                        visibleFields);
         ensure(updated.filter(workflow -> workflow.getStates().containsKey(stateId)).isPresent(),
                ConductorErrorCode.WORKFLOW_ERROR, "State " + stateId + " could not be added");
         return updated;
     }
 
-    public Optional<Workflow> updateStateDescription(
+    public Optional<Workflow> updateState(
+            final String workflowId,
+            final String stateId,
+            final String description,
+            final boolean terminal,
+            List<String> allowedActions,
+            List<String> editableFields,
+            List<String> visibleFields) {
+        val wf = workflowStore.read(workflowId).orElse(null);
+        ensureNotNull(workflowId, wf);
+        ensure(wf.getStates().containsKey(stateId),
+               ConductorErrorCode.WORKFLOW_ERROR, "State with id " + stateId + " does not exist");
+        val updated = workflowStore.createOrUpdateState(workflowId,
+                                                        stateId,
+                                                        null,
+                                                        description,
+                                                        terminal,
+                                                        allowedActions,
+                                                        editableFields,
+                                                        visibleFields);
+        ensure(updated.filter(workflow -> workflow.getStates().containsKey(stateId)).isPresent(),
+               ConductorErrorCode.WORKFLOW_ERROR, "State " + stateId + " could not be added");
+        return updated;
+    }
+
+/*    public Optional<Workflow> updateStateDescription(
             final String workflowId,
             final String stateId,
             final String description) {
@@ -127,11 +161,11 @@ public class WorkflowManager {
                                                  existing.getDisplayName(),
                                                  existing.getDescription(),
                                                  terminal);
-    }
+    }*/
 
     public Optional<Workflow> deleteState(
-            @Throws.RuntimeParam("id") String workflowId,
-            @Throws.RuntimeParam("subId") String stateId) {
+            String workflowId,
+            String stateId) {
         val wf = workflowStore.read(workflowId).orElse(null);
         ensureNotNull(workflowId, wf);
         ensure(!wf.getTicketStateTransitions().containsKey(stateId),

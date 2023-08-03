@@ -60,22 +60,54 @@ class DBWorkflowStoreTest {
                 .orElse(null);
         assertNotNull(original);
         {
-            val updated = ds.createOrUpdateState(original.getId(), "START", "Start State", "For testing", false)
+            val updated = ds.createOrUpdateState(original.getId(),
+                                                 "START",
+                                                 "Start State",
+                                                 "For testing",
+                                                 false,
+                                                 List.of(),
+                                                 List.of(),
+                                                 List.of("F1", "F2"))
                     .orElse(null);
+            assertNotNull(updated);
             assertEquals(1, updated.getStates().size());
         }
         {
-            val updated = ds.createOrUpdateState(original.getId(), "INTERMEDIATE_1", "Intermediate State", "For testing", false)
+            val updated = ds.createOrUpdateState(original.getId(),
+                                                 "INTERMEDIATE_1",
+                                                 "Intermediate State",
+                                                 "For testing",
+                                                 false,
+                                                 List.of("A1", "A2"),
+                                                 List.of("F1"),
+                                                 List.of("F1", "F2"))
                     .orElse(null);
+            assertNotNull(updated);
             assertEquals(2, updated.getStates().size());
-        }        {
-            val updated = ds.createOrUpdateState(original.getId(), "INTERMEDIATE_2", "Intermediate State", "For testing", false)
+        } {
+            val updated = ds.createOrUpdateState(original.getId(),
+                                                 "INTERMEDIATE_2",
+                                                 "Intermediate State",
+                                                 "For testing",
+                                                 false,
+                                                 List.of("A3"),
+                                                 List.of("F2"),
+                                                 List.of("F1", "F2"))
                     .orElse(null);
+            assertNotNull(updated);
             assertEquals(3, updated.getStates().size());
         }
         {
-            val updated = ds.createOrUpdateState(original.getId(), "END", "End State", "For testing", true)
+            val updated = ds.createOrUpdateState(original.getId(),
+                                                 "END",
+                                                 "End State",
+                                                 "For testing",
+                                                 true,
+                                                 List.of(),
+                                                 List.of(),
+                                                 List.of("F1", "F2"))
                     .orElse(null);
+            assertNotNull(updated);
             assertEquals(4, updated.getStates().size());
         }
         {
@@ -87,6 +119,7 @@ class DBWorkflowStoreTest {
                                                       new Rule(Rule.RuleType.JSON_RULE, "{}"),
                                                       List.of("NO_ACTION"))
                     .orElse(null);
+            assertNotNull(updated);
             assertEquals(1, updated.getTicketStateTransitions().size());
             assertEquals(1, updated.getTicketStateTransitions().get("START").size());
         }
@@ -99,6 +132,7 @@ class DBWorkflowStoreTest {
                                                       new Rule(Rule.RuleType.JSON_RULE, "{}"),
                                                       List.of("NO_ACTION"))
                     .orElse(null);
+            assertNotNull(updated);
             assertEquals(1, updated.getTicketStateTransitions().size());
             assertEquals(2, updated.getTicketStateTransitions().get("START").size());
         }
@@ -111,6 +145,7 @@ class DBWorkflowStoreTest {
                                                       new Rule(Rule.RuleType.JSON_RULE, "{}"),
                                                       List.of("NO_ACTION"))
                     .orElse(null);
+            assertNotNull(updated);
             assertEquals(2, updated.getTicketStateTransitions().size());
             assertEquals(1, updated.getTicketStateTransitions().get("INTERMEDIATE_1").size());
         }
@@ -123,6 +158,7 @@ class DBWorkflowStoreTest {
                                                       new Rule(Rule.RuleType.JSON_RULE, "{}"),
                                                       List.of("NO_ACTION"))
                     .orElse(null);
+            assertNotNull(updated);
             assertEquals(3, updated.getTicketStateTransitions().size());
             assertEquals(1, updated.getTicketStateTransitions().get("INTERMEDIATE_2").size());
         }
@@ -131,6 +167,7 @@ class DBWorkflowStoreTest {
                                                          "R1",
                                                          new Rule(Rule.RuleType.JSON_RULE, "{}"))
                     .orElse(null);
+            assertNotNull(updated);
             assertEquals(1, updated.getSelectionRules().size());
             assertNotNull(updated.getSelectionRules().get("R1"));
         }
@@ -139,6 +176,7 @@ class DBWorkflowStoreTest {
                                                          "R2",
                                                          new Rule(Rule.RuleType.JSON_RULE, "{}"))
                     .orElse(null);
+            assertNotNull(updated);
             assertEquals(2, updated.getSelectionRules().size());
             assertNotNull(updated.getSelectionRules().get("R2"));
         }
