@@ -256,8 +256,9 @@ public class Manage {
 
     @GET
     @Path("/workflow/{workflowId}/states/add")
-    public Response createState(@Auth ConductorUser user,
-                                @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
+    public Response createState(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
         val fields = workflowManager.read(workflowId)
                 .map(Workflow::getSchemaId)
                 .flatMap(schemaStore::get)
@@ -273,15 +274,16 @@ public class Manage {
 
     @GET
     @Path("/workflow/{workflowId}/states/{stateId}")
-    public Response createState(@Auth ConductorUser user,
-                                @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
-                                @PathParam("stateId") @NotEmpty @Length(max = 1024) final String stateId) {
+    public Response createState(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @PathParam("stateId") @NotEmpty @Length(max = 1024) final String stateId) {
         val workflow = workflowManager.read(workflowId);
-        if(workflow.isEmpty()) {
+        if (workflow.isEmpty()) {
             return Response.seeOther(URI.create("/")).build();
         }
         val state = workflow.map(wf -> wf.getStates().get(stateId)).orElse(null);
-        if(null == state) {
+        if (null == state) {
             return Response.seeOther(URI.create("/manage/workflow/" + workflowId)).build();
         }
         val fields = workflow
@@ -333,11 +335,11 @@ public class Manage {
             @FormParam("editableFields") final List<String> editableFields,
             @FormParam("visibleFields") final List<String> visibleFields) {
         val workflow = workflowManager.read(workflowId);
-        if(workflow.isEmpty()) {
+        if (workflow.isEmpty()) {
             return Response.seeOther(URI.create("/")).build();
         }
         val state = workflow.map(wf -> wf.getStates().get(stateId)).orElse(null);
-        if(null == state) {
+        if (null == state) {
             return Response.seeOther(URI.create("/manage/workflow/" + workflowId)).build();
         }
         return workflowManager.updateState(workflowId,
@@ -372,16 +374,16 @@ public class Manage {
             @FormParam("fromState") @NotEmpty @Length(max = 45) final String fromState,
             @FormParam("toState") @Length(max = 45) final String toState,
             @FormParam("transitionType") final TicketStateTransition.TicketStateTransitionType transitionType,
-            @FormParam("rule") @Length(max = 4096) final String rule) {
+            @FormParam("rule") @Length(max = 4096) final String rule,
+            @FormParam("transitionAllowedActions") final List<String> allowedActions) {
         return workflowStore.createOrUpdateTransition(workflowId,
                                                       String.format("%s-%s-%s", workflowId, fromState, toState),
                                                       fromState,
                                                       toState,
                                                       transitionType,
                                                       transitionType == TicketStateTransition.TicketStateTransitionType.EVALUATED
-                                                      ? new Rule(
-                                                              Rule.RuleType.HOPE, rule) : null,
-                                                      List.of())
+                                                      ? new Rule(Rule.RuleType.HOPE, rule) : null,
+                                                      allowedActions)
                 .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
                 .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
     }
