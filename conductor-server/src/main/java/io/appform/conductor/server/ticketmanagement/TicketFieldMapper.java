@@ -32,6 +32,8 @@ import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -106,10 +108,11 @@ public class TicketFieldMapper {
 
             @Override
             public Pair<List<String>, FieldValue> visit(NumberFieldSchema numberField) {
-                if (!fieldData.isNumber()) {
+                val valueOpt = fieldToDouble(fieldData);
+                if (valueOpt.isEmpty()) {
                     return new Pair<>(List.of("Field " + fieldName + " is not a number"), null);
                 }
-                val value = fieldData.asDouble();
+                val value = valueOpt.get().doubleValue();
                 if (numberField.getMin() != 0 && value < numberField.getMin()) {
                     errors.add("Field value for " + fieldName + " is less than allowed limit " + numberField.getMin());
                 }
@@ -123,12 +126,11 @@ public class TicketFieldMapper {
 
             @Override
             public Pair<List<String>, FieldValue> visit(BooleanFieldSchema booleanField) {
-                if (!fieldData.isBoolean()) {
-                    return new Pair<>(List.of("Field " + fieldName + " is not boolean"), null);
-                }
-                return errors.isEmpty()
-                       ? new Pair<>(List.of(), new BooleanFieldValue(fieldData.asBoolean()))
-                       : new Pair<>(errors, null);
+                return fieldToBoolean(fieldData)
+                        .<Pair<List<String>, FieldValue>>map(
+                                value -> errors.isEmpty() ? new Pair<>(List.of(), new BooleanFieldValue(value))
+                                                          : new Pair<>(errors, null))
+                        .orElseGet(() -> new Pair<>(List.of("Field " + fieldName + " is not boolean"), null));
             }
 
             @Override
@@ -147,12 +149,11 @@ public class TicketFieldMapper {
 
             @Override
             public Pair<List<String>, FieldValue> visit(DateFieldSchema dateField) {
-                if (!fieldData.isLong()) {
-                    return new Pair<>(List.of("Field " + fieldName + " is not epoch date"), null);
-                }
-                return errors.isEmpty()
-                       ? new Pair<>(List.of(), new DateFieldValue(new Date(fieldData.asLong())))
-                       : new Pair<>(errors, null);
+                return fieldToDate(fieldData)
+                        .<Pair<List<String>, FieldValue>>map(
+                                value -> errors.isEmpty() ? new Pair<>(List.of(), new DateFieldValue(value))
+                                                          : new Pair<>(errors, null))
+                        .orElseGet(() -> new Pair<>(List.of("Field " + fieldName + " is not a date"), null));
             }
 
             @Override
@@ -171,14 +172,55 @@ public class TicketFieldMapper {
                         .stream()
                         .map(ChoiceFieldSchema.Option::getValue)
                         .collect(Collectors.toUnmodifiableSet());
-                if(!valid.containsAll(choices)) {
-                    errors.add("Invalid choices " + Sets.difference(choices, valid) + " provided for field " + fieldName);
+                if (!valid.containsAll(choices)) {
+                    errors.add("Invalid choices " + Sets.difference(choices,
+                                                                    valid) + " provided for field " + fieldName);
                 }
                 return errors.isEmpty()
                        ? new Pair<>(List.of(), new ChoiceFieldValue(List.copyOf(choices)))
                        : new Pair<>(errors, null);
             }
         });
+    }
+
+    private static Optional<Double> fieldToDouble(JsonNode fieldData) {
+
+        if (fieldData.isNumber()) {
+            return Optional.of(fieldData.asDouble());
+        }
+        else if (fieldData.isTextual()) {
+            try {
+                return Optional.of(Double.parseDouble(fieldData.asText()));
+            }
+            catch (NumberFormatException e) {
+                //Don't let this leak
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static Optional<Boolean> fieldToBoolean(JsonNode fieldData) {
+
+        if (fieldData.isBoolean()) {
+            return Optional.of(fieldData.asBoolean());
+        }
+        else if (fieldData.isTextual()) {
+            return Optional.of(Boolean.parseBoolean(fieldData.asText()));
+        }
+        return Optional.empty();
+    }
+
+    private static Optional<Date> fieldToDate(JsonNode fieldData) {
+
+        if (fieldData.isLong()) {
+            return Optional.of(new Date(fieldData.asLong()));
+        }
+        else if (fieldData.isTextual()) {
+            return Optional.of(Date.from(LocalDate.parse(fieldData.asText())
+                                                 .atStartOfDay(ZoneId.systemDefault())
+                                                 .toInstant()));
+        }
+        return Optional.empty();
     }
 
 }

@@ -206,6 +206,7 @@ class TicketManagerTest {
                                               gStore,
                                               suStore,
                                               aStore,
+                                              wStore,
                                               workflowSelector,
                                               new TicketFieldMapper(),
                                               re,

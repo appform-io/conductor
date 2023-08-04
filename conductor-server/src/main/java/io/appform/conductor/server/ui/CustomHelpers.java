@@ -18,12 +18,15 @@ package io.appform.conductor.server.ui;
 
 import com.github.jknack.handlebars.Options;
 import com.google.common.base.Strings;
+import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.utils.Displayable;
 import io.appform.conductor.server.utils.dev.IgnoreGenerated;
 import lombok.SneakyThrows;
 import org.apache.commons.text.WordUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 
@@ -66,6 +69,18 @@ public class CustomHelpers {
         return collection.containsKey(key)
                 ? options.fn()
                 : options.inverse();
+    }
+
+    @SneakyThrows
+    public CharSequence fieldTypeEquals(FieldType lhs, String value, Options options) {
+        return FieldType.valueOf(value).equals(lhs)
+                ? options.fn()
+                : options.inverse();
+    }
+
+    @SneakyThrows
+    public CharSequence htmlDate(Date date, boolean time) {
+        return new SimpleDateFormat("yyyy-MM-dd").format(date);
     }
 
     public Object map(Map<String, Object> map, String key) {

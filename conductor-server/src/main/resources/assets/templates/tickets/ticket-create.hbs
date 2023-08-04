@@ -1,0 +1,84 @@
+{{#partial "page_css_includes"}}
+    <link href="/css/bootstrap-select.min.css" rel="stylesheet">
+{{/partial}}
+{{#partial "page_js_includes"}}
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+{{/partial}}
+{{#partial "content"}}
+<section>
+    <div class="row">
+        <div class="col">
+            <h1>Create a new ticket</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <form method="post" action="/tickets/create">
+                <div class="row mt-2">
+                    <div class="col-2">
+                        <label for="workflowId"  class="col-form-label fw-bold">Workflow</label>
+                    </div>
+                    <div class="col-10">
+                        <select id="workflowId" name="workflowId"
+                                class="form-control selectpicker border border-dark bg-light"
+                                data-live-search="true" required>
+                            <option disabled selected>Select workflow</option>
+                        {{#each workflows}}
+                            <option value="{{id}}">{{displayName}}</option>
+                        {{/each}}
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-2">
+                        <label for="title"  class="col-form-label fw-bold">Title</label>
+                    </div>
+                    <div class="col-10">
+                        <input type="text" id="title" name="title" class="form-control border border-dark bg-light"
+                               maxlength="45" placeholder="Ticket title" required>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-2">
+                        <label for="description"  class="col-form-label fw-bold">Description</label>
+                    </div>
+                    <div class="col-10">
+                        <textarea id="description" name="description" class="form-control border border-dark bg-light"
+                                  maxlength="45" placeholder="Ticket description"></textarea>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-2">
+                        <label for="subjectIdType"  class="col-form-label fw-bold">Subject</label>
+                    </div>
+                    <div class="col-2">
+                        <select id="subjectIdType" name="subjectIdType"
+                                class="form-control selectpicker border border-dark bg-light"
+                                data-live-search="true" required>
+                            <option disabled selected>Select ID Type</option>
+                            {{#each subIdTypes}}
+                                <option value="{{this}}">{{displayName}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                    <div class="col-3">
+                        <input type="text" id="subIdSubType" name="subIdSubType" class="form-control border border-dark bg-light"
+                               maxlength="45" placeholder="Subtype (Optional)">
+                    </div>
+                    <div class="col-5">
+                        <input type="text" id="subIdValue" name="subIdValue" class="form-control border border-dark bg-light"
+                               maxlength="45" placeholder="Actual value of the ID" required>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-12 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-success">Create</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{{/partial}}
+
+{{> common/base}}

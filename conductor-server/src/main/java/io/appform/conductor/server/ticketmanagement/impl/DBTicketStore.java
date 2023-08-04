@@ -49,6 +49,7 @@ import lombok.val;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.criterion.*;
+import org.hibernate.sql.JoinType;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -459,7 +460,7 @@ public class DBTicketStore implements TicketStore {
             List<TicketFieldFilter> filters,
             final Map<String, FieldSchema> relevantFields,
             DetachedCriteria rootCriteria) {
-        var top = rootCriteria.createCriteria(StoredTicketSkeleton.Fields.fields);
+        var top = rootCriteria.createCriteria(StoredTicketSkeleton.Fields.fields, JoinType.LEFT_OUTER_JOIN);
         for (val filter : filters) {
             val fieldSchema = relevantFields.get(filter.getFieldSchemaId());
             val finalTop = top;

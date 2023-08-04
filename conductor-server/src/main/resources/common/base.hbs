@@ -43,9 +43,18 @@
                         </a>
                     </li>
 
-                    <li>
+<!--                    <li>
                         <a href="/tickets" class="fs-5 nav-link px-sm-0 px-2  text-white">
                             <i class="bi fs-3 bi-ticket"></i><span class="ms-1 d-none d-sm-inline">Tickets</span></a>
+                    </li>-->
+                    <li class="dropdown">
+                        <a href="#" class="fs-5 nav-link dropdown-toggle px-sm-0 px-2  text-white" id="dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi fs-3 bi-ticket"></i><span class="ms-1 d-none d-sm-inline">Tickets</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdown">
+                            <li><a class="dropdown-item" href="/tickets/create">Create</a></li>
+                            <li><a class="dropdown-item" href="/">All tickets</a></li>
+                        </ul>
                     </li>
                     <li>
                         <a href="/subjects" class="fs-5 nav-link px-sm-0 px-2  text-white">

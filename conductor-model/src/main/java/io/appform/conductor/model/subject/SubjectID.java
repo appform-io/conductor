@@ -16,6 +16,9 @@
 
 package io.appform.conductor.model.subject;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Value;
 
 import java.util.Date;
@@ -24,6 +27,8 @@ import java.util.Date;
  * Identification coordinates for a subject. For example email etc.
  */
 @Value
+@Builder
+@AllArgsConstructor(access = AccessLevel.PUBLIC)
 public class SubjectID {
 
     /**

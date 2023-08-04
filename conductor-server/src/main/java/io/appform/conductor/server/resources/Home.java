@@ -36,7 +36,7 @@ import javax.ws.rs.core.MediaType;
 @Template
 @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
 @PermitAll
-public class UI {
+public class Home {
 
     @GET
     public HomeView home(@Auth ConductorUser user) {

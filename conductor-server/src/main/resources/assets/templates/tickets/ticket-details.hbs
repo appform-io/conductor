@@ -1,0 +1,150 @@
+{{#partial "page_css_includes"}}
+    <link href="/css/bootstrap-select.min.css" rel="stylesheet">
+{{/partial}}
+{{#partial "page_js_includes"}}
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+{{/partial}}
+{{#partial "content"}}
+    {{#with ticket}}
+        <div class="row">
+            <div class="col">
+                <h1>Details for ticket {{summary/id}}</h1>
+            </div>
+        </div>
+        <form method="post" action="/tickets/{{summary/id}}/update">
+        <section>
+
+            <div class="row">
+                <div class="col">
+                    {{#with summary}}
+                            <div class="row mt-2">
+                                <div class="col-2">
+                                    <label class="col-form-label fw-bold">Workflow</label>
+                                </div>
+                                <div class="col-10 pt-2">
+                                    {{../workflow/displayName}}
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-2">
+                                    <label class="col-form-label fw-bold">Subject</label>
+                                </div>
+                                <div class="col-10 pt-2">
+                                    <a href="/tickets/subjects/{{subject/globalId}}">{{subject/name}}
+                                        (ID: {{subject/globalId}})</a>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-2">
+                                    <label for="title" class="col-form-label fw-bold">Title</label>
+                                </div>
+                                <div class="col-10">
+                                    <input type="text" id="title" name="title"
+                                           class="form-control border border-dark bg-light"
+                                           maxlength="45" placeholder="Ticket title" value="{{title}}" required>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-2">
+                                    <label for="description" class="col-form-label fw-bold">Description</label>
+                                </div>
+                                <div class="col-10">
+                        <textarea id="description" name="description" class="form-control border border-dark bg-light"
+                                  maxlength="45" placeholder="Ticket description">{{description}}</textarea>
+                                </div>
+                            </div>
+                    {{/with}}
+                </div>
+            </div>
+        </section>
+        <hr>
+        <section>
+                {{#each ../fields}}
+                    <div class="row mt-2">
+                        <div class="col-2">
+                            <label for="ticketField-{{schema/name}}" class="col-form-label fw-bold">{{schema/displayName}}</label>
+                        </div>
+                        {{#fieldTypeEquals type "STRING"}}
+                        <div class="col-6">
+                            <input type="text"
+                                   class="form-control border border-dark bg-light"
+                                   id="ticketField-{{schema/name}}" name="ticketField-{{schema/name}}"
+                                   {{#gt schema/maxLength 0}}maxlength="{{schema/maxLength}}" {{/gt}}
+                                {{#emptyStr schema/matchPattern}}{{else}}pattern="{{schema/matchPattern}}" {{/emptyStr}}
+                                {{#empty fieldValue}}{{else}}value="{{fieldValue/value}}" {{/empty}}
+                                {{#eq schema/required true}}required{{/eq}}
+                                {{#eq enabled false}}disabled{{/eq}}>
+                        </div>
+                        {{/fieldTypeEquals}}
+                        {{#fieldTypeEquals type "CHOICE"}}
+                        <div class="col-6">
+                            <select
+                                    class="form-control selectpicker border border-dark bg-light"
+                                    data-live-search="true"  data-selected-text-format="count > 2"
+                                    id="ticketField-{{schema/name}}" name="ticketField-{{schema/name}}"
+                                {{#eq schema/allowMultiple true}}multiple{{/eq}}
+                                {{#eq schema/required true}}required{{/eq}}
+                                {{#eq enabled false}}disabled{{/eq}}>
+                                {{#empty value}}
+                                    <option disabled>Select an option</option>
+                                {{/empty}}
+                                {{#each schema/choices}}
+                                    <option value="{{value}}" {{#empty fieldValue}}{{else}}{{#contains ../fieldValue/value value}}{{/contains}}{{/empty}}>
+                                        {{displayText}}
+                                    </option>
+                                {{/each}}
+                            </select>
+                        </div>
+
+                        {{/fieldTypeEquals}}
+                        {{#fieldTypeEquals type "BOOLEAN"}}
+                        <div class="col-6 mt-2">
+                            <input type="checkbox"
+                                   class="form-check-input  border border-dark"
+                                   id="ticketField-{{schema/name}}" name="ticketField-{{schema/name}}"
+                                   value="true"
+                                {{#empty fieldValue}}{{else}}{{#eq fieldValue/value true}}checked{{/eq}}{{/empty}}
+                                {{#eq schema/required true}}required{{/eq}}
+                                {{#eq enabled false}}disabled{{/eq}}>
+                        </div>
+                        {{/fieldTypeEquals}}
+                        {{#fieldTypeEquals type "LOCATION"}}
+
+                        {{/fieldTypeEquals}}
+                        {{#fieldTypeEquals type "DATE"}}
+                            <div class="col-6">
+                                <input type="date"
+                                       class="form-control border border-dark bg-light"
+                                       id="ticketField-{{schema/name}}" name="ticketField-{{schema/name}}"
+                                    {{#empty schema/max}}{{else}}max="{{schema/max}}" {{/empty}}
+                                    {{#empty schema/min}}{{else}}max="{{schema/max}}" {{/empty}}
+                                    {{#empty fieldValue}}{{else}}value="{{htmlDate fieldValue/value false}}" {{/empty}}
+                                    {{#eq schema/required true}}required{{/eq}}
+                                    {{#eq enabled false}}disabled{{/eq}}>
+                            </div>
+                        {{/fieldTypeEquals}}
+                        {{#fieldTypeEquals type "NUMBER"}}
+                            <div class="col-6">
+                                <input type="number"
+                                       class="form-control border border-dark bg-light"
+                                       id="ticketField-{{schema/name}}" name="ticketField-{{schema/name}}"
+                                    {{#neq schema/max 0}}max="{{schema/max}}" {{/neq}}
+                                    {{#neq schema/min 0}}min="{{schema/min}}" {{/neq}}
+                                    {{#empty fieldValue}}{{else}}value="{{fieldValue/value}}" {{/empty}}
+                                    {{#eq schema/required true}}required{{/eq}}
+                                    {{#eq enabled false}}disabled{{/eq}}>
+                            </div>
+                        {{/fieldTypeEquals}}
+                    </div>
+                {{/each}}
+        </section>
+        <div class="row mt-2">
+            <div class="col-12 d-flex justify-content-center">
+                <button type="submit" class="btn btn-success">Update</button>
+            </div>
+        </div>
+        </form>
+    {{/with}}
+{{/partial}}
+
+{{> common/base}}

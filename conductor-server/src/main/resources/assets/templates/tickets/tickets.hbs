@@ -1,0 +1,52 @@
+{{#partial "page_css_includes"}}
+    <link href="/css/bootstrap-select.min.css" rel="stylesheet">
+{{/partial}}
+{{#partial "page_js_includes"}}
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+{{/partial}}
+{{#partial "content"}}
+<section>
+    <div class="row">
+        <div class="col-4">
+            <h2>Tickets</h2>
+        </div>
+        <div class="col-8 d-flex justify-content-end">
+            <form>
+                <select id="workflowId" name="workflowId"
+                        class="form-control selectpicker border border-dark bg-light"
+                        data-live-search="true" required>
+                    {{#each workflows}}
+                        <option value="{{id}}" {{#eq ../workflowId id}}selected{{/eq}}>{{displayName}}</option>
+                    {{/each}}
+                </select>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <table class="table table-bordered border-dark data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Priority</th>
+                        <th>Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {{#each results.results}}
+                    <tr>
+                        <td><a href="/tickets/{{ticketId}}/details">{{ticketId}}</a></td>
+                        <td>{{title}}</td>
+                        <td>{{priority}}</td>
+                        <td>{{updated}}</td>
+                    </tr>
+                {{/each}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{{/partial}}
+
+{{> common/base}}

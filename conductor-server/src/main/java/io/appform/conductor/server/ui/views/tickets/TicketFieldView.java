@@ -14,19 +14,35 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ticketmanagement;
+package io.appform.conductor.server.ui.views.tickets;
 
-import lombok.Value;
-
-import java.util.List;
+import io.appform.conductor.model.schema.FieldSchema;
+import io.appform.conductor.model.schema.FieldType;
+import io.appform.conductor.model.ticket.fields.FieldValue;
 
 /**
- * Result set for a list query. Returns latest results first.
+ *
  */
-@Value
-public class TicketSkeletonListResult {
-    public static final TicketSkeletonListResult EMPTY = new TicketSkeletonListResult(List.of(), null);
+@lombok.Value
+public class TicketFieldView {
 
-    List<TicketSkeleton> results;
-    String next;
+    /**
+     * Type of field
+     */
+    FieldType type;
+
+    /**
+     * Global id for the field schema
+     */
+    FieldSchema schema;
+
+    /**
+     * Actual field fieldValue
+     */
+    FieldValue fieldValue;
+
+    /**
+     * Is field editable
+     */
+    boolean editable;
 }

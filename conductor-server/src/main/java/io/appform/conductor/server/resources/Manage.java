@@ -354,6 +354,18 @@ public class Manage {
     }
 
     @POST
+    @Path("/workflow/{workflowId}/states/{stateId}/initial")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response setupInitialStateForWorkflow(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @PathParam("stateId") @NotEmpty @Length(max = 45) final String stateId) {
+        return workflowManager.setupInitialStateForWorkflow(workflowId, stateId)
+                .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
+                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+    }
+
+    @POST
     @Path("/workflow/{workflowId}/states/{stateId}/delete")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response deleteState(

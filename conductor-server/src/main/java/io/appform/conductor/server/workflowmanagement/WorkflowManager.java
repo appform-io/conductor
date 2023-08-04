@@ -169,6 +169,16 @@ public class WorkflowManager {
                                                  terminal);
     }*/
 
+    public Optional<Workflow> setupInitialStateForWorkflow(String workflowId, String stateId) {
+        val wf = workflowStore.read(workflowId).orElse(null);
+        ensureNotNull(workflowId, wf);
+        val state = wf.getStates().get(stateId);
+        ConductorServerUtils.notNull(state, ConductorErrorCode.WORKFLOW_ERROR_INVALID_INITIAL_STATE,
+                                     "State " + stateId + " is not associated with this workflow");
+        return workflowStore.update(workflowId,
+                                    workflow -> workflow.setStartStateId(stateId).setState(WorkflowState.ACTIVE));
+    }
+
     public Optional<Workflow> deleteState(
             String workflowId,
             String stateId) {

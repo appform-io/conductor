@@ -36,6 +36,7 @@ import java.util.Date;
 @ToString(callSuper = true)
 public class DateFieldSchema extends FieldSchema {
 
+    //TODO:: MIN, MAX, STEP
     /**
      * Default value to be put in if field is not mandatory.
      */
