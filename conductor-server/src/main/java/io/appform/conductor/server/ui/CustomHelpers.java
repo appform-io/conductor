@@ -67,4 +67,9 @@ public class CustomHelpers {
                 ? options.fn()
                 : options.inverse();
     }
+
+    public Object map(Map<String, Object> map, String key) {
+        return map.get(key);
+    }
+
 }

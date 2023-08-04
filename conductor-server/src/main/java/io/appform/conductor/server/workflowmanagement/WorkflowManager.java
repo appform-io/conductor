@@ -60,7 +60,13 @@ public class WorkflowManager {
                                      ConductorErrorCode.WORKFLOW_ERROR_INVALID_ID,
                                      "No active schema found for: " + schemaId);
         val workflowId = readableId(name);
-        return workflowStore.create(workflowId, name, description, schemaId, titleTemplate, descriptionTemplate, subjectIdTemplate);
+        return workflowStore.create(workflowId,
+                                    name,
+                                    description,
+                                    schemaId,
+                                    titleTemplate,
+                                    descriptionTemplate,
+                                    subjectIdTemplate);
     }
 
     public Optional<Workflow> read(final String workflowId) {
@@ -187,7 +193,7 @@ public class WorkflowManager {
         return updated;
     }
 
-    public Optional<Workflow> createTransition(
+    public Optional<Workflow> createOrUpdateTransition(
             String workflowId,
             String from,
             String to,
@@ -206,9 +212,6 @@ public class WorkflowManager {
                ConductorErrorCode.WORKFLOW_ERROR,
                "No state found for ID: " + to);
         val transitionId = readableId(workflowId, from, to);
-        ensure(!wf.getTicketStateTransitions().containsKey(transitionId),
-               ConductorErrorCode.WORKFLOW_ERROR,
-               "Transition already present for " + workflowId + "/" + transitionId);
         val updated = workflowStore.createOrUpdateTransition(workflowId,
                                                              transitionId,
                                                              from,

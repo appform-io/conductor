@@ -169,7 +169,7 @@
                             </div>
                             <div class="col-2">
                                 <select class="form-control selectpicker border border-dark bg-light"
-                                        id="transitionType" name="transitionType" data-live-search="true" required>
+                                        id="transitionType" name="transitionType" required>
                                     <option value="" disabled selected>Transition type</option>
                                     <option value="EVALUATED">Rule based</option>
                                     <option value="DEFAULT">Default</option>
@@ -221,8 +221,8 @@
                         {{#each ticketStateTransitions}}
                             {{#each this}}
                                 <tr>
-                                    <td>{{from}}</td>
-                                    <td>{{to}}</td>
+                                    <td>{{#with (lookup states from)}}{{displayName}}{{/with}}</td>
+                                    <td>{{#with (lookup states to)}}{{displayName}}{{/with}}</td>
                                     <td>{{type}}</td>
                                     <td>{{rule.rule}}</td>
                                     <td>

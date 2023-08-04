@@ -248,7 +248,7 @@ public class DBWorkflowStore implements WorkflowStore {
             List<String> actionIds) {
         val updated = wfDao.lockAndGetExecutor(workflowId)
                 .createOrUpdate(tstrnDao,
-                                createCriteria(StoredTicketStateTransition.class, workflowId)
+                                createCriteria(StoredTicketStateTransition.class, workflowId, false)
                                         .add(Property.forName(StoredTicketStateTransition.Fields.extId).eq(transitionId)),
                                 existing -> existing
                                         .setType(type)

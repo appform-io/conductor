@@ -360,7 +360,7 @@ public class Manage {
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @PathParam("stateId") @NotEmpty @Length(max = 45) final String stateId) {
-        return workflowStore.deleteState(workflowId, stateId)
+        return workflowManager.deleteState(workflowId, stateId)
                 .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
                 .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
     }
@@ -376,14 +376,13 @@ public class Manage {
             @FormParam("transitionType") final TicketStateTransition.TicketStateTransitionType transitionType,
             @FormParam("rule") @Length(max = 4096) final String rule,
             @FormParam("transitionAllowedActions") final List<String> allowedActions) {
-        return workflowStore.createOrUpdateTransition(workflowId,
-                                                      String.format("%s-%s-%s", workflowId, fromState, toState),
-                                                      fromState,
-                                                      toState,
-                                                      transitionType,
-                                                      transitionType == TicketStateTransition.TicketStateTransitionType.EVALUATED
-                                                      ? new Rule(Rule.RuleType.HOPE, rule) : null,
-                                                      allowedActions)
+        return workflowManager.createOrUpdateTransition(workflowId,
+                                                        fromState,
+                                                        toState,
+                                                        transitionType,
+                                                        transitionType == TicketStateTransition.TicketStateTransitionType.EVALUATED
+                                                        ? new Rule(Rule.RuleType.HOPE, rule) : null,
+                                                        allowedActions)
                 .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
                 .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
     }
