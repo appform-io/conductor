@@ -50,7 +50,7 @@ public class WebhookActionExecutor {
     }
 
     private ActionExecutionResult call(HttpUriRequestBase request, WebhookAction webhookAction) {
-        try (httpClient) {
+        try {
             return httpClient.execute(request, response -> {
                 val body = EntityUtils.toString(response.getEntity());
                 int code = response.getCode();
