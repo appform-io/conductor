@@ -16,9 +16,16 @@
 
 package io.appform.conductor.server.ui;
 
+import com.github.jknack.handlebars.Options;
+import com.google.common.base.Strings;
 import io.appform.conductor.model.utils.Displayable;
 import io.appform.conductor.server.utils.dev.IgnoreGenerated;
+import lombok.SneakyThrows;
 import org.apache.commons.text.WordUtils;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  *
@@ -27,9 +34,42 @@ import org.apache.commons.text.WordUtils;
 @SuppressWarnings("unused")
 public class CustomHelpers {
     public String readable(Object input) {
-        if(input instanceof Displayable) {
-            return ((Displayable)input).displayText();
+        if(input instanceof Displayable displayable) {
+            return displayable.displayText();
         }
         return WordUtils.capitalizeFully(input.toString().replace('_', ' '));
     }
+
+    @SneakyThrows
+    public CharSequence emptyStr(String input, Options options) {
+        return Strings.isNullOrEmpty(input)
+                ? options.fn()
+               : options.inverse();
+    }
+
+    @SneakyThrows
+    public CharSequence empty(Object input, Options options) {
+        return Objects.isNull(input)
+                ? options.fn()
+               : options.inverse();
+    }
+
+    @SneakyThrows
+    public CharSequence contains(Collection<String> collection, String key, Options options) {
+        return (null != collection && collection.contains(key))
+                ? options.fn()
+                : options.inverse();
+    }
+
+    @SneakyThrows
+    public CharSequence hasKey(Map<String, Boolean> collection, String key, Options options) {
+        return collection.containsKey(key)
+                ? options.fn()
+                : options.inverse();
+    }
+
+    public Object map(Map<String, Object> map, String key) {
+        return map.get(key);
+    }
+
 }

@@ -19,6 +19,7 @@ package io.appform.conductor.model.schema;
 import lombok.Value;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * A representation for a ticket state
@@ -45,6 +46,21 @@ public class TicketState {
      * If this is a terminal state
      */
     boolean terminal;
+
+    /**
+     * Actions allowed in a state
+     */
+    List<String> allowedActions;
+
+    /**
+     * Field ids for fields that are allowed in that state
+     */
+    List<String> editableFields;
+
+    /**
+     * Fields ids for fields visible in a state
+     */
+    List<String> visibleFields;
 
     /**
      * Creation date of the state

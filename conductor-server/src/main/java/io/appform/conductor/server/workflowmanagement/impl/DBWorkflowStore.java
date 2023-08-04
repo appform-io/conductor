@@ -187,22 +187,30 @@ public class DBWorkflowStore implements WorkflowStore {
             @Throws.RuntimeParam("subId") String stateId,
             String displayName,
             String description,
-            boolean terminal) {
+            boolean terminal,
+            List<String> allowedActions,
+            List<String> editableFields,
+            List<String> visibleFields) {
         val updated = wfDao.lockAndGetExecutor(workflowId)
                 .createOrUpdate(tsDao,
                                 createCriteria(StoredTicketState.class, workflowId, false)
                                         .add(Property.forName(StoredTicketState.Fields.extId).eq(stateId)),
                                 existing -> existing
-                                        .setDisplayName(displayName)
                                         .setDescription(description)
                                         .setTerminal(terminal)
+                                        .setAllowedActions(allowedActions)
+                                        .setEditableFields(editableFields)
+                                        .setVisibleFields(visibleFields)
                                         .setDeleted(false),
                                 () -> new StoredTicketState()
                                         .setWorkflowId(workflowId)
                                         .setExtId(stateId)
                                         .setDisplayName(displayName)
                                         .setDescription(description)
-                                        .setTerminal(terminal))
+                                        .setTerminal(terminal)
+                                        .setAllowedActions(allowedActions)
+                                        .setEditableFields(editableFields)
+                                        .setVisibleFields(visibleFields))
                 .execute() != null;
         log.info("State create status for {}/{}: {}", workflowId, stateId, updated);
         return read(workflowId);
@@ -240,8 +248,8 @@ public class DBWorkflowStore implements WorkflowStore {
             List<String> actionIds) {
         val updated = wfDao.lockAndGetExecutor(workflowId)
                 .createOrUpdate(tstrnDao,
-                                createCriteria(StoredTicketStateTransition.class, workflowId)
-                                        .add(Property.forName("extId").eq(transitionId)),
+                                createCriteria(StoredTicketStateTransition.class, workflowId, false)
+                                        .add(Property.forName(StoredTicketStateTransition.Fields.extId).eq(transitionId)),
                                 existing -> existing
                                         .setType(type)
                                         .setRule(rule)
@@ -359,6 +367,9 @@ public class DBWorkflowStore implements WorkflowStore {
                 state.getDisplayName(),
                 state.getDescription(),
                 state.isTerminal(),
+                state.getAllowedActions(),
+                state.getEditableFields(),
+                state.getVisibleFields(),
                 state.getCreated(),
                 state.getUpdated());
     }

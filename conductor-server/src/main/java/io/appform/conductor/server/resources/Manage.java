@@ -17,12 +17,17 @@
 package io.appform.conductor.server.resources;
 
 import io.appform.conductor.model.schema.FieldType;
+import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.schema.fields.*;
+import io.appform.conductor.model.workflow.Rule;
+import io.appform.conductor.model.workflow.TicketStateTransition;
+import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.model.workflow.WorkflowState;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.ui.views.manage.*;
+import io.appform.conductor.server.workflowmanagement.WorkflowManager;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +48,7 @@ import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.List;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.lowerSnake;
 import static io.appform.conductor.server.utils.ConductorServerUtils.upperSnake;
@@ -58,6 +64,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.upperSnake;
 public class Manage {
     private final SchemaStore schemaStore;
     private final WorkflowStore workflowStore;
+    private final WorkflowManager workflowManager;
 
     @GET
     @Path("/schema")
@@ -247,6 +254,51 @@ public class Manage {
                 .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
     }
 
+    @GET
+    @Path("/workflow/{workflowId}/states/add")
+    public Response createState(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
+        val fields = workflowManager.read(workflowId)
+                .map(Workflow::getSchemaId)
+                .flatMap(schemaStore::get)
+                .map(Schema::getFields)
+                .orElse(List.of());
+        return Response.ok(new WorkflowStateView(user.getUserSession().getUser(),
+                                                 workflowId,
+                                                 null,
+                                                 List.of(),
+                                                 fields))
+                .build();
+    }
+
+    @GET
+    @Path("/workflow/{workflowId}/states/{stateId}")
+    public Response createState(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @PathParam("stateId") @NotEmpty @Length(max = 1024) final String stateId) {
+        val workflow = workflowManager.read(workflowId);
+        if (workflow.isEmpty()) {
+            return Response.seeOther(URI.create("/")).build();
+        }
+        val state = workflow.map(wf -> wf.getStates().get(stateId)).orElse(null);
+        if (null == state) {
+            return Response.seeOther(URI.create("/manage/workflow/" + workflowId)).build();
+        }
+        val fields = workflow
+                .map(Workflow::getSchemaId)
+                .flatMap(schemaStore::get)
+                .map(Schema::getFields)
+                .orElse(List.of());
+        return Response.ok(new WorkflowStateView(user.getUserSession().getUser(),
+                                                 workflowId,
+                                                 state,
+                                                 List.of(),
+                                                 fields))
+                .build();
+    }
+
     @POST
     @Path("/workflow/{workflowId}/states/add")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -255,12 +307,48 @@ public class Manage {
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @FormParam("stateName") @NotEmpty @Length(max = 45) final String stateName,
             @FormParam("stateDescription") @Length(max = 255) final String stateDescription,
-            @FormParam("stateIsTerminal") @DefaultValue("false") final boolean stateIsTerminal) {
-        return workflowStore.createOrUpdateState(workflowId,
-                                                 workflowId + lowerSnake(stateName),
-                                                 stateName,
-                                                 stateDescription,
-                                                 stateIsTerminal)
+            @FormParam("stateIsTerminal") @DefaultValue("false") final boolean stateIsTerminal,
+            @FormParam("allowedActions") final List<String> allowedActions,
+            @FormParam("editableFields") final List<String> editableFields,
+            @FormParam("visibleFields") final List<String> visibleFields) {
+        return workflowManager.createState(workflowId,
+                                           stateName,
+                                           stateDescription,
+                                           stateIsTerminal,
+                                           allowedActions,
+                                           editableFields,
+                                           visibleFields)
+                .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
+                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+    }
+
+    @POST
+    @Path("/workflow/{workflowId}/states/{stateId}/update")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response updateState(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @PathParam("stateId") @NotEmpty @Length(max = 1024) final String stateId,
+            @FormParam("stateDescription") @Length(max = 255) final String stateDescription,
+            @FormParam("stateIsTerminal") @DefaultValue("false") final boolean stateIsTerminal,
+            @FormParam("allowedActions") final List<String> allowedActions,
+            @FormParam("editableFields") final List<String> editableFields,
+            @FormParam("visibleFields") final List<String> visibleFields) {
+        val workflow = workflowManager.read(workflowId);
+        if (workflow.isEmpty()) {
+            return Response.seeOther(URI.create("/")).build();
+        }
+        val state = workflow.map(wf -> wf.getStates().get(stateId)).orElse(null);
+        if (null == state) {
+            return Response.seeOther(URI.create("/manage/workflow/" + workflowId)).build();
+        }
+        return workflowManager.updateState(workflowId,
+                                           stateId,
+                                           stateDescription,
+                                           stateIsTerminal,
+                                           allowedActions,
+                                           editableFields,
+                                           visibleFields)
                 .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
                 .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
     }
@@ -272,7 +360,41 @@ public class Manage {
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @PathParam("stateId") @NotEmpty @Length(max = 45) final String stateId) {
-        return workflowStore.deleteState(workflowId, stateId)
+        return workflowManager.deleteState(workflowId, stateId)
+                .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
+                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+    }
+
+    @POST
+    @Path("/workflow/{workflowId}/transitions/add")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response createTransition(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @FormParam("fromState") @NotEmpty @Length(max = 45) final String fromState,
+            @FormParam("toState") @Length(max = 45) final String toState,
+            @FormParam("transitionType") final TicketStateTransition.TicketStateTransitionType transitionType,
+            @FormParam("rule") @Length(max = 4096) final String rule,
+            @FormParam("transitionAllowedActions") final List<String> allowedActions) {
+        return workflowManager.createOrUpdateTransition(workflowId,
+                                                        fromState,
+                                                        toState,
+                                                        transitionType,
+                                                        transitionType == TicketStateTransition.TicketStateTransitionType.EVALUATED
+                                                        ? new Rule(Rule.RuleType.HOPE, rule) : null,
+                                                        allowedActions)
+                .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
+                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+    }
+
+    @POST
+    @Path("/workflow/{workflowId}/transitions/{transitionId}/delete")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response deleteTransition(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @PathParam("transitionId") @NotEmpty @Length(max = 1024) final String transitionId) {
+        return workflowStore.deleteTransition(workflowId, transitionId)
                 .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
                 .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
     }

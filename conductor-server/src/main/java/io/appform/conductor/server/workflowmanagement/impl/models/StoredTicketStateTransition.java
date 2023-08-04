@@ -24,6 +24,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
@@ -43,6 +44,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
+@FieldNameConstants
 @NoArgsConstructor
 public class StoredTicketStateTransition implements Serializable {
     public static final String WF_TRANSITIONS_TABLE_NAME = "workflow_state_transitions";

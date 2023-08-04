@@ -16,13 +16,16 @@
 
 package io.appform.conductor.server.ui.views.manage;
 
-import io.appform.conductor.model.schema.Schema;
+import io.appform.conductor.model.actions.Action;
+import io.appform.conductor.model.schema.FieldSchema;
+import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.usermgmt.User;
-import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
+
+import java.util.List;
 
 /**
  *
@@ -30,12 +33,20 @@ import lombok.Value;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class WorkflowDetailsView extends BaseLoggedInView {
-    Workflow workflow;
-    Schema schema;
-    public WorkflowDetailsView(User currentUser, Workflow workflow, Schema schema) {
-        super("templates/manage/workflow-details.hbs", currentUser);
-        this.workflow = workflow;
-        this.schema = schema;
+public class WorkflowStateView extends BaseLoggedInView {
+    String workflowId;
+    TicketState state;
+    List<Action> availableActions;
+    List<FieldSchema> availableFields;
+    public WorkflowStateView(
+            User currentUser,
+            String workflowId, TicketState state,
+            List<Action> availableActions,
+            List<FieldSchema> availableFields) {
+        super("templates/manage/workflow-state.hbs", currentUser);
+        this.workflowId = workflowId;
+        this.state = state;
+        this.availableActions = availableActions;
+        this.availableFields = availableFields;
     }
 }

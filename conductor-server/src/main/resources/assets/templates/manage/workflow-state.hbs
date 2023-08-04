@@ -1,0 +1,118 @@
+{{#partial "page_css_includes"}}
+    <link href="/css/bootstrap-select.min.css" rel="stylesheet">
+{{/partial}}
+{{#partial "page_js_includes"}}
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+{{/partial}}
+{{#partial "content"}}
+    <div class="row">
+        <div class="col">
+            {{#empty state}}
+                <h2>Create a new state</h2>
+            {{else}}
+                <h2>Edit state {{state.name}}</h2>
+            {{/empty}}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <form method="post"
+                {{#emptyStr state.id}}
+                  action="/manage/workflow/{{workflowId}}/states/add"
+                {{else}}
+                  action="/manage/workflow/{{workflowId}}/states/{{state.id}}/update"
+                {{/emptyStr}}
+            >
+                <div class="row g-3 m2">
+                    <div class="col-sm-3 col-md-2 text-end">
+                        <label for="stateName" class="col-form-label fw-bold">Name</label>
+                    </div>
+                    <div class="col-6 p-2">
+                        <input type="text" id="stateName" name="stateName"
+                               class="form-control border border-dark bg-light"
+                               maxlength="45" placeholder="State Name" {{#emptyStr state.displayName}}required{{else}}disabled{{/emptyStr}} value="{{state.displayName}}">
+                    </div>
+                </div>
+                <div class="row g-3 m2">
+                    <div class="col-sm-3 col-md-2 text-end">
+                        <label for="stateDescription" class="col-form-label fw-bold">Description</label>
+                    </div>
+                    <div class="col-6">
+                    <textarea id="stateDescription" name="stateDescription"
+                              class="form-control border border-dark bg-light"
+                              maxlength="255" placeholder="Description">{{state.description}}</textarea>
+                    </div>
+                </div>
+                <div class="row m-2">
+                    <div class="col-sm-3 col-md-2 text-end">
+                    </div>
+                    <div class="col-6 form-check form-switch pt-2">
+                        <input class="form-check-input  border border-dark" type="checkbox" role="switch"
+                               id="stateIsTerminal" name="stateIsTerminal" value="true"
+                               {{#eq state.terminal true}}checked{{/eq}}>
+                        <label class="form-check-label" for="stateIsTerminal">State is terminal</label>
+                    </div>
+                </div>
+                <div class="row g-3 m2">
+                    <div class="col-sm-3 col-md-2 text-end">
+                        <label for="allowedActions" class="col-form-label fw-bold">Allowed Actions</label>
+                    </div>
+                    <div class="col-6">
+                        <select id="allowedActions" name="allowedActions"
+                                class="form-control selectpicker border border-dark bg-light" multiple
+                                data-live-search="true"  data-selected-text-format="count > 2">
+                            {{#each availableActions}}
+                                <option value="{{id}}"
+                                        {{#contains state.allowedActions id}}selected{{/contains}}>{{name}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-3 m2 mt-2">
+                    <div class="col-sm-12">
+                        <table class="table table-bordered border-dark">
+                            <thead>
+                            <tr>
+                                <th class="col-4">Name</th>
+                                <th class="col-6">Description</th>
+                                <th class="col-1 text-center">Visible</th>
+                                <th class="col-1 text-center">Editable</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{#each availableFields}}
+                                <tr>
+                                    <td>{{name}}</td>
+                                    <td>{{description}}</td>
+                                    <td class="text-center">
+                                        <input class="form-check-input  border border-dark" type="checkbox"
+                                               role="switch"
+                                               id="visibleFields" name="visibleFields" value="{{id}}"
+                                               {{#contains state.visibleFields id}}checked{{/contains}}>
+                                    </td>
+                                    <td  class="text-center">
+                                        <input class="form-check-input  border border-dark" type="checkbox"
+                                               role="switch"
+                                               id="editableFields" name="editableFields" value="{{id}}"
+                                               {{#contains state.editableFields id}}checked{{/contains}}>
+                                    </td>
+                                </tr>
+                            {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row m-2">
+                    <div class="col-12  d-flex justify-content-center">
+                        <button type="submit" class="btn btn-outline-success btn-sm"><i class="bi bi-save"></i> Save
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{{/partial}}
+
+
+
+{{> common/base}}

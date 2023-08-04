@@ -16,7 +16,11 @@
 
 package io.appform.conductor.server.workflowmanagement.impl.models;
 
-import lombok.*;
+import io.appform.conductor.server.utils.persistence.StringListConverter;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Generated;
@@ -26,6 +30,7 @@ import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -62,6 +67,18 @@ public class StoredTicketState implements Serializable {
 
     @Column
     private boolean terminal;
+
+    @Column(name = "allowed_actions")
+    @Convert(converter = StringListConverter.class)
+    private List<String> allowedActions;
+
+    @Column(name = "editable_fields")
+    @Convert(converter = StringListConverter.class)
+    private List<String> editableFields;
+
+    @Column(name = "visible_fields")
+    @Convert(converter = StringListConverter.class)
+    private List<String> visibleFields;
 
     @Column
     private boolean deleted;

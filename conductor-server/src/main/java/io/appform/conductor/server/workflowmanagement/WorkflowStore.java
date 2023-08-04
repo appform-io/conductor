@@ -49,7 +49,10 @@ public interface WorkflowStore {
             final String stateId,
             final String displayName,
             final String description,
-            final boolean terminal);
+            final boolean terminal,
+            List<String> allowedActions,
+            List<String> editableFields,
+            List<String> visibleFields);
 
     Optional<Workflow> deleteState(
             final String workflowId,
