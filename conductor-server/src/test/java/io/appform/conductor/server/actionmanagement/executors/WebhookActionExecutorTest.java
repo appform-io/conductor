@@ -1,6 +1,5 @@
 package io.appform.conductor.server.actionmanagement.executors;
 
-import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.github.tomakehurst.wiremock.matching.EqualToPattern;
@@ -20,10 +19,8 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 import java.util.Set;
 
-import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.like;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.http.ResponseDefinition.notFound;
+import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.okForJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
@@ -60,7 +57,7 @@ public class WebhookActionExecutorTest {
         //stub the response
         stubFor(post("/update/subject/1234567890/details")
                 .withHeader("AuthorizationForId", new EqualToPattern("userId"))
-                .willReturn(like(ResponseDefinition.okForJson("{\"status\":\"ACCEPTED\"}"))));
+                .willReturn(okForJson("{\"status\":\"ACCEPTED\"}")));
 
         //call execute method
         val actionExecutionResult =  webhookActionExecutor.run(webhookAction, actionEvalData);
@@ -99,7 +96,7 @@ public class WebhookActionExecutorTest {
         //stub the response
         stubFor(post("/update2/subject/1234567890/details")
                 .withHeader("AuthorizationForId", new EqualToPattern("userId"))
-                .willReturn(like(notFound())));
+                .willReturn(notFound()));
 
         //call execute method
         val actionExecutionResult =  webhookActionExecutor.run(webhookAction, actionEvalData);

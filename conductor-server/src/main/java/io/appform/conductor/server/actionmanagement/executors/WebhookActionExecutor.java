@@ -13,14 +13,12 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
-import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.util.Timeout;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.io.IOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
@@ -52,16 +50,18 @@ public class WebhookActionExecutor {
     }
 
     private ActionExecutionResult call(HttpUriRequestBase request, WebhookAction webhookAction) {
-        try (val response = httpClient.execute(request, classicHttpResponse -> classicHttpResponse)) {
-            val body = EntityUtils.toString(response.getEntity());
-            int code = response.getCode();
-            if (webhookAction.getSuccessCodes().contains(code)) {
-                return ActionExecutionResult.SUCCESS;
-            } else {
-                log.info("Received non-successful response code: {}, body:{}", code, body);
-                return ActionExecutionResult.FAILURE;
-            }
-        } catch (IOException | ParseException e) {
+        try (httpClient) {
+            return httpClient.execute(request, response -> {
+                val body = EntityUtils.toString(response.getEntity());
+                int code = response.getCode();
+                if (webhookAction.getSuccessCodes().contains(code)) {
+                    return ActionExecutionResult.SUCCESS;
+                } else {
+                    log.info("Received non-successful response code: {}, body:{}", code, body);
+                    return ActionExecutionResult.FAILURE;
+                }
+            });
+        } catch (Exception e) {
             log.error("Error while making webhook action: " + webhookAction.getId(), e);
             return ActionExecutionResult.FAILURE;
         }

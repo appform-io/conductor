@@ -29,7 +29,6 @@ import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.ticketmanagement.TicketFieldData;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
-import io.appform.conductor.server.ticketmanagement.impl.models.actions.StoredTicketAction;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredAttachment;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredComment;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
@@ -66,7 +65,6 @@ class DBTicketStoreTest {
                                       bundle.createRelatedObjectDao(StoredFieldValue.class),
                                       bundle.createRelatedObjectDao(StoredComment.class),
                                       bundle.createRelatedObjectDao(StoredAttachment.class),
-                                      bundle.createRelatedObjectDao(StoredTicketAction.class),
                                       MAPPER);
         val created = store.create("T001",
                                    "Test",

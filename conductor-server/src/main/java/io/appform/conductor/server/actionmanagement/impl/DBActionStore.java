@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_READ_ERROR;
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_WRITE_ERROR;
-import static java.util.stream.Collectors.toList;
 
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = {@Inject})

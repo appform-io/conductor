@@ -31,7 +31,6 @@ import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.actionmanagement.ActionExecutor;
 import io.appform.conductor.server.actionmanagement.ActionStore;
-import io.appform.conductor.server.actionmanagement.impl.models.StoredAction;
 import io.appform.conductor.server.ruleengines.HopeRuleEvaluator;
 import io.appform.conductor.server.ruleengines.JsonRuleEvaluator;
 import io.appform.conductor.server.ruleengines.RuleEngine;
@@ -46,7 +45,6 @@ import io.appform.conductor.server.templateengines.StringSubstitutionTextTemplat
 import io.appform.conductor.server.templateengines.TemplateEngine;
 import io.appform.conductor.server.ticketmanagement.impl.DBTicketStore;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
-import io.appform.conductor.server.ticketmanagement.impl.models.actions.StoredTicketAction;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredAttachment;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredComment;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
@@ -178,7 +176,6 @@ class TicketManagerTest {
                                    bundle.createRelatedObjectDao(StoredFieldValue.class),
                                    bundle.createRelatedObjectDao(StoredComment.class),
                                    bundle.createRelatedObjectDao(StoredAttachment.class),
-                                   bundle.createRelatedObjectDao(StoredTicketAction.class),
                                    mapper);
         val sStore = mock(SchemaStore.class);
         when(sStore.get(anyString())).thenReturn(Optional.of(schema));

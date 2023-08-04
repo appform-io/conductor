@@ -218,19 +218,19 @@ public class ConductorServerUtils {
     }
 
     public static CloseableHttpClient createHttpClient() {
-        val connectionTimeout = Duration.ofSeconds(2);
+        val connectionTimeout = Timeout.of(Duration.ofSeconds(3));
         val connectionManager = new PoolingHttpClientConnectionManager();
         connectionManager.setDefaultMaxPerRoute(100);
         connectionManager.setMaxTotal(Integer.MAX_VALUE);
         connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom()
-                .setConnectTimeout(Timeout.of(connectionTimeout))
-                .setSocketTimeout(Timeout.of(connectionTimeout))
+                .setConnectTimeout(connectionTimeout)
+                .setSocketTimeout(connectionTimeout)
                 .setValidateAfterInactivity(TimeValue.ofSeconds(10))
                 .setTimeToLive(TimeValue.ofHours(1))
                 .build());
         val requestConfig = RequestConfig.custom()
-                .setConnectionRequestTimeout(Timeout.of(connectionTimeout))
-                .setResponseTimeout(Timeout.of(connectionTimeout))
+                .setConnectionRequestTimeout(connectionTimeout)
+                .setResponseTimeout(Timeout.of(Duration.ofSeconds(5)))
                 .build();
         return HttpClients.custom()
                 .disableRedirectHandling()
