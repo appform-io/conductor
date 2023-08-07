@@ -25,7 +25,6 @@ import io.appform.conductor.server.auth.UserRoleMappingStore;
 import io.appform.conductor.server.ui.views.admin.RoleDetailsView;
 import io.appform.conductor.server.ui.views.admin.RolesListView;
 import io.appform.conductor.server.ui.views.admin.UserAdminView;
-import io.appform.conductor.server.ui.views.user.UserSearchView;
 import io.appform.conductor.server.usermanagement.UserLifecycleManager;
 import io.appform.conductor.server.usermanagement.UserStore;
 import io.dropwizard.auth.Auth;
@@ -43,7 +42,10 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URI;
-import java.util.*;
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Set;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.lowerSnake;
 
@@ -134,7 +136,7 @@ public class Admin {
     @GET
     @Path("/users/search")
     public Response renderUserSearchScreen(@Auth ConductorUser user) {
-        return Response.ok(new UserSearchView(user.getUserSession().getUser())).build();
+        return Response.ok(new UserAdminView(user.getUserSession().getUser(), null, List.of())).build();
     }
 
     @POST
@@ -143,6 +145,16 @@ public class Admin {
             @Auth ConductorUser user,
             @FormParam("email") @NotEmpty @Email final String email) {
         return userStore.getByEmail(email)
+                .map(userSummary -> Response.seeOther(URI.create("/admin/users/" + userSummary.getId())).build())
+                .orElse(Response.seeOther(URI.create("/admin/users/search")).build());
+    }
+
+    @POST
+    @Path("/users/userid")
+    public Response searchUserByUserId(
+            @Auth ConductorUser user,
+            @FormParam("searchUserId") @NotEmpty @Length(max = 255) final String email) {
+        return userStore.getById(email)
                 .map(userSummary -> Response.seeOther(URI.create("/admin/users/" + userSummary.getId())).build())
                 .orElse(Response.seeOther(URI.create("/admin/users/search")).build());
     }
