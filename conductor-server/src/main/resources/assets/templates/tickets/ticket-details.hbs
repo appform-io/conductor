@@ -89,7 +89,7 @@
                                     <option disabled>Select an option</option>
                                 {{/empty}}
                                 {{#each schema/choices}}
-                                    <option value="{{value}}" {{#empty fieldValue}}{{else}}{{#contains ../fieldValue/value value}}{{/contains}}{{/empty}}>
+                                    <option value="{{value}}" {{#empty fieldValue}}{{else}}{{#contains ../fieldValue/value value}}selected{{/contains}}{{/empty}}>
                                         {{displayText}}
                                     </option>
                                 {{/each}}

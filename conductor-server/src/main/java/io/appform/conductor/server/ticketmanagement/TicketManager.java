@@ -16,8 +16,10 @@
 
 package io.appform.conductor.server.ticketmanagement;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.FieldSchema;
@@ -59,6 +61,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -167,23 +170,23 @@ public class TicketManager {
             final String ticketId,
             final MultivaluedMap<String, String> form) {
         val ticket = ticketStore.read(ticketId, true).orElse(null);
-        if(null == ticket) {
+        if (null == ticket) {
             return Optional.empty();
         }
 
         val workflow = workflowStore.read(ticket.getWorkflowId()).orElse(null);
-        if(null == workflow) {
+        if (null == workflow) {
             return Optional.empty();
         }
         val subject = subjectStore.getSubject(ticket.getSubjectId()).orElse(null);
         if (null == subject) {
             return Optional.empty();
         }
-        if(workflow.getStates().get(ticket.getTicketStateId()).isTerminal()) {
+        if (workflow.getStates().get(ticket.getTicketStateId()).isTerminal()) {
             return Optional.of(ticketDetails(ticket, workflow, subject.getSummary()));
         }
         val schema = schemaStore.get(workflow.getSchemaId()).orElse(null);
-        if(null == schema) {
+        if (null == schema) {
             return Optional.empty();
         }
         val node = mapper.createObjectNode();
@@ -196,7 +199,21 @@ public class TicketManager {
                     val value = valueList.size() == 1 ? valueList.get(0) : valueList;
                     node.set(key, mapper.valueToTree(value));
                 });
-        return processTicketUpdate(node, schema, workflow, subject.getSummary());
+        return processTicketUpdate(node, schema, workflow, subject.getSummary(),
+                                   (payload, fields) -> {
+                                       val fs = schema.getFields()
+                                               .stream().collect(Collectors.toMap(FieldSchema::getId,
+                                                                                  Function.identity()));
+                                       val objectNode = (ObjectNode) payload;
+                                       objectNode.removeAll();
+                                       fields.forEach(field -> {
+                                           val fieldSchema = fs.get(field.getSchemaFieldId());
+                                           objectNode.set(fieldSchema.getName(),
+                                                        ConductorServerUtils.mapValueToJsonNode(mapper,
+                                                                                                fieldSchema,
+                                                                                                field.getValue()));
+                                       });
+                                   });
     }
 
     @SneakyThrows
@@ -206,19 +223,20 @@ public class TicketManager {
 
         val subject = Objects.requireNonNull(fetchSubject(sId).orElseGet(() -> createEmptySubject(sId)));
         val schema = fetchSchema(workflow.getId(), workflow.getSchemaId());
-        return processTicketUpdate(payload, schema, workflow, subject);
+        return processTicketUpdate(payload, schema, workflow, subject, (node, fields) -> {});
     }
 
     private Optional<TicketDetails> processTicketUpdate(
             JsonNode payload,
             Schema schema,
             Workflow workflow,
-            SubjectSummary subject) {
+            SubjectSummary subject,
+            BiConsumer<JsonNode, List<TicketFieldData>> mappedFieldDecorator) {
         val fieldMappingResult = fieldMapper.map(schema, payload);
         ConductorServerUtils.ensureCondition(fieldMappingResult.getErrors().isEmpty(),
                                              ConductorErrorCode.TICKET_SCHEMA_VALIDATION_FAILURE,
                                              Map.of("errors", fieldMappingResult.getErrors()));
-
+        mappedFieldDecorator.accept(payload, fieldMappingResult.getData());
         val terminalStates = findTerminalStates(workflow);
         val ticket = Objects.requireNonNull(
                 updateExistingTicket(workflow, subject, terminalStates, fieldMappingResult.getData())
@@ -255,6 +273,13 @@ public class TicketManager {
                          ticketId,
                          currState.getDisplayName());
                 break;
+            }
+            try {
+                log.info("Evaluation data: {}",
+                         mapper.writerWithDefaultPrettyPrinter().writeValueAsString(evalDataJson));
+            }
+            catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
             }
             val transitions = workflow.getTicketStateTransitions().get(currState.getId());
             var matchingTransition = transitions.stream()
