@@ -8,7 +8,7 @@
     {{#with workflow}}
         <section>
             <div class="row text-center justify-content-center">
-                <div class="col-auto"><h2>Details for Workflow {{displayName}}</h2></div>
+                <div class="col-auto"><h4>Details for Workflow {{displayName}}</h4></div>
             </div>
             <div class="row justify-content-center">
                 <div class="col-12">
@@ -89,10 +89,10 @@
         </section>
         <section>
             <div class="row">
-                <div class="col-sm-10">
-                    <h3>States</h3>
+                <div class="col-10">
+                    <h5>States</h5>
                 </div>
-                <div class="col-sm-2 d-flex justify-content-end">
+                <div class="col-2 d-flex justify-content-end">
                     <a class="btn btn-outline-success" href="/manage/workflow/{{id}}/states/add">Add</a>
                 </div>
             </div>
@@ -153,7 +153,7 @@
         </section>
         <section>
             <div class="row">
-                <div class="col"><h3>Transitions</h3></div>
+                <div class="col"><h5>Transitions</h5></div>
             </div>
             <div class="row m-4">
                 <div class="col">
@@ -223,7 +223,7 @@
             </div>
             <div class="row mt-2">
                 <div class="col-12">
-                    <table class="table table-bordered border-dark">
+                    <table class="table table-responsive table-bordered border-dark">
                         <thead>
                         <tr>
                             <th>From</th>

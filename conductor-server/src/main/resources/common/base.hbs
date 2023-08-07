@@ -24,16 +24,76 @@
 
     {{/block}}
 
+
     </style>
 </head>
 <body>
 <main role="main" class="container-fluid overflow-hidden">
-    <div class="row vh-100 overflow-auto">
+    <div class="row">
+        <nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
+            <div class="container-fluid">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-menu"
+                        aria-controls="main-menu" aria-expanded="false" aria-label="Toggle Main Menu">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <a class="navbar-brand logo-area" href="#">
+                    <img src="/images/conductor.png" width="30" height="24" class="d-inline-block align-text-top">
+                    CONDUCTOR
+                </a>
+
+                <div class="collapse navbar-collapse" id="main-menu">
+                    <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+                        <li class="nav-item">
+                            <a href="/" class="nav-link active">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/" class="nav-link">Browse Tickets</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/" class="nav-link">Analytics</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/" class="nav-link">Subjects</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Manage
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/manage/schema">Schema Management</a></li>
+                                <li><a class="dropdown-item" href="/manage/workflow">Workflow Management</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Administration
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/admin/roles">Role Management</a></li>
+                                <li><a class="dropdown-item" href="/admin/users/search">User Management</a></li>
+                                <li><a class="dropdown-item" href="/admin/groups">Group Management</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <form class="d-flex  me-2" role="search">
+                        <a class="btn btn-success" role="button" href="/tickets/create"><i class="bi bi-plus-lg" title="Create a new ticket"></i></a>
+                    </form>
+                    <form class="d-flex" role="search" method="post" action="/tickets/go">
+                        <input class="form-control me-2" name="goToTicketId" type="search" placeholder="Ticket #" aria-label="Go" title="Go a ticket">
+                    </form>
+
+                </div>
+            </div>
+        </nav>
+
+
+    </div>
+    <!--    <div class="row vh-100 overflow-auto">
         <div class="col-12 col-sm-3 col-xl-2 px-sm-2 px-0 bg-dark d-flex sticky-top">
             <div class="d-flex flex-sm-column flex-row flex-grow-1 align-items-center align-items-sm-start px-3 pt-2 pb-2 text-white">
-                <!--                    <a href="/" class="d-flex align-items-center pb-sm-3 mb-md-0 me-md-auto text-white text-decoration-none">-->
-                <!--                        <span class="fs-5">B<span class="d-none d-sm-inline">rand</span></span>-->
-                <!--                    </a>-->
+                &lt;!&ndash;                    <a href="/" class="d-flex align-items-center pb-sm-3 mb-md-0 me-md-auto text-white text-decoration-none">&ndash;&gt;
+                &lt;!&ndash;                        <span class="fs-5">B<span class="d-none d-sm-inline">rand</span></span>&ndash;&gt;
+                &lt;!&ndash;                    </a>&ndash;&gt;
                 <a class="d-flex align-items-center pb-sm-3 mb-md-0 me-md-auto text-white  text-decoration-none" href="/" style="font-size: x-large;"><img
                         src="/images/conductor.png" width="45" height="45" alt=""><span class="ms-1">CONDUCTOR</span></a>
                 <ul class="nav nav-pills flex-sm-column flex-row flex-nowrap flex-shrink-1 flex-sm-grow-0 flex-grow-1 mb-sm-auto mb-0 justify-content-center align-items-center align-items-sm-start" id="menu">
@@ -43,10 +103,10 @@
                         </a>
                     </li>
 
-<!--                    <li>
+&lt;!&ndash;                    <li>
                         <a href="/tickets" class="fs-5 nav-link px-sm-0 px-2  text-white">
                             <i class="bi fs-3 bi-ticket"></i><span class="ms-1 d-none d-sm-inline">Tickets</span></a>
-                    </li>-->
+                    </li>&ndash;&gt;
                     <li class="dropdown">
                         <a href="#" class="fs-5 nav-link dropdown-toggle px-sm-0 px-2  text-white" id="dropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi fs-3 bi-ticket"></i><span class="ms-1 d-none d-sm-inline">Tickets</span>
@@ -70,32 +130,32 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdown">
                             <li><a class="dropdown-item" href="/admin/roles">Roles</a></li>
-<!--                            <li>
+&lt;!&ndash;                            <li>
                                 <hr class="dropdown-divider">
-                            </li>-->
+                            </li>&ndash;&gt;
                             <li><a class="dropdown-item" href="/admin/groups">Groups</a></li>
                             <li><a class="dropdown-item" href="/admin/users/search">Users</a></li>
                             <li><a class="dropdown-item" href="/manage/schema">Schema Management</a></li>
                             <li><a class="dropdown-item" href="/manage/workflow">Workflow Management</a></li>
                         </ul>
                     </li>
-<!--                    <li>
+&lt;!&ndash;                    <li>
                         <a href="#" class="nav-link px-sm-0 px-2">
                             <i class="fs-5 bi-grid"></i><span class="ms-1 d-none d-sm-inline">Products</span></a>
                     </li>
                     <li>
                         <a href="#" class="nav-link px-sm-0 px-2">
                             <i class="fs-5 bi-people"></i><span class="ms-1 d-none d-sm-inline">Customers</span> </a>
-                    </li>-->
+                    </li>&ndash;&gt;
                 </ul>
                 <div class="dropdown py-sm-4 mt-sm-auto ms-auto ms-sm-0 flex-shrink-1">
                     <a href="#" class="fs-4 d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
-                        <!--                            <img src="https://github.com/mdo.png" alt="hugenerd" width="28" height="28" class="rounded-circle">-->
+                        &lt;!&ndash;                            <img src="https://github.com/mdo.png" alt="hugenerd" width="28" height="28" class="rounded-circle">&ndash;&gt;
                         {{#with currentUser}}
-                            {{#with summary}}
+        {{#with summary}}
                                 <i class="bi bi-person-circle"></i><span class="d-none d-sm-inline mx-1">{{name}}</span>
                             {{/with}}
-                        {{/with}}
+    {{/with}}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
                         <li><a class="dropdown-item" href="#">Profile</a></li>
@@ -106,8 +166,9 @@
                     </ul>
                 </div>
             </div>
-        </div>
-        <div class="col d-flex flex-column h-100 mt-4">
+        </div>-->
+    <div class="row container-fluid m-2">
+        <div class="col-sm-12">
             {{#block "content"}}
 
             {{/block}}
@@ -126,44 +187,44 @@
 
 {{/block}}
 <script type="application/javascript">
-(function() {
-  'use strict';
-  $.fn.dataTable.ext.errMode = 'none';
+    (function() {
+      'use strict';
+      $.fn.dataTable.ext.errMode = 'none';
 
-    $('#table').on( 'error.dt', function ( e, settings, techNote, message ) {
-        console.log( 'An error has been reported by DataTables: ', message );
-    } ) ;
+        $('#table').on( 'error.dt', function ( e, settings, techNote, message ) {
+            console.log( 'An error has been reported by DataTables: ', message );
+        } ) ;
 
-  window.addEventListener( "pageshow", function ( event ) {
-    var historyTraversal = event.persisted ||
-                           ( typeof window.performance != "undefined" &&
-                                window.performance.navigation.type === 2 );
-    if ( historyTraversal ) {
-      // Handle page restore.
-      window.location.reload();
-    }
-  });
-
-  window.addEventListener('load', function() {
-    // Fetch all the forms we want to apply custom Bootstrap validation styles to
-    var forms = document.getElementsByClassName('needs-validation');
-    // Loop over them and prevent submission
-    var validation = Array.prototype.filter.call(forms, function(form) {
-      form.addEventListener('submit', function(event) {
-        if (form.checkValidity() === false) {
-          event.preventDefault();
-          event.stopPropagation();
+      window.addEventListener( "pageshow", function ( event ) {
+        var historyTraversal = event.persisted ||
+                               ( typeof window.performance != "undefined" &&
+                                    window.performance.navigation.type === 2 );
+        if ( historyTraversal ) {
+          // Handle page restore.
+          window.location.reload();
         }
-        form.classList.add('was-validated');
+      });
+
+      window.addEventListener('load', function() {
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        var forms = document.getElementsByClassName('needs-validation');
+        // Loop over them and prevent submission
+        var validation = Array.prototype.filter.call(forms, function(form) {
+          form.addEventListener('submit', function(event) {
+            if (form.checkValidity() === false) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+          }, false);
+        });
       }, false);
-    });
-  }, false);
-})();
+    })();
 
-$(document).ready(function() {
-{{#block "page_js"}}
+    $(document).ready(function() {
+    {{#block "page_js"}}
 
-{{/block}}
+    {{/block}}
 
     $( ".dataTables_paginate" ).each(function( index ) {
       $( this ).parent().addClass('col-md-7').removeClass('col-md-9')
@@ -259,6 +320,7 @@ $(document).ready(function() {
         const table = tableElement.DataTable({
             paging: false,
             info: false,
+            responsive: true,
             "dom":'t'
         });
         const searchBoxName = tableElement.attr('data-table-search');

@@ -108,6 +108,17 @@ public class Tickets {
                 .build();
     }
 
+    @POST
+    @Path("/go")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response goToTicket(@FormParam("goToTicketId") @NotEmpty @Length(max = 45) final String ticketId) {
+        val ticket = ticketManager.readTicket(ticketId);
+        if(ticket.isPresent()) {
+            return Response.seeOther(URI.create("/tickets/" + ticketId + "/details")).build();
+        }
+        return Response.seeOther(URI.create("/")).build();
+    }
+
     @GET
     @Path("/{ticketId}/details")
     public Response renderTicketDetails(

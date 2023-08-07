@@ -1,4 +1,9 @@
-
+@media screen and (min-width: 800px) {
+    .logo-area {
+        border-right: solid 0.1rem;
+        padding-right: 1rem;
+    }
+}
 
 .tab-pane {
     padding-top: 1rem;

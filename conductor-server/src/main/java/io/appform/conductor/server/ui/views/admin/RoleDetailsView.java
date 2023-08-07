@@ -17,12 +17,14 @@
 package io.appform.conductor.server.ui.views.admin;
 
 import io.appform.conductor.model.auth.Permission;
+import io.appform.conductor.model.auth.Role;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
+import java.util.EnumSet;
 import java.util.Set;
 
 /**
@@ -31,11 +33,13 @@ import java.util.Set;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class RoleCreateView extends BaseLoggedInView {
+public class RoleDetailsView extends BaseLoggedInView {
     Set<Permission> permissions;
+    Role role;
 
-    public RoleCreateView(User currentUser, Set<Permission> permissions) {
-        super("templates/admin/role-create.hbs", currentUser);
-        this.permissions = permissions;
+    public RoleDetailsView(User currentUser, Role role) {
+        super("templates/admin/role-details.hbs", currentUser);
+        this.permissions = EnumSet.allOf(Permission.class);
+        this.role = role;
     }
 }

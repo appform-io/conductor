@@ -22,9 +22,8 @@ import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserRoleMappingStore;
-import io.appform.conductor.server.ui.views.admin.RoleCreateView;
+import io.appform.conductor.server.ui.views.admin.RoleDetailsView;
 import io.appform.conductor.server.ui.views.admin.RolesListView;
-import io.appform.conductor.server.ui.views.admin.RoleUpdateView;
 import io.appform.conductor.server.ui.views.admin.UserAdminView;
 import io.appform.conductor.server.ui.views.user.UserSearchView;
 import io.appform.conductor.server.usermanagement.UserLifecycleManager;
@@ -71,8 +70,8 @@ public class Admin {
     @GET
     @Path("/roles/create")
     public Response renderCreateRoleView(@Auth ConductorUser user) {
-        return Response.ok(new RoleCreateView(user.getUserSession().getUser(), EnumSet.allOf(Permission.class)
-        )).build();
+        return Response.ok(new RoleDetailsView(user.getUserSession().getUser(),
+                                               null)).build();
     }
 
     @POST
@@ -98,11 +97,8 @@ public class Admin {
                     Arrays.stream(Permission.values())
                             .forEach(permission -> permissions.put(permission,
                                                                    role.getPermissions().contains(permission)));
-                    return Response.ok(new RoleUpdateView(user.getUserSession().getUser(),
-                                                          roleId,
-                                                          role.getName(),
-                                                          role.getDescription(),
-                                                          permissions)).build();
+                    return Response.ok(new RoleDetailsView(user.getUserSession().getUser(),
+                                                           role)).build();
                 })
                 .orElse(Response.seeOther(URI.create("/")).build());
 

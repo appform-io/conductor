@@ -1,7 +1,7 @@
 {{#partial "content"}}
     <section>
         <div class="row mb-2">
-            <div class="col-sm-12 col-md-7"><h2>Roles</h2></div>
+            <div class="col-sm-12 col-md-7"><h4>Roles</h4></div>
             <div class="col-sm-12 col-md-5 d-flex justify-content-end">
                 <div class="btn-toolbar" role="toolbar">
                     <div class="btn-group me-2" role="group">
@@ -12,8 +12,8 @@
                                    placeholder="Search roles" aria-label="Search roles" aria-describedby="search-box">
                         </div>
                     </div>
-                    <div class="btn-group" role="group">
-                        <a href="/admin/roles/create" class="btn btn-sm btn-outline-dark"><i
+                    <div class="btn-group pt-1 pb-1" role="group">
+                        <a href="/admin/roles/create" class="btn btn-sm btn-success" role="button"><i
                                 class="bi fs2 bi-plus-lg"></i>Create</a>
                     </div>
 
@@ -26,23 +26,18 @@
                 <table class="table table-bordered border-dark data-table" data-table-search="#roles-search">
                     <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th></th>
+                        <th class="col-4">Name</th>
+                        <th class="col-7">Description</th>
+                        <th class="col"></th>
                     </tr>
                     </thead>
                     <tbody>
                     {{#each roles}}
                         <tr>
-                            <td class="col-4">{{name}}</td>
-                            <td class="col-sm-6 col-md-7">{{description}}</td>
+                            <td class="col-4"><a href="/admin/roles/update/{{id}}">{{name}}</a></td>
+                            <td class="col-7">{{description}}</td>
                             <td class="col d-flex justify-content-center">
                                 <div class="btn-toolbar" role="toolbar">
-                                    <div class="btn-group me-2" role="group">
-                                        <form method="get" action="/admin/roles/update/{{id}}">
-                                            <button type="submit" class="btn btn-link p-0"><i class="bi bi-pencil"></i></button>
-                                        </form>
-                                    </div>
                                     <div class="btn-group" role="group">
                                         <form class="confirmed-form" method="post" action="/admin/roles/delete/{{id}}"
                                         data-cnf-title="Deleting role {{name}}"

@@ -58,7 +58,7 @@ public class CustomHelpers {
     }
 
     @SneakyThrows
-    public CharSequence contains(Collection<String> collection, String key, Options options) {
+    public<T>  CharSequence contains(Collection<T> collection, T key, Options options) {
         return (null != collection && collection.contains(key))
                 ? options.fn()
                 : options.inverse();
