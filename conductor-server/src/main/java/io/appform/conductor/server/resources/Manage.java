@@ -215,17 +215,14 @@ public class Manage {
             @Auth ConductorUser user,
             @FormParam("name") @NotEmpty @Length(max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
-            @FormParam("schemaId") @NotEmpty @Length(max = 255) final String schemaId,
-            @FormParam("titleTemplate") @NotEmpty @Length(max = 4096) final String titleTemplate,
-            @FormParam("descriptionTemplate") @NotEmpty @Length(max = 4096) final String descriptionTemplate,
-            @FormParam("subjectTemplate") @NotEmpty @Length(max = 4096) final String subjectTemplate) {
+            @FormParam("schemaId") @NotEmpty @Length(max = 255) final String schemaId) {
         return workflowStore.create(lowerSnake(name),
                                     name,
                                     description,
                                     schemaId,
-                                    template(titleTemplate),
-                                    template(descriptionTemplate),
-                                    template(subjectTemplate))
+                                    null,
+                                    null,
+                                    null)
                 .map(wf -> redirect("/manage/workflow/" + wf.getId()))
                 .orElseThrow(() -> fail("Failed to create workflow", "/manage/workflow"));
     }
