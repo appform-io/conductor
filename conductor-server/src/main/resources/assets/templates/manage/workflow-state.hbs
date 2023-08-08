@@ -17,11 +17,11 @@
     <div class="row">
         <div class="col">
             <form method="post"
-                {{#emptyStr state.id}}
+                {{#empty state.id}}
                   action="/manage/workflow/{{workflowId}}/states/add"
                 {{else}}
                   action="/manage/workflow/{{workflowId}}/states/{{state.id}}/update"
-                {{/emptyStr}}
+                {{/empty}}
             >
                 <div class="row g-3 m2">
                     <div class="col-sm-3 col-md-2 text-end">
@@ -30,7 +30,7 @@
                     <div class="col-6 p-2">
                         <input type="text" id="stateName" name="stateName"
                                class="form-control border border-dark bg-light"
-                               maxlength="45" placeholder="State Name" {{#emptyStr state.displayName}}required{{else}}disabled{{/emptyStr}} value="{{state.displayName}}">
+                               maxlength="45" placeholder="State Name" {{#empty state.displayName}}required{{else}}disabled{{/empty}} value="{{state.displayName}}">
                     </div>
                 </div>
                 <div class="row g-3 m2">

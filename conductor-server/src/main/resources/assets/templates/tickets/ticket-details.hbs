@@ -70,7 +70,7 @@
                                    class="form-control border border-dark bg-light"
                                    id="ticketField-{{schema/name}}" name="ticketField-{{schema/name}}"
                                    {{#gt schema/maxLength 0}}maxlength="{{schema/maxLength}}" {{/gt}}
-                                {{#emptyStr schema/matchPattern}}{{else}}pattern="{{schema/matchPattern}}" {{/emptyStr}}
+                                {{#empty schema/matchPattern}}{{else}}pattern="{{schema/matchPattern}}" {{/empty}}
                                 {{#empty fieldValue}}{{else}}value="{{fieldValue/value}}" {{/empty}}
                                 {{#eq schema/required true}}required{{/eq}}
                                 {{#eq enabled false}}disabled{{/eq}}>

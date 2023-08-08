@@ -17,11 +17,9 @@
 package io.appform.conductor.server.schemamanagement.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
-import io.appform.conductor.model.schema.FieldSchema;
-import io.appform.conductor.model.schema.FieldType;
-import io.appform.conductor.model.schema.SchemaState;
-import io.appform.conductor.model.schema.SchemaSummary;
+import io.appform.conductor.model.schema.*;
 import io.appform.conductor.model.schema.fields.*;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
@@ -426,6 +424,73 @@ class DBSchemaStoreTest {
 
         /* **** Check and confirm Scheme working ***** */
 
+    }
+
+    @Test
+    void testFieldCreateOrUpdate(BalancedDBShardingBundle<TestConfig> bundle) {
+        val store = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),
+                                      bundle.createRelatedObjectDao(StoredFieldSchema.class),
+                                      MAPPER);
+        val schemaSummary = store.create("Test", "Test Schema").orElse(null);
+        assertNotNull(schemaSummary);
+        val sId = schemaSummary.getId();
+        assertEquals(schemaSummary, store.getSummary(sId).orElse(null));
+        assertNotNull(store.addField(sId, sId + "-f1", new StringFieldSchema("f1",
+                                                                             "f1",
+                                                                             "F1",
+                                                                             "Test field 1",
+                                                                             true,
+                                                                             null,
+                                                                             null,
+                                                                             null,
+                                                                             false,
+                                                                             new Date(),
+                                                                             new Date(),
+                                                                             100,
+                                                                             null,
+                                                                             "Default FieldValue")).orElse(null));
+        {
+            val fields = store.get(sId).map(Schema::getFields).orElse(List.of());
+            assertEquals(1, fields.size());
+            assertTrue(store.deleteField(sId, fields.get(0).getId()));
+            assertTrue(store.get(sId).map(Schema::getFields).orElse(List.of()).isEmpty());
+        }
+        try {
+            store.addField(sId, sId + "-f1", new BooleanFieldSchema("f1",
+                                                                   "f1",
+                                                                   "F1",
+                                                                   "Test field 1",
+                                                                   true,
+                                                                   null,
+                                                                   null,
+                                                                   null,
+                                                                   false,
+                                                                   new Date(),
+                                                                   new Date(),
+                                                                   true));
+            fail("Should have failed");
+        }
+        catch (ConductorException e) {
+            assertEquals(ConductorErrorCode.SCHEMA_FIELD_UPDATE_TYPE_MISMATCH, e.getErrorCode());
+        }
+        assertNotNull(store.addField(sId, sId + "-f1", new StringFieldSchema("f1",
+                                                                             "f1",
+                                                                             "F1",
+                                                                             "Test field 1",
+                                                                             true,
+                                                                             null,
+                                                                             null,
+                                                                             null,
+                                                                             false,
+                                                                             new Date(),
+                                                                             new Date(),
+                                                                             100,
+                                                                             null,
+                                                                             "Default FieldValue")).orElse(null));
+        {
+            val fields = store.get(sId).map(Schema::getFields).orElse(List.of());
+            assertEquals(1, fields.size());
+        }
     }
 
     @Test

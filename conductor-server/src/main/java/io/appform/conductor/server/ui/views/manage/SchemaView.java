@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.ui.views.manage;
 
+import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
@@ -28,9 +29,11 @@ import lombok.Value;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class SchemaCreateView extends BaseLoggedInView {
+public class SchemaView extends BaseLoggedInView {
+    Schema schema;
 
-    public SchemaCreateView(User currentUser) {
-        super("templates/manage/schema-create.hbs", currentUser);
+    public SchemaView(User currentUser, Schema schema) {
+        super("templates/manage/schema-details.hbs", currentUser);
+        this.schema = schema;
     }
 }

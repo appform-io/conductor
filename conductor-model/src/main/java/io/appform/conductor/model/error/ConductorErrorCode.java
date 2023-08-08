@@ -37,6 +37,7 @@ public enum ConductorErrorCode {
     SCHEMA_UPDATE_FAILED(2001, "Error updating schema version ${schemaId}/${version}. Operation attempted: ${operation}"),
     SCHEMA_FIELD_WRITE_FAILED(2002, "Error writing schema field for ${schemaId}/${fieldId}"),
     SCHEMA_FIELD_READ_FAILED(2003, "Error reading schema field for ${schemaId}/${fieldId}"),
+    SCHEMA_FIELD_UPDATE_TYPE_MISMATCH(2004, "Type mismatch for ${schemaId}/${fieldId}. Old: ${oldType} New: ${newType}"),
 
     WORKFLOW_ERROR_INVALID_ID(3001, "Invalid workflow ID: ${id}"),
     WORKFLOW_ERROR(3002, "Error in workflow management: ${message}"),

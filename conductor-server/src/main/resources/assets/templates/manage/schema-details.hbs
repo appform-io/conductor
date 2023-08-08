@@ -1,122 +1,99 @@
 {{#partial "content"}}
-    {{#with schema}}
         <section>
-            <div class="row text-center justify-content-center">
-                <div class="col-auto"><h4>Details for Schema {{name}}</h4></div>
+            <div class="row">
+                {{#empty schema}}
+                    <div class="col-auto"><h4>Create A New Schema</h4></div>
+                {{else}}
+                    <div class="col-auto"><h4>Details for Schema: <b>{{schema.name}}</b></h4></div>
+                {{/empty}}
             </div>
-            <div class="row justify-content-center">
-                <div class="col-12">
-                    <form method="post" action="/manage/schema/update/{{id}}">
-                        <div class="row g-3 m-2">
-                            <div class="col-3 text-end">
-                                <label for="field-name" class="col-form-label fw-bold">Name</label>
-                            </div>
-                            <div class="col-6">
-                                <input type="text" id="field-name" name="name"
-                                       class="form-control border border-dark bg-light"
-                                       maxlength="45" placeholder="Schema Name" value="{{name}}" disabled>
-                            </div>
+            <form method="post"
+                {{#empty schema}}
+                  action="/manage/schema/create"
+                {{else}}
+                  action="/manage/schema/update/{{schema.id}}"
+                {{/empty}}>
+                <div class="row">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="mb-3">
+                            <label for="name" class="col-form-label fw-bold">Name</label>
+                            <input type="text" id="name" name="name"
+                                   class="form-control border border-dark bg-light"
+                                   maxlength="45" placeholder="Schema Name" aria-describedby="nameHelp"
+                                   value="{{schema.name}}" {{#empty schema}}required{{else}}disabled{{/empty}}>
+                            <div id="nameHelp" class="form-text">Name <i>can not</i> be changed</div>
                         </div>
-                        <div class="row g-3 m-2">
-                            <div class="col-3 text-end">
-                                <label for="fieldDescription" class="col-form-label fw-bold">Description</label>
-                            </div>
-                            <div class="col-6">
+                        <div class="mb-3">
+                            <label for="fieldDescription" class="col-form-label fw-bold">Description</label>
                             <textarea id="fieldDescription" name="description"
                                       class="form-control border border-dark bg-light"
-                                      placeholder="A description for the schema">{{description}}</textarea>
-                            </div>
+                                      aria-describedby="descriptionHelp"
+                                      placeholder="A description for the schema">{{schema.description}}</textarea>
+                            <div id="descriptionHelp" class="form-text">Optional, can be upto 255 characters long</div>
                         </div>
-                        <div class="row g-3 justify-content-center m-2">
-                            <div class="col-auto">
-                                <button type="submit" class="btn btn-outline-primary mb-3">Save</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div class="row p-2">
-                <div class="col">
-                    <div class="row mb-1">
-                        <div class="col-sm-10">
-                            <h5>Fields</h5>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <table class="table table-bordered">
-                                <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Display Name</th>
-                                    <th>Description</th>
-                                    <th>Type</th>
-                                    <th>Required</th>
-                                    <th>Multiple Allowed</th>
-                                    <th>Created</th>
-                                    <th>Last Updated</th>
-                                    <th></th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {{#each fields}}
-                                    <tr>
-                                        <td>{{name}}</td>
-                                        <td>{{displayName}}</td>
-                                        <td>{{description}}</td>
-                                        <td>{{readable type}}</td>
-                                        <td>{{#if required eq true}}Yes{{else}}No{{/if}}</td>
-                                        <td>{{#if allowMultiple eq true}}Yes{{else}}No{{/if}}</td>
-                                        <td>{{created}}</td>
-                                        <td>{{updated}}</td>
-                                        <td>
-                                            <form class="confirmed-form" method="post"
-                                                  action="/manage/schema/{{../id}}/fields/{{id}}/delete"
-                                                  data-cnf-title="Deleting schema field {{name}}"
-                                                  data-cnf-text="Are you sure you want to delete this field?">
-                                                <button type="submit" class="btn btn-link p-0 text-danger"><i
-                                                        class="bi bi-trash"></i></button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                {{/each}}
-                                </tbody>
-                            </table>
+                        <div class="mb-3 d-flex justify-content-center">
+                            <button type="submit" class="btn btn-success mb-3"><i class="bi bi-save"></i> Save</button>
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-sm-12 col-md-6 border border-dark">
-                            <form method="post" action="/manage/schema/{{id}}/fields/add">
-                                <div class="row g-3 m-2">
-                                    <div class="col-2 text-end">
-                                        <label for="fieldName" class="col-form-label fw-bold">Name</label>
-                                    </div>
-                                    <div class="col-10">
+                    <div class="col-sm-0 col-md-1">
+                    </div>
+                    <div class="col-sm-0 col-md-4">
+                        <div class="alert alert-light note" role="alert">
+                            <div class="row note-header">
+                                What Is A Schema?
+                            </div>
+                            <div class="row note-body">
+                                A schema is used to define the fields in a ticket. Once a schema is created, it can be
+                                used in workflows where the fields in the schema are going to be used in rules and
+                                processing and to gather data.
+                                <br>
+                                Fields in a schema can be of various types, each providing different ways to validate
+                                the data on the frontend and in the bckend before it is assimilated into a ticket.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            {{#empty schema}}
+            {{else}}
+            <div class="row p-2">
+                    <div class="col">
+                        <div class="row mb-1">
+                            <div class="col-sm-10">
+                                <h5>Fields</h5>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12 col-md-4">
+                                <form method="post" action="/manage/schema/{{schema.id}}/fields/add">
+                                    <div class="mb-3">
+                                        <label for="fieldName" class="col-form-label fw-bold">Field Display Name</label>
                                         <input type="text" id="fieldName" name="fieldName"
                                                class="form-control border border-dark bg-light"
-                                               maxlength="45" placeholder="Field Name" required>
+                                               maxlength="45" placeholder="Field Display Label"
+                                               aria-describedby="fieldNameHelp" required>
+                                        <div id="fieldNameHelp" class="form-text">Field Name to be displayed on the form.
+                                            This is fixed once saved. Max length: 45.
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="row g-3 m-2">
-                                    <div class="col-2 text-end">
+                                    <div class="mb-3">
                                         <label for="fieldDescription"
                                                class="col-form-label fw-bold">Description</label>
+                                        <textarea id="fieldDescription" name="fieldDescription"
+                                                  class="form-control border border-dark bg-light"
+                                                  placeholder="A description for the field"
+                                                  aria-describedby="fieldDescriptionHelp"></textarea>
+                                        <div id="fieldDescriptionHelp" class="form-text">Optional description for the field.
+                                            Will be used as tooltip. Max length: 255.
+                                        </div>
                                     </div>
-                                    <div class="col-10">
-                                                <textarea id="description" name="fieldDescription"
-                                                          class="form-control border border-dark bg-light"
-                                                          placeholder="A description for the field"></textarea>
-                                    </div>
-                                </div>
-                                <div class="row g-3 m-2">
-                                    <div class="col-2 text-end">
+                                    <div class="mb-3">
+
                                         <label for="fieldType"
                                                class="col-form-label fw-bold">Type</label>
-                                    </div>
-                                    <div class="col-10">
                                         <select class="form-control  border border-dark bg-light field-type"
-                                                id="fieldType" name="fieldType" required>
+                                                id="fieldType" name="fieldType" aria-describedby="fieldTypeHelp" required>
                                             <option value="" disabled selected>Select data type</option>
                                             <option value="STRING">String</option>
                                             <option value="NUMBER">Number</option>
@@ -125,102 +102,127 @@
                                             <option value="LOCATION">Location</option>
                                             <option value="DATE">Date</option>
                                         </select>
+                                        <div id="fieldTypeHelp" class="form-text">Select data type of field.</div>
                                     </div>
-                                </div>
-                                <div class="row g-3 m-2">
-                                    <div class="col-2 text-end">
+                                    <div class="mb-3 form-check form-switch">
                                         <label for="fieldRequired"
-                                               class="form-check-label fw-bold">Required</label>
+                                               class="form-check-label fw-bold">Mandatory field</label>
+                                        <input id="fieldRequired" name="fieldRequired"
+                                               class="form-check-input border border-dark"
+                                               type="checkbox" role="switch" value="true">
                                     </div>
-                                    <div class="col-10">
-                                        <div class="form-check form-switch">
-                                            <input id="fieldRequired" name="fieldRequired"
-                                                   class="form-check-input border border-dark"
-                                                   type="checkbox" role="switch" value="true">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row g-3 m-2  field-extra string-meta d-none">
-                                    <div class="col-2 text-end">
+                                    <div class="mb-3 field-extra string-meta d-none">
                                         <label for="fieldStringMaxLength"
                                                class="col-form-label fw-bold">Max Length</label>
-                                    </div>
-                                    <div class="col-10 pt-4">
                                         <input type="range"
                                                id="fieldStringMaxLength" name="fieldStringMaxLength"
                                                class="form-range pt-2" min="1" max="255" step="1" value="50"
-                                               style="width: 90%"
+                                               style="width: 90%" aria-describedby="fieldStringMaxLengthHelp"
                                                oninput="this.nextElementSibling.value = this.value">
                                         <output class="ms-2">50</output>
+                                        <div id="fieldStringMaxLengthHelp" class="form-text">
+                                            Maximum length of data in the string field
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="row g-3 m-2  field-extra string-meta d-none">
-                                    <div class="col-2 text-end">
+                                    <div class="mb-3 field-extra string-meta d-none">
                                         <label for="fieldStringRegex"
                                                class="col-form-label fw-bold">Regex</label>
-                                    </div>
-                                    <div class="col-10">
                                         <input type="text"
                                                id="fieldStringRegex" name="fieldStringRegex"
                                                class="form-control border border-dark bg-light"
-                                               placeholder="Regular expression to be matched">
+                                               placeholder="Regular expression to be matched"
+                                               aria-describedby="fieldStringRegexHelp"
+                                        >
+                                        <div id="fieldStringRegexHelp" class="form-text">
+                                            HTML 5 regular expression for matching string field
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="row g-3 m-2  field-extra choice-meta d-none">
-                                    <div class="col-2 text-end">
-                                        <label for="fieldStringMaxLength"
+                                    <div class="mb-3 field-extra choice-meta d-none">
+                                        <label for="fieldChoiceChoices"
                                                class="col-form-label fw-bold">Choices</label>
-                                    </div>
-                                    <div class="col-10">
                                         <input type="text"
                                                id="fieldChoiceChoices" name="fieldChoiceChoices"
                                                class="form-control border border-dark bg-light"
-                                               placeholder="Comma separated list of choices">
-                                    </div>
-                                </div>
-                                <div class="row g-3 m-2 field-extra choice-meta d-none">
-                                    <div class="col-2 text-end">
-                                        <label for="fieldChoiceMulti"
-                                               class="form-check-label fw-bold">Multi</label>
-                                    </div>
-                                    <div class="col-10">
-                                        <div class="form-check form-switch">
-                                            <input id="fieldChoiceMulti" name="fieldChoiceMulti"
-                                                   class="form-check-input border border-dark"
-                                                   type="checkbox" role="switch" value="true">
+                                               placeholder="Comma separated list of choices"
+                                               aria-describedby="fieldChoiceChoicesHelp"
+                                        >
+                                        <div id="fieldChoiceChoicesHelp" class="form-text">
+                                            Choice values that can be selected
                                         </div>
                                     </div>
-                                </div>
-                                <div class="row g-3 m-2  field-extra number-meta d-none">
-                                    <div class="col-2 text-end">
-                                        <label class="col-form-label fw-bold">Range</label>
+                                    <div class="mb-3 field-extra choice-meta d-none form-check form-switch">
+                                        <label for="fieldChoiceMulti"
+                                               class="form-check-label fw-bold">Allow selection of multiple values</label>
+                                        <input id="fieldChoiceMulti" name="fieldChoiceMulti"
+                                               class="form-check-input border border-dark"
+                                               type="checkbox" role="switch" value="true">
                                     </div>
-                                    <div class="col-5">
+                                    <div class="mb-3 field-extra number-meta d-none">
+                                        <label class="col-form-label fw-bold">Range</label>
                                         <input type="number"
                                                id="fieldNumberMin" name="fieldNumberMin"
-                                               class="form-control border border-dark bg-light"
-                                               placeholder="Min">
-                                    </div>
-                                    <div class="col-5">
+                                               class="form-control col-6 border border-dark bg-light"
+                                               placeholder="Min" aria-describedby="fieldNumberRangeHelp">
                                         <input type="number"
                                                id="fieldNumberMax" name="fieldNumberMax"
-                                               class="form-control border border-dark bg-light"
-                                               placeholder="Max">
+                                               class="form-control col-6 border border-dark bg-light"
+                                               placeholder="Max" aria-describedby="fieldNumberRangeHelp">
+                                        <div id="fieldNumberRangeHelp" class="form-text">
+                                            Allowed range for number field
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="row g-3 justify-content-center m-2">
-                                    <div class="col-auto">
-                                        <button type="submit" class="btn btn-outline-primary mb-3">Save</button>
+                                    <div class="mb-3 d-flex justify-content-center">
+                                        <button type="submit" class="btn btn-outline-success mb-3">
+                                            <i class="bi bi-plus-lg"></i> Add Field
+                                        </button>
                                     </div>
-                                </div>
-                            </form>
+                                </form>
+
+                            </div>
+                            <div class="col-sm-12 col-md-8 table-responsive">
+                                <table class="table table-bordered border-dark">
+                                    <thead>
+                                    <tr>
+                                        <th>Display Name</th>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Type</th>
+                                        <th>Required</th>
+                                        <th>Multiple Allowed</th>
+                                        <th>Last Updated</th>
+                                        <th></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {{#each schema.fields}}
+                                        <tr>
+                                            <td>{{displayName}}</td>
+                                            <td>{{name}}</td>
+                                            <td>{{description}}</td>
+                                            <td>{{readable type}}</td>
+                                            <td>{{#if required eq true}}Yes{{else}}No{{/if}}</td>
+                                            <td>{{#if allowMultiple eq true}}Yes{{else}}No{{/if}}</td>
+                                            <td>{{updated}}</td>
+                                            <td>
+                                                <form class="confirmed-form" method="post"
+                                                      action="/manage/schema/{{../schema.id}}/fields/{{id}}/delete"
+                                                      data-cnf-title="Deleting schema field {{name}}"
+                                                      data-cnf-text="Are you sure you want to delete this field?">
+                                                    <button type="submit" class="btn btn-link p-0 text-danger"><i
+                                                            class="bi bi-trash"></i></button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {{/each}}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            {{/empty}}
 
         </section>
-    {{/with}}
 {{/partial}}
 
 

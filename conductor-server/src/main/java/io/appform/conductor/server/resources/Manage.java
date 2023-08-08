@@ -74,7 +74,7 @@ public class Manage {
     @GET
     @Path("/schema/create")
     public Response renderSchemaCreate(@Auth ConductorUser user) {
-        return render(new SchemaCreateView(user.getUserSession().getUser()));
+        return render(new SchemaView(user.getUserSession().getUser(), null));
     }
 
     @POST
@@ -109,7 +109,7 @@ public class Manage {
             @Auth ConductorUser user,
             @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId) {
         return schemaStore.get(schemaId)
-                .map(schema -> render(new SchemaDetailsView(user.getUserSession().getUser(), schema)))
+                .map(schema -> render(new SchemaView(user.getUserSession().getUser(), schema)))
                 .orElseThrow(() -> fail("Failed to find schema " + schemaId, "/manage/schema"));
     }
 

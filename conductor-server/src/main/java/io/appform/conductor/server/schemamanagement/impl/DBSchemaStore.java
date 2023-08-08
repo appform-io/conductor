@@ -23,6 +23,7 @@ import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.*;
 import io.appform.conductor.model.schema.fields.*;
 import io.appform.conductor.server.schemamanagement.impl.models.*;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.functionmetrics.MonitoredFunction;
@@ -35,6 +36,7 @@ import org.hibernate.criterion.Property;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static io.appform.conductor.model.schema.SchemaState.INACTIVE;
@@ -127,10 +129,81 @@ public class DBSchemaStore implements SchemaStore {
     @MonitoredFunction
     @SneakyThrows
     @Throws(value = ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
-    public Optional<FieldSchema> addField(@Throws.RuntimeParam(StoredFieldSchema.Fields.schemaId) String schemaId,
-                                          @Throws.RuntimeParam(StoredFieldSchema.Fields.fieldId) String fieldId,
-                                          FieldSchema schema) {
-        return fieldDao.save(schemaId, toStoredFieldSchema(schemaId, fieldId, schema))
+    public Optional<FieldSchema> addField(
+            @Throws.RuntimeParam(StoredFieldSchema.Fields.schemaId) String schemaId,
+            @Throws.RuntimeParam(StoredFieldSchema.Fields.fieldId) String fieldId,
+            FieldSchema schema) {
+        val storedSchema = toStoredFieldSchema(schemaId, fieldId, schema);
+        return fieldDao.createOrUpdate(
+                        schemaId,
+                        DetachedCriteria.forClass(StoredFieldSchema.class)
+                                .add(Property.forName(StoredFieldSchema.Fields.schemaId).eq(schemaId))
+                                .add(Property.forName(StoredFieldSchema.Fields.fieldId).eq(fieldId)),
+                        existing -> {
+                            ConductorServerUtils.ensure(storedSchema.getType().equals(existing.getType()),
+                                                        ConductorErrorCode.SCHEMA_FIELD_UPDATE_TYPE_MISMATCH,
+                                                        Map.of(
+                                                                "schemaId", schemaId,
+                                                                "fieldId", fieldId,
+                                                                "oldType", existing.getType(),
+                                                                "newType", storedSchema.getType()
+                                                              ));
+                            return existing
+                                    .setDisplayName(storedSchema.getDisplayName())
+                                    .setDescription(storedSchema.getDescription())
+                                    .setParent(storedSchema.getParent())
+                                    .setAllowMultiple(storedSchema.isAllowMultiple())
+                                    .setEditableCondition(storedSchema.getEditableCondition())
+                                    .setVisibilityCondition(storedSchema.getVisibilityCondition())
+                                    .setRequired(storedSchema.isRequired())
+                                    .setDeleted(false)
+                                    .accept(new StoredFieldSchemaVisitor<>() {
+                                        @Override
+                                        public StoredFieldSchema visit(StoredStringFieldSchema stringField) {
+                                            val newSchema = (StoredStringFieldSchema) storedSchema;
+                                            return stringField.setDefaultValue(newSchema.getDefaultValue())
+                                                    .setMaxLength(newSchema.getMaxLength())
+                                                    .setMatchPattern(newSchema.getMatchPattern());
+                                        }
+
+                                        @Override
+                                        public StoredFieldSchema visit(StoredBooleanFieldSchema booleanField) {
+                                            val newSchema = (StoredBooleanFieldSchema) storedSchema;
+                                            return booleanField.setDefaultValue(newSchema.isDefaultValue());
+                                        }
+
+                                        @Override
+                                        public StoredFieldSchema visit(StoredLocationFieldSchema locationField) {
+                                            val newSchema = (StoredLocationFieldSchema) storedSchema;
+                                            return locationField
+                                                    .setDefaultLat(newSchema.getDefaultLat())
+                                                    .setDefaultLon(newSchema.getDefaultLon());
+                                        }
+
+                                        @Override
+                                        public StoredFieldSchema visit(StoredDateFieldSchema dateField) {
+                                            val newSchema = (StoredDateFieldSchema) storedSchema;
+                                            return dateField.setDefaultValue(newSchema.getDefaultValue());
+                                        }
+
+                                        @Override
+                                        public StoredFieldSchema visit(StoredNumberFieldSchema numberField) {
+                                            val newSchema = (StoredNumberFieldSchema) storedSchema;
+                                            return numberField
+                                                    .setMin(newSchema.getMin())
+                                                    .setMax(newSchema.getMax())
+                                                    .setDefaultValue(newSchema.getDefaultValue());
+                                        }
+
+                                        @Override
+                                        public StoredFieldSchema visit(StoredChoiceFieldSchema choiceField) {
+                                            val newSchema = (StoredChoiceFieldSchema) storedSchema;
+                                            return choiceField.setDefaultSelection(newSchema.getDefaultSelection())
+                                                    .setOptionsData(newSchema.getOptionsData());
+                                        }
+                                    });
+                        },
+                        () -> storedSchema)
                 .map(this::toFieldSchema);
     }
 
@@ -138,8 +211,9 @@ public class DBSchemaStore implements SchemaStore {
     @MonitoredFunction
     @SneakyThrows
     @Throws(value = ConductorErrorCode.SCHEMA_FIELD_READ_FAILED)
-    public Optional<FieldSchema> getField(@Throws.RuntimeParam(StoredFieldSchema.Fields.schemaId) String schemaId,
-                                          @Throws.RuntimeParam(StoredFieldSchema.Fields.fieldId) String fieldId) {
+    public Optional<FieldSchema> getField(
+            @Throws.RuntimeParam(StoredFieldSchema.Fields.schemaId) String schemaId,
+            @Throws.RuntimeParam(StoredFieldSchema.Fields.fieldId) String fieldId) {
         return fieldDao.select(schemaId, DetachedCriteria.forClass(StoredFieldSchema.class)
                         .add(Property.forName(StoredFieldSchema.Fields.fieldId).eq(fieldId)), 0, 1)
                 .stream().findFirst().map(this::toFieldSchema);
@@ -148,9 +222,10 @@ public class DBSchemaStore implements SchemaStore {
     @Override
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
-    public Optional<FieldSchema> updateField(@Throws.RuntimeParam(StoredFieldSchema.Fields.schemaId) String schemaId,
-                                             @Throws.RuntimeParam(StoredFieldSchema.Fields.fieldId) String fieldId,
-                                             FieldSchema updated) {
+    public Optional<FieldSchema> updateField(
+            @Throws.RuntimeParam(StoredFieldSchema.Fields.schemaId) String schemaId,
+            @Throws.RuntimeParam(StoredFieldSchema.Fields.fieldId) String fieldId,
+            FieldSchema updated) {
         return Optional.ofNullable(fieldDao.lockAndGetExecutor(schemaId,
                                                                DetachedCriteria.forClass(StoredFieldSchema.class)
                                                                        .add(Property.forName(StoredFieldSchema.Fields.fieldId)
@@ -163,8 +238,9 @@ public class DBSchemaStore implements SchemaStore {
     @Override
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.SCHEMA_FIELD_WRITE_FAILED)
-    public boolean deleteField(@Throws.RuntimeParam(StoredFieldSchema.Fields.schemaId) String schemaId,
-                               @Throws.RuntimeParam(StoredFieldSchema.Fields.fieldId) String fieldId) {
+    public boolean deleteField(
+            @Throws.RuntimeParam(StoredFieldSchema.Fields.schemaId) String schemaId,
+            @Throws.RuntimeParam(StoredFieldSchema.Fields.fieldId) String fieldId) {
         return fieldDao.lockAndGetExecutor(schemaId, DetachedCriteria.forClass(StoredFieldSchema.class)
                         .add(Property.forName(StoredFieldSchema.Fields.fieldId).eq(fieldId)))
                 .mutate(schema -> schema.setDeleted(true))

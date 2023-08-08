@@ -37,7 +37,7 @@ import java.util.Objects;
 @SuppressWarnings("unused")
 public class CustomHelpers {
     public String readable(Object input) {
-        if(input instanceof Displayable displayable) {
+        if (input instanceof Displayable displayable) {
             return displayable.displayText();
         }
         return WordUtils.capitalizeFully(input.toString().replace('_', ' '));
@@ -46,36 +46,39 @@ public class CustomHelpers {
     @SneakyThrows
     public CharSequence emptyStr(String input, Options options) {
         return Strings.isNullOrEmpty(input)
-                ? options.fn()
+               ? options.fn()
                : options.inverse();
     }
 
     @SneakyThrows
     public CharSequence empty(Object input, Options options) {
         return Objects.isNull(input)
-                ? options.fn()
+                       || (input instanceof Collection<?> c && c.isEmpty())
+                       || (input instanceof String s && s.isEmpty())
+                       || (input instanceof Map<?, ?> m && m.isEmpty())
+               ? options.fn()
                : options.inverse();
     }
 
     @SneakyThrows
-    public<T>  CharSequence contains(Collection<T> collection, T key, Options options) {
+    public <T> CharSequence contains(Collection<T> collection, T key, Options options) {
         return (null != collection && collection.contains(key))
-                ? options.fn()
-                : options.inverse();
+               ? options.fn()
+               : options.inverse();
     }
 
     @SneakyThrows
     public CharSequence hasKey(Map<String, Boolean> collection, String key, Options options) {
         return collection.containsKey(key)
-                ? options.fn()
-                : options.inverse();
+               ? options.fn()
+               : options.inverse();
     }
 
     @SneakyThrows
     public CharSequence fieldTypeEquals(FieldType lhs, String value, Options options) {
         return FieldType.valueOf(value).equals(lhs)
-                ? options.fn()
-                : options.inverse();
+               ? options.fn()
+               : options.inverse();
     }
 
     @SneakyThrows

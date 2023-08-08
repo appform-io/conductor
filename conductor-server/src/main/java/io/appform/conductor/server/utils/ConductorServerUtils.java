@@ -114,6 +114,12 @@ public class ConductorServerUtils {
         }
     }
 
+    public static void ensure(boolean condition, ConductorErrorCode errorCode, Map<String, Object> context) {
+        if (!condition) {
+            throw new ConductorException(errorCode, context, null);
+        }
+    }
+
     public static void notNull(Object object, ConductorErrorCode errorCode, String message) {
         if (null == object) {
             throw new ConductorException(errorCode, Map.of("message", message), null);
