@@ -27,6 +27,9 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import static io.appform.conductor.server.utils.ConductorServerUtils.render;
 
 /**
  *
@@ -39,7 +42,7 @@ import javax.ws.rs.core.MediaType;
 public class Home {
 
     @GET
-    public HomeView home(@Auth ConductorUser user) {
-        return new HomeView(user.getUserSession().getUser());
+    public Response home(@Auth ConductorUser user) {
+        return render(new HomeView(user.getUserSession().getUser()));
     }
 }

@@ -36,6 +36,8 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 
+import static io.appform.conductor.server.utils.ConductorServerUtils.*;
+
 /**
  *
  */
@@ -63,16 +65,16 @@ public class Login {
         return userLifecycleManager.createHumanUser(newName, newEmail, newPassword)
                 .map(UserSummary::getId)
                 .flatMap(userLifecycleManager::openToken)
-                .map(token -> Response.seeOther(URI.create("/login/activate/" + token.getToken())).build())
-                .orElse(Response.seeOther(URI.create("/")).build());
+                .map(token -> redirect("/login/activate/" + token.getToken()))
+                .orElseThrow(() ->  fail("User registration failed for " + newName, "/"));
     }
 
     @Path("/activate/{token}")
     @GET
     public Response renderActivationScreen(@PathParam("token") final String token) {
         return userLifecycleManager.showToken(token)
-                .map(userSummary -> Response.ok(new ActivationView(token, userSummary.getName())).build())
-                .orElse(Response.seeOther(URI.create("/")).build());
+                .map(userSummary -> render(new ActivationView(token, userSummary.getName())))
+                .orElseThrow(() -> fail("Could not fetch token: " + token, "/"));
     }
 
 
@@ -83,7 +85,7 @@ public class Login {
                                   @FormParam("password") final String password) {
         return userLifecycleManager.activateUser(token, password)
                 .map(Login::newSessionResponse)
-                .orElse(Response.seeOther(URI.create("/")).build());
+                .orElseThrow(() -> fail("Could not activate token: " + token, "/"));
     }
 
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -92,7 +94,7 @@ public class Login {
                           @FormParam("password") final String password) {
         return userLifecycleManager.loginUser(email, password)
                 .map(Login::newSessionResponse)
-                .orElse(Response.seeOther(URI.create("/")).build());
+                .orElseThrow(() -> fail("Login Failure", "/"));
     }
 
 

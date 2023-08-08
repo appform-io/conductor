@@ -50,6 +50,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static io.appform.conductor.server.utils.ConductorServerUtils.*;
+
 /**
  * Ticket management UI
  */
@@ -66,10 +68,9 @@ public class Tickets {
     @GET
     @Path("/create")
     public Response renderTicketCreateView(@Auth final ConductorUser user) {
-        return Response.ok(new TicketCreateView(user.getUserSession().getUser(),
-                                                workflowStore.list(Set.of(WorkflowState.ACTIVE)),
-                                                TicketSkeletonListResult.EMPTY))
-                .build();
+        return render(new TicketCreateView(user.getUserSession().getUser(),
+                                                                workflowStore.list(Set.of(WorkflowState.ACTIVE)),
+                                                                TicketSkeletonListResult.EMPTY));
     }
 
     @POST
@@ -89,9 +90,9 @@ public class Tickets {
                                           subIdSubType,
                                           subIdValue,
                                           workflowId)
-                .map(t -> Response.seeOther(URI.create("/tickets/" + workflowId))
-                        .build())
-                .orElse(Response.seeOther(URI.create("/tickets/create")).build());
+                .map(t -> redirect("/tickets/" + workflowId))
+                .orElseThrow(() -> fail("Could not create ticket for workflow "+ workflowId,
+                                        "/tickets/create"));
     }
 
     @GET
@@ -99,24 +100,21 @@ public class Tickets {
     public Response renderTicketHome(
             @Auth final ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
-        return Response.ok(new TicketsView(user.getUserSession().getUser(),
+        return render(new TicketsView(user.getUserSession().getUser(),
                                            workflowId, workflowStore.list(Set.of(WorkflowState.ACTIVE)),
                                            ticketManager.list(List.of(new TicketWorkflowEquals(workflowId)),
                                                               List.of(),
                                                               null,
-                                                              1024)))
-                .build();
+                                                              1024)));
     }
 
     @POST
     @Path("/go")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response goToTicket(@FormParam("goToTicketId") @NotEmpty @Length(max = 45) final String ticketId) {
-        val ticket = ticketManager.readTicket(ticketId);
-        if(ticket.isPresent()) {
-            return Response.seeOther(URI.create("/tickets/" + ticketId + "/details")).build();
-        }
-        return Response.seeOther(URI.create("/")).build();
+        return ticketManager.readTicket(ticketId)
+                .map(t -> redirect("/tickets/" + ticketId + "/details"))
+                .orElseThrow(() -> fail("No ticket found for ticket id: " + ticketId, "/"));
     }
 
     @GET
@@ -126,16 +124,19 @@ public class Tickets {
             @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId) {
         val ticket = ticketManager.readTicket(ticketId).orElse(null);
         if (null == ticket) {
-            return Response.seeOther(URI.create("/")).build();
+            throw fail("No ticket found for ticket id: " + ticketId, "/");
         }
         val fieldsMap = ticket.getFields()
                 .stream()
                 .collect(Collectors.toMap(TicketField::getFieldSchemaId, Function.identity()));
         val wf = workflowStore.read(ticket.getSummary().getWorkflowId()).orElse(null);
+        if (null == wf) {
+            throw fail("No workflow found for ticket id: " + ticketId + " and workflowID: " + wf, "/");
+        }
         val schema = schemaStore.get(wf.getSchemaId());
         val fieldSchemas = schema
                 .map(Schema::getFields)
-                .orElse(null);
+                .orElse(List.of());
         val ticketState = ticket.getSummary().getTicketState();
         val fields = fieldSchemas.stream()
                 .filter(fs -> ticketState.getVisibleFields().contains(fs.getId()))
@@ -147,13 +148,12 @@ public class Tickets {
                                                ticketState.getEditableFields().contains(fs.getId()));
                 })
                 .toList();
-        return Response.ok(new TicketDetailsView(user.getUserSession().getUser(),
+        return render(new TicketDetailsView(user.getUserSession().getUser(),
                                                  ticket,
                                                  wf,
                                                  schema.get(),
                                                  ticketState,
-                                                 fields))
-                .build();
+                                                 fields));
     }
 
     @POST

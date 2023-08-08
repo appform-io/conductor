@@ -36,8 +36,13 @@ import io.appform.conductor.model.ticket.fields.impl.*;
 import io.appform.conductor.server.usermanagement.CurrentUserSessionStore;
 import lombok.experimental.UtilityClass;
 import lombok.val;
+import ru.vyarus.guicey.gsp.views.template.TemplateView;
 
 import javax.annotation.Nullable;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.NewCookie;
+import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -186,7 +191,7 @@ public class ConductorServerUtils {
             @Override
             public JsonNode visit(ChoiceFieldValue choiceFieldValue) {
                 val selection = Objects.requireNonNullElse(choiceFieldValue.getValue(), List.<String>of());
-                if(fieldSchema.isAllowMultiple()) {
+                if (fieldSchema.isAllowMultiple()) {
                     val choices = mapper.createArrayNode();
                     selection.forEach(choices::add);
                     return choices;
@@ -195,7 +200,7 @@ public class ConductorServerUtils {
                 return selection.stream()
                         .limit(1)
                         .findFirst()
-                        .map(choice -> (JsonNode)mapper.createObjectNode().textNode(choice))
+                        .map(choice -> (JsonNode) mapper.createObjectNode().textNode(choice))
                         .orElse(mapper.nullNode());
             }
 
@@ -227,6 +232,21 @@ public class ConductorServerUtils {
                                             .toEpochMilli());
             }
         });
+    }
+
+    public static Response render(final TemplateView view) {
+        return Response.ok(view).build();
+    }
+
+    public static Response redirect(final String uri) {
+        return Response.seeOther(URI.create(uri)).build();
+    }
+
+    public static WebApplicationException fail(final String message, final String uri) {
+        throw new WebApplicationException(message,
+                                          Response.seeOther(URI.create(uri))
+                                                  .cookie(new NewCookie("server-error-message", message))
+                                                  .build());
     }
 }
 

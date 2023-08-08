@@ -41,13 +41,12 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Set;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.lowerSnake;
+import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 
 /**
  * Administration ui
@@ -58,6 +57,9 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.lowerSnake;
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 @PermitAll
 public class Admin {
+    private static final String ROLES_LIST_PATH = "/admin/roles";
+    private static final String USER_SEARCH_PATH = "/admin/users/search";
+
     private final RoleStore roleStore;
     private final UserStore userStore;
     private final UserRoleMappingStore roleMappingStore;
@@ -66,14 +68,13 @@ public class Admin {
     @GET
     @Path("/roles")
     public Response renderRolesList(@Auth ConductorUser user) {
-        return Response.ok(new RolesListView(user.getUserSession().getUser(), roleStore.list())).build();
+        return render(new RolesListView(user.getUserSession().getUser(), roleStore.list()));
     }
 
     @GET
     @Path("/roles/create")
     public Response renderCreateRoleView(@Auth ConductorUser user) {
-        return Response.ok(new RoleDetailsView(user.getUserSession().getUser(),
-                                               null)).build();
+        return render(new RoleDetailsView(user.getUserSession().getUser(), null));
     }
 
     @POST
@@ -84,8 +85,8 @@ public class Admin {
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("permissions") @NotEmpty List<Permission> permissions) {
         return roleStore.create(lowerSnake(name), name, description, Set.copyOf(permissions))
-                .map(role -> Response.seeOther(URI.create("/admin/roles")).build())
-                .orElse(Response.seeOther(URI.create("/")).build());
+                .map(role -> redirect(ROLES_LIST_PATH))
+                .orElseThrow(() -> fail("Failed to create role", ROLES_LIST_PATH));
     }
 
     @GET
@@ -99,10 +100,10 @@ public class Admin {
                     Arrays.stream(Permission.values())
                             .forEach(permission -> permissions.put(permission,
                                                                    role.getPermissions().contains(permission)));
-                    return Response.ok(new RoleDetailsView(user.getUserSession().getUser(),
-                                                           role)).build();
+                    return render(new RoleDetailsView(user.getUserSession().getUser(),
+                                                      role));
                 })
-                .orElse(Response.seeOther(URI.create("/")).build());
+                .orElseThrow(() -> fail("Could not find role with id: " + roleId, ROLES_LIST_PATH));
 
     }
 
@@ -120,8 +121,8 @@ public class Admin {
                                                  permissions,
                                                  role.getCreated(),
                                                  role.getUpdated()))
-                .map(role -> Response.seeOther(URI.create("/admin/roles")).build())
-                .orElse(Response.seeOther(URI.create("/admin/roles")).build());
+                .map(role -> redirect(ROLES_LIST_PATH))
+                .orElseThrow(() -> fail("Could not update role: " + roleId, ROLES_LIST_PATH));
     }
 
     @POST
@@ -129,14 +130,16 @@ public class Admin {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response updateRole(
             @PathParam("roleId") @Length(min = 1, max = 45) final String roleId) {
-        roleStore.delete(roleId);
-        return Response.seeOther(URI.create("/admin/roles")).build();
+        if (roleStore.delete(roleId)) {
+            return redirect(ROLES_LIST_PATH);
+        }
+        throw fail("Error deleting role: " + roleId, ROLES_LIST_PATH);
     }
 
     @GET
     @Path("/users/search")
     public Response renderUserSearchScreen(@Auth ConductorUser user) {
-        return Response.ok(new UserAdminView(user.getUserSession().getUser(), null, List.of())).build();
+        return render(new UserAdminView(user.getUserSession().getUser(), null, List.of()));
     }
 
     @POST
@@ -145,18 +148,18 @@ public class Admin {
             @Auth ConductorUser user,
             @FormParam("email") @NotEmpty @Email final String email) {
         return userStore.getByEmail(email)
-                .map(userSummary -> Response.seeOther(URI.create("/admin/users/" + userSummary.getId())).build())
-                .orElse(Response.seeOther(URI.create("/admin/users/search")).build());
+                .map(userSummary -> redirect("/admin/users/" + userSummary.getId()))
+                .orElseThrow(() -> fail("No user found for " + email, USER_SEARCH_PATH));
     }
 
     @POST
     @Path("/users/userid")
     public Response searchUserByUserId(
             @Auth ConductorUser user,
-            @FormParam("searchUserId") @NotEmpty @Length(max = 255) final String email) {
-        return userStore.getById(email)
-                .map(userSummary -> Response.seeOther(URI.create("/admin/users/" + userSummary.getId())).build())
-                .orElse(Response.seeOther(URI.create("/admin/users/search")).build());
+            @FormParam("searchUserId") @NotEmpty @Length(max = 255) final String userId) {
+        return userStore.getById(userId)
+                .map(userSummary -> redirect("/admin/users/" + userSummary.getId()))
+                .orElseThrow(() -> fail("No user found for " + userId, USER_SEARCH_PATH));
     }
 
     @GET
@@ -165,9 +168,10 @@ public class Admin {
             @Auth ConductorUser user,
             @PathParam("userId") @NotEmpty final String userId) {
         return userLifecycleManager.userDetails(userId)
-                .map(userDetails -> Response.ok(new UserAdminView(user.getUserSession().getUser(), userDetails,
-                                                                  roleStore.list())).build())
-                .orElse(Response.seeOther(URI.create("/admin/users/search")).build());
+                .map(userDetails -> render(new UserAdminView(user.getUserSession().getUser(),
+                                                             userDetails,
+                                                             roleStore.list())))
+                .orElseThrow(() -> fail("No user found for " + userId, USER_SEARCH_PATH));
     }
 
     @POST
@@ -178,8 +182,8 @@ public class Admin {
             @PathParam("userId") @NotEmpty final String userId,
             @FormParam("state") @NotNull UserState state) {
         return userStore.updateState(userId, state)
-                .map(userSummary -> Response.seeOther(URI.create("/admin/users/" + userSummary.getId())).build())
-                .orElse(Response.seeOther(URI.create("/admin/users/search")).build());
+                .map(userSummary -> redirect("/admin/users/" + userSummary.getId()))
+                .orElseThrow(() -> fail("Could not update state for " + userId, USER_SEARCH_PATH));
     }
 
     @POST
@@ -189,9 +193,9 @@ public class Admin {
             @Auth ConductorUser user,
             @PathParam("userId") @NotEmpty final String userId,
             @FormParam("roleId") @NotEmpty String roleId) {
-        if(roleMappingStore.assignRoleToUser(userId, roleId)) {
-            return Response.seeOther(URI.create("/admin/users/" + userId)).build();
+        if (roleMappingStore.assignRoleToUser(userId, roleId)) {
+            return redirect("/admin/users/" + userId);
         }
-        return Response.seeOther(URI.create("/admin/users/search")).build();
+        throw fail("Could not update state for " + userId, USER_SEARCH_PATH);
     }
 }

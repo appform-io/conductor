@@ -174,6 +174,20 @@
             {{/block}}
         </div>
     </div>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" id="error-toast">
+            <div class="toast-header">
+                <!--            <img src="..." class="rounded me-2" alt="...">-->
+                <i class="bi bi-exclamation-octagon-fill text-danger me-2"></i>
+                <strong class="me-auto text-danger">Error</strong>
+                <!--            <small>11 mins ago</small>-->
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                There was an error
+            </div>
+        </div>
+    </div>
 
 </main>
 <script src="/js/swal.js"></script>
@@ -205,6 +219,7 @@
         }
       });
 
+
       window.addEventListener('load', function() {
         // Fetch all the forms we want to apply custom Bootstrap validation styles to
         var forms = document.getElementsByClassName('needs-validation');
@@ -233,6 +248,14 @@
     $( ".dataTables_filter" ).each(function( index ) {
       $( this ).parent().addClass('col-md-3').removeClass('col-md-1')
     });
+    const error = $.cookie("server-error-message");
+    if(error) {
+        const toastElement = document.getElementById("error-toast")
+        const toast = bootstrap.Toast.getOrCreateInstance(toastElement);
+        $(toastElement).find(".toast-body").text(error);
+        $.removeCookie("server-error-message", { path: '/' });
+        toast.show();
+    }
 
     function timeSince(data, type, row, meta) {
         if(type === "sort") return data;
