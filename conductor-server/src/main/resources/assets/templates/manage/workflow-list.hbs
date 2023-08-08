@@ -12,9 +12,9 @@
                                    placeholder="Search Workflow" aria-label="Search Workflow" aria-describedby="search-box">
                         </div>
                     </div>
-                    <div class="btn-group" role="group">
-                        <a href="/manage/workflow/create" class="btn btn-sm btn-outline-dark"><i
-                                class="bi fs2 bi-plus-lg"></i>Create</a>
+                    <div class="btn-group pt-1 pb-1" role="group">
+                        <a href="/manage/schema/create" class="btn btn-sm btn-success" role="button">
+                            <i class="bi fs2 bi-plus-lg"></i>Create</a>
                     </div>
 
                 </div>
@@ -22,7 +22,7 @@
             </div>
         </div>
         <div class="row justify-content-center">
-            <div class="col">
+            <div class="col table-responsive">
                 <table class="table table-bordered border-dark data-table" data-table-search="#workflow-search">
                     <thead>
                     <tr>
@@ -40,7 +40,7 @@
                             <td><a href="/manage/workflow/{{id}}">{{displayName}}</td>
                             <td>{{description}}</td>
                             <td><a href="/manage/schema/{{schemaId}}" target="_blank">{{schemaId}}</a></td>
-                            <td>{{state}}</td>
+                            <td>{{readable state}}</td>
                             <td>{{created}}</td>
                             <td>{{updated}}</td>
                         </tr>
