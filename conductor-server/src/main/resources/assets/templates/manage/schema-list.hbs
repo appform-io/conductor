@@ -12,8 +12,8 @@
                                    placeholder="Search Schema" aria-label="Search Schema" aria-describedby="search-box">
                         </div>
                     </div>
-                    <div class="btn-group" role="group">
-                        <a href="/manage/schema/create" class="btn btn-sm btn-outline-dark"><i
+                    <div class="btn-group pt-1 pb-1" role="group">
+                        <a href="/manage/schema/create" class="btn btn-sm btn-success" role="button"><i
                                 class="bi fs2 bi-plus-lg"></i>Create</a>
                     </div>
 
@@ -22,8 +22,8 @@
             </div>
         </div>
         <div class="row justify-content-center">
-            <div class="col">
-                <table class="table table-bordered border-dark data-table" data-table-search="#roles-search">
+            <div class="col table-responsive">
+                <table class="table table-bordered border-dark data-table" data-table-search="#schema-search">
                     <thead>
                     <tr>
                         <th>Name</th>
@@ -38,7 +38,7 @@
                         <tr>
                             <td><a href="/manage/schema/{{id}}">{{name}}</td>
                             <td>{{description}}</td>
-                            <td>{{state}}</td>
+                            <td>{{readable state}}</td>
                             <td>{{created}}</td>
                             <td>{{updated}}</td>
                         </tr>
