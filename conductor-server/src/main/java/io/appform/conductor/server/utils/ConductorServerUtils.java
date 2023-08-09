@@ -40,6 +40,7 @@ import ru.vyarus.guicey.gsp.views.template.TemplateView;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.net.URI;
@@ -251,7 +252,17 @@ public class ConductorServerUtils {
     public static WebApplicationException fail(final String message, final String uri) {
         throw new WebApplicationException(message,
                                           Response.seeOther(URI.create(uri))
-                                                  .cookie(new NewCookie("server-error-message", message))
+                                                  .cookie(new NewCookie(
+                                                          "server-error-message",
+                                                          message,
+                                                          "/",
+                                                          null,
+                                                          Cookie.DEFAULT_VERSION,
+                                                          null,
+                                                          NewCookie.DEFAULT_MAX_AGE,
+                                                          null,
+                                                          false,
+                                                          false))
                                                   .build());
     }
 }
