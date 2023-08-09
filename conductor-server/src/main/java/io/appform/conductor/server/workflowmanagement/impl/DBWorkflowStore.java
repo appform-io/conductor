@@ -322,7 +322,7 @@ public class DBWorkflowStore implements WorkflowStore {
             @Throws.RuntimeParam("id") String workflowId,
             @Throws.RuntimeParam("subId") String ruleId) {
         val updated = wfDao.lockAndGetExecutor(workflowId)
-                .update(tsDao,
+                .update(wfselDao,
                         createCriteria(StoredWorkflowSelectionRule.class, workflowId)
                                 .add(Property.forName("extId").eq(ruleId)),
                         state -> state.setDeleted(true),

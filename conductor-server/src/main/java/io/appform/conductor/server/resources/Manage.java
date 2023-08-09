@@ -242,18 +242,52 @@ public class Manage {
     @POST
     @Path("/workflow/{workflowId}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response updateWorkflow(
+    public Response updateWorkflowDescription(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = 255) final String description) {
+        return workflowManager.updateDescription(workflowId, description)
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Failed to update workflow " + workflowId, "/manage/workflow"));
+    }
+
+    @POST
+    @Path("/workflow/{workflowId}/dynamic")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response updateWorkflowDynamicTemplates(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @FormParam("titleTemplate") @NotEmpty @Length(max = 4096) final String titleTemplate,
             @FormParam("descriptionTemplate") @NotEmpty @Length(max = 4096) final String descriptionTemplate,
             @FormParam("subjectTemplate") @NotEmpty @Length(max = 4096) final String subjectTemplate) {
-        return workflowStore.update(workflowId,
-                                    workflow -> workflow.setDescription(description)
-                                            .setTitleTemplate(template(titleTemplate))
-                                            .setDescriptionTemplate(template(descriptionTemplate))
-                                            .setSubjectIdTemplate(template(subjectTemplate)))
+        return workflowManager.updateTemplates(workflowId,
+                                               template(titleTemplate),
+                                    template(descriptionTemplate),
+                                    template(subjectTemplate))
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Failed to update workflow " + workflowId, "/manage/workflow"));
+    }
+
+    @POST
+    @Path("/workflow/{workflowId}/selectionrules/add")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response addWorkflowSelectionRule(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @FormParam("selectionRule") @NotEmpty @Length(max = 4096) final String selectionRule) {
+        return workflowManager.addSelectionRule(workflowId, new Rule(Rule.RuleType.HOPE, selectionRule))
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Failed to update workflow " + workflowId, "/manage/workflow"));
+    }
+
+    @POST
+    @Path("/workflow/{workflowId}/selectionrules/{ruleId}/delete")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response deleteWorkflowSelectionRule(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @PathParam("ruleId") @NotEmpty @Length(max = 45) final String ruleId) {
+        return workflowManager.deleteSelectionRule(workflowId, ruleId)
                 .map(wf -> redirect("/manage/workflow/" + wf.getId()))
                 .orElseThrow(() -> fail("Failed to update workflow " + workflowId, "/manage/workflow"));
     }

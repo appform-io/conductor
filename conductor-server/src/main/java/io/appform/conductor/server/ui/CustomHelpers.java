@@ -37,6 +37,10 @@ import java.util.Objects;
 @SuppressWarnings("unused")
 public class CustomHelpers {
     public String readable(Object input) {
+        if(Objects.isNull(input)) {
+            return "";
+        }
+
         if (input instanceof Displayable displayable) {
             return displayable.displayText();
         }

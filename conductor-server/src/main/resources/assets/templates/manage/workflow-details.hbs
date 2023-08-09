@@ -7,256 +7,449 @@
 {{#partial "content"}}
     {{#with workflow}}
         <section>
-            <div class="row text-center justify-content-center">
-                <div class="col-auto"><h4>Details for Workflow {{displayName}}</h4></div>
+            <div class="row">
+                <div class="col-auto"><h4>Details for Workflow: <b>{{displayName}}</b></h4></div>
             </div>
-            <div class="row justify-content-center">
-                <div class="col-12">
-                    <form method="post" action="/manage/workflow/{{id}}" id="workflow-update">
-                        <div class="row g-3 m-2">
-                            <div class="col-3 text-end">
-                                <label for="name" class="col-form-label fw-bold">Name</label>
-                            </div>
-                            <div class="col-6 p-2">
-                                {{displayName}}
-                            </div>
+            <form method="post" action="/manage/workflow/{{id}}" id="workflow-update">
+                <div class="row">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="mb-3">
+                            <label for="name" class="col-form-label fw-bold">Name</label>
+                            <input type="text" id="name"
+                                   class="form-control border border-dark"
+                                   aria-describedby="nameHelp"
+                                   value="{{displayName}}" disabled>
+                            <div id="nameHelp" class="form-text">Name <i>can not</i> be changed</div>
                         </div>
-                        <div class="row g-3 m-2">
-                            <div class="col-3 text-end">
-                                <label for="description" class="col-form-label fw-bold">Description</label>
-                            </div>
-                            <div class="col-6">
+                        <div class="mb-3">
+                            <label for="description" class="col-form-label fw-bold">Description</label>
                             <textarea id="description" name="description"
                                       class="form-control border border-dark bg-light"
-                                      placeholder="A description for the workflow"
-                                      maxlength="255">{{description}}</textarea>
+                                      aria-describedby="descriptionHelp"
+                                      placeholder="A description for the schema">{{description}}</textarea>
+                            <div id="descriptionHelp" class="form-text">Optional, can be upto 255 characters long</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="schemaId" class="col-form-label fw-bold">Schema</label>
+                            <input type="text" id="schemaId"
+                                   class="form-control border border-dark bg-light"
+                                   maxlength="45" placeholder="W Name" aria-describedby="nameHelp"
+                                   value="{{../schema/name}}" disabled>
+                            <div id="nameHelp" class="form-text">Schema <i>can not</i> be updated</div>
+                        </div>
+                        <div class="mb-3 d-flex justify-content-center">
+                            <button type="submit" class="btn btn-success mb-3"><i class="bi bi-save"></i> Save</button>
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-1">
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <div class="alert alert-light note" role="alert">
+                            <div class="row note-header">
+                                What Is A Ticket Workflow?
+                            </div>
+                            <div class="row note-body">
+                                A Ticket Workflow controls the state machine of a ticket. Fields in a ticket are derived
+                                form the associated Schema.
+                                <br>
+                                A Workflow consists of
+                                <ul>
+                                    <li>Raw payload processing configuration details that are used to generate
+                                        the title, description and select a workflow when a raw payload is encountered
+                                    </li>
+                                    <li>States that the workflow might be in. These can be used to trigger Actions and
+                                        show/hide fields
+                                    </li>
+                                    <li>Rule based and direct transitions from State to State based on updates received
+                                        to a
+                                        ticket
+                                    </li>
+                                </ul>
                             </div>
                         </div>
-                        <div class="row g-3 m-2">
-                            <div class="col-3 text-end">
-                                <label for="schemaId" class="col-form-label fw-bold">Ticket Schema</label>
-                            </div>
-                            <div class="col-6">
-                                {{../schema/name}}
+                    </div>
+
+                </div>
+            </form>
+        </section>
+
+        <section>
+            <ul class="nav nav-pills mb-3" id="wfConfigTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="sm-tab" data-bs-toggle="tab" data-bs-target="#sm-tab-pane"
+                            type="button" role="tab" aria-controls="sm-tab-pane" aria-selected="true">
+                        State Machine Configuration <span class="badge bg-danger ms-2">Mandatory</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="raw-tab" data-bs-toggle="tab" data-bs-target="#raw-tab-pane"
+                            type="button" role="tab" aria-controls="raw-tab-pane" aria-selected="false">
+                        Raw Payload Processing Configuration <span class="badge bg-warning ms-2">Optional</span>
+                    </button>
+                </li>
+            </ul>
+            <div class="tab-content" id="wfConfigTabContent">
+                <div class="tab-pane fade show active" id="sm-tab-pane" role="tabpanel" aria-labelledby="sm-tab"
+                     tabindex="0">
+                    <div class="row">
+                        <div class="col-9">
+                            <h5>Manage States</h5>
+                        </div>
+                        <div class="col-3 d-flex justify-content-end">
+                            <a class="btn btn-primary" href="/manage/workflow/{{id}}/states/add">
+                                <i class="bi bi-plus-lg"></i>Add</a>
+                        </div>
+                    </div>
+                    <div class="row mt-2 mb-2">
+                        <div class="col-12 table-responsive">
+                            <table class="table table-bordered border-dark data-table">
+                                <thead>
+                                <tr>
+                                    <th>State Name</th>
+                                    <th>Description</th>
+                                    <th>Terminal</th>
+                                    <th>Start State</th>
+                                    <th>Last Updated</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {{#each states}}
+                                    {{#with this}}
+                                        <tr title="ID: {{id}}">
+                                            <td>
+                                                <a href="/manage/workflow/{{../id}}/states/{{id}}">{{displayName}}</a>
+                                            </td>
+                                            <td>{{description}}</td>
+                                            <td>
+                                                {{#if terminal eq true}}
+                                                    <span class="badge bg-danger ms-2">Terminal</span>
+                                                {{else}}
+                                                    <span class="badge bg-primary ms-2">Non Terminal</span>
+                                                {{/if}}
+                                            </td>
+                                            <td class="text-center">
+                                                {{#eq ../startStateId id}}
+                                                    <span class="badge bg-success ms-2">Start State</span>
+                                                {{else}}
+                                                    <form class="confirmed-form" method="post"
+                                                          action="/manage/workflow/{{../id}}/states/{{id}}/initial"
+                                                          data-cnf-title="Changing initial state to  {{displayName}}"
+                                                          data-cnf-text="Are you sure you want to change initial state of the workflow to {{displayName}}?">
+                                                        <button type="submit"
+                                                                class="btn btn-link p-0 text-danger">Set
+                                                        </button>
+                                                    </form>
+                                                {{/eq}}
+                                            </td>
+                                            <td>{{updated}}</td>
+                                            <td class="text-center">
+                                                <form class="confirmed-form" method="post"
+                                                      action="/manage/workflow/{{../id}}/states/{{id}}/delete"
+                                                      data-cnf-title="Deleting state {{displayName}}"
+                                                      data-cnf-text="Are you sure you want to delete this state? Action will fail if transitions exist.">
+                                                    <button type="submit" class="btn btn-link p-0 text-danger">
+                                                        <i class="bi bi-trash-fill"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+
+                                        </tr>
+
+                                    {{/with}}
+                                {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <h5>Manage State Transitions</h5>
+                        </div>
+                    </div>
+                    <div class="row m-4">
+                        <div class="col-sm-12 col-md-6">
+                            <form method="post" action="/manage/workflow/{{id}}/transitions/add">
+                                <div class="row g-3 m-2">
+                                    <div class="col-sm-12 col-md-5">
+                                        <select id="fromState" name="fromState"
+                                                class="form-control selectpicker border border-dark bg-light"
+                                                data-live-search="true" aria-describedby="fromStateHelp" required>
+                                            <option value="" disabled selected>Select from state</option>
+                                            {{#each states}}
+                                                {{#with this}}
+                                                    <option value="{{id}}">{{displayName}}</option>
+                                                {{/with}}
+                                            {{/each}}
+                                        </select>
+                                        <div id="fromStateHelp" class="form-text">State from which transition starts
+                                        </div>
+
+                                    </div>
+                                    <div class="col-sm-12 col-md-5">
+                                        <select id="toState" name="toState"
+                                                class="form-control selectpicker border border-dark bg-light"
+                                                data-live-search="true" aria-describedby="toStateHelp" required>
+                                            <option value="" disabled selected>Select to state</option>
+                                            {{#each states}}
+                                                {{#with this}}
+                                                    <option value="{{id}}">{{displayName}}</option>
+                                                {{/with}}
+                                            {{/each}}
+                                        </select>
+                                        <div id="toStateHelp" class="form-text">State at which transition ends</div>
+                                    </div>
+                                    <div class="col-sm-12 col-md-2">
+                                        <select class="form-control selectpicker border border-dark bg-light"
+                                                id="transitionType" name="transitionType"
+                                                aria-describedby="transitionTypeHelp" required>
+                                            <option value="" disabled selected>Transition type</option>
+                                            <option value="EVALUATED" title="Transition happens if rule returns true">
+                                                Rule based
+                                            </option>
+                                            <option value="DEFAULT"
+                                                    title="Transition happens if no other transitions is selected">
+                                                Default
+                                            </option>
+                                        </select>
+                                        <div id="transitionTypeHelp" class="form-text">Transition type</div>
+                                    </div>
+                                </div>
+                                <div class="row g-3 m-2">
+                                    <div class="col-12">
+                                        <textarea id="rule" name="rule" class="form-control border border-dark bg-light"
+                                                  maxlength="2048" rows="10" aria-describedby="ruleHelp"
+                                                  placeholder="Rule definition"></textarea>
+                                        <div id="ruleHelp" class="form-text">The rule is executed if Transition Type is
+                                            set to <b>Rule Based</b>. If the rule returns true, the transition is
+                                            accepted and state movement happens for the ticket. Any further rules from
+                                            the same <i>From</i> state are ignored. In case of an evaluated transition
+                                            this rule is ignored. Use the Payload and the fields to write rules. Rule
+                                            follows the <a href="https://github.com/santanusinha/hope/wiki"
+                                                           target="_blank">Hope Rule Syntax</a>. Max Length: 2048
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-3 m-2">
+                                    <div class="col-12">
+                                        <select id="transitionAllowedActions" name="allowedActions"
+                                                class="form-control selectpicker border border-dark bg-light"
+                                                multiple aria-describedby="transitionAllowedActionsHelp"
+                                                data-live-search="true" data-selected-text-format="count > 2">
+                                            <option value="" disabled selected>Actions to be triggered</option>
+                                            {{#each availableActions}}
+                                                <option value="{{id}}"
+                                                        {{#contains state.allowedActions
+                                                                    id}}selected{{/contains}}>{{name}}</option>
+                                            {{/each}}
+                                        </select>
+                                        <div id="transitionAllowedActionsHelp" class="form-text">
+                                            Actions to be executed <b><i>after</i></b> this transition is done.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3  m-2">
+                                    <div class="col d-flex justify-content-center">
+                                        <button type="submit" class="btn btn-outline-success btn-sm"><i
+                                                class="bi bi-save"></i>Save
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-md-3 d-none d-md-block d-inline-block overflow-scroll" style="height: 590px">
+                            <div class="overflow-scroll">
+                            <pre>
+
+<code>{
+    "payload" : {
+        //Raw json payload of the new data
+        //For submitted forms, this is mapped to fields
+    }
+    "ticket": {
+        "summary" : {
+            "id" : ...,
+            "title" : ...,
+            //Other fields from ticket summary
+        },
+        "fields" : {
+            //Map of fieldName: field value already present in the ticket
+        }
+    }
+}</code>
+                            </pre>
+
                             </div>
                         </div>
-                        <div class="row g-3 m-2">
-                            <div class="col-3 text-end">
-                                <label for="titleTemplate" class="col-form-label fw-bold">Title Template</label>
+                        <div class="col-auto d-none d-md-block  d-inline-block overflow-scroll" style="height: 590px">
+                            <div>
+                                <b>Available Fields:</b>
+                                <ul>
+                                    {{#each schema.fields}}
+                                        <li title="{{description}}"><i>{{name}}</i> - {{readable type}}</li>
+                                    {{/each}}
+                                </ul>
                             </div>
-                            <div class="col-6">
-                                {{#with titleTemplate}}
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-12 table-responsive">
+                            <table class="table table-bordered border-dark data-table">
+                                <thead>
+                                <tr>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th class="text-center">Transition  Type</th>
+                                    <th>Rule</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {{#each ticketStateTransitions}}
+                                    {{#each this}}
+                                        <tr>
+                                            <td>{{#with (lookup states from)}}{{displayName}}{{/with}}</td>
+                                            <td>{{#with (lookup states to)}}{{displayName}}{{/with}}</td>
+                                            <td  class="text-center">
+                                                {{#eq (readable type) "Evaluated"}}
+                                                    <span class="badge bg-info ms-2">Rule Based</span>
+                                                {{else}}
+                                                    <span class="badge bg-primary ms-2">Default</span>
+                                                {{/eq}}
+                                            </td>
+                                            <td><pre><span class="badge bg-primary me-2">{{readable rule.type}}</span><code>{{rule.rule}}</code></pre></td>
+                                            <td>
+                                                <form class="confirmed-form" method="post"
+                                                      action="/manage/workflow/{{../id}}/transitions/{{id}}/delete"
+                                                      data-cnf-title="Deleting transition"
+                                                      data-cnf-text="Are you sure you want to delete this transition? Action will fail if transitions exist.">
+                                                    <button type="submit" class="btn btn-link p-0 text-danger">
+                                                        <i class="bi bi-trash-fill"></i></button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {{/each}}
+                                {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="raw-tab-pane" role="tabpanel" aria-labelledby="raw-tab" tabindex="0">
+                    <div class="row">
+                        <div class="col-sm-12 col-md-5">
+                            <form method="post" action="/manage/workflow/{{id}}/dynamic" id="workflow-update">
+                                <div class="mb-3">
+                                    <label for="titleTemplate" class="col-form-label fw-bold">Title
+                                        Template</label>
                                     <textarea id="titleTemplate" name="titleTemplate"
                                               class="form-control border border-dark bg-light"
                                               placeholder="Handlebars template to extract ticket title from raw payload"
-                                              required>{{template}}</textarea>
-                                {{/with}}
-                            </div>
-                        </div>
-                        <div class="row g-3 m-2">
-                            <div class="col-3 text-end">
-                                <label for="descriptionTemplate" class="col-form-label fw-bold">Description
-                                    Template</label>
-                            </div>
-                            <div class="col-6">
-                                {{#with descriptionTemplate}}
+                                              aria-describedby="titleTemplateHelp"
+                                              required>{{titleTemplate.template}}</textarea>
+                                    <div id="titleTemplateHelp" class="form-text">
+                                        Template used to form ticket title from raw payload. For UI tickets
+                                        this
+                                        is irrelevant.
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="descriptionTemplate" class="col-form-label fw-bold">Description
+                                        Template</label>
                                     <textarea id="descriptionTemplate" name="descriptionTemplate"
                                               class="form-control border border-dark bg-light"
-                                              placeholder="Handlebars template to extract ticket description from raw payload">{{template}}</textarea>
-                                {{/with}}
-                            </div>
-                        </div>
-                        <div class="row g-3 m-2">
-                            <div class="col-3 text-end">
-                                <label for="subjectTemplate" class="col-form-label fw-bold">Subject ID Template</label>
-                            </div>
-                            <div class="col-6">
-                                {{#with subjectIdTemplate}}
+                                              aria-describedby="descriptionTemplateHelp"
+                                              placeholder="Handlebars template to extract ticket description from raw payload"
+                                              required>{{descriptionTemplate.template}}</textarea>
+                                    <div id="descriptionTemplateHelp" class="form-text">
+                                        Template used to form ticket title from raw payload. For UI tickets
+                                        this
+                                        is irrelevant.
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="subjectTemplate" class="col-form-label fw-bold">Subject ID
+                                        Template</label>
                                     <textarea id="subjectTemplate" name="subjectTemplate"
                                               class="form-control border border-dark bg-light"
-                                              placeholder="Handlebars template to extract subject from raw payload">{{template}}</textarea>
-                                {{/with}}
-                            </div>
+                                              aria-describedby="subjectTemplateHelp"
+                                              placeholder="Handlebars template to extract subject from raw payload"
+                                              required>{{subjectIdTemplate.template}}</textarea>
+                                    <div id="subjectTemplateHelp" class="form-text">
+                                        Template used to extract subject ID from raw payload.
+                                    </div>
+                                </div>
+                                <div class="mb-3 d-flex justify-content-center">
+                                    <button type="submit" class="btn btn-success mb-3"><i
+                                            class="bi bi-save"></i> Save
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                        <div class="row g-3 justify-content-center m-2">
-                            <div class="col-auto">
-                                <button type="submit" class="btn btn-outline-primary mb-3">Save</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </section>
-        <section>
-            <div class="row">
-                <div class="col-10">
-                    <h5>States</h5>
-                </div>
-                <div class="col-2 d-flex justify-content-end">
-                    <a class="btn btn-outline-success" href="/manage/workflow/{{id}}/states/add">Add</a>
-                </div>
-            </div>
-            <div class="row mt-2">
-                <div class="col-12">
-                    <table class="table table-bordered border-dark data-table">
-                        <thead>
-                        <tr>
-                            <th>State Name</th>
-                            <th>Description</th>
-                            <th>Terminal</th>
-                            <th>Start State</th>
-                            <th>Created</th>
-                            <th>Updated</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {{#each states}}
-                            {{#with this}}
-                                <tr title="ID: {{id}}">
-                                    <td><a href="/manage/workflow/{{../id}}/states/{{id}}">{{displayName}}</a></td>
-                                    <td>{{description}}</td>
-                                    <td>{{#if terminal eq true}}Yes{{else}}No{{/if}}</td>
-                                    <td class="text-center">
-                                        {{#eq ../startStateId id}}
-                                            <i class="bi bi-check-all"></i>Current
-                                        {{else}}
-                                            <form class="confirmed-form" method="post"
-                                                  action="/manage/workflow/{{../id}}/states/{{id}}/initial"
-                                                  data-cnf-title="Changing initial state to  {{displayName}}"
-                                                  data-cnf-text="Are you sure you want to change initial state of the workflow to {{displayName}}?">
-                                                <button type="submit" class="btn btn-link p-0 text-danger">Set</button>
-                                            </form>
-                                        {{/eq}}
-                                    </td>
-                                    <td>{{created}}</td>
-                                    <td>{{updated}}</td>
-                                    <td>
-                                        <form class="confirmed-form" method="post"
-                                              action="/manage/workflow/{{../id}}/states/{{id}}/delete"
-                                              data-cnf-title="Deleting state {{displayName}}"
-                                              data-cnf-text="Are you sure you want to delete this state? Action will fail if transitions exist.">
-                                            <button type="submit" class="btn btn-link p-0 text-danger">
-                                                <i class="bi bi-trash"></i>
+                        <div class="col-sm-12 col-md-7">
+                            <div class="mb3"><h5>Workflow selection rules</h5></div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <form method="post"
+                                          action="/manage/workflow/{{id}}/selectionrules/add">
+                                        <div class="mb3">
+                                        <textarea id="selectionRule" name="selectionRule"
+                                                  class="form-control border border-dark bg-light"
+                                                  maxlength="2048" rows="3" aria-describedby="selectionRuleHelp"
+                                                  placeholder="Workflow selection rule definition"></textarea>
+                                            <div id="selectionRuleHelp" class="form-text">The rule is run on the raw
+                                                payload to determine
+                                                if this particualar workflow is applicable to it or not. Rule
+                                                follows the <a href="https://github.com/santanusinha/hope/wiki"
+                                                               target="_blank">Hope Rule Syntax</a>. Max Length: 2048
+                                            </div>
+                                        </div>
+                                        <div class="mb3 d-flex justify-content-center">
+                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-save"></i> Create
                                             </button>
-                                        </form>
-                                    </td>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-12 table-responsive">
+                                    <table class="table table-bordered border-dark">
+                                        <thead>
+                                        <tr>
+                                            <th>Rule</th>
+                                            <th></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {{#each selectionRules}}
+                                            <tr>
+                                                <td>
+                                                    <pre><span class="badge bg-info me-2">{{readable type}}</span><code>{{rule}}</code></pre>
+                                                </td>
+                                                <td class="text-center">
+                                                    <form class="confirmed-form" method="post"
+                                                          action="/manage/workflow/{{../id}}/selectionrules/{{@key}}/delete"
+                                                          data-cnf-title="Deleting selection rule {{@key}}"
+                                                          data-cnf-text="Are you sure you want to delete this rule?">
+                                                        <button type="submit" class="btn btn-link p-0 text-danger">
+                                                            <i class="bi bi-trash-fill"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        {{/each}}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                                </tr>
-
-                            {{/with}}
-                        {{/each}}
-                        </tbody>
-                    </table>
                 </div>
             </div>
-        </section>
-        <section>
-            <div class="row">
-                <div class="col"><h5>Transitions</h5></div>
-            </div>
-            <div class="row m-4">
-                <div class="col">
-                    <form method="post" action="/manage/workflow/{{id}}/transitions/add">
-                        <div class="row g-3 m-2">
-                            <div class="col-5">
-                                <select id="fromState" name="fromState"
-                                        class="form-control selectpicker border border-dark bg-light"
-                                        data-live-search="true" required>
-                                    <option value="" disabled selected>Select from state</option>
-                                    {{#each states}}
-                                        {{#with this}}
-                                            <option value="{{id}}">{{displayName}}</option>
-                                        {{/with}}
-                                    {{/each}}
-                                </select>
-                            </div>
-                            <div class="col-5">
-                                <select id="toState" name="toState"
-                                        class="form-control selectpicker border border-dark bg-light"
-                                        data-live-search="true" required>
-                                                                        <option value="" disabled selected>Select to state</option>
-                                    {{#each states}}
-                                        {{#with this}}
-                                            <option value="{{id}}">{{displayName}}</option>
-                                        {{/with}}
-                                    {{/each}}
-                                </select>
-                            </div>
-                            <div class="col-2">
-                                <select class="form-control selectpicker border border-dark bg-light"
-                                        id="transitionType" name="transitionType" required>
-                                    <option value="" disabled selected>Transition type</option>
-                                    <option value="EVALUATED">Rule based</option>
-                                    <option value="DEFAULT">Default</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row g-3 m-2">
-                            <div class="col-12">
-                                <textarea id="rule" name="rule" class="form-control border border-dark bg-light"
-                                          maxlength="2048" placeholder="Rule definition"></textarea>
-                            </div>
-                        </div>
-                        <div class="row g-3 m-2">
-                            <div class="col-12 d-flex justify-content-center">
-                                <select id="transitionAllowedActions" name="allowedActions"
-                                        class="form-control selectpicker border border-dark bg-light" multiple
-                                        data-live-search="true"  data-selected-text-format="count > 2">
-                                    <option value="" disabled selected>Actions to be triggered</option>
-                                    {{#each availableActions}}
-                                        <option value="{{id}}"
-                                                {{#contains state.allowedActions id}}selected{{/contains}}>{{name}}</option>
-                                    {{/each}}
-                                </select>
-                            </div>
-                        </div>
 
-                        <div class="row g-3  m-2">
-                            <div class="col d-flex justify-content-center">
-                                <button type="submit" class="btn btn-outline-success btn-sm"><i class="bi bi-save"></i>Save
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div class="row mt-2">
-                <div class="col-12">
-                    <table class="table table-responsive table-bordered border-dark">
-                        <thead>
-                        <tr>
-                            <th>From</th>
-                            <th>To</th>
-                            <th>Type</th>
-                            <th>Rule</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {{#each ticketStateTransitions}}
-                            {{#each this}}
-                                <tr>
-                                    <td>{{#with (lookup states from)}}{{displayName}}{{/with}}</td>
-                                    <td>{{#with (lookup states to)}}{{displayName}}{{/with}}</td>
-                                    <td>{{type}}</td>
-                                    <td>{{rule.rule}}</td>
-                                    <td>
-                                        <form class="confirmed-form" method="post"
-                                              action="/manage/workflow/{{../id}}/transitions/{{id}}/delete"
-                                              data-cnf-title="Deleting transition"
-                                              data-cnf-text="Are you sure you want to delete this transition? Action will fail if transitions exist.">
-                                            <button type="submit" class="btn btn-link p-0 text-danger"><i
-                                                    class="bi bi-trash"></i></button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            {{/each}}
-                        {{/each}}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </section>
     {{/with}}
 {{/partial}}
