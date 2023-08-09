@@ -8,142 +8,252 @@
     {{#with ticket}}
         <div class="row">
             <div class="col">
-                <h1>Details for ticket {{summary/id}}</h1>
+                <h4>Details for ticket: <b>{{summary/id}}</b></h4>
+                <p>
+                    <small>Created by <a href="/admin/users/{{summary/createdBy/id}}">
+                        <b>{{summary/createdBy/name}}</b></a> on {{summary/created}}. Last updated on {{summary/updated}}.
+                    </small>
+                </p>
             </div>
         </div>
-        <form method="post" action="/tickets/{{summary/id}}/update">
         <section>
-
             <div class="row">
-                <div class="col">
+                <div class="col-sm-12 col-md-8">
+                    <div class="row mt-2">
+                        <div class="col-sm-12 col-md-8">
+                            <label for="workflow" class="col-form-label fw-bold">Workflow</label>
+                            <input type="text" id="workflow"
+                                   class="form-control border border-dark"
+                                   maxlength="45" value="{{workflow/displayName}}"
+                                   aria-describedby="workflowHelp" disabled>
+                            <div id="workflowHelp" class="form-text">Workflow
+                                Description: {{workflow/displayName}}</div>
+                        </div>
+                        <div class="col-sm-12 col-md-4">
+                            <label for="currentState" class="col-form-label fw-bold">Current State</label>
+                            <input type="text" id="currentState"
+                                   class="form-control border border-dark"
+                                   maxlength="45" value="{{state/displayName}}"
+                                   aria-describedby="workflowStateHelp" disabled>
+                            <div id="workflowStateHelp" class="form-text">Current state of the workflow.</div>
+                        </div>
+                    </div>
                     {{#with summary}}
-                            <div class="row mt-2">
-                                <div class="col-2">
-                                    <label class="col-form-label fw-bold">Workflow</label>
-                                </div>
-                                <div class="col-10 pt-2">
-                                    {{../workflow/displayName}}
-                                </div>
-                            </div>
-                            <div class="row mt-2">
-                                <div class="col-2">
-                                    <label class="col-form-label fw-bold">Subject</label>
-                                </div>
-                                <div class="col-10 pt-2">
-                                    <a href="/tickets/subjects/{{subject/globalId}}">{{subject/name}}
-                                        (ID: {{subject/globalId}})</a>
+                        <form method="post" action="/tickets/{{summary/id}}/summary/update">
+                            <div class="md-3">
+                                <label for="title" class="col-form-label fw-bold">Title</label>
+                                <input type="text" id="title" name="title"
+                                       class="form-control border border-dark"
+                                       maxlength="45" aria-describedby="titleHelp" placeholder="Ticket title"
+                                       value="{{title}}" required>
+                                <div id="titleHelp" class="form-text">
+                                    A human-readable title for this ticket. Max Length: 255.
                                 </div>
                             </div>
-                            <div class="row mt-2">
-                                <div class="col-2">
-                                    <label for="title" class="col-form-label fw-bold">Title</label>
-                                </div>
-                                <div class="col-10">
-                                    <input type="text" id="title" name="title"
-                                           class="form-control border border-dark bg-light"
-                                           maxlength="45" placeholder="Ticket title" value="{{title}}" required>
-                                </div>
-                            </div>
-                            <div class="row mt-2">
-                                <div class="col-2">
-                                    <label for="description" class="col-form-label fw-bold">Description</label>
-                                </div>
-                                <div class="col-10">
-                        <textarea id="description" name="description" class="form-control border border-dark bg-light"
-                                  maxlength="45" placeholder="Ticket description">{{description}}</textarea>
+                            <div class="md-3">
+                                <label for="description" class="col-form-label fw-bold">Description</label>
+                                <textarea id="description" name="description"
+                                          class="form-control border border-dark"
+                                          maxlength="45" placeholder="Ticket description"
+                                          aria-describedby="descriptionHelp" rows="10">{{description}}</textarea>
+                                <div id="descriptionHelp" class="form-text">
+                                    A detailed description of the issue. Max Length: 4096.
                                 </div>
                             </div>
+                            <div class="md-3">
+                                <label for="priority" class="col-form-label fw-bold">Title</label>
+                                <select id="priority" name="priority"
+                                        class="form-control selectpicker border border-dark"
+                                        aria-describedby="priorityHelp" required>
+                                    {{#each ../priorities}}
+                                        <option value="{{this}}" {{#eq this ../priority}}selected{{/eq}}>{{readable
+                                                this}}</option>
+                                    {{/each}}
+                                </select>
+                                <div id="priorityHelp" class="form-text">
+                                    Priority for this ticket. Handling of priority is dependent on state transition
+                                    rules.
+                                </div>
+                            </div>
+                            <div class="md-3 d-flex justify-content-end">
+                                <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Update</button>
+                            </div>
+                        </form>
                     {{/with}}
+                </div>
+                <div class="col-sm-12 col-md-4 mt-2">
+                    <div class="accordion accordion-flush border border-dark" id="ticketSections">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#flush-subjectInfo" aria-expanded="false"
+                                        aria-controls="flush-subjectInfo">
+                                    <i class="bi bi-person-lines-fill"></i> &nbsp; Subject {{summary/subject/globalId}}
+                                </button>
+                            </h2>
+                            <div id="flush-subjectInfo" class="accordion-collapse collapse show"
+                                 data-bs-parent="#ticketSections">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="md-3">
+                                            <label for="subId" class="col-form-label fw-bold">ID</label>
+                                            <a id="subId" class="ms-1" aria-describedby="subIdHelp"
+                                               href="/tickets/subjects/{{summary/subject/globalId}}">
+                                                {{summary/subject/globalId}}</a>
+                                            <div id="subIdHelp" class="form-text">
+                                                Priority for this ticket. Handling of priority is dependent on state
+                                                transition
+                                                rules.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button  bg-dark text-white collapsed" type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#flush-ticketFieldsSet" aria-expanded="false"
+                                        aria-controls="flush-ticketFieldsSet">
+                                    <i class="bi bi-file-ruled"></i> &nbsp; Fields
+                                </button>
+                            </h2>
+                            <div id="flush-ticketFieldsSet" class="accordion-collapse collapse show"
+                                 data-bs-parent="#ticketSections">
+                                <div class="accordion-body">
+                                    <form class="p-2" method="post" action="/tickets/{{summary/id}}/fields/update">
+
+                                        {{#each ../fields}}
+                                            <div class="md-3">
+                                                <label for="ticketField-{{schema/name}}"
+                                                       class="col-form-label fw-bold">{{schema/displayName}}</label>
+                                                {{#fieldTypeEquals type "STRING"}}
+                                                    <input type="text"
+                                                           class="form-control border border-dark"
+                                                           id="ticketField-{{schema/name}}"
+                                                           name="ticketField-{{schema/name}}"
+                                                           aria-describedby="ticketField-{{schema/name}}-Help"
+                                                        {{#gt schema/maxLength
+                                                              0}}maxlength="{{schema/maxLength}}" {{/gt}}
+                                                        {{#empty
+                                                                schema/matchPattern}}{{else}}pattern="{{schema/matchPattern}}" {{/empty}}
+                                                        {{#empty
+                                                                fieldValue}}{{else}}value="{{fieldValue/value}}" {{/empty}}
+                                                        {{#eq schema/required true}}required{{/eq}}
+                                                        {{#eq enabled false}}disabled{{/eq}}>
+                                                {{/fieldTypeEquals}}
+                                                {{#fieldTypeEquals type "CHOICE"}}
+                                                    <select
+                                                            class="form-control selectpicker border border-dark"
+                                                            data-live-search="true"
+                                                            data-selected-text-format="count > 2"
+                                                            id="ticketField-{{schema/name}}"
+                                                            name="ticketField-{{schema/name}}"
+                                                            aria-describedby="ticketField-{{schema/name}}-Help"
+                                                        {{#eq schema/allowMultiple true}}multiple{{/eq}}
+                                                        {{#eq schema/required true}}required{{/eq}}
+                                                        {{#eq enabled false}}disabled{{/eq}}>
+                                                        {{#empty value}}
+                                                            <option disabled>Select an option</option>
+                                                        {{/empty}}
+                                                        {{#each schema/choices}}
+                                                            <option value="{{value}}" {{#empty
+                                                                    fieldValue}}{{else}}{{#contains
+                                                                    ../fieldValue/value
+                                                                    value}}selected{{/contains}}{{/empty}}>
+                                                                {{displayText}}
+                                                            </option>
+                                                        {{/each}}
+                                                    </select>
+
+                                                {{/fieldTypeEquals}}
+                                                {{#fieldTypeEquals type "BOOLEAN"}}
+                                                    <input type="checkbox"
+                                                           class="form-check-input  border border-dark mt-2 ms-3"
+                                                           id="ticketField-{{schema/name}}"
+                                                           name="ticketField-{{schema/name}}"
+                                                           aria-describedby="ticketField-{{schema/name}}-Help"
+                                                           value="true"
+                                                        {{#empty fieldValue}}{{else}}{{#eq fieldValue/value
+                                                                                           true}}checked{{/eq}}{{/empty}}
+                                                        {{#eq schema/required true}}required{{/eq}}
+                                                        {{#eq enabled false}}disabled{{/eq}}>
+                                                {{/fieldTypeEquals}}
+                                                {{#fieldTypeEquals type "LOCATION"}}
+
+                                                {{/fieldTypeEquals}}
+                                                {{#fieldTypeEquals type "DATE"}}
+                                                    <input type="date"
+                                                           class="form-control border border-dark"
+                                                           id="ticketField-{{schema/name}}"
+                                                           name="ticketField-{{schema/name}}"
+                                                           aria-describedby="ticketField-{{schema/name}}-Help"
+                                                        {{#empty schema/max}}{{else}}max="{{schema/max}}" {{/empty}}
+                                                        {{#empty schema/min}}{{else}}max="{{schema/max}}" {{/empty}}
+                                                        {{#empty fieldValue}}{{else}}value="{{htmlDate fieldValue/value
+                                                                                                       false}}" {{/empty}}
+                                                        {{#eq schema/required true}}required{{/eq}}
+                                                        {{#eq enabled false}}disabled{{/eq}}>
+                                                {{/fieldTypeEquals}}
+                                                {{#fieldTypeEquals type "NUMBER"}}
+                                                    <input type="number"
+                                                           class="form-control border border-dark"
+                                                           id="ticketField-{{schema/name}}"
+                                                           name="ticketField-{{schema/name}}"
+                                                           aria-describedby="ticketField-{{schema/name}}-Help"
+                                                        {{#neq schema/max 0}}max="{{schema/max}}" {{/neq}}
+                                                        {{#neq schema/min 0}}min="{{schema/min}}" {{/neq}}
+                                                        {{#empty
+                                                                fieldValue}}{{else}}value="{{fieldValue/value}}" {{/empty}}
+                                                        {{#eq schema/required true}}required{{/eq}}
+                                                        {{#eq enabled false}}disabled{{/eq}}>
+                                                {{/fieldTypeEquals}}
+                                                <div id="ticketField-{{schema/name}}-Help" class="form-text">
+                                                    {{schema/description}}
+                                                </div>
+                                            </div>
+                                        {{/each}}
+                                        <div class="md-3 mt-2 d-flex justify-content-center">
+                                            <button type="submit" class="btn btn-info"><i
+                                                    class="bi bi-cloud-plus-fill"></i>
+                                                Submit
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--                    <div class="row ms-1">
+                                            <div class="col-12 border border-dark">
+                                                <div class="row">
+                                                    <div class="col p-2 bg-dark text-white">
+                                                        <h5><i class="bi bi-person-lines-fill"></i> Subject</h5>
+                                                    </div>
+                                                </div>
+                                                <div class="row p-2">
+                                                    <div class="col-12">
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row ms-1 mt-2">
+                                            <div class="col-12 border border-dark">
+                                                <div class="row">
+                                                    <div class="col p-2 bg-dark text-white">
+                                                        <h5><i class="bi bi-file-ruled"></i> Fields</h5>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>-->
                 </div>
             </div>
         </section>
-        <hr>
-        <section>
-                {{#each ../fields}}
-                    <div class="row mt-2">
-                        <div class="col-2">
-                            <label for="ticketField-{{schema/name}}" class="col-form-label fw-bold">{{schema/displayName}}</label>
-                        </div>
-                        {{#fieldTypeEquals type "STRING"}}
-                        <div class="col-6">
-                            <input type="text"
-                                   class="form-control border border-dark bg-light"
-                                   id="ticketField-{{schema/name}}" name="ticketField-{{schema/name}}"
-                                   {{#gt schema/maxLength 0}}maxlength="{{schema/maxLength}}" {{/gt}}
-                                {{#empty schema/matchPattern}}{{else}}pattern="{{schema/matchPattern}}" {{/empty}}
-                                {{#empty fieldValue}}{{else}}value="{{fieldValue/value}}" {{/empty}}
-                                {{#eq schema/required true}}required{{/eq}}
-                                {{#eq enabled false}}disabled{{/eq}}>
-                        </div>
-                        {{/fieldTypeEquals}}
-                        {{#fieldTypeEquals type "CHOICE"}}
-                        <div class="col-6">
-                            <select
-                                    class="form-control selectpicker border border-dark bg-light"
-                                    data-live-search="true"  data-selected-text-format="count > 2"
-                                    id="ticketField-{{schema/name}}" name="ticketField-{{schema/name}}"
-                                {{#eq schema/allowMultiple true}}multiple{{/eq}}
-                                {{#eq schema/required true}}required{{/eq}}
-                                {{#eq enabled false}}disabled{{/eq}}>
-                                {{#empty value}}
-                                    <option disabled>Select an option</option>
-                                {{/empty}}
-                                {{#each schema/choices}}
-                                    <option value="{{value}}" {{#empty fieldValue}}{{else}}{{#contains ../fieldValue/value value}}selected{{/contains}}{{/empty}}>
-                                        {{displayText}}
-                                    </option>
-                                {{/each}}
-                            </select>
-                        </div>
-
-                        {{/fieldTypeEquals}}
-                        {{#fieldTypeEquals type "BOOLEAN"}}
-                        <div class="col-6 mt-2">
-                            <input type="checkbox"
-                                   class="form-check-input  border border-dark"
-                                   id="ticketField-{{schema/name}}" name="ticketField-{{schema/name}}"
-                                   value="true"
-                                {{#empty fieldValue}}{{else}}{{#eq fieldValue/value true}}checked{{/eq}}{{/empty}}
-                                {{#eq schema/required true}}required{{/eq}}
-                                {{#eq enabled false}}disabled{{/eq}}>
-                        </div>
-                        {{/fieldTypeEquals}}
-                        {{#fieldTypeEquals type "LOCATION"}}
-
-                        {{/fieldTypeEquals}}
-                        {{#fieldTypeEquals type "DATE"}}
-                            <div class="col-6">
-                                <input type="date"
-                                       class="form-control border border-dark bg-light"
-                                       id="ticketField-{{schema/name}}" name="ticketField-{{schema/name}}"
-                                    {{#empty schema/max}}{{else}}max="{{schema/max}}" {{/empty}}
-                                    {{#empty schema/min}}{{else}}max="{{schema/max}}" {{/empty}}
-                                    {{#empty fieldValue}}{{else}}value="{{htmlDate fieldValue/value false}}" {{/empty}}
-                                    {{#eq schema/required true}}required{{/eq}}
-                                    {{#eq enabled false}}disabled{{/eq}}>
-                            </div>
-                        {{/fieldTypeEquals}}
-                        {{#fieldTypeEquals type "NUMBER"}}
-                            <div class="col-6">
-                                <input type="number"
-                                       class="form-control border border-dark bg-light"
-                                       id="ticketField-{{schema/name}}" name="ticketField-{{schema/name}}"
-                                    {{#neq schema/max 0}}max="{{schema/max}}" {{/neq}}
-                                    {{#neq schema/min 0}}min="{{schema/min}}" {{/neq}}
-                                    {{#empty fieldValue}}{{else}}value="{{fieldValue/value}}" {{/empty}}
-                                    {{#eq schema/required true}}required{{/eq}}
-                                    {{#eq enabled false}}disabled{{/eq}}>
-                            </div>
-                        {{/fieldTypeEquals}}
-                    </div>
-                {{/each}}
-        </section>
-        <div class="row mt-2">
-            <div class="col-12 d-flex justify-content-center">
-                <button type="submit" class="btn btn-success">Update</button>
-            </div>
-        </div>
-        </form>
     {{/with}}
 {{/partial}}
 

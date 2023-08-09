@@ -95,6 +95,7 @@ public class DBTicketStore implements TicketStore {
                                              .setCreatedByUserId(ConductorServerUtils.operatingUserId())
                                              .setSubjectId(subjectId)
                                              .setTicketStateId(ticketStateId)
+                                             .setCreatedByUserId(ConductorServerUtils.operatingUserId())
                                              .setPriority(priority))
                 .saveAll(fieldDao, ticket -> toStoredFields(ticket, fields))
                 .execute();

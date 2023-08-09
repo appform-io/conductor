@@ -14,7 +14,7 @@
                 <div class="col-sm-12 col-md-6">
                     <div class="mb-3">
                         <label for="name" class="col-form-label fw-bold">Name</label>
-                        <input type="text" id="name" name="name" class="form-control border border-dark bg-light"
+                        <input type="text" id="name" name="name" class="form-control border border-dark"
                                maxlength="45" placeholder="Workflow Name"
                                aria-describedby="nameHelp" required>
                         <div id="nameHelp" class="form-text">Name <i>can not</i> be changed once saved. Max Length: 45.</div>
@@ -23,7 +23,7 @@
                         <label for="description" class="col-form-label fw-bold">Description</label>
 
                         <textarea id="description" name="description"
-                                  class="form-control border border-dark bg-light"
+                                  class="form-control border border-dark"
                                   placeholder="A description for the workflow"
                                   maxlength="255" aria-describedby="descriptionHelp"></textarea>
                         <div id="descriptionHelp" class="form-text">Optional, can be upto 255 characters long.</div>
@@ -32,7 +32,7 @@
                         <label for="schemaId" class="col-form-label fw-bold">Ticket Schema</label>
 
                         <select id="schemaId" name="schemaId"
-                                class="form-control selectpicker border border-dark bg-light"
+                                class="form-control selectpicker border border-dark"
                                 data-live-search="true" aria-describedby="schemaIdHelp" required>
                             <option value="" disabled selected>Select a Ticket Schema</option>
                             {{#each schemas}}

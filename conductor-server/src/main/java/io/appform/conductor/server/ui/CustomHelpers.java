@@ -25,10 +25,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.text.WordUtils;
 
 import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  *
@@ -82,6 +79,13 @@ public class CustomHelpers {
     public CharSequence fieldTypeEquals(FieldType lhs, String value, Options options) {
         return FieldType.valueOf(value).equals(lhs)
                ? options.fn()
+               : options.inverse();
+    }
+
+    @SneakyThrows
+    public <E extends Enum<E>> CharSequence eqEnum(final E lhs, final String rhs, Options options) {
+        return lhs != null && lhs.name().equals(rhs)
+                ? options.fn()
                : options.inverse();
     }
 

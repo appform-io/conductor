@@ -18,6 +18,7 @@ package io.appform.conductor.server.resources;
 
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.subject.SubjectIDType;
+import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.filter.ticketfilters.TicketWorkflowEquals;
 import io.appform.conductor.model.workflow.WorkflowState;
@@ -84,12 +85,12 @@ public class Tickets {
             @FormParam("subjectIdType") @NotNull final SubjectIDType subjectIdType,
             @FormParam("subIdSubType") @DefaultValue("") @Length(max = 255) final String subIdSubType,
             @FormParam("subIdValue") @NotEmpty @Length(max = 45) final String subIdValue) {
-        return ticketManager.createTicket(title,
-                                          description,
-                                          subjectIdType,
-                                          subIdSubType,
-                                          subIdValue,
-                                          workflowId)
+        return ticketManager.createTicket(
+                        title,
+                        description,
+                        subjectIdType,
+                        subIdSubType,
+                        subIdValue, workflowId)
                 .map(t -> redirect("/tickets/" + t.getSummary().getId() + "/details"))
                 .orElseThrow(() -> fail("Could not create ticket for workflow "+ workflowId,
                                         "/tickets/create"));
@@ -157,15 +158,27 @@ public class Tickets {
     }
 
     @POST
-    @Path("/{ticketId}/update")
+    @Path("/{ticketId}/summary/update")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response updateTicket(
             @Auth final ConductorUser user,
             @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
             @FormParam("title") @NotEmpty @Length(max = 255) final String title,
             @FormParam("description") @DefaultValue("") @Length(max = 4096) final String description,
+            @FormParam("priority") @DefaultValue("MEDIUM") final TicketPriority priority) {
+        return ticketManager.processFormSummaryUpdate(ticketId, title, description, priority)
+                .map(t -> Response.seeOther(URI.create("/tickets/" + ticketId + "/details")).build())
+                .orElse(Response.seeOther(URI.create("/")).build());
+    }
+
+    @POST
+    @Path("/{ticketId}/fields/update")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response updateTicketFields(
+            @Auth final ConductorUser user,
+            @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
             final MultivaluedMap<String, String> form) {
-        return ticketManager.processFormUpdate(ticketId, form)
+        return ticketManager.processFormFieldUpdate(ticketId, form)
                 .map(t -> Response.seeOther(URI.create("/tickets/" + ticketId + "/details")).build())
                 .orElse(Response.seeOther(URI.create("/")).build());
     }

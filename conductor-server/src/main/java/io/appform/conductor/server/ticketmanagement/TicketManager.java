@@ -166,7 +166,7 @@ public class TicketManager {
     }
 
     @SneakyThrows
-    public Optional<TicketDetails> processFormUpdate(
+    public Optional<TicketDetails> processFormFieldUpdate(
             final String ticketId,
             final MultivaluedMap<String, String> form) {
         val ticket = ticketStore.read(ticketId, true).orElse(null);
@@ -214,6 +214,41 @@ public class TicketManager {
                                                                                                 field.getValue()));
                                        });
                                    });
+    }    @SneakyThrows
+    public Optional<TicketDetails> processFormSummaryUpdate(
+            final String ticketId,
+            final String title,
+            final String description,
+            final TicketPriority priority) {
+        val ticket = ticketStore.update(ticketId,
+                                        ticketSkeleton -> ticketSkeleton.setTitle(title)
+                                                .setDescription(description)
+                                                .setPriority(priority),
+                                        List.of()).orElse(null);
+        if (null == ticket) {
+            return Optional.empty();
+        }
+
+        val workflow = workflowStore.read(ticket.getWorkflowId()).orElse(null);
+        if (null == workflow) {
+            return Optional.empty();
+        }
+        val subject = subjectStore.getSubject(ticket.getSubjectId()).orElse(null);
+        if (null == subject) {
+            return Optional.empty();
+        }
+        if (workflow.getStates().get(ticket.getTicketStateId()).isTerminal()) {
+            return Optional.of(ticketDetails(ticket, workflow, subject.getSummary()));
+        }
+        val schema = schemaStore.get(workflow.getSchemaId()).orElse(null);
+        if (null == schema) {
+            return Optional.empty();
+        }
+        val node = mapper.createObjectNode();
+/*        node.put("title", title);
+        node.put("description", description);
+        node.put("priority", priority.name());*/
+        return processTicketUpdate(node, schema, workflow, subject.getSummary(), (payload, fields) -> {});
     }
 
     @SneakyThrows
@@ -451,7 +486,7 @@ public class TicketManager {
                                                    skeleton.getTitle(),
                                                    skeleton.getDescription(),
                                                    skeleton.getWorkflowId(),
-                                                   userStore.getById(skeleton.getTicketId()).orElse(null),
+                                                   userStore.getById(skeleton.getCreatedByUserId()).orElse(null),
                                                    Objects.nonNull(skeleton.getAssignedToGroupId())
                                                    ? groupStore.get(skeleton.getAssignedToGroupId()).orElse(null)
                                                    : null,

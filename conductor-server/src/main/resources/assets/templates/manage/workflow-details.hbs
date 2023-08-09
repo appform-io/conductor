@@ -24,7 +24,7 @@
                         <div class="mb-3">
                             <label for="description" class="col-form-label fw-bold">Description</label>
                             <textarea id="description" name="description"
-                                      class="form-control border border-dark bg-light"
+                                      class="form-control border border-dark"
                                       aria-describedby="descriptionHelp"
                                       placeholder="A description for the schema">{{description}}</textarea>
                             <div id="descriptionHelp" class="form-text">Optional, can be upto 255 characters long</div>
@@ -32,7 +32,7 @@
                         <div class="mb-3">
                             <label for="schemaId" class="col-form-label fw-bold">Schema</label>
                             <input type="text" id="schemaId"
-                                   class="form-control border border-dark bg-light"
+                                   class="form-control border border-dark"
                                    maxlength="45" placeholder="W Name" aria-describedby="nameHelp"
                                    value="{{../schema/name}}" disabled>
                             <div id="nameHelp" class="form-text">Schema <i>can not</i> be updated</div>
@@ -173,7 +173,7 @@
                                 <div class="row g-3 m-2">
                                     <div class="col-sm-12 col-md-5">
                                         <select id="fromState" name="fromState"
-                                                class="form-control selectpicker border border-dark bg-light"
+                                                class="form-control selectpicker border border-dark"
                                                 data-live-search="true" aria-describedby="fromStateHelp" required>
                                             <option value="" disabled selected>Select from state</option>
                                             {{#each states}}
@@ -188,7 +188,7 @@
                                     </div>
                                     <div class="col-sm-12 col-md-5">
                                         <select id="toState" name="toState"
-                                                class="form-control selectpicker border border-dark bg-light"
+                                                class="form-control selectpicker border border-dark"
                                                 data-live-search="true" aria-describedby="toStateHelp" required>
                                             <option value="" disabled selected>Select to state</option>
                                             {{#each states}}
@@ -200,7 +200,7 @@
                                         <div id="toStateHelp" class="form-text">State at which transition ends</div>
                                     </div>
                                     <div class="col-sm-12 col-md-2">
-                                        <select class="form-control selectpicker border border-dark bg-light"
+                                        <select class="form-control selectpicker border border-dark"
                                                 id="transitionType" name="transitionType"
                                                 aria-describedby="transitionTypeHelp" required>
                                             <option value="" disabled selected>Transition type</option>
@@ -217,7 +217,7 @@
                                 </div>
                                 <div class="row g-3 m-2">
                                     <div class="col-12">
-                                        <textarea id="rule" name="rule" class="form-control border border-dark bg-light"
+                                        <textarea id="rule" name="rule" class="form-control border border-dark"
                                                   maxlength="2048" rows="10" aria-describedby="ruleHelp"
                                                   placeholder="Rule definition"></textarea>
                                         <div id="ruleHelp" class="form-text">The rule is executed if Transition Type is
@@ -233,7 +233,7 @@
                                 <div class="row g-3 m-2">
                                     <div class="col-12">
                                         <select id="transitionAllowedActions" name="allowedActions"
-                                                class="form-control selectpicker border border-dark bg-light"
+                                                class="form-control selectpicker border border-dark"
                                                 multiple aria-describedby="transitionAllowedActionsHelp"
                                                 data-live-search="true" data-selected-text-format="count > 2">
                                             <option value="" disabled selected>Actions to be triggered</option>
@@ -344,7 +344,7 @@
                                     <label for="titleTemplate" class="col-form-label fw-bold">Title
                                         Template</label>
                                     <textarea id="titleTemplate" name="titleTemplate"
-                                              class="form-control border border-dark bg-light"
+                                              class="form-control border border-dark"
                                               placeholder="Handlebars template to extract ticket title from raw payload"
                                               aria-describedby="titleTemplateHelp"
                                               required>{{titleTemplate.template}}</textarea>
@@ -358,7 +358,7 @@
                                     <label for="descriptionTemplate" class="col-form-label fw-bold">Description
                                         Template</label>
                                     <textarea id="descriptionTemplate" name="descriptionTemplate"
-                                              class="form-control border border-dark bg-light"
+                                              class="form-control border border-dark"
                                               aria-describedby="descriptionTemplateHelp"
                                               placeholder="Handlebars template to extract ticket description from raw payload"
                                               required>{{descriptionTemplate.template}}</textarea>
@@ -372,7 +372,7 @@
                                     <label for="subjectTemplate" class="col-form-label fw-bold">Subject ID
                                         Template</label>
                                     <textarea id="subjectTemplate" name="subjectTemplate"
-                                              class="form-control border border-dark bg-light"
+                                              class="form-control border border-dark"
                                               aria-describedby="subjectTemplateHelp"
                                               placeholder="Handlebars template to extract subject from raw payload"
                                               required>{{subjectIdTemplate.template}}</textarea>
@@ -395,7 +395,7 @@
                                           action="/manage/workflow/{{id}}/selectionrules/add">
                                         <div class="mb3">
                                         <textarea id="selectionRule" name="selectionRule"
-                                                  class="form-control border border-dark bg-light"
+                                                  class="form-control border border-dark"
                                                   maxlength="2048" rows="3" aria-describedby="selectionRuleHelp"
                                                   placeholder="Workflow selection rule definition"></textarea>
                                             <div id="selectionRuleHelp" class="form-text">The rule is run on the raw

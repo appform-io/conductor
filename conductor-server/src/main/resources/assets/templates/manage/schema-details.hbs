@@ -18,7 +18,7 @@
                         <div class="mb-3">
                             <label for="name" class="col-form-label fw-bold">Name</label>
                             <input type="text" id="name" name="name"
-                                   class="form-control border border-dark bg-light"
+                                   class="form-control border border-dark"
                                    maxlength="45" placeholder="Schema Name" aria-describedby="nameHelp"
                                    value="{{schema.name}}" {{#empty schema}}required{{else}}disabled{{/empty}}>
                             <div id="nameHelp" class="form-text">Name <i>can not</i> be changed</div>
@@ -26,7 +26,7 @@
                         <div class="mb-3">
                             <label for="description" class="col-form-label fw-bold">Description</label>
                             <textarea id="description" name="description"
-                                      class="form-control border border-dark bg-light"
+                                      class="form-control border border-dark"
                                       aria-describedby="descriptionHelp"
                                       placeholder="A description for the schema">{{schema.description}}</textarea>
                             <div id="descriptionHelp" class="form-text">Optional, can be upto 255 characters long</div>
@@ -70,7 +70,7 @@
                                     <div class="mb-3">
                                         <label for="fieldName" class="col-form-label fw-bold">Field Display Name</label>
                                         <input type="text" id="fieldName" name="fieldName"
-                                               class="form-control border border-dark bg-light"
+                                               class="form-control border border-dark"
                                                maxlength="45" placeholder="Field Display Label"
                                                aria-describedby="fieldNameHelp" required>
                                         <div id="fieldNameHelp" class="form-text">Field Name to be displayed on the form.
@@ -81,7 +81,7 @@
                                         <label for="fieldDescription"
                                                class="col-form-label fw-bold">Description</label>
                                         <textarea id="fieldDescription" name="fieldDescription"
-                                                  class="form-control border border-dark bg-light"
+                                                  class="form-control border border-dark"
                                                   placeholder="A description for the field"
                                                   aria-describedby="fieldDescriptionHelp"></textarea>
                                         <div id="fieldDescriptionHelp" class="form-text">Optional description for the field.
@@ -92,7 +92,7 @@
 
                                         <label for="fieldType"
                                                class="col-form-label fw-bold">Type</label>
-                                        <select class="form-control  border border-dark bg-light field-type"
+                                        <select class="form-control  border border-dark field-type"
                                                 id="fieldType" name="fieldType" aria-describedby="fieldTypeHelp" required>
                                             <option value="" disabled selected>Select data type</option>
                                             <option value="STRING">String</option>
@@ -129,7 +129,7 @@
                                                class="col-form-label fw-bold">Regex</label>
                                         <input type="text"
                                                id="fieldStringRegex" name="fieldStringRegex"
-                                               class="form-control border border-dark bg-light"
+                                               class="form-control border border-dark"
                                                placeholder="Regular expression to be matched"
                                                aria-describedby="fieldStringRegexHelp"
                                         >
@@ -142,7 +142,7 @@
                                                class="col-form-label fw-bold">Choices</label>
                                         <input type="text"
                                                id="fieldChoiceChoices" name="fieldChoiceChoices"
-                                               class="form-control border border-dark bg-light"
+                                               class="form-control border border-dark"
                                                placeholder="Comma separated list of choices"
                                                aria-describedby="fieldChoiceChoicesHelp"
                                         >
@@ -161,11 +161,11 @@
                                         <label class="col-form-label fw-bold">Range</label>
                                         <input type="number"
                                                id="fieldNumberMin" name="fieldNumberMin"
-                                               class="form-control col-6 border border-dark bg-light"
+                                               class="form-control col-6 border border-dark"
                                                placeholder="Min" aria-describedby="fieldNumberRangeHelp">
                                         <input type="number"
                                                id="fieldNumberMax" name="fieldNumberMax"
-                                               class="form-control col-6 border border-dark bg-light"
+                                               class="form-control col-6 border border-dark"
                                                placeholder="Max" aria-describedby="fieldNumberRangeHelp">
                                         <div id="fieldNumberRangeHelp" class="form-text">
                                             Allowed range for number field

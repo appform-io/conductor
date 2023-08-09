@@ -19,6 +19,7 @@ package io.appform.conductor.server.ui.views.tickets;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.ticket.TicketDetails;
+import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
@@ -26,7 +27,9 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -40,6 +43,7 @@ public class TicketDetailsView extends BaseLoggedInView {
     Schema schema;
     TicketState state;
     List<TicketFieldView> fields;
+    Set<TicketPriority> priorities = EnumSet.allOf(TicketPriority.class);
     public TicketDetailsView(User currentUser, TicketDetails ticket, Workflow workflow, Schema schema,
                              TicketState state, List<TicketFieldView> fields) {
         super("templates/tickets/ticket-details.hbs", currentUser);

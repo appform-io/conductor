@@ -21,7 +21,7 @@
                 <div class="col-sm-12 col-md-6">
                     <div class="mb-3">
                         <label for="name" class="col-form-label fw-bold">Name</label>
-                        <input type="text" id="name" name="name" class="form-control border border-dark bg-light"
+                        <input type="text" id="name" name="name" class="form-control border border-dark"
                                maxlength="45" placeholder="Role Name" aria-describedby="nameHelp"
                                value="{{role.name}}"
                                {{#empty role}}required{{else}}disabled{{/empty}}
@@ -31,7 +31,7 @@
                     <div class="mb-3">
                         <label for="description" class="col-form-label fw-bold">Description</label>
                         <textarea id="description" name="description"
-                                  class="form-control border border-dark bg-light" rows="10"
+                                  class="form-control border border-dark" rows="10"
                                   placeholder="A description for the role" aria-describedby="descriptionHelp"
                                   aria-describedby="descriptionHelp">{{role.description}}</textarea>
                         <div id="descriptionHelp" class="form-text">Optional, can be upto 255 characters long</div>
@@ -40,7 +40,7 @@
                 <div class="col-sm-12 col-md-6">
                     <div class="mb-3">
                         <label for="permissions" class="col-form-label fw-bold">Permissions</label>
-                        <select id="permissions" name="permissions" class="form-control border border-dark bg-light"
+                        <select id="permissions" name="permissions" class="form-control border border-dark"
                                 multiple size="15" aria-describedby="permissionsHelp" required>
                             {{#each permissions}}
                                 <option value="{{this}}"

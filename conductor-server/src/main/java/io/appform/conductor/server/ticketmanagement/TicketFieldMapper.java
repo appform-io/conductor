@@ -67,6 +67,10 @@ public class TicketFieldMapper {
                 errors.add("No field found for field: " + field);
                 continue;
             }
+            if(null == fieldSchema) {
+                errors.add("No field schema found for field: " + fieldId);
+                continue;
+            }
             val results = validateField(fieldSchema, fieldName, fieldData);
             if (!results.getFirst().isEmpty()) {
                 errors.addAll(results.getFirst());

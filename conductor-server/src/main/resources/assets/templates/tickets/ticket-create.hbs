@@ -18,9 +18,9 @@
                         <div class="mb-3">
                             <label for="workflowId" class="col-form-label fw-bold">Workflow</label>
                             <select id="workflowId" name="workflowId"
-                                    class="form-control selectpicker border border-dark bg-light"
+                                    class="form-control selectpicker border border-dark"
                                     data-live-search="true" aria-describedby="workflowIdHelp" required>
-                                <option disabled selected>Select workflow</option>
+                                <option disabled>Select workflow</option>
                                 {{#each workflows}}
                                     <option value="{{id}}">{{displayName}}</option>
                                 {{/each}}
@@ -29,7 +29,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="title" class="col-form-label fw-bold">Title</label>
-                            <input type="text" id="title" name="title" class="form-control border border-dark bg-light"
+                            <input type="text" id="title" name="title" class="form-control border border-dark"
                                    maxlength="45" placeholder="Ticket title" aria-describedby="titleHelp" required>
                             <div id="titleHelp" class="form-text">
                                 A human-readable title for this ticket. Max Length: 255.
@@ -38,9 +38,9 @@
                         <div class="mb-3">
                             <label for="description" class="col-form-label fw-bold">Description</label>
                             <textarea id="description" name="description"
-                                      class="form-control border border-dark bg-light"
+                                      class="form-control border border-dark"
                                       maxlength="45" placeholder="Ticket description"
-                                      aria-describedby="descriptionHelp"></textarea>
+                                      aria-describedby="descriptionHelp" rows="10"></textarea>
                             <div id="descriptionHelp" class="form-text">
                                 A detailed description of the issue. Max Length: 4096.
                             </div>
@@ -50,7 +50,7 @@
                         <div class="col-sm-12 col-md-4">
                             <label for="subjectIdType" class="col-form-label fw-bold">Subject ID Type</label>
                             <select id="subjectIdType" name="subjectIdType"
-                                    class="form-control selectpicker border border-dark bg-light"
+                                    class="form-control selectpicker border border-dark"
                                     data-live-search="true" aria-describedby="subjectIdTypeHelp" required>
                                 <option disabled selected>Select ID Type</option>
                                 {{#each subIdTypes}}
@@ -62,7 +62,7 @@
                         <div class="col-sm-12 col-md-4">
                             <label for="subIdSubType" class="col-form-label fw-bold">Sub Type</label>
                             <input type="text" id="subIdSubType" name="subIdSubType"
-                                   class="form-control border border-dark bg-light"
+                                   class="form-control border border-dark"
                                    aria-describedby="subIdSubTypeHelp"
                                    maxlength="45" placeholder="Subtype (Optional)">
                             <div id="subIdSubTypeHelp" class="form-text">Sub type in case id is not phone or email. Max Length: 45</div>
@@ -70,7 +70,7 @@
                         <div class="col-sm-12 col-md-4">
                             <label for="subIdValue" class="col-form-label fw-bold">ID Value</label>
                             <input type="text" id="subIdValue" name="subIdValue"
-                                   class="form-control border border-dark bg-light"
+                                   class="form-control border border-dark"
                                    maxlength="45" placeholder="Actual value of the ID"
                                    aria-describedby="subIdValueHelp" required>
                             <div id="subIdValue" class="form-text">Actual value of the ID (eg: Phone Number). Max Length: 45</div>
@@ -78,7 +78,7 @@
                     </div>
                     <div class="row mt-2">
                         <div class="col-12 d-flex justify-content-end">
-                            <button type="submit" class="btn btn-success">Create</button>
+                            <button type="submit" class="btn btn-success"><i class="bi bi-plus-lg"></i> Create</button>
                         </div>
                     </div>
                 </form>

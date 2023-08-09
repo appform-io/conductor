@@ -13,7 +13,7 @@
         <div class="col-8 d-flex justify-content-end">
             <form>
                 <select id="workflowId" name="workflowId"
-                        class="form-control selectpicker border border-dark bg-light"
+                        class="form-control selectpicker border border-dark"
                         data-live-search="true" required>
                     {{#each workflows}}
                         <option value="{{id}}" {{#eq ../workflowId id}}selected{{/eq}}>{{displayName}}</option>

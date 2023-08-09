@@ -33,6 +33,7 @@ import io.appform.conductor.model.ticket.fields.FieldValue;
 import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
 import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.fields.impl.*;
+import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.usermanagement.CurrentUserSessionStore;
 import lombok.experimental.UtilityClass;
 import lombok.val;
@@ -264,6 +265,10 @@ public class ConductorServerUtils {
                                                           false,
                                                           false))
                                                   .build());
+    }
+
+    public static String userId(ConductorUser user) {
+        return user.getUserSession().getUser().getSummary().getId();
     }
 }
 

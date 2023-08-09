@@ -6,7 +6,7 @@
                     <div class="col-12">
                         <div class="input-group border border-dark">
                             <span class="input-group-text" id="search-box"><i class="bi fs2 bi-envelope-at"></i></span>
-                            <input type="email" class="form-control form-control-sm  bg-light data-table-search"
+                            <input type="email" class="form-control form-control-sm  data-table-search"
                                    id="email" name="email" maxlength="255"
                                    placeholder="Find by email" aria-label="Search email"
                                    title="Find user by Email ID" aria-describedby="emailSearchBoxHelp">
@@ -20,7 +20,7 @@
                     <div class="col-12">
                         <div class="input-group border border-dark">
                             <span class="input-group-text" id="search-box"><i class="bi fs2 bi-person"></i></span>
-                            <input type="text" class="form-control form-control-sm  bg-light data-table-search"
+                            <input type="text" class="form-control form-control-sm  data-table-search"
                                    id="searchUserId" name="searchUserId"
                                    placeholder="Find by user id" aria-label="Search User ID"
                                    title="Find user by user ID" aria-describedby="searchUserIdHelp">
@@ -78,7 +78,7 @@
                                                   data-cnf-title="Changing state for {{name}}"
                                                   data-cnf-text="Are you sure?">
                                                 <div class="col-12">
-                                                    <select id="state" name="state" class="form-control border border-dark bg-light"
+                                                    <select id="state" name="state" class="form-control border border-dark"
                                                             required>
                                                         <option disabled selected value="">Select new state</option>
                                                         <option value="LOCKED">Locked</option>
@@ -106,7 +106,7 @@
                                                   data-cnf-title="Assigning role to {{name}}"
                                                   data-cnf-text="Are you sure?">
                                                 <div class="col-12">
-                                                    <select id="roleId" name="roleId" class="form-control border border-dark bg-light"
+                                                    <select id="roleId" name="roleId" class="form-control border border-dark"
                                                             required>
                                                         <option disabled selected value="">Select role to assign</option>
                                                         {{#each ../availableRoles}}

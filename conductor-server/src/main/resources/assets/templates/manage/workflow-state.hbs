@@ -29,7 +29,7 @@
                         <div class="mb-3">
                             <label for="stateName" class="col-form-label fw-bold">Name</label>
                             <input type="text" id="stateName" name="stateName"
-                                   class="form-control border border-dark bg-light"
+                                   class="form-control border border-dark"
                                    maxlength="45" placeholder="State Name" aria-describedby="stateNameHelp"
                                    {{#empty state.displayName}}required{{else}}disabled{{/empty}}
                                    value="{{state.displayName}}">
@@ -40,7 +40,7 @@
                         <div class="mb-3">
                             <label for="stateDescription" class="col-form-label fw-bold">Description</label>
                             <textarea id="stateDescription" name="stateDescription"
-                                      class="form-control border border-dark bg-light"
+                                      class="form-control border border-dark"
                                       rows="5" aria-describedby="stateDescriptionHelp"
                                       maxlength="255" placeholder="Description">{{state.description}}</textarea>
                             <div id="stateDescriptionHelp" class="form-text">
@@ -61,7 +61,7 @@
                         <div class="mb-3">
                             <label for="allowedActions" class="col-form-label fw-bold">Allowed Actions</label>
                             <select id="allowedActions" name="allowedActions"
-                                    class="form-control selectpicker border border-dark bg-light" multiple
+                                    class="form-control selectpicker border border-dark" multiple
                                     data-live-search="true" data-selected-text-format="count > 2">
                                 {{#each availableActions}}
                                     <option value="{{id}}"
