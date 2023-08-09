@@ -5,80 +5,86 @@
     <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
 {{/partial}}
 {{#partial "content"}}
-<section>
-    <div class="row">
-        <div class="col">
-            <h1>Create a new ticket</h1>
+    <section>
+        <div class="row">
+            <div class="col">
+                <h4>Create a new ticket</h4>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col">
-            <form method="post" action="/tickets/create">
-                <div class="row mt-2">
-                    <div class="col-2">
-                        <label for="workflowId"  class="col-form-label fw-bold">Workflow</label>
+        <div class="row">
+            <div class="col-sm-12 col-mb-6">
+                <form method="post" action="/tickets/create">
+                    <div class="row">
+                        <div class="mb-3">
+                            <label for="workflowId" class="col-form-label fw-bold">Workflow</label>
+                            <select id="workflowId" name="workflowId"
+                                    class="form-control selectpicker border border-dark bg-light"
+                                    data-live-search="true" aria-describedby="workflowIdHelp" required>
+                                <option disabled selected>Select workflow</option>
+                                {{#each workflows}}
+                                    <option value="{{id}}">{{displayName}}</option>
+                                {{/each}}
+                            </select>
+                            <div id="workflowIdHelp" class="form-text">Workflow for this ticket.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="title" class="col-form-label fw-bold">Title</label>
+                            <input type="text" id="title" name="title" class="form-control border border-dark bg-light"
+                                   maxlength="45" placeholder="Ticket title" aria-describedby="titleHelp" required>
+                            <div id="titleHelp" class="form-text">
+                                A human-readable title for this ticket. Max Length: 255.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="col-form-label fw-bold">Description</label>
+                            <textarea id="description" name="description"
+                                      class="form-control border border-dark bg-light"
+                                      maxlength="45" placeholder="Ticket description"
+                                      aria-describedby="descriptionHelp"></textarea>
+                            <div id="descriptionHelp" class="form-text">
+                                A detailed description of the issue. Max Length: 4096.
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-10">
-                        <select id="workflowId" name="workflowId"
-                                class="form-control selectpicker border border-dark bg-light"
-                                data-live-search="true" required>
-                            <option disabled selected>Select workflow</option>
-                        {{#each workflows}}
-                            <option value="{{id}}">{{displayName}}</option>
-                        {{/each}}
-                        </select>
+                    <div class="row m-2 border border-dark p-2">
+                        <div class="col-sm-12 col-md-4">
+                            <label for="subjectIdType" class="col-form-label fw-bold">Subject ID Type</label>
+                            <select id="subjectIdType" name="subjectIdType"
+                                    class="form-control selectpicker border border-dark bg-light"
+                                    data-live-search="true" aria-describedby="subjectIdTypeHelp" required>
+                                <option disabled selected>Select ID Type</option>
+                                {{#each subIdTypes}}
+                                    <option value="{{this}}">{{displayName}}</option>
+                                {{/each}}
+                            </select>
+                            <div id="subjectIdTypeHelp" class="form-text">Type of ID for the subject</div>
+                        </div>
+                        <div class="col-sm-12 col-md-4">
+                            <label for="subIdSubType" class="col-form-label fw-bold">Sub Type</label>
+                            <input type="text" id="subIdSubType" name="subIdSubType"
+                                   class="form-control border border-dark bg-light"
+                                   aria-describedby="subIdSubTypeHelp"
+                                   maxlength="45" placeholder="Subtype (Optional)">
+                            <div id="subIdSubTypeHelp" class="form-text">Sub type in case id is not phone or email. Max Length: 45</div>
+                        </div>
+                        <div class="col-sm-12 col-md-4">
+                            <label for="subIdValue" class="col-form-label fw-bold">ID Value</label>
+                            <input type="text" id="subIdValue" name="subIdValue"
+                                   class="form-control border border-dark bg-light"
+                                   maxlength="45" placeholder="Actual value of the ID"
+                                   aria-describedby="subIdValueHelp" required>
+                            <div id="subIdValue" class="form-text">Actual value of the ID (eg: Phone Number). Max Length: 45</div>
+                        </div>
                     </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-2">
-                        <label for="title"  class="col-form-label fw-bold">Title</label>
+                    <div class="row mt-2">
+                        <div class="col-12 d-flex justify-content-end">
+                            <button type="submit" class="btn btn-success">Create</button>
+                        </div>
                     </div>
-                    <div class="col-10">
-                        <input type="text" id="title" name="title" class="form-control border border-dark bg-light"
-                               maxlength="45" placeholder="Ticket title" required>
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-2">
-                        <label for="description"  class="col-form-label fw-bold">Description</label>
-                    </div>
-                    <div class="col-10">
-                        <textarea id="description" name="description" class="form-control border border-dark bg-light"
-                                  maxlength="45" placeholder="Ticket description"></textarea>
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-2">
-                        <label for="subjectIdType"  class="col-form-label fw-bold">Subject</label>
-                    </div>
-                    <div class="col-2">
-                        <select id="subjectIdType" name="subjectIdType"
-                                class="form-control selectpicker border border-dark bg-light"
-                                data-live-search="true" required>
-                            <option disabled selected>Select ID Type</option>
-                            {{#each subIdTypes}}
-                                <option value="{{this}}">{{displayName}}</option>
-                            {{/each}}
-                        </select>
-                    </div>
-                    <div class="col-3">
-                        <input type="text" id="subIdSubType" name="subIdSubType" class="form-control border border-dark bg-light"
-                               maxlength="45" placeholder="Subtype (Optional)">
-                    </div>
-                    <div class="col-5">
-                        <input type="text" id="subIdValue" name="subIdValue" class="form-control border border-dark bg-light"
-                               maxlength="45" placeholder="Actual value of the ID" required>
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-12 d-flex justify-content-end">
-                        <button type="submit" class="btn btn-success">Create</button>
-                    </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
 {{/partial}}
 
 {{> common/base}}

@@ -90,7 +90,7 @@ public class Tickets {
                                           subIdSubType,
                                           subIdValue,
                                           workflowId)
-                .map(t -> redirect("/tickets/" + workflowId))
+                .map(t -> redirect("/tickets/" + t.getSummary().getId() + "/details"))
                 .orElseThrow(() -> fail("Could not create ticket for workflow "+ workflowId,
                                         "/tickets/create"));
     }
