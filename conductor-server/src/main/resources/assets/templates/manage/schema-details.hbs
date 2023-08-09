@@ -187,7 +187,7 @@
                                         <th>Name</th>
                                         <th>Description</th>
                                         <th>Type</th>
-                                        <th>Required</th>
+                                        <th class="text-center">Required</th>
                                         <th>Multiple Allowed</th>
                                         <th>Last Updated</th>
                                         <th></th>
@@ -200,8 +200,19 @@
                                             <td>{{name}}</td>
                                             <td>{{description}}</td>
                                             <td>{{readable type}}</td>
-                                            <td>{{#if required eq true}}Yes{{else}}No{{/if}}</td>
-                                            <td>{{#if allowMultiple eq true}}Yes{{else}}No{{/if}}</td>
+                                            <td>
+                                                {{#if required eq true}}
+                                                    <span class="badge bg-danger ms-2">Required</span>
+                                                {{else}}
+                                                    <span class="badge bg-success ms-2">Not required</span>
+                                                {{/if}}
+                                            </td>
+                                            <td>
+                                                {{#if allowMultiple eq true}}
+                                                    <span class="badge bg-dark ms-2">Single</span>
+                                                {{else}}
+                                                    <span class="badge bg-info ms-2">Multiple</span>
+                                                {{/if}}</td>
                                             <td>{{updated}}</td>
                                             <td>
                                                 <form class="confirmed-form" method="post"

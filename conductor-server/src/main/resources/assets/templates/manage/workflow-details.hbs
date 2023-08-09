@@ -318,7 +318,7 @@
                                                     <span class="badge bg-primary ms-2">Default</span>
                                                 {{/eq}}
                                             </td>
-                                            <td><pre><span class="badge bg-primary me-2">{{readable rule.type}}</span><code>{{rule.rule}}</code></pre></td>
+                                            <td><pre><span class="badge  bg-dark me-2">{{readable rule.type}}</span><code>{{rule.rule}}</code></pre></td>
                                             <td>
                                                 <form class="confirmed-form" method="post"
                                                       action="/manage/workflow/{{../id}}/transitions/{{id}}/delete"
@@ -426,7 +426,7 @@
                                         {{#each selectionRules}}
                                             <tr>
                                                 <td>
-                                                    <pre><span class="badge bg-info me-2">{{readable type}}</span><code>{{rule}}</code></pre>
+                                                    <pre><span class="badge bg-dark me-2">{{readable type}}</span><code>{{rule}}</code></pre>
                                                 </td>
                                                 <td class="text-center">
                                                     <form class="confirmed-form" method="post"

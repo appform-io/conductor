@@ -144,6 +144,7 @@ public class Manage {
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
+                    .required(fieldRequired)
                     .allowMultiple(fieldChoiceMullti)
                     .choices(Arrays.stream(fieldChoiceChoices.split(","))
                                      .map(choice -> new ChoiceFieldSchema.Option(upperSnake(choice), choice))
@@ -153,11 +154,13 @@ public class Manage {
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
+                    .required(fieldRequired)
                     .build();
             case NUMBER -> NumberFieldSchema.builder()
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
+                    .required(fieldRequired)
                     .min(fieldNumberMin)
                     .max(fieldNumberMax)
                     .build();
@@ -165,11 +168,13 @@ public class Manage {
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
+                    .required(fieldRequired)
                     .build();
             case DATE -> DateFieldSchema.builder()
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
+                    .required(fieldRequired)
                     .build();
         };
         return schemaStore.addField(schemaId, schemaId + "-" + name, fs)

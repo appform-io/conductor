@@ -10,7 +10,7 @@
             {{#empty state}}
                 <h4>Create a new state</h4>
             {{else}}
-                <h2>Edit state {{state.name}}</h2>
+                <h4>Edit state: <b>{{state.displayName}}</b></h4>
             {{/empty}}
         </div>
     </div>
@@ -23,53 +23,75 @@
                   action="/manage/workflow/{{workflowId}}/states/{{state.id}}/update"
                 {{/empty}}
             >
-                <div class="row g-3 m2">
-                    <div class="col-sm-3 col-md-2 text-end">
-                        <label for="stateName" class="col-form-label fw-bold">Name</label>
+
+                <div class="row g-3 m2 mt-2">
+                    <div class="col-sm-12 col-md-6">
+                        <div class="mb-3">
+                            <label for="stateName" class="col-form-label fw-bold">Name</label>
+                            <input type="text" id="stateName" name="stateName"
+                                   class="form-control border border-dark bg-light"
+                                   maxlength="45" placeholder="State Name" aria-describedby="stateNameHelp"
+                                   {{#empty state.displayName}}required{{else}}disabled{{/empty}}
+                                   value="{{state.displayName}}">
+                            <div id="stateNameHelp" class="form-text">
+                                State Name. <i>Can not</i> be updated once saved. Max Length: 45.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="stateDescription" class="col-form-label fw-bold">Description</label>
+                            <textarea id="stateDescription" name="stateDescription"
+                                      class="form-control border border-dark bg-light"
+                                      rows="5" aria-describedby="stateDescriptionHelp"
+                                      maxlength="255" placeholder="Description">{{state.description}}</textarea>
+                            <div id="stateDescriptionHelp" class="form-text">
+                                A human readable description. Max Length: 255.
+                            </div>
+                        </div>
+                        <div class="mb-3 form-check form-switch pt-2">
+                            <input class="form-check-input  border border-dark" type="checkbox" role="switch"
+                                   id="stateIsTerminal" name="stateIsTerminal" value="true"
+                                   aria-describedby="stateIsTerminalHelp"
+                                   {{#eq state.terminal true}}checked{{/eq}}>
+                            <label class="form-check-label" for="stateIsTerminal">State is terminal</label>
+                            <div id="stateIsTerminalHelp" class="form-text">
+                                A workflow is considered to be complete when a terminal state is reached.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="allowedActions" class="col-form-label fw-bold">Allowed Actions</label>
+                            <select id="allowedActions" name="allowedActions"
+                                    class="form-control selectpicker border border-dark bg-light" multiple
+                                    data-live-search="true" data-selected-text-format="count > 2">
+                                {{#each availableActions}}
+                                    <option value="{{id}}"
+                                            {{#contains state.allowedActions id}}selected{{/contains}}>{{name}}</option>
+                                {{/each}}
+                            </select>
+                            <div id="stateDescriptionHelp" class="form-text">
+                                Actions to be executed <b><i>after</i></b> the state is reached. Multiple Actions can be
+                                selected.
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-6 p-2">
-                        <input type="text" id="stateName" name="stateName"
-                               class="form-control border border-dark bg-light"
-                               maxlength="45" placeholder="State Name" {{#empty state.displayName}}required{{else}}disabled{{/empty}} value="{{state.displayName}}">
-                    </div>
-                </div>
-                <div class="row g-3 m2">
-                    <div class="col-sm-3 col-md-2 text-end">
-                        <label for="stateDescription" class="col-form-label fw-bold">Description</label>
-                    </div>
-                    <div class="col-6">
-                    <textarea id="stateDescription" name="stateDescription"
-                              class="form-control border border-dark bg-light"
-                              maxlength="255" placeholder="Description">{{state.description}}</textarea>
-                    </div>
-                </div>
-                <div class="row m-2">
-                    <div class="col-sm-3 col-md-2 text-end">
-                    </div>
-                    <div class="col-6 form-check form-switch pt-2">
-                        <input class="form-check-input  border border-dark" type="checkbox" role="switch"
-                               id="stateIsTerminal" name="stateIsTerminal" value="true"
-                               {{#eq state.terminal true}}checked{{/eq}}>
-                        <label class="form-check-label" for="stateIsTerminal">State is terminal</label>
-                    </div>
-                </div>
-                <div class="row g-3 m2">
-                    <div class="col-sm-3 col-md-2 text-end">
-                        <label for="allowedActions" class="col-form-label fw-bold">Allowed Actions</label>
-                    </div>
-                    <div class="col-6">
-                        <select id="allowedActions" name="allowedActions"
-                                class="form-control selectpicker border border-dark bg-light" multiple
-                                data-live-search="true"  data-selected-text-format="count > 2">
-                            {{#each availableActions}}
-                                <option value="{{id}}"
-                                        {{#contains state.allowedActions id}}selected{{/contains}}>{{name}}</option>
-                            {{/each}}
-                        </select>
+                    <div class="col-sm-12 col-md-6">
+                        <div class="alert alert-light note" role="alert">
+                            <div class="row note-header">
+                                What Is A Workflow State?
+                            </div>
+                            <div class="row note-body">
+                                A workflow state represents the state of a ticket at a given point in time.
+                                <br/>
+                                A ticket moves from state to state based on the data supplied and the data present in it
+                                already, the transitions and the rules defined in those transitions.
+                                For a given state, fields on the UI can be made editable or read only and can be hidden
+                                as well.
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="row g-3 m2 mt-2">
-                    <div class="col-sm-12">
+                    <div class="col-sm-12 table-responsive">
                         <table class="table table-bordered border-dark">
                             <thead>
                             <tr>
@@ -90,7 +112,7 @@
                                                id="visibleFields" name="visibleFields" value="{{id}}"
                                                {{#contains state.visibleFields id}}checked{{/contains}}>
                                     </td>
-                                    <td  class="text-center">
+                                    <td class="text-center">
                                         <input class="form-check-input  border border-dark" type="checkbox"
                                                role="switch"
                                                id="editableFields" name="editableFields" value="{{id}}"
@@ -104,7 +126,7 @@
                 </div>
                 <div class="row m-2">
                     <div class="col-12  d-flex justify-content-center">
-                        <button type="submit" class="btn btn-outline-success btn-sm"><i class="bi bi-save"></i> Save
+                        <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-save"></i> Save
                         </button>
                     </div>
                 </div>
