@@ -16,11 +16,12 @@
 
 package io.appform.conductor.server.utils.persistence;
 
+import com.google.common.base.Strings;
+
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 /**
  *
@@ -29,11 +30,13 @@ import java.util.Objects;
 public class StringListConverter implements AttributeConverter<List<String>, String> {
     @Override
     public String convertToDatabaseColumn(List<String> attribute) {
-        return null == attribute ? "" : String.join(",", attribute);
+        return null == attribute ? null : String.join(",", attribute);
     }
 
     @Override
     public List<String> convertToEntityAttribute(String dbData) {
-        return Arrays.asList(Objects.requireNonNullElse(dbData, "").split(","));
+        return Strings.isNullOrEmpty(dbData)
+                ? List.of()
+                : Arrays.asList(dbData.split(","));
     }
 }

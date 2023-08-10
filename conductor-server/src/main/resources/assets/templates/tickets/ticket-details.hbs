@@ -61,7 +61,7 @@
                                 </div>
                             </div>
                             <div class="md-3">
-                                <label for="priority" class="col-form-label fw-bold">Title</label>
+                                <label for="priority" class="col-form-label fw-bold">Priority</label>
                                 <select id="priority" name="priority"
                                         class="form-control selectpicker border border-dark"
                                         aria-describedby="priorityHelp" required>
@@ -102,9 +102,7 @@
                                                href="/subjects/{{summary/subject/globalId}}/details">
                                                 {{summary/subject/globalId}}</a>
                                             <div id="subIdHelp" class="form-text">
-                                                Priority for this ticket. Handling of priority is dependent on state
-                                                transition
-                                                rules.
+                                                Person who is the subject of this ticket
                                             </div>
                                         </div>
                                     </div>
@@ -136,26 +134,30 @@
                                                            id="ticketField-{{schema/name}}"
                                                            name="ticketField-{{schema/name}}"
                                                            aria-describedby="ticketField-{{schema/name}}-Help"
-                                                        {{#gt schema/maxLength
-                                                              0}}maxlength="{{schema/maxLength}}" {{/gt}}
+                                                        {{#gt schema/maxLength 0}}maxlength="{{schema/maxLength}}" {{/gt}}
                                                         {{#empty
                                                                 schema/matchPattern}}{{else}}pattern="{{schema/matchPattern}}" {{/empty}}
                                                         {{#empty
                                                                 fieldValue}}{{else}}value="{{fieldValue/value}}" {{/empty}}
-                                                        {{#eq schema/required true}}required{{/eq}}
-                                                        {{#eq enabled false}}disabled{{/eq}}>
+                                                        {{#eq editable true}}
+                                                            {{#eq schema/required true}}required{{/eq}}
+                                                        {{else}}
+                                                           disabled
+                                                        {{/eq}}>
                                                 {{/fieldTypeEquals}}
                                                 {{#fieldTypeEquals type "CHOICE"}}
-                                                    <select
-                                                            class="form-control selectpicker border border-dark"
+                                                    <select class="form-control selectpicker border border-dark"
                                                             data-live-search="true"
                                                             data-selected-text-format="count > 2"
                                                             id="ticketField-{{schema/name}}"
                                                             name="ticketField-{{schema/name}}"
                                                             aria-describedby="ticketField-{{schema/name}}-Help"
                                                         {{#eq schema/allowMultiple true}}multiple{{/eq}}
-                                                        {{#eq schema/required true}}required{{/eq}}
-                                                        {{#eq enabled false}}disabled{{/eq}}>
+                                                        {{#eq editable true}}
+                                                            {{#eq schema/required true}}required{{/eq}}
+                                                        {{else}}
+                                                            disabled
+                                                        {{/eq}}>
                                                         {{#empty value}}
                                                             <option disabled>Select an option</option>
                                                         {{/empty}}
@@ -171,16 +173,20 @@
 
                                                 {{/fieldTypeEquals}}
                                                 {{#fieldTypeEquals type "BOOLEAN"}}
-                                                    <input type="checkbox"
-                                                           class="form-check-input  border border-dark mt-2 ms-3"
+                                                    <select class="form-control selectpicker border border-dark"
+                                                            data-live-search="true"
                                                            id="ticketField-{{schema/name}}"
                                                            name="ticketField-{{schema/name}}"
                                                            aria-describedby="ticketField-{{schema/name}}-Help"
-                                                           value="true"
-                                                        {{#empty fieldValue}}{{else}}{{#eq fieldValue/value
-                                                                                           true}}checked{{/eq}}{{/empty}}
-                                                        {{#eq schema/required true}}required{{/eq}}
-                                                        {{#eq enabled false}}disabled{{/eq}}>
+                                                        {{#eq editable true}}
+                                                            {{#eq schema/required true}}required{{/eq}}
+                                                        {{else}}
+                                                            disabled
+                                                        {{/eq}}>
+                                                        <option value="" disabled>Select option</option>
+                                                        <option value="true" {{#eq fieldValue/value true}}selected{{/eq}}>Yes</option>
+                                                        <option value="false" {{#eq fieldValue/value false}}selected{{/eq}}>No</option>
+                                                    </select>
                                                 {{/fieldTypeEquals}}
                                                 {{#fieldTypeEquals type "LOCATION"}}
 
@@ -195,8 +201,11 @@
                                                         {{#empty schema/min}}{{else}}max="{{schema/max}}" {{/empty}}
                                                         {{#empty fieldValue}}{{else}}value="{{htmlDate fieldValue/value
                                                                                                        false}}" {{/empty}}
-                                                        {{#eq schema/required true}}required{{/eq}}
-                                                        {{#eq enabled false}}disabled{{/eq}}>
+                                                        {{#eq editable true}}
+                                                            {{#eq schema/required true}}required{{/eq}}
+                                                        {{else}}
+                                                           disabled
+                                                        {{/eq}}>
                                                 {{/fieldTypeEquals}}
                                                 {{#fieldTypeEquals type "NUMBER"}}
                                                     <input type="number"
@@ -208,8 +217,11 @@
                                                         {{#neq schema/min 0}}min="{{schema/min}}" {{/neq}}
                                                         {{#empty
                                                                 fieldValue}}{{else}}value="{{fieldValue/value}}" {{/empty}}
-                                                        {{#eq schema/required true}}required{{/eq}}
-                                                        {{#eq enabled false}}disabled{{/eq}}>
+                                                        {{#eq editable true}}
+                                                            {{#eq schema/required true}}required{{/eq}}
+                                                        {{else}}
+                                                           disabled
+                                                        {{/eq}}>
                                                 {{/fieldTypeEquals}}
                                                 <div id="ticketField-{{schema/name}}-Help" class="form-text">
                                                     {{schema/description}}
