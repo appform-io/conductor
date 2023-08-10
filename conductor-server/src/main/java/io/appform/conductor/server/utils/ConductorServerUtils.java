@@ -275,10 +275,10 @@ public class ConductorServerUtils {
 
     public static Date htmlDateToDate(String date) {
         return Strings.isNullOrEmpty(date)
-               ? Date.from(LocalDate.parse(date)
+               ? null
+                : Date.from(LocalDate.parse(date)
                                    .atStartOfDay(ZoneId.systemDefault())
-                                   .toInstant())
-               : null;
+                                   .toInstant());
     }
 }
 
