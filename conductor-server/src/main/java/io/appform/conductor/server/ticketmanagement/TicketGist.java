@@ -29,6 +29,7 @@ public class TicketGist {
     String title;
     String workflowName;
     String stateName;
+    boolean terminated;
     Date created;
     Date updated;
 }

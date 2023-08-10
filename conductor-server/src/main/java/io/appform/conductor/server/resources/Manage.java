@@ -460,7 +460,7 @@ public class Manage {
     }
 
     private static io.appform.conductor.model.workflow.Template template(String templateValue) {
-        return new io.appform.conductor.model.workflow.Template(io.appform.conductor.model.workflow.Template.Type.HANDLEBARS,
+        return new io.appform.conductor.model.workflow.Template(io.appform.conductor.model.workflow.Template.Type.STRING_SUBSTITUTION,
                                                                 templateValue);
     }
 }

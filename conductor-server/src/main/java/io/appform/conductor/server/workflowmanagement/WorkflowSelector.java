@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.locks.StampedLock;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
  * Selects a workflow from a payload based onselection rules
  */
 @Slf4j
+@Singleton
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class WorkflowSelector implements Managed {
     private static final String HANDLER_NAME = "RELOAD_HANDLER";

@@ -151,12 +151,12 @@ public class TicketManager {
                 .stream()
                 .map(skel -> {
                     val wf = workflowStore.read(skel.getWorkflowId());
+                    val currState = wf.map(workflow -> workflow.getStates().get(skel.getTicketStateId()));
                     return new TicketGist(skel.getTicketId(),
                                           skel.getTitle(),
                                           wf.map(Workflow::getDisplayName).orElse(""),
-                                          wf.map(workflow -> workflow.getStates().get(skel.getTicketStateId()))
-                                                  .map(TicketState::getDisplayName)
-                                                  .orElse(""),
+                                          currState.map(TicketState::getDisplayName).orElse(""),
+                                          currState.map(TicketState::isTerminal).orElse(false),
                                           skel.getCreated(),
                                           skel.getUpdated());
                 })
