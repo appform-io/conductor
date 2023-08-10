@@ -106,6 +106,25 @@ public class DBSubjectStore implements SubjectStore {
     }
 
     @Override
+    public Optional<Subject> updateSubjectSummary(String globalSubjectId, UnaryOperator<SubjectSummary> updater) {
+        val updatedRes = subjectDao.update(globalSubjectId,
+                                           subOptional -> subOptional.map(stored -> {
+                                                       val updated = updater.apply(toWireSummary(stored));
+                                                       if (null == updated) {
+                                                           return null;
+                                                       }
+                                                       return stored
+                                                               .setName(updated.getName())
+                                                               .setDob(updated.getDob());
+                                                   })
+                                                   .orElse(null));
+        if (updatedRes) {
+            return getSubject(globalSubjectId);
+        }
+        return Optional.empty();
+    }
+
+    @Override
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredSubjectSummary.SUBJECT_TABLE_NAME))
@@ -213,7 +232,8 @@ public class DBSubjectStore implements SubjectStore {
     public List<SubjectSummary> lookupSummaryById(SubjectID id) {
         val subGlobalIds = fetchSubjectIdsFoId(id);
         return subjectDao.scatterGather(DetachedCriteria.forClass(StoredSubjectSummary.class)
-                                                .add(Property.forName(StoredSubjectSummary.Fields.globalId).in(subGlobalIds)))
+                                                .add(Property.forName(StoredSubjectSummary.Fields.globalId)
+                                                             .in(subGlobalIds)))
                 .stream()
                 .map(DBSubjectStore::toWireSummary)
                 .toList();
@@ -301,7 +321,8 @@ public class DBSubjectStore implements SubjectStore {
     public List<Address> findAddressesForSubject(String globalSubjectId) {
         return addressDao.select(globalSubjectId,
                                  DetachedCriteria.forClass(StoredAddress.class)
-                                         .add(Property.forName(StoredAddress.Fields.subjectGlobalId).eq(globalSubjectId))
+                                         .add(Property.forName(StoredAddress.Fields.subjectGlobalId)
+                                                      .eq(globalSubjectId))
                                          .add(Property.forName(StoredAddress.Fields.deleted).eq(false)),
                                  0,
                                  Integer.MAX_VALUE)
@@ -333,6 +354,7 @@ public class DBSubjectStore implements SubjectStore {
         return new SubjectSummary(stored.getGlobalId(),
                                   stored.getName(),
                                   stored.getDob(),
+                                  stored.getGender(),
                                   stored.isDeleted(),
                                   stored.getCreated(),
                                   stored.getUpdated());
@@ -388,8 +410,10 @@ public class DBSubjectStore implements SubjectStore {
     private List<String> fetchSubjectIdsFoId(SubjectID id) {
         return subjectIdDao.scatterGather(DetachedCriteria.forClass(StoredSubjectID.class)
                                                   .add(Property.forName(StoredSubjectID.Fields.type).eq(id.getType()))
-                                                  .add(Property.forName(StoredSubjectID.Fields.subType).eq(id.getSubType()))
-                                                  .add(Property.forName(StoredSubjectID.Fields.value).eq(id.getValue())),
+                                                  .add(Property.forName(StoredSubjectID.Fields.subType)
+                                                               .eq(id.getSubType()))
+                                                  .add(Property.forName(StoredSubjectID.Fields.value)
+                                                               .eq(id.getValue())),
                                           0, Integer.MAX_VALUE)
                 .stream()
                 .map(StoredSubjectID::getSubjectGlobalId)

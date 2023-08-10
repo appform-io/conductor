@@ -45,6 +45,8 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -269,6 +271,14 @@ public class ConductorServerUtils {
 
     public static String userId(ConductorUser user) {
         return user.getUserSession().getUser().getSummary().getId();
+    }
+
+    public static Date htmlDateToDate(String date) {
+        return Strings.isNullOrEmpty(date)
+               ? Date.from(LocalDate.parse(date)
+                                   .atStartOfDay(ZoneId.systemDefault())
+                                   .toInstant())
+               : null;
     }
 }
 

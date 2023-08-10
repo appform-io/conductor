@@ -16,6 +16,9 @@
 
 package io.appform.conductor.model.subject;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Value;
 
 import java.util.Date;
@@ -24,6 +27,8 @@ import java.util.Date;
  * Subject for a ticket. This is the person reaching out for help.
  */
 @Value
+@Builder
+@AllArgsConstructor(access = AccessLevel.PUBLIC)
 public class SubjectSummary {
 
     /**
@@ -40,6 +45,11 @@ public class SubjectSummary {
      * Date of birth
      */
     Date dob;
+
+    /**
+     * Gender of subject
+     */
+    Gender gender;
 
     /**
      * Is the subject deleted

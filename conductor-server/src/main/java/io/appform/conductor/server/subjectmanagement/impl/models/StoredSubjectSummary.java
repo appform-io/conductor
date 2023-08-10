@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.subjectmanagement.impl.models;
 
+import io.appform.conductor.model.subject.Gender;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Getter;
 import lombok.Setter;
@@ -56,6 +57,10 @@ public class StoredSubjectSummary {
 
     @Column(columnDefinition = "timestamp")
     private Date dob;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
 
     @Column
     private boolean deleted;

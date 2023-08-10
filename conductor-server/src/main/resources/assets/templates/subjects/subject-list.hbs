@@ -1,0 +1,97 @@
+{{#partial "page_css_includes"}}
+    <link href="/css/bootstrap-select.min.css" rel="stylesheet">
+{{/partial}}
+{{#partial "page_js_includes"}}
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+{{/partial}}
+{{#partial "content"}}
+    <section>
+        <div class="row">
+            <div class="col-sm-12 col-md-10">
+                <form action="/subjects/search" method="post">
+                    <div class="row m-2 border border-dark p-2">
+                        <div class="col-sm-12 col-md-3">
+                            <label for="subjectIdType" class="col-form-label fw-bold">Subject ID Type</label>
+                            <select id="subjectIdType" name="subjectIdType"
+                                    class="form-control selectpicker border border-dark"
+                                    data-live-search="true" aria-describedby="subjectIdTypeHelp" required>
+                                <option disabled>Select ID Type</option>
+                                {{#each subIdTypes}}
+                                    <option value="{{this}}">{{readable this}}</option>
+                                {{/each}}
+                            </select>
+                            <div id="subjectIdTypeHelp" class="form-text">Type of ID for the subject</div>
+                        </div>
+                        <div class="col-sm-12 col-md-4">
+                            <label for="subIdSubType" class="col-form-label fw-bold">Sub Type</label>
+                            <input type="text" id="subIdSubType" name="subIdSubType"
+                                   class="form-control border border-dark"
+                                   aria-describedby="subIdSubTypeHelp"
+                                   maxlength="45" placeholder="Subtype (Optional)">
+                            <div id="subIdSubTypeHelp" class="form-text">Sub type in case id is not phone or email. Max Length: 45</div>
+                        </div>
+                        <div class="col-sm-12 col-md-4">
+                            <label for="subIdValue" class="col-form-label fw-bold">ID Value</label>
+                            <input type="text" id="subIdValue" name="subIdValue"
+                                   class="form-control border border-dark"
+                                   maxlength="45" placeholder="Actual value of the ID"
+                                   aria-describedby="subIdValueHelp" required>
+                            <div id="subIdValue" class="form-text">Actual value of the ID (eg: Phone Number). Max Length: 45</div>
+                        </div>
+                        <div class="col-sm-12 col-md-1  d-flex justify-content-center mt-4 mb-4">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12 col-md-10">
+                <form action="/subjects/go" method="post">
+                    <div class="row m-2 border border-dark p-2">
+                        <div class="col-sm-12 col-md-11">
+                            <label for="subjectId" class="col-form-label fw-bold">Sub Type</label>
+                            <input type="text" id="subjectId" name="subjectId"
+                                   class="form-control border border-dark"
+                                   aria-describedby="subjectIdHelp"
+                                   maxlength="45" placeholder="Subtype (Optional)">
+                            <div id="subjectIdHelp" class="form-text">Subject ID for the subject you want to visit</div>
+                        </div>
+                        <div class="col-sm-12 col-md-1  d-flex justify-content-center mt-4 mb-4">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-right-circle-fill"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    <section>
+        <div class="row mt-2">
+            <div class="col-12 table-responsive">
+                <table class="table table-bordered border-dark">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Created</th>
+                        <th>Last Updated</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#each subjects}}
+                        <tr>
+                            <td><a href="/subjects/{{globalId}}/details">{{globalId}}</a></td>
+                            <td>{{name}}</td>
+                            <td>{{created}}</td>
+                            <td>{{updated}}</td>
+                        </tr>
+                    {{/each}}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </section>
+{{/partial}}
+
+{{> common/base}}

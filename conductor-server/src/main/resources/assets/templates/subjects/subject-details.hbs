@@ -1,0 +1,61 @@
+{{#partial "page_css_includes"}}
+    <link href="/css/bootstrap-select.min.css" rel="stylesheet">
+{{/partial}}
+{{#partial "page_js_includes"}}
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+{{/partial}}
+{{#partial "content"}}
+    <section>
+        {{#empty subject}}
+            <div class="col-auto"><h4>Register A New Subject</h4></div>
+        {{else}}
+            <div class="col-auto"><h4>Details for Subject: <b>{{subject.summary.globalId}}</b></h4></div>
+        {{/empty}}
+        </div>
+        <div class="row">
+            <div class="col-sm-12 col-md-6">
+                <form method="post"
+                      {{#empty subject}}
+                      action="/subjects/create"
+                      {{else}}
+                      action="/subjects/{{subject.summary.globalId}}/summary/update"
+                      {{/empty}}
+                >
+                    <div class="md-3">
+                        <label for="name" class="col-form-label fw-bold">Name</label>
+                        <input type="text" id="name" name="name"
+                               class="form-control border border-dark"
+                               maxlength="45" placeholder="Subject Name" aria-describedby="nameHelp"
+                               value="{{subject.summary.name}}" required>
+                        <div id="nameHelp" class="form-text">Name of the subject</div>
+                    </div>
+                    <div class="md-3">
+                        <label for="dob" class="col-form-label fw-bold">Date of birth</label>
+                        <input type="date" id="dob" name="dob"
+                               class="form-control border border-dark"
+                               placeholder="Date of birth" aria-describedby="dobHelp"
+                               value="{{htmlDate subject.summary.dob false}}" required>
+                        <div id="dobHelp" class="form-text">Date of birth for the subject</div>
+                    </div>
+                    <div class="md-3">
+                        <label for="gender" class="col-form-label fw-bold">Gender</label>
+                        <select id="gender" name="gender"
+                               class="form-control selectpicker border border-dark"
+                               aria-describedby="genderHelp" required>
+                            <option disabled>Select Gender</option>
+                            {{#each gender}}
+                                <option value="{{this}}" {{#eq this subject.summary.gender}}selected{{/eq}}>{{readable this}}</option>
+                            {{/each}}
+                        </select>
+                        <div id="genderHelp" class="form-text">Gender for the subject. Select Other if not known.</div>
+                    </div>
+                    <div class="mb-3 mt-2 d-flex justify-content-center">
+                        <button type="submit" class="btn btn-success mb-3"><i class="bi bi-person-fill-check"></i> Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+{{/partial}}
+
+{{> common/base}}

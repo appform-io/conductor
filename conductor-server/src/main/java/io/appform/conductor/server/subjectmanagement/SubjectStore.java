@@ -31,6 +31,7 @@ public interface SubjectStore {
     Optional<SubjectSummary> saveSubject(List<SubjectID> ids, String globalSubjectId, String name, Date dob);
 
     Optional<Subject> updateSubject(String globalSubjectId, UnaryOperator<Subject> updater);
+    Optional<Subject> updateSubjectSummary(String globalSubjectId, UnaryOperator<SubjectSummary> updater);
 
     Optional<Subject> getSubject(String globalSubjectId);
 

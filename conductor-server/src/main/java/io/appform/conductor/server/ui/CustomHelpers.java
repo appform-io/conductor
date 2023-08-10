@@ -83,7 +83,7 @@ public class CustomHelpers {
     }
 
     @SneakyThrows
-    public <E extends Enum<E>> CharSequence eqEnum(final E lhs, final String rhs, Options options) {
+    public <E extends Enum<E>> CharSequence eqEnum(final E lhs, final Object rhs, Options options) {
         return lhs != null && lhs.name().equals(rhs)
                 ? options.fn()
                : options.inverse();
@@ -91,7 +91,7 @@ public class CustomHelpers {
 
     @SneakyThrows
     public CharSequence htmlDate(Date date, boolean time) {
-        return new SimpleDateFormat("yyyy-MM-dd").format(date);
+        return null == date ? "1970-01-01" : new SimpleDateFormat("yyyy-MM-dd").format(date);
     }
 
     public Object map(Map<String, Object> map, String key) {

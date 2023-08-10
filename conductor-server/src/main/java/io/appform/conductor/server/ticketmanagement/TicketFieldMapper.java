@@ -26,14 +26,13 @@ import io.appform.conductor.model.schema.fields.*;
 import io.appform.conductor.model.ticket.fields.FieldValue;
 import io.appform.conductor.model.ticket.fields.impl.*;
 import io.appform.conductor.server.schemamanagement.SchemaOpValidationResult;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.utils.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -48,9 +47,6 @@ public class TicketFieldMapper {
 
     public SchemaOpValidationResult<List<TicketFieldData>> map(final Schema schema, final JsonNode data) {
         val fields = data.fields();
-/*        if (fields.isEmpty() || fields.isNull()) {
-            return SchemaOpValidationResult.failure("Payload does not contain map of fields");
-        }*/
         val schemaId = schema.getId();
         val fieldsMap = schema.getFields()
                 .stream()
@@ -220,9 +216,7 @@ public class TicketFieldMapper {
             return Optional.of(new Date(fieldData.asLong()));
         }
         else if (fieldData.isTextual()) {
-            return Optional.of(Date.from(LocalDate.parse(fieldData.asText())
-                                                 .atStartOfDay(ZoneId.systemDefault())
-                                                 .toInstant()));
+            return Optional.of(ConductorServerUtils.htmlDateToDate(fieldData.asText()));
         }
         return Optional.empty();
     }
