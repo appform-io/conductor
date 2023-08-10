@@ -22,6 +22,7 @@ import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.subject.SubjectSummary;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.subjectmanagement.SubjectStore;
+import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.appform.conductor.server.ui.views.subjects.SubjectDetailsView;
 import io.appform.conductor.server.ui.views.subjects.SubjectListView;
 import io.appform.conductor.server.utils.ConductorServerUtils;
@@ -54,6 +55,8 @@ public class Subjects {
     private static final String SUBJECTS_LIST_PAGE = "/subjects/search";
 
     private final SubjectStore subjectStore;
+
+    private final TicketManager ticketManager;
 
     @GET
     @Path("/search")
@@ -96,7 +99,9 @@ public class Subjects {
             @Auth ConductorUser user,
             @PathParam("subjectId") @Length(max = 45) final String subjectId) {
         return subjectStore.getSubject(subjectId)
-                .map(s -> render(new SubjectDetailsView(user.getUserSession().getUser(), s)))
+                .map(subject -> render(new SubjectDetailsView(user.getUserSession().getUser(),
+                                                        subject,
+                                                        ticketManager.ticketsForSubject(subjectId))))
                 .orElseThrow(() -> fail("No such subject", SUBJECTS_LIST_PAGE));
     }
 

@@ -27,7 +27,7 @@ import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 
 /**
- *
+ * Sets user in thread local storage for access
  */
 @Slf4j
 @Singleton
@@ -40,6 +40,5 @@ public class AuthSetterFilter implements ContainerRequestFilter {
         if(user != null) {
             CurrentUserSessionStore.set(user.getUserSession());
         }
-        log.info("Conductor user: {}", user);
     }
 }

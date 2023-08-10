@@ -141,6 +141,28 @@ public class TicketManager {
         return Optional.of(ticketDetails(ticket, workflow, subject.getSummary()));
     }
 
+    public List<TicketGist> ticketsForSubject(final String subjectId) {
+
+        return ticketStore.list(List.of(TicketSubjectEquals.builder()
+                                                .subjectId(subjectId)
+                                                .build()),
+                                List.of(), null, 100, Map.of())
+                .getResults()
+                .stream()
+                .map(skel -> {
+                    val wf = workflowStore.read(skel.getWorkflowId());
+                    return new TicketGist(skel.getTicketId(),
+                                          skel.getTitle(),
+                                          wf.map(Workflow::getDisplayName).orElse(""),
+                                          wf.map(workflow -> workflow.getStates().get(skel.getTicketStateId()))
+                                                  .map(TicketState::getDisplayName)
+                                                  .orElse(""),
+                                          skel.getCreated(),
+                                          skel.getUpdated());
+                })
+                .toList();
+    }
+
     @SneakyThrows
     public TicketSkeletonListResult list(
             final List<TicketFilter> ticketFilters,
@@ -209,12 +231,14 @@ public class TicketManager {
                                        fields.forEach(field -> {
                                            val fieldSchema = fs.get(field.getSchemaFieldId());
                                            objectNode.set(fieldSchema.getName(),
-                                                        ConductorServerUtils.mapValueToJsonNode(mapper,
-                                                                                                fieldSchema,
-                                                                                                field.getValue()));
+                                                          ConductorServerUtils.mapValueToJsonNode(mapper,
+                                                                                                  fieldSchema,
+                                                                                                  field.getValue()));
                                        });
                                    });
-    }    @SneakyThrows
+    }
+
+    @SneakyThrows
     public Optional<TicketDetails> processFormSummaryUpdate(
             final String ticketId,
             final String title,

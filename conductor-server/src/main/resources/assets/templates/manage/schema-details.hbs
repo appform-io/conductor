@@ -199,7 +199,18 @@
                                             <td>{{displayName}}</td>
                                             <td>{{name}}</td>
                                             <td>{{description}}</td>
-                                            <td>{{readable type}}</td>
+
+                                            <td
+                                                {{#eqEnum type "STRING"}}
+                                                    title="Max Length: {{maxLength}}. Regex: {{matchPattern}}"
+                                                {{/eqEnum}}
+                                                {{#eqEnum type "NUMBER"}}
+                                                    title="Max: {{max}}. Min: {{min}}"
+                                                {{/eqEnum}}
+                                                {{#eqEnum type "CHOICE"}}
+                                                    title="Choices: {{#each choices}}{{this.value}} {{/each}}"
+                                                {{/eqEnum}}
+                                            >{{readable type}}</td>
                                             <td>
                                                 {{#if required eq true}}
                                                     <span class="badge bg-danger ms-2">Required</span>

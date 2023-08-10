@@ -6,20 +6,21 @@
 {{/partial}}
 {{#partial "content"}}
     <section>
-        {{#empty subject}}
-            <div class="col-auto"><h4>Register A New Subject</h4></div>
-        {{else}}
-            <div class="col-auto"><h4>Details for Subject: <b>{{subject.summary.globalId}}</b></h4></div>
-        {{/empty}}
+        <div class="row">
+            {{#empty subject}}
+                <div class="col-auto"><h4>Register A New Subject</h4></div>
+            {{else}}
+                <div class="col-auto"><h4>Details for Subject: <b>{{subject.summary.globalId}}</b></h4></div>
+            {{/empty}}
         </div>
         <div class="row">
             <div class="col-sm-12 col-md-6">
                 <form method="post"
-                      {{#empty subject}}
+                    {{#empty subject}}
                       action="/subjects/create"
-                      {{else}}
+                    {{else}}
                       action="/subjects/{{subject.summary.globalId}}/summary/update"
-                      {{/empty}}
+                    {{/empty}}
                 >
                     <div class="md-3">
                         <label for="name" class="col-form-label fw-bold">Name</label>
@@ -40,19 +41,37 @@
                     <div class="md-3">
                         <label for="gender" class="col-form-label fw-bold">Gender</label>
                         <select id="gender" name="gender"
-                               class="form-control selectpicker border border-dark"
-                               aria-describedby="genderHelp" required>
+                                class="form-control selectpicker border border-dark"
+                                aria-describedby="genderHelp" required>
                             <option disabled>Select Gender</option>
                             {{#each gender}}
-                                <option value="{{this}}" {{#eq this subject.summary.gender}}selected{{/eq}}>{{readable this}}</option>
+                                <option value="{{this}}" {{#eq this subject.summary.gender}}selected{{/eq}}>{{readable
+                                        this}}</option>
                             {{/each}}
                         </select>
                         <div id="genderHelp" class="form-text">Gender for the subject. Select Other if not known.</div>
                     </div>
                     <div class="mb-3 mt-2 d-flex justify-content-center">
-                        <button type="submit" class="btn btn-success mb-3"><i class="bi bi-person-fill-check"></i> Save</button>
+                        <button type="submit" class="btn btn-success mb-3"><i class="bi bi-person-fill-check"></i> Save
+                        </button>
                     </div>
                 </form>
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <div class="row">
+                    <div class="col-12">
+                        <h5>Tickets</h5>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <ul>
+                            {{#each tickets}}
+                                <li><a href="/tickets/{{ticketId}}/details">{{title}}</a></li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </section>

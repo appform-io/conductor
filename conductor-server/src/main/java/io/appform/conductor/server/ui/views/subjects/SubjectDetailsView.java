@@ -19,12 +19,14 @@ package io.appform.conductor.server.ui.views.subjects;
 import io.appform.conductor.model.subject.Gender;
 import io.appform.conductor.model.subject.Subject;
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.ticketmanagement.TicketGist;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -35,10 +37,12 @@ import java.util.Set;
 @ToString(callSuper = true)
 public class SubjectDetailsView extends BaseLoggedInView {
     Subject subject;
+    List<TicketGist> tickets;
     Set<Gender> gender = EnumSet.allOf(Gender.class);
 
-    public SubjectDetailsView(User currentUser, Subject subject) {
+    public SubjectDetailsView(User currentUser, Subject subject, List<TicketGist> tickets) {
         super("templates/subjects/subject-details.hbs", currentUser);
         this.subject = subject;
+        this.tickets = tickets;
     }
 }
