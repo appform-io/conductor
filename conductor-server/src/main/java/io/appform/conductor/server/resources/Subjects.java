@@ -16,10 +16,7 @@
 
 package io.appform.conductor.server.resources;
 
-import io.appform.conductor.model.subject.Gender;
-import io.appform.conductor.model.subject.SubjectID;
-import io.appform.conductor.model.subject.SubjectIDType;
-import io.appform.conductor.model.subject.SubjectSummary;
+import io.appform.conductor.model.subject.*;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.subjectmanagement.SubjectStore;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
@@ -100,8 +97,8 @@ public class Subjects {
             @PathParam("subjectId") @Length(max = 45) final String subjectId) {
         return subjectStore.getSubject(subjectId)
                 .map(subject -> render(new SubjectDetailsView(user.getUserSession().getUser(),
-                                                        subject,
-                                                        ticketManager.ticketsForSubject(subjectId))))
+                                                              subject,
+                                                              ticketManager.ticketsForSubject(subjectId))))
                 .orElseThrow(() -> fail("No such subject", SUBJECTS_LIST_PAGE));
     }
 
@@ -121,5 +118,59 @@ public class Subjects {
                                                          .build())
                 .map(s -> redirect("/subjects/" + subjectId + "/details"))
                 .orElseThrow(() -> fail("No such subject", SUBJECTS_LIST_PAGE));
+    }
+
+    @POST
+    @Path("/{subjectId}/id/add")
+    public Response addSubjectId(
+            @Auth ConductorUser user,
+            @PathParam("subjectId") @Length(max = 45) final String subjectId,
+            @FormParam("subjectIdType") @NotNull final SubjectIDType type,
+            @FormParam("subIdSubType") final String subIdSubType,
+            @FormParam("subIdValue") @NotNull @Length(max = 45) final String value,
+            @FormParam("verificationStatus") @DefaultValue("UNVERIFIED") final SubjectIDVerificationStatus verificationStatus) {
+        return subjectStore.saveIdentifier(subjectId,
+                                           type,
+                                           subIdSubType,
+                                           value,
+                                           verificationStatus)
+                .map(s -> redirect("/subjects/" + subjectId + "/details"))
+                .orElseThrow(() -> fail("Could not add ID", "/subjects/" + subjectId + "/details"));
+    }
+
+    @POST
+    @Path("/{subjectId}/id/{subIdId}/primary")
+    public Response makeSubjectIdPrimary(
+            @Auth ConductorUser user,
+            @PathParam("subjectId") @Length(max = 45) final String subjectId,
+            @PathParam("subIdId") @Length(max = 45) final String subIdId) {
+        return subjectStore.markIdentifierAsPrimary(subjectId, subIdId)
+                .map(s -> redirect("/subjects/" + subjectId + "/details"))
+                .orElseThrow(() -> fail("Could not add ID", "/subjects/" + subjectId + "/details"));
+    }
+
+    @POST
+    @Path("/{subjectId}/id/{subIdId}/verify")
+    public Response makeSubjectIdVerified(
+            @Auth ConductorUser user,
+            @PathParam("subjectId") @Length(max = 45) final String subjectId,
+            @PathParam("subIdId") @Length(max = 45) final String subIdId) {
+        return subjectStore.updateIdentifier(subjectId,
+                                             subIdId,
+                                             id -> id.setVerificationStatus(SubjectIDVerificationStatus.MANUALLY_VERIFIED))
+                .map(s -> redirect("/subjects/" + subjectId + "/details"))
+                .orElseThrow(() -> fail("Could not add ID", "/subjects/" + subjectId + "/details"));
+    }
+
+    @POST
+    @Path("/{subjectId}/id/{subIdId}/delete")
+    public Response deleteeSubjectId(
+            @Auth ConductorUser user,
+            @PathParam("subjectId") @Length(max = 45) final String subjectId,
+            @PathParam("subIdId") @Length(max = 45) final String subIdId) {
+        if(subjectStore.deleteIdentifier(subjectId, subIdId)) {
+            return redirect("/subjects/" + subjectId + "/details");
+        }
+        throw fail("Could not delete ID", "/subjects/" + subjectId + "/details");
     }
 }

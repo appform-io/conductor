@@ -47,6 +47,8 @@ public interface SubjectStore {
             SubjectIDVerificationStatus status);
 
     Optional<SubjectID> updateIdentifier(final String globalSubjectId, String idExtId, UnaryOperator<SubjectID> updater);
+    Optional<SubjectID> markIdentifierAsPrimary(final String globalSubjectId, String idExtId);
+    boolean deleteIdentifier(final String globalSubjectId, String idExtId);
 
     List<SubjectSummary> lookupSummaryById(final SubjectID id);
 
