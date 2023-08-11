@@ -25,6 +25,7 @@ import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.TicketState;
+import io.appform.conductor.model.subject.Gender;
 import io.appform.conductor.model.subject.SubjectID;
 import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.subject.SubjectSummary;
@@ -433,10 +434,10 @@ public class TicketManager {
 
     private SubjectSummary createEmptySubject(SubjectID sId) {
         return subjectStore.saveSubject(List.of(sId),
-                                        UUID.randomUUID()
-                                                .toString(),
+                                        UUID.randomUUID().toString(),
                                         "",
-                                        null)
+                                        null,
+                                        Gender.OTHER)
                 .orElse(null);
     }
 

@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.ui.views.subjects;
 
+import io.appform.conductor.model.subject.Gender;
 import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.subject.SubjectSummary;
 import io.appform.conductor.model.usermgmt.User;
@@ -37,6 +38,7 @@ import java.util.Set;
 public class SubjectListView extends BaseLoggedInView {
     List<SubjectSummary> subjects;
     Set<SubjectIDType> subIdTypes = EnumSet.allOf(SubjectIDType.class);
+    Set<Gender> gender = EnumSet.allOf(Gender.class);
 
     public SubjectListView(User currentUser, List<SubjectSummary> subjects) {
         super("templates/subjects/subject-list.hbs", currentUser);

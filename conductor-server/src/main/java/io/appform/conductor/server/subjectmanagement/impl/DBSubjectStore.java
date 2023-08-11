@@ -58,11 +58,13 @@ public class DBSubjectStore implements SubjectStore {
             List<SubjectID> ids,
             @Throws.RuntimeParam("id") String globalSubjectId,
             String name,
-            Date dob) {
+            Date dob,
+            Gender gender) {
         val storedSummary = new StoredSubjectSummary()
                 .setGlobalId(globalSubjectId)
                 .setName(name)
-                .setDob(dob);
+                .setDob(dob)
+                .setGender(Objects.requireNonNullElse(gender, Gender.OTHER));
         val savedSummary = subjectDao.saveAndGetExecutor(storedSummary)
                 .saveAll(subjectIdDao,
                          summary -> ids.stream()

@@ -22,7 +22,6 @@ import io.appform.conductor.server.subjectmanagement.SubjectStore;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.appform.conductor.server.ui.views.subjects.SubjectDetailsView;
 import io.appform.conductor.server.ui.views.subjects.SubjectListView;
-import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
@@ -35,8 +34,8 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import java.util.List;
+import java.util.UUID;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 
@@ -103,6 +102,19 @@ public class Subjects {
     }
 
     @POST
+    @Path("/create")
+    public Response createSubject(
+            @Auth ConductorUser user,
+            @FormParam("name") @Length(max = 45) final String name,
+            @FormParam("dob") final String dob,
+            @FormParam("gender") final Gender gender) {
+        val sId = UUID.randomUUID().toString();
+        return subjectStore.saveSubject(List.of(), sId, name, htmlDateToDate(dob), gender)
+                .map(s -> redirect("/subjects/" + sId + "/details"))
+                .orElseThrow(() -> fail("Could not create subject", SUBJECTS_LIST_PAGE));
+    }
+
+    @POST
     @Path("/{subjectId}/summary/update")
     public Response updateSubjectSummary(
             @Auth ConductorUser user,
@@ -113,7 +125,7 @@ public class Subjects {
         return subjectStore.updateSubjectSummary(subjectId,
                                                  s -> SubjectSummary.builder()
                                                          .name(name)
-                                                         .dob(ConductorServerUtils.htmlDateToDate(dob))
+                                                         .dob(htmlDateToDate(dob))
                                                          .gender(gender)
                                                          .build())
                 .map(s -> redirect("/subjects/" + subjectId + "/details"))
@@ -164,7 +176,7 @@ public class Subjects {
 
     @POST
     @Path("/{subjectId}/id/{subIdId}/delete")
-    public Response deleteeSubjectId(
+    public Response deleteSubjectId(
             @Auth ConductorUser user,
             @PathParam("subjectId") @Length(max = 45) final String subjectId,
             @PathParam("subIdId") @Length(max = 45) final String subIdId) {

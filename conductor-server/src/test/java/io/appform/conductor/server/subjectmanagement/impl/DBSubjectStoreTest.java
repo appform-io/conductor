@@ -16,10 +16,7 @@
 
 package io.appform.conductor.server.subjectmanagement.impl;
 
-import io.appform.conductor.model.subject.SubjectID;
-import io.appform.conductor.model.subject.SubjectIDType;
-import io.appform.conductor.model.subject.SubjectIDVerificationStatus;
-import io.appform.conductor.model.subject.SubjectSummary;
+import io.appform.conductor.model.subject.*;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
@@ -60,7 +57,8 @@ class DBSubjectStoreTest {
                                                                       null)),
                                                 "test",
                                                 "Sad Robot",
-                                                new Date())
+                                                new Date(),
+                                                Gender.FEMALE)
                 .orElse(null);
         assertNotNull(created);
         assertEquals(created, ds.lookupSummaryById(new SubjectID(SubjectIDType.PHONE,

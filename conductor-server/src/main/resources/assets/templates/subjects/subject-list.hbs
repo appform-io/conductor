@@ -7,63 +7,124 @@
 {{#partial "content"}}
     <section>
         <div class="row">
-            <div class="col-sm-12 col-md-10">
-                <form action="/subjects/search" method="post">
-                    <div class="row m-2 border border-dark p-2">
-                        <div class="col-sm-12 col-md-3">
-                            <label for="subjectIdType" class="col-form-label fw-bold">Subject ID Type</label>
-                            <select id="subjectIdType" name="subjectIdType"
-                                    class="form-control selectpicker border border-dark"
-                                    data-live-search="true" aria-describedby="subjectIdTypeHelp" required>
-                                <option disabled>Select ID Type</option>
-                                {{#each subIdTypes}}
-                                    <option value="{{this}}">{{readable this}}</option>
-                                {{/each}}
-                            </select>
-                            <div id="subjectIdTypeHelp" class="form-text">Type of ID for the subject</div>
+            <div class="col-sm-12 col-md-4">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="row">
+                            <div class="col-12">
+                                <h4>Register New Subject</h4>
+                            </div>
                         </div>
-                        <div class="col-sm-12 col-md-4">
-                            <label for="subIdSubType" class="col-form-label fw-bold">Sub Type</label>
-                            <input type="text" id="subIdSubType" name="subIdSubType"
-                                   class="form-control border border-dark"
-                                   aria-describedby="subIdSubTypeHelp"
-                                   maxlength="45" placeholder="Subtype (Optional)">
-                            <div id="subIdSubTypeHelp" class="form-text">Sub type in case id is not phone or email. Max Length: 45</div>
-                        </div>
-                        <div class="col-sm-12 col-md-4">
-                            <label for="subIdValue" class="col-form-label fw-bold">ID Value</label>
-                            <input type="text" id="subIdValue" name="subIdValue"
-                                   class="form-control border border-dark"
-                                   maxlength="45" placeholder="Actual value of the ID"
-                                   aria-describedby="subIdValueHelp" required>
-                            <div id="subIdValue" class="form-text">Actual value of the ID (eg: Phone Number). Max Length: 45</div>
-                        </div>
-                        <div class="col-sm-12 col-md-1  d-flex justify-content-center mt-4 mb-4">
-                            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-12 col-md-10">
-                <form action="/subjects/go" method="post">
-                    <div class="row m-2 border border-dark p-2">
-                        <div class="col-sm-12 col-md-11">
-                            <label for="subjectId" class="col-form-label fw-bold">Subject ID</label>
-                            <input type="text" id="subjectId" name="subjectId"
-                                   class="form-control border border-dark"
-                                   aria-describedby="subjectIdHelp"
-                                   maxlength="45" placeholder="Subtype (Optional)">
-                            <div id="subjectIdHelp" class="form-text">Subject ID for the subject you want to visit</div>
-                        </div>
-                        <div class="col-sm-12 col-md-1  d-flex justify-content-center mt-4 mb-4">
-                            <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-right-circle-fill"></i></button>
+                        <div class="row">
+                            <div class="col-12">
+                                <form method="post" action="/subjects/create">
+                                    <div class="md-3">
+                                        <label for="name" class="col-form-label fw-bold">Name</label>
+                                        <input type="text" id="name" name="name"
+                                               class="form-control border border-dark"
+                                               maxlength="45" placeholder="Subject Name" aria-describedby="nameHelp" required>
+                                        <div id="nameHelp" class="form-text">Name of the subject</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-12 col-md-6">
+                                            <label for="dob" class="col-form-label fw-bold">Date of birth</label>
+                                            <input type="date" id="dob" name="dob"
+                                                   class="form-control border border-dark"
+                                                   placeholder="Date of birth" aria-describedby="dobHelp" required>
+                                            <div id="dobHelp" class="form-text">Date of birth for the subject</div>
+                                        </div>
+                                        <div class="col-sm-12 col-md-6">
+                                            <label for="gender" class="col-form-label fw-bold">Gender</label>
+                                            <select id="gender" name="gender"
+                                                    class="form-control selectpicker border border-dark" required>
+                                                <option disabled>Select Gender</option>
+                                                {{#each gender}}
+                                                    <option value="{{this}}">{{readable this}}</option>
+                                                {{/each}}
+                                            </select>
+                                            <div id="genderHelp" class="form-text">Gender for the subject. Select Other if not known.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3 mt-2 d-flex justify-content-center">
+                                        <button type="submit" class="btn btn-success mb-3"><i class="bi bi-person-fill-check"></i> Create
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
                         </div>
                     </div>
-                </form>
+                </div>
+
+            </div>
+            <div class="col-sm-12 col-md-8">
+                <div class="row">
+                    <div class="col-12">
+                        <h4>Find Subject(s)</h4>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <form action="/subjects/search" method="post">
+                            <div class="row m-2 border border-dark p-2">
+                                <div class="col-sm-12 col-md-3">
+                                    <label for="subjectIdType" class="col-form-label fw-bold">Subject ID Type</label>
+                                    <select id="subjectIdType" name="subjectIdType"
+                                            class="form-control selectpicker border border-dark"
+                                            data-live-search="true" aria-describedby="subjectIdTypeHelp" required>
+                                        <option disabled>Select ID Type</option>
+                                        {{#each subIdTypes}}
+                                            <option value="{{this}}">{{readable this}}</option>
+                                        {{/each}}
+                                    </select>
+                                    <div id="subjectIdTypeHelp" class="form-text">Type of ID for the subject</div>
+                                </div>
+                                <div class="col-sm-12 col-md-4">
+                                    <label for="subIdSubType" class="col-form-label fw-bold">Sub Type</label>
+                                    <input type="text" id="subIdSubType" name="subIdSubType"
+                                           class="form-control border border-dark"
+                                           aria-describedby="subIdSubTypeHelp"
+                                           maxlength="45" placeholder="Subtype (Optional)">
+                                    <div id="subIdSubTypeHelp" class="form-text">Sub type in case id is not phone or email. Max Length: 45</div>
+                                </div>
+                                <div class="col-sm-12 col-md-4">
+                                    <label for="subIdValue" class="col-form-label fw-bold">ID Value</label>
+                                    <input type="text" id="subIdValue" name="subIdValue"
+                                           class="form-control border border-dark"
+                                           maxlength="45" placeholder="Actual value of the ID"
+                                           aria-describedby="subIdValueHelp" required>
+                                    <div id="subIdValue" class="form-text">Actual value of the ID (eg: Phone Number). Max Length: 45</div>
+                                </div>
+                                <div class="col-sm-12 col-md-1  d-flex justify-content-center mt-4 mb-4">
+                                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <form action="/subjects/go" method="post">
+                            <div class="row m-2 border border-dark p-2">
+                                <div class="col-sm-12 col-md-11">
+                                    <label for="subjectId" class="col-form-label fw-bold">Subject ID</label>
+                                    <input type="text" id="subjectId" name="subjectId"
+                                           class="form-control border border-dark"
+                                           aria-describedby="subjectIdHelp"
+                                           maxlength="45" placeholder="Subtype (Optional)">
+                                    <div id="subjectIdHelp" class="form-text">Subject ID for the subject you want to visit</div>
+                                </div>
+                                <div class="col-sm-12 col-md-1  d-flex justify-content-center mt-4 mb-4">
+                                    <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-right-circle-fill"></i></button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
+
     </section>
     <section>
         <div class="row mt-2">
