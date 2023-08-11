@@ -255,7 +255,8 @@ public class DBWorkflowStore implements WorkflowStore {
                                 existing -> existing
                                         .setType(type)
                                         .setRule(rule)
-                                        .setActionIds(actions),
+                                        .setActionIds(actions)
+                                        .setDeleted(false),
                                 () -> new StoredTicketStateTransition()
                                         .setWorkflowId(workflowId)
                                         .setExtId(transitionId)

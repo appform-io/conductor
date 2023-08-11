@@ -16,7 +16,6 @@
 
 package io.appform.conductor.server.ticketmanagement;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -47,6 +46,10 @@ import io.appform.conductor.server.schemamanagement.SchemaOpValidationResult;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.subjectmanagement.SubjectStore;
 import io.appform.conductor.server.templateengines.TemplateEngine;
+import io.appform.conductor.server.ticketmanagement.statemachine.TicketEvent;
+import io.appform.conductor.server.ticketmanagement.statemachine.TicketStateMachine;
+import io.appform.conductor.server.ticketmanagement.statemachine.TransitionHandler;
+import io.appform.conductor.server.ticketmanagement.statemachine.TriggerStrategy;
 import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.usermanagement.UserStore;
 import io.appform.conductor.server.utils.ConductorServerUtils;
@@ -123,7 +126,8 @@ public class TicketManager {
                               workflow,
                               subject,
                               ticket,
-                              schema);
+                              schema,
+                              TicketEvent.EventSource.TICKET_UPDATE);
     }
 
     public Optional<TicketDetails> readTicket(final String ticketId) {
@@ -236,7 +240,8 @@ public class TicketManager {
                                                                                                   fieldSchema,
                                                                                                   field.getValue()));
                                        });
-                                   });
+                                   },
+                                   TicketEvent.EventSource.TICKET_UPDATE);
     }
 
     @SneakyThrows
@@ -273,7 +278,7 @@ public class TicketManager {
 /*        node.put("title", title);
         node.put("description", description);
         node.put("priority", priority.name());*/
-        return processTicketUpdate(node, schema, workflow, subject.getSummary(), (payload, fields) -> {});
+        return processTicketUpdate(node, schema, workflow, subject.getSummary(), (payload, fields) -> {}, TicketEvent.EventSource.TICKET_UPDATE);
     }
 
     @SneakyThrows
@@ -283,7 +288,33 @@ public class TicketManager {
 
         val subject = Objects.requireNonNull(fetchSubject(sId).orElseGet(() -> createEmptySubject(sId)));
         val schema = fetchSchema(workflow.getId(), workflow.getSchemaId());
-        return processTicketUpdate(payload, schema, workflow, subject, (node, fields) -> {});
+        return processTicketUpdate(payload, schema, workflow, subject, (node, fields) -> {}, TicketEvent.EventSource.INGRESS_RAW);
+    }
+
+    @SneakyThrows
+    public Optional<TicketDetails> processCallback(final String ticketId, final JsonNode payload) {
+        //TODO: Remove duplicate code of context building from all the different sources
+        val ticket = ticketStore.read(ticketId, true)
+                .orElse(null);
+        if (null == ticket) {
+            return Optional.empty();
+        }
+        val workflow = workflowStore.read(ticket.getWorkflowId()).orElse(null);
+        if (null == workflow) {
+            return Optional.empty();
+        }
+        val subject = subjectStore.getSubject(ticket.getSubjectId()).orElse(null);
+        if (null == subject) {
+            return Optional.empty();
+        }
+        if (workflow.getStates().get(ticket.getTicketStateId()).isTerminal()) {
+            return Optional.of(ticketDetails(ticket, workflow, subject.getSummary()));
+        }
+        val schema = schemaStore.get(workflow.getSchemaId()).orElse(null);
+        if (null == schema) {
+            return Optional.empty();
+        }
+        return processTicketUpdate(payload, schema, workflow, subject.getSummary(), (node, fields) -> {}, TicketEvent.EventSource.INGRESS_CALLBACK);
     }
 
     private Optional<TicketDetails> processTicketUpdate(
@@ -291,7 +322,8 @@ public class TicketManager {
             Schema schema,
             Workflow workflow,
             SubjectSummary subject,
-            BiConsumer<JsonNode, List<TicketFieldData>> mappedFieldDecorator) {
+            BiConsumer<JsonNode, List<TicketFieldData>> mappedFieldDecorator,
+            TicketEvent.EventSource source) {
         val fieldMappingResult = fieldMapper.map(schema, payload);
         ConductorServerUtils.ensureCondition(fieldMappingResult.getErrors().isEmpty(),
                                              ConductorErrorCode.TICKET_SCHEMA_VALIDATION_FAILURE,
@@ -310,7 +342,8 @@ public class TicketManager {
                               workflow,
                               subject,
                               ticket,
-                              schema);
+                              schema,
+                              source);
     }
 
     private Optional<TicketDetails> runTransitions(
@@ -318,79 +351,63 @@ public class TicketManager {
             Workflow workflow,
             SubjectSummary subject,
             @NonNull TicketDetails ticket,
-            Schema schema) {
-        var evalTicket = ticket;
-        val evalDataJson = mapper.createObjectNode();
-        evalDataJson.set("payload", payload);
-        do {
+            Schema schema,
+            TicketEvent.EventSource source) {
+        TicketStateMachine stateMachine = new TicketStateMachine(
+                workflow.getTicketStateTransitions(),
+                schema,
+                ticket,
+                mapper,
+                ruleEngine,
+                new TransitionHandler() {
 
-            evalDataJson.set("ticket", ConductorServerUtils.ticketToJsonNode(mapper, evalTicket, schema));
-            val ticketSummary = evalTicket.getSummary();
-            val currState = ticketSummary.getTicketState();
-            val ticketId = ticketSummary.getId();
-            if (currState.isTerminal()) {
-                log.info("Ticket {} is already in terminal state {}",
-                         ticketId,
-                         currState.getDisplayName());
-                break;
-            }
-            try {
-                log.info("Evaluation data: {}",
-                         mapper.writerWithDefaultPrettyPrinter().writeValueAsString(evalDataJson));
-            }
-            catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-            val transitions = workflow.getTicketStateTransitions().get(currState.getId());
-            var matchingTransition = transitions.stream()
-                    .filter(ticketStateTransition -> switch (ticketStateTransition.getType()) {
-                        case EVALUATED -> ruleEngine.evaluate(ticketStateTransition.getRule(), evalDataJson);
-                        case DEFAULT -> false;
-                    })
-                    .findFirst()
-                    .orElse(null);
-            if (null == matchingTransition) {
-                matchingTransition = transitions.stream()
-                        .filter(transition -> transition.getType()
-                                .equals(TicketStateTransition.TicketStateTransitionType.DEFAULT))
-                        .findAny()
-                        .orElse(null);
-            }
-            else {
-                log.debug("Found matching transition: {}", matchingTransition);
-            }
-            if (null == matchingTransition) {
-                log.info("No possible transitions found for ticket: {}. Will stop state machine execution.", ticketId);
-                break;
-            }
-            val finalMatchingTransition = matchingTransition;
-            evalTicket = Objects.requireNonNull(updateTicketState(workflow, evalTicket, finalMatchingTransition)
-                                                        .map(t -> ticketDetails(t, workflow, subject))
-                                                        .orElse(null));
-            log.info("Ticket {} is now in state: {}",
-                     ticketId,
-                     evalTicket.getSummary().getTicketState().getDisplayName());
-            for (val actionId : matchingTransition.getActionIds()) {
-                val actionExecutionData = new ActionExecutor.ActionEvalData(
-                        workflow,
-                        schema,
-                        evalTicket,
-                        ConductorServerUtils.ticketToJsonNode(mapper, evalTicket, schema),
-                        payload);
-                val action = actionStore.read(actionId)
-                        .orElseThrow(() -> ConductorException.builder()
-                                .errorCode(ConductorErrorCode.TICKET_MGMT_NO_ACTION)
-                                .context(Map.of("ticketId", ticketId,
-                                                "workflowId", workflow.getId(),
-                                                "actionId", actionId))
-                                .build());
-                val result = actionExecutor.execute(action, actionExecutionData);
-                log.info("Status for action execution: {}", result);
-                //Always read the updated evalTicket data before applying new transitions
-                evalTicket = readDetails(workflow, subject, ticketId);
-            }
-        } while (true);
-        return Optional.of(evalTicket);
+                    @Override
+                    public TicketDetails beforeTransition(TicketStateTransition transition, TicketDetails ticket, TicketEvent event) {
+                        log.info("Ticket {} beforeTransition is now in state: {}",
+                                 ticket.getSummary().getId(),
+                                 ticket.getSummary().getTicketState().getDisplayName());
+                        return ticket;
+                    }
+
+                    @Override
+                    public TicketDetails onTransition(TicketStateTransition transition, TicketDetails ticket, TicketEvent event) {
+                        val updatedTicket =  Objects.requireNonNull(updateTicketState(workflow, ticket, transition)
+                                .map(t -> ticketDetails(t, workflow, subject))
+                                .orElse(null));
+                        log.info("Ticket {} onTransitions is now in state: {}",
+                                ticket.getSummary().getId(),
+                                ticket.getSummary().getTicketState().getDisplayName());
+                        return updatedTicket;
+                    }
+
+                    @Override
+                    public TicketDetails afterTransition(TicketStateTransition transition, TicketDetails ticket, TicketEvent event) {
+                        val ticketId = ticket.getSummary().getId();
+                        var updatedTicket = ticket;
+                        for (val actionId : transition.getActionIds()) {
+                            val actionExecutionData = new ActionExecutor.ActionEvalData(
+                                    workflow,
+                                    schema,
+                                    ticket,
+                                    ConductorServerUtils.ticketToJsonNode(mapper, ticket, schema),
+                                    event.getPayload());
+                            val action = actionStore.read(actionId)
+                                    .orElseThrow(() -> ConductorException.builder()
+                                            .errorCode(ConductorErrorCode.TICKET_MGMT_NO_ACTION)
+                                            .context(Map.of("ticketId", ticketId,
+                                                    "workflowId", workflow.getId(),
+                                                    "actionId", actionId))
+                                            .build());
+                            val result = actionExecutor.execute(action, actionExecutionData);
+                            log.info("Status for action execution: {}", result);
+                            //Always read the updated evalTicket data before applying new transitions
+                            updatedTicket =  readDetails(workflow, subject, ticketId);
+                        }
+                        return updatedTicket;
+                    }
+                });
+        stateMachine.trigger(new TicketEvent(source, payload), TriggerStrategy.EXECUTE_ALL);
+        return Optional.of(stateMachine.getTicket());
     }
 
     private TicketDetails readDetails(Workflow workflow, SubjectSummary subject, String ticketId) {
