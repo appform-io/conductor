@@ -23,6 +23,8 @@ import lombok.Getter;
  */
 @Getter
 public enum ConductorErrorCode {
+    SUCCESS(0000, "Successful"),
+
     STORE_READ_ERROR(1001, "Error reading database for type ${type} with ${id}"),
     STORE_WRITE_ERROR(1002, "Error saving to database for type ${type} with ${id}"),
     STORE_UPDATE_ERROR(1003, "Error updating database for type ${type} with id ${id}"),

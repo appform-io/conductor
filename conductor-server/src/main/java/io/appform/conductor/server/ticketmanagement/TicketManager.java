@@ -142,26 +142,44 @@ public class TicketManager {
         return Optional.of(ticketDetails(ticket, workflow, subject.getSummary()));
     }
 
-    public List<TicketGist> ticketsForSubject(final String subjectId) {
+    public TicketGistListResult ticketsForSubject(final String subjectId, String start, int size) {
 
-        return ticketStore.list(List.of(TicketSubjectEquals.builder()
-                                                .subjectId(subjectId)
-                                                .build()),
-                                List.of(), null, 100, Map.of())
-                .getResults()
-                .stream()
-                .map(skel -> {
-                    val wf = workflowStore.read(skel.getWorkflowId());
-                    val currState = wf.map(workflow -> workflow.getStates().get(skel.getTicketStateId()));
-                    return new TicketGist(skel.getTicketId(),
-                                          skel.getTitle(),
-                                          wf.map(Workflow::getDisplayName).orElse(""),
-                                          currState.map(TicketState::getDisplayName).orElse(""),
-                                          currState.map(TicketState::isTerminal).orElse(false),
-                                          skel.getCreated(),
-                                          skel.getUpdated());
-                })
-                .toList();
+        return search(List.of(TicketSubjectEquals.builder()
+                                      .subjectId(subjectId)
+                                      .build()),
+                      List.of(),
+                      start,
+                      size);
+    }
+
+    @SneakyThrows
+    public TicketGistListResult search(
+            final List<TicketFilter> ticketFilters,
+            final List<TicketFieldFilter> fieldFilters,
+            final String start,
+            final int size) {
+        val result = ticketStore.list(
+                ticketFilters,
+                fieldFilters, start, size, Map.of());
+        return TicketGistListResult.builder()
+                .next(result.getNext())
+                .results(result.getResults()
+                                 .stream()
+                                 .map(skel -> {
+                                     val wf = workflowStore.read(skel.getWorkflowId());
+                                     val currState = wf.map(workflow -> workflow.getStates()
+                                             .get(skel.getTicketStateId()));
+                                     return new TicketGist(skel.getTicketId(),
+                                                           skel.getTitle(),
+                                                           wf.map(Workflow::getDisplayName).orElse(""),
+                                                           currState.map(TicketState::getDisplayName).orElse(""),
+                                                           currState.map(TicketState::isTerminal).orElse(false),
+                                                           skel.getPriority(),
+                                                           skel.getCreated(),
+                                                           skel.getUpdated());
+                                 })
+                                 .toList())
+                .build();
     }
 
     @SneakyThrows
@@ -170,18 +188,20 @@ public class TicketManager {
             final List<TicketFieldFilter> fieldFilters,
             final String start,
             final int size) {
-        val fields = ticketFilters.stream()
-                .filter(tf -> tf.getType().equals(TicketFilterType.WORKFLOW_EQUALS))
-                .map(TicketWorkflowEquals.class::cast)
-                .map(TicketWorkflowEquals::getWorkflowId)
-                .findFirst()
-                .flatMap(workflowStore::read)
-                .map(Workflow::getSchemaId)
-                .flatMap(schemaStore::get)
-                .map(schema -> schema.getFields().stream())
-                .map(fieldSchemaStream -> fieldSchemaStream.collect(Collectors.toMap(FieldSchema::getId,
-                                                                                     Function.identity())))
-                .orElse(Map.of());
+        val fields = fieldFilters.isEmpty()
+                     ? Map.<String, FieldSchema>of()
+                     : ticketFilters.stream()
+                             .filter(tf -> tf.getType().equals(TicketFilterType.WORKFLOW_EQUALS))
+                             .map(TicketWorkflowEquals.class::cast)
+                             .map(TicketWorkflowEquals::getWorkflowId)
+                             .findFirst()
+                             .flatMap(workflowStore::read)
+                             .map(Workflow::getSchemaId)
+                             .flatMap(schemaStore::get)
+                             .map(schema -> schema.getFields().stream())
+                             .map(fieldSchemaStream -> fieldSchemaStream.collect(Collectors.toMap(FieldSchema::getId,
+                                                                                                  Function.identity())))
+                             .orElse(Map.of());
         if (fields.isEmpty()) {
             return TicketSkeletonListResult.EMPTY;
         }

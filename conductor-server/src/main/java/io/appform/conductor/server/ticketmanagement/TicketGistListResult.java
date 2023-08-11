@@ -16,22 +16,20 @@
 
 package io.appform.conductor.server.ticketmanagement;
 
-import io.appform.conductor.model.ticket.TicketPriority;
+import lombok.Builder;
 import lombok.Value;
 
-import java.util.Date;
+import java.util.List;
 
 /**
- *
+ * Result set for a list query. Returns latest results first.
  */
 @Value
-public class TicketGist {
-    String ticketId;
-    String title;
-    String workflowName;
-    String stateName;
-    boolean terminated;
-    TicketPriority priority;
-    Date created;
-    Date updated;
+@Builder
+@SuppressWarnings("javs:S6548")
+public class TicketGistListResult {
+    public static final TicketGistListResult EMPTY = new TicketGistListResult(List.of(), null);
+
+    List<TicketGist> results;
+    String next;
 }

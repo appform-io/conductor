@@ -24,6 +24,7 @@ import java.util.List;
  * Result set for a list query. Returns latest results first.
  */
 @Value
+@SuppressWarnings("javs:S6548")
 public class TicketSkeletonListResult {
     public static final TicketSkeletonListResult EMPTY = new TicketSkeletonListResult(List.of(), null);
 
