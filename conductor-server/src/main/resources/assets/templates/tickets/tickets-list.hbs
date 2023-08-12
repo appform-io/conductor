@@ -6,118 +6,123 @@
 <!--    <script type="text/javascript" src="/js/dataTables.pageLoadMore.min.js"></script>-->
 {{/partial}}
 {{#partial "content"}}
-    <section class="mb-2">
-        <div class="row">
-            <div class="col-12">
-                <form class="get" action="/tickets/list">
-                    <div class="row">
-                        <div class="col-sm12 col-md-4">
-                            <label for="workflowId" class="col-form-label fw-bold">Workflow</label>
-                            <select id="workflowId" name="workflowId"
-                                    class="form-control selectpicker border border-dark"
-                                    data-live-search="true" onchange="this.form.submit()">
-                                <option value="">All</option>
-                                {{#each workflows}}
-                                    <option value="{{id}}"
-                                            {{#eq ../workflowId id}}selected{{/eq}}>{{displayName}}</option>
-                                {{/each}}
-                            </select>
-                        </div>
-                        <div class="col-sm12 col-md-4">
-                            <label for="priority" class="col-form-label fw-bold">Priority</label>
-                            <select id="priority" name="priority"
-                                    class="form-control selectpicker border border-dark"
-                                    data-live-search="true" onchange="this.form.submit()">
-                                <option value="">All</option>
-                                {{#each priorities}}
-                                    <option value="{{this}}" {{#eq ../priority this}}selected{{/eq}}>{{readable
-                                            this}}</option>
-                                {{/each}}
-                            </select>
-                        </div>
-                        <div class="col-sm12 col-md-4">
-                            <label for="stateIds" class="col-form-label fw-bold">States</label>
-                            <select id="stateIds" name="stateIds"
-                                    class="form-control selectpicker border border-dark"
-                                    data-live-search="true"  onchange="this.form.submit()">
-                                {{#empty states}}
-                                    <option value="">Select workflow first</option>
-                                {{else}}
-                                    <option value="" selected>All States</option>
-                                {{/empty}}
-                                {{#each states}}
-                                    <option value="{{id}}"
-                                            {{#eq ../stateId id}}selected{{/eq}}>{{displayName}}</option>
-                                {{/each}}
-                            </select>
-                        </div>
+    <div class="row">
+        <div class="col-sm-12 col-md-3">
+            <section class="mb-2">
+                <div class="row">
+                    <div class="col-12">
+                        <form class="get" action="/tickets/list">
+                            <div class="row mt-6">
+                                <div class="col-7">
+                                    <h5>Filters</h5>
+                                </div>
+                                <div class="col-5 d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-sm btn-success d-none">
+                                        <i class="bi bi-funnel-fill"></i> Apply
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="workflowId" class="col-form-label fw-bold">Workflow</label>
+                                <select id="workflowId" name="workflowId"
+                                        class="form-control selectpicker border border-dark"
+                                        data-live-search="true" onchange="this.form.submit()">
+                                    <option value="">All</option>
+                                    {{#each workflows}}
+                                        <option value="{{id}}"
+                                                {{#eq ../workflowId id}}selected{{/eq}}>{{displayName}}</option>
+                                    {{/each}}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="priority" class="col-form-label fw-bold">Priority</label>
+                                <select id="priority" name="priority"
+                                        class="form-control selectpicker border border-dark"
+                                        data-live-search="true" onchange="this.form.submit()">
+                                    <option value="">All</option>
+                                    {{#each priorities}}
+                                        <option value="{{this}}" {{#eq ../priority this}}selected{{/eq}}>{{readable
+                                                this}}</option>
+                                    {{/each}}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="stateIds" class="col-form-label fw-bold">States</label>
+                                <select id="stateIds" name="stateIds"
+                                        class="form-control selectpicker border border-dark"
+                                        data-live-search="true"  onchange="this.form.submit()">
+                                    {{#empty states}}
+                                        <option value="">Select workflow first</option>
+                                    {{else}}
+                                        <option value="" selected>All States</option>
+                                    {{/empty}}
+                                    {{#each states}}
+                                        <option value="{{id}}"
+                                                {{#eq ../stateId id}}selected{{/eq}}>{{displayName}}</option>
+                                    {{/each}}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="subjectId" class="col-form-label fw-bold">Subject ID</label>
+                                <input type="text" id="subjectId" name="subjectId"
+                                       class="form-control border border-dark"
+                                       placeholder="Enter subject ID"
+                                       value="{{subjectId}}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="createdById" class="col-form-label fw-bold">Created By</label>
+                                <input type="text" id="createdById" name="createdById"
+                                       class="form-control border border-dark"
+                                       placeholder="User ID of the creator"
+                                       value="{{createdById}}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="groupId" class="col-form-label fw-bold">Group</label>
+                                <select id="groupId" name="groupId"
+                                        class="form-control selectpicker border border-dark"
+                                        data-live-search="true">
+                                    <option selected disabled>Select a group</option>
+                                    {{#each groups}}
+                                        <option value="id" {{#eq ../groupId id}}selected{{/eq}}>{{name}}</option>
+                                    {{/each}}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="assignedToId" class="col-form-label fw-bold">Assigned to</label>
+                                <input type="text" id="assignedToId" name="assignedToId"
+                                       class="form-control border border-dark"
+                                       placeholder="User ID of the assignee"
+                                       value="{{assignedToId}}">
+                            </div>
+
+                        </form>
                     </div>
-                    <div class="row">
-                        <div class="col-sm-12 col-md-3">
-                            <label for="subjectId" class="col-form-label fw-bold">Subject ID</label>
-                            <input type="text" id="subjectId" name="subjectId"
-                                   class="form-control border border-dark"
-                                   placeholder="Enter subject ID"
-                                   value="{{subjectId}}">
-                        </div>
-                        <div class="col-sm-12 col-md-3">
-                            <label for="createdById" class="col-form-label fw-bold">Created By</label>
-                            <input type="text" id="createdById" name="createdById"
-                                   class="form-control border border-dark"
-                                   placeholder="User ID of the creator"
-                                   value="{{createdById}}">
-                        </div>
-                        <div class="col-sm-12 col-md-3">
-                            <label for="groupId" class="col-form-label fw-bold">Group</label>
-                            <select type="text" id="groupId" name="groupId"
-                                    class="form-control selectpicker border border-dark"
-                                    data-live-search="true">
-                                <option selected disabled>Select a group</option>
-                                {{#each groups}}
-                                    <option value="id" {{#eq ../groupId id}}selected{{/eq}}>{{name}}</option>
-                                {{/each}}
-                            </select>
-                        </div>
-                        <div class="col-sm-12 col-md-3">
-                            <label for="assignedToId" class="col-form-label fw-bold">Assigned to</label>
-                            <input type="text" id="assignedToId" name="assignedToId"
-                                   class="form-control border border-dark"
-                                   placeholder="User ID of the assignee"
-                                   value="{{assignedToId}}">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12 mt-2 d-flex justify-content-center">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-search"></i> Search
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
+                </div>
+            </section>
+
         </div>
-    </section>
-    <section>
-        <div class="row">
-            <div class="col-12">
-                <h4>Tickets</h4>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-12 table-responsive">
-                <table class="table table-bordered border-dark ticket-table" id="tickets">
-                    <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Workflow</th>
-                        <th>State</th>
-                        <th>Priority</th>
-                        <th>Created</th>
-                        <th>Last Updated</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-<!--
+        <div class="col-sm-12 col-md-9">
+            <section>
+                <div class="row">
+                    <div class="col-12">
+                        <h4>Tickets</h4>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 table-responsive">
+                        <table class="table table-bordered border-dark ticket-table" id="tickets">
+                            <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Workflow</th>
+                                <th>State</th>
+                                <th>Priority</th>
+                                <th>Created</th>
+                                <th>Last Updated</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!--
                     {{#each results.results}}
                         <tr>
                             <td><a href="/tickets/{{ticketId}}/details">{{title}}</a></td>
@@ -133,16 +138,19 @@
                         </tr>
                     {{/each}}
 -->
-                    </tbody>
-                </table>
-            </div>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 d-flex justify-content-center">
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="load-older">Load older</button>
+                    </div>
+                </div>
+            </section>
+
         </div>
-        <div class="row">
-            <div class="col-12 d-flex justify-content-center">
-                <button type="button" class="btn btn-sm btn-outline-primary" id="load-older">Load older</button>
-            </div>
-        </div>
-    </section>
+    </div>
 {{/partial}}
 
 {{#partial "page_js"}}
@@ -175,8 +183,8 @@
                         }
                 },
                 { 'data' : 'priority' },
-                { 'data' : 'created', 'render' : 'timeSince' },
-                { 'data' : 'updated', 'render' : 'timeSince' }
+                { 'data' : 'created', 'render' : timeSince },
+                { 'data' : 'updated', 'render' : timeSince }
             ]
         });
     const dataSize = 10;
