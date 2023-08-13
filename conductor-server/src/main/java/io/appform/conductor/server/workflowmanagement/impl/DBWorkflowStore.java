@@ -81,7 +81,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                   .setTitleTemplate(titleTemplate)
                                   .setDescriptionTemplate(descriptionTemplate)
                                   .setSubjectIdTemplate(subjectIdTemplate)
-                                  .setState(WorkflowState.INACTIVE))
+                                  .setState(WorkflowState.ACTIVE)) //TODO::ACTIVATION WORKFLOW
                 .map(DBWorkflowStore::toWirePartial);
     }
 
@@ -255,7 +255,8 @@ public class DBWorkflowStore implements WorkflowStore {
                                 existing -> existing
                                         .setType(type)
                                         .setRule(rule)
-                                        .setActionIds(actions),
+                                        .setActionIds(actions)
+                                        .setDeleted(false),
                                 () -> new StoredTicketStateTransition()
                                         .setWorkflowId(workflowId)
                                         .setExtId(transitionId)

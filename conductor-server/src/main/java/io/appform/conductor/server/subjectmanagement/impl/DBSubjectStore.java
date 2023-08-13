@@ -117,7 +117,8 @@ public class DBSubjectStore implements SubjectStore {
                                                        }
                                                        return stored
                                                                .setName(updated.getName())
-                                                               .setDob(updated.getDob());
+                                                               .setDob(updated.getDob())
+                                                               .setGender(updated.getGender());
                                                    })
                                                    .orElse(null));
         if (updatedRes) {

@@ -219,10 +219,10 @@
                                                 {{/if}}
                                             </td>
                                             <td>
-                                                {{#if allowMultiple eq false}}
-                                                    <span class="badge bg-dark ms-2">Single</span>
-                                                {{else}}
+                                                {{#if allowMultiple eq true}}
                                                     <span class="badge bg-info ms-2">Multiple</span>
+                                                {{else}}
+                                                    <span class="badge bg-dark ms-2">Single</span>
                                                 {{/if}}</td>
                                             <td>{{updated}}</td>
                                             <td>
