@@ -185,7 +185,6 @@ public class Tickets {
     }
 
     @GET
-    @Path("/")
     public Response response(@Auth ConductorUser user) {
         return render(TicketSearchView.builder()
                               .currentUser(user.getUserSession().getUser())

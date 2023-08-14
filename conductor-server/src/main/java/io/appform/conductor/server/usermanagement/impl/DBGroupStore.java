@@ -62,7 +62,10 @@ public class DBGroupStore implements GroupStore {
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredGroup.GROUP_TABLE_NAME))
     public Optional<Group> create(@Throws.RuntimeParam("id") String name, String description) {
-        return groupDao.save(new StoredGroup(ConductorServerUtils.lowerSnake(name), name, description))
+        val groupId = ConductorServerUtils.lowerSnake(name);
+        return groupDao.createOrUpdate(groupId,
+                                       g -> g.setDescription(description).setDeleted(false),
+                                       () -> new StoredGroup(groupId, name, description))
                 .map(DBGroupStore::toWire);
     }
 
@@ -70,8 +73,8 @@ public class DBGroupStore implements GroupStore {
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredGroup.GROUP_TABLE_NAME))
-    public Optional<Group> get(@Throws.RuntimeParam("id") String groupId) {
-        return get(Collections.singletonList(groupId))
+    public Optional<Group> read(@Throws.RuntimeParam("id") String groupId) {
+        return read(Collections.singletonList(groupId))
                 .stream()
                 .findAny();
     }
@@ -80,9 +83,10 @@ public class DBGroupStore implements GroupStore {
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_LIST_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredGroup.GROUP_TABLE_NAME))
-    public List<Group> get(List<String> groupIds) {
+    public List<Group> read(List<String> groupIds) {
         return groupDao.get(groupIds)
                 .stream()
+                .filter(g -> !g.isDeleted())
                 .map(DBGroupStore::toWire)
                 .toList();
     }
@@ -110,7 +114,7 @@ public class DBGroupStore implements GroupStore {
             return null;
         });
         log.info("Group {} update status: {}", groupId, status);
-        return get(groupId);
+        return read(groupId);
     }
 
     @Override
@@ -169,7 +173,7 @@ public class DBGroupStore implements GroupStore {
     @Throws(value = ConductorErrorCode.STORE_LIST_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredGroupUserMapping.GROUP_USERS_TABLE_NAME))
     public List<Group> findGroupsForUser(String userId) {
-        return get(groupUsersDao.scatterGather(
+        return read(groupUsersDao.scatterGather(
                         DetachedCriteria.forClass(StoredGroupUserMapping.class)
                                 .add(Property.forName(StoredGroupUserMapping.Fields.userId).eq(userId))
                                 .add(Property.forName(StoredGroupUserMapping.Fields.deleted).eq(false)),
@@ -178,6 +182,15 @@ public class DBGroupStore implements GroupStore {
                            .stream()
                            .map(StoredGroupUserMapping::getUserId)
                            .toList());
+    }
+
+    @Override
+    public List<Group> list() {
+        return groupDao.scatterGather(DetachedCriteria.forClass(StoredGroup.class)
+                                              .add(Property.forName(StoredGroup.Fields.deleted).eq(false)))
+                .stream()
+                .map(DBGroupStore::toWire)
+                .toList();
     }
 
     private static Group toWire(@NonNull final StoredGroup group) {

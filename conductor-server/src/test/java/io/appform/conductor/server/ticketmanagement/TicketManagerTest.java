@@ -182,7 +182,7 @@ class TicketManagerTest {
         val uStore = mock(UserStore.class);
         when(uStore.getById(anyString())).thenReturn(Optional.of(creator));
         val gStore = mock(GroupStore.class);
-        when(gStore.get(anyString())).thenReturn(Optional.empty());
+        when(gStore.read(anyString())).thenReturn(Optional.empty());
         val aStore = mock(ActionStore.class);
         when(aStore.read(anyString())).thenReturn(Optional.empty());
         val wStore = mock(WorkflowStore.class);

@@ -219,6 +219,18 @@ public class UserLifecycleManager {
                 .create(name, description);
     }
 
+
+
+    /**
+     * Update description for a group
+     * @param groupId Group ID for group
+     * @param description New description
+     * @return Updated group data
+     */
+    public Optional<Group> updateGroupDescription(final String groupId, final String description) {
+        return groupStore.get().update(groupId, group -> group.setDescription(description));
+    }
+
     /**
      * Delete an existing {@link Group}
      *
@@ -226,8 +238,25 @@ public class UserLifecycleManager {
      * @return The updated group with {@link Group#isDeleted()} set to true
      */
     public Optional<Group> deleteGroup(String groupId) {
-        return groupStore.get()
+        return groupStore.get() //Check tickets
                 .delete(groupId);
+    }
+
+    /**
+     * Read a group.
+     * @param groupId ID for the group to be read
+     * @return group or empty
+     */
+    public Optional<Group> readGroup(final String groupId) {
+        return groupStore.get().read(groupId);
+    }
+
+    /**
+     * Return all groups
+     * @return a list of groups
+     */
+    public List<Group> listGroups() {
+        return groupStore.get().list();
     }
 
     /**
@@ -242,8 +271,9 @@ public class UserLifecycleManager {
                 .addUserToGroup(groupId, userId);
         log.info("User {} addition to group {}. Status: {}", groupId, userId, status);
         return groupStore.get()
-                .get(groupId);
+                .read(groupId);
     }
+
 
     /**
      * Return a paginated list of users in the group
@@ -255,7 +285,7 @@ public class UserLifecycleManager {
      */
     public List<UserSummary> findUsersForGroup(String groupId, int start, int limit) {
         val groupStoreImpl = this.groupStore.get();
-        val group = groupStoreImpl.get(groupId).orElse(null);
+        val group = groupStoreImpl.read(groupId).orElse(null);
         if (null == group || group.isDeleted()) {
             return List.of();
         }

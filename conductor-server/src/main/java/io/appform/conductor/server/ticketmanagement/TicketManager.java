@@ -533,7 +533,7 @@ public class TicketManager {
                                                    skeleton.getWorkflowId(),
                                                    userStore.getById(skeleton.getCreatedByUserId()).orElse(null),
                                                    Objects.nonNull(skeleton.getAssignedToGroupId())
-                                                   ? groupStore.get(skeleton.getAssignedToGroupId()).orElse(null)
+                                                   ? groupStore.read(skeleton.getAssignedToGroupId()).orElse(null)
                                                    : null,
                                                    Objects.nonNull(skeleton.getAssignedToUserId())
                                                    ? userStore.getById(skeleton.getAssignedToUserId()).orElse(null)
