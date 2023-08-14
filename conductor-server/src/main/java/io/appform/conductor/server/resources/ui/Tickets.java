@@ -104,6 +104,7 @@ public class Tickets {
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
         return render(new TicketsView(user.getUserSession().getUser(),
                                       workflowId, workflowStore.list(Set.of(WorkflowState.ACTIVE)),
+                                      groupStore.list(),
                                       ticketManager.search(List.of(new TicketWorkflowEquals(workflowId)),
                                                            List.of(),
                                                            null,
@@ -155,7 +156,8 @@ public class Tickets {
                                             wf,
                                             schema.get(),
                                             ticketState,
-                                            fields));
+                                            fields,
+                                            groupStore.list()));
     }
 
     @POST
@@ -170,6 +172,19 @@ public class Tickets {
         return ticketManager.processFormSummaryUpdate(ticketId, title, description, priority)
                 .map(t -> Response.seeOther(URI.create("/tickets/" + ticketId + "/details")).build())
                 .orElse(Response.seeOther(URI.create("/")).build());
+    }
+
+    @POST
+    @Path("/{ticketId}/group/update")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response updateTicketGroup(
+            @Auth final ConductorUser user,
+            @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
+            @FormParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
+        if(ticketManager.assignTicketToGroup(ticketId, groupId)) {
+            return redirect("/tickets/" + ticketId + "/details");
+        }
+        throw fail("Could not assign ticket to group", "/tickets/" + ticketId + "/details");
     }
 
     @POST
@@ -190,7 +205,7 @@ public class Tickets {
                               .currentUser(user.getUserSession().getUser())
                               .workflows(workflowStore.list(Set.of(WorkflowState.ACTIVE)))
                               .states(List.of())
-                              .groups(List.of()) //TODO::GROUPS
+                              .groups(groupStore.list())
                               .build());
     }
 
@@ -237,7 +252,7 @@ public class Tickets {
                                       .map(workflow -> workflow.getStates().values())
                                       .map(List::copyOf)
                                       .orElse(List.of()))
-                              .groups(List.of()) //TODO::GROUPS
+                              .groups(groupStore.list())
                               .workflowId(workflowId)
                               .stateId(stateId)
                               .priority(priority)

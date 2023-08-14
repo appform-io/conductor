@@ -306,6 +306,14 @@ public class TicketManager {
         return processTicketUpdate(payload, schema, workflow, subject, (node, fields) -> {});
     }
 
+    public boolean assignTicketToGroup(final String ticketId, final String groupId) {
+        return groupStore.read(groupId)
+                .flatMap(group -> ticketStore.update(ticketId,
+                                                     ticketSkeleton -> ticketSkeleton.setAssignedToGroupId(groupId),
+                                                     List.of()))
+                .filter(ticketSkeleton -> groupId.equals(ticketSkeleton.getAssignedToGroupId()))
+                .isPresent();
+    }
     private Optional<TicketDetails> processTicketUpdate(
             JsonNode payload,
             Schema schema,

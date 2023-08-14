@@ -3,7 +3,6 @@
 {{/partial}}
 {{#partial "page_js_includes"}}
     <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
-<!--    <script type="text/javascript" src="/js/dataTables.pageLoadMore.min.js"></script>-->
 {{/partial}}
 {{#partial "content"}}
     <div class="row">
@@ -63,6 +62,17 @@
                                 </select>
                             </div>
                             <div class="mb-3">
+                                <label for="groupId" class="col-form-label fw-bold">Group</label>
+                                <select id="groupId" name="groupId"
+                                        class="form-control selectpicker border border-dark"
+                                        data-live-search="true"   onchange="this.form.submit()">
+                                    <option value="" {{#empty ../groupId}}selected{{/empty}}>None</option>
+                                    {{#each groups}}
+                                        <option value="{{id}}" {{#eq ../groupId id}}selected{{/eq}}>{{name}}</option>
+                                    {{/each}}
+                                </select>
+                            </div>
+                            <div class="mb-3">
                                 <label for="subjectId" class="col-form-label fw-bold">Subject ID</label>
                                 <input type="text" id="subjectId" name="subjectId"
                                        class="form-control border border-dark"
@@ -75,17 +85,6 @@
                                        class="form-control border border-dark"
                                        placeholder="User ID of the creator"
                                        value="{{createdById}}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="groupId" class="col-form-label fw-bold">Group</label>
-                                <select id="groupId" name="groupId"
-                                        class="form-control selectpicker border border-dark"
-                                        data-live-search="true">
-                                    <option selected disabled>Select a group</option>
-                                    {{#each groups}}
-                                        <option value="id" {{#eq ../groupId id}}selected{{/eq}}>{{name}}</option>
-                                    {{/each}}
-                                </select>
                             </div>
                             <div class="mb-3">
                                 <label for="assignedToId" class="col-form-label fw-bold">Assigned to</label>
@@ -189,8 +188,8 @@
         });
     const dataSize = 10;
     $('#load-older').click(function() {
-        const data = $.get("/apis/tickets/v1" + window.location.search
-                    + ($('#tickets').attr('nextPage') ? "&next=" + $('#tickets').attr('nextPage') : "") + "&length=" + dataSize,
+        const data = $.get("/apis/tickets/v1?length=" + dataSize + "&" + window.location.search.substring(1)
+                    + ($('#tickets').attr('nextPage') ? "&next=" + $('#tickets').attr('nextPage') : ""),
                 function(res) {
                     if(!res || res.status != 'SUCCESS') {
                         return;
