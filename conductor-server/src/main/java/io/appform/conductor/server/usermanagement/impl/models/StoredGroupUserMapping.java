@@ -16,15 +16,17 @@
 
 package io.appform.conductor.server.usermanagement.impl.models;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
+import org.hibernate.proxy.HibernateProxy;
 
 import javax.persistence.*;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  *
@@ -34,13 +36,16 @@ import java.util.Date;
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_user_group", columnNames = {"group_id", "user_id"})
         })
-@Data
+@Getter
+@Setter
+@ToString
 @FieldNameConstants
 @NoArgsConstructor
 public class StoredGroupUserMapping implements Serializable {
-    private static final long serialVersionUID = -1854965130712240861L;
-
     public static final String GROUP_USERS_TABLE_NAME = "group_users";
+
+    @Serial
+    private static final long serialVersionUID = -1854965130712240861L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -67,5 +72,33 @@ public class StoredGroupUserMapping implements Serializable {
     public StoredGroupUserMapping(String groupId, String userId) {
         this.groupId = groupId;
         this.userId = userId;
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null) {
+            return false;
+        }
+        Class<?> oEffectiveClass = o instanceof HibernateProxy hp
+                                   ? hp.getHibernateLazyInitializer()
+                                           .getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy hp
+                                      ? hp.getHibernateLazyInitializer()
+                                              .getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass) {
+            return false;
+        }
+        StoredGroupUserMapping that = (StoredGroupUserMapping) o;
+        return Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public final int hashCode() {
+        return this instanceof HibernateProxy hp ? hp.getHibernateLazyInitializer()
+                .getPersistentClass()
+                .hashCode() : getClass().hashCode();
     }
 }

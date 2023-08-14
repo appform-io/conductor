@@ -264,14 +264,26 @@ public class UserLifecycleManager {
      *
      * @param groupId ID for an existing group
      * @param userId  ID for an existing user
-     * @return Group information
+     * @return Status of the operation
      */
-    public Optional<Group> addUserToGroup(String groupId, String userId) {
+    public boolean addUserToGroup(String groupId, String userId) {
         val status = groupStore.get()
                 .addUserToGroup(groupId, userId);
         log.info("User {} addition to group {}. Status: {}", groupId, userId, status);
-        return groupStore.get()
-                .read(groupId);
+        return status;
+    }
+
+    /**
+     * Remove an user from a group
+     * @param groupId Group to be removed from
+     * @param userId USer to be removed from group
+     * @return Status of operation
+     */
+    public boolean removeUserFromGroup(String groupId, String userId) {
+        val status = groupStore.get()
+                .removeUserFromGroup(groupId, userId);
+        log.info("User {} removal from group {}. Status: {}", groupId, userId, status);
+        return status;
     }
 
 

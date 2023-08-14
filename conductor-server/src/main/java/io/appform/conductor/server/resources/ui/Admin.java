@@ -24,6 +24,7 @@ import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserRoleMappingStore;
 import io.appform.conductor.server.ui.views.admin.RolesListView;
 import io.appform.conductor.server.ui.views.admin.UserAdminView;
+import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.usermanagement.UserLifecycleManager;
 import io.appform.conductor.server.usermanagement.UserStore;
 import io.dropwizard.auth.Auth;
@@ -61,6 +62,7 @@ public class Admin {
 
     private final RoleStore roleStore;
     private final UserStore userStore;
+    private final GroupStore groupStore;
     private final UserRoleMappingStore roleMappingStore;
     private final UserLifecycleManager userLifecycleManager;
 
@@ -139,7 +141,7 @@ public class Admin {
     @GET
     @Path("/users/search")
     public Response renderUserSearchScreen(@Auth ConductorUser user) {
-        return render(new UserAdminView(user.getUserSession().getUser(), null, List.of()));
+        return render(new UserAdminView(user.getUserSession().getUser(), null, List.of(), List.of()));
     }
 
     @POST
@@ -170,7 +172,8 @@ public class Admin {
         return userLifecycleManager.userDetails(userId)
                 .map(userDetails -> render(new UserAdminView(user.getUserSession().getUser(),
                                                              userDetails,
-                                                             roleStore.list())))
+                                                             roleStore.list(),
+                                                             groupStore.list())))
                 .orElseThrow(() -> fail("No user found for " + userId, USER_SEARCH_PATH));
     }
 
