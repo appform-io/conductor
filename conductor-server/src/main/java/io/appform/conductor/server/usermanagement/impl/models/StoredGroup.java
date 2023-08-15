@@ -17,21 +17,26 @@
 package io.appform.conductor.server.usermanagement.impl.models;
 
 import io.appform.dropwizard.sharding.sharding.LookupKey;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldNameConstants;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
+import org.hibernate.proxy.HibernateProxy;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  *
  */
 @Entity
 @Table(name = StoredGroup.GROUP_TABLE_NAME)
-@Data
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
+@FieldNameConstants
 public class StoredGroup {
     public static final String GROUP_TABLE_NAME = "groups";
     @Id
@@ -64,5 +69,33 @@ public class StoredGroup {
         this.groupId = groupId;
         this.name = name;
         this.description = description;
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null) {
+            return false;
+        }
+        Class<?> oEffectiveClass = o instanceof HibernateProxy
+                                   ? ((HibernateProxy) o).getHibernateLazyInitializer()
+                                           .getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy
+                                      ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                                              .getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass) {
+            return false;
+        }
+        StoredGroup that = (StoredGroup) o;
+        return Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public final int hashCode() {
+        return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer()
+                .getPersistentClass()
+                .hashCode() : getClass().hashCode();
     }
 }

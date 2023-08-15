@@ -26,6 +26,7 @@ import io.appform.conductor.model.schema.fields.*;
 import io.appform.conductor.model.ticket.fields.FieldValue;
 import io.appform.conductor.model.ticket.fields.impl.*;
 import io.appform.conductor.server.schemamanagement.SchemaOpValidationResult;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.utils.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
@@ -46,9 +47,6 @@ public class TicketFieldMapper {
 
     public SchemaOpValidationResult<List<TicketFieldData>> map(final Schema schema, final JsonNode data) {
         val fields = data.fields();
-/*        if (fields.isEmpty() || fields.isNull()) {
-            return SchemaOpValidationResult.failure("Payload does not contain map of fields");
-        }*/
         val schemaId = schema.getId();
         val fieldsMap = schema.getFields()
                 .stream()
@@ -63,6 +61,10 @@ public class TicketFieldMapper {
             val fieldSchema = fieldsMap.get(fieldId);
             if (null == fieldData) {
                 errors.add("No field found for field: " + field);
+                continue;
+            }
+            if(null == fieldSchema) {
+                errors.add("No field schema found for field: " + fieldId);
                 continue;
             }
             val results = validateField(fieldSchema, fieldName, fieldData);
@@ -106,10 +108,11 @@ public class TicketFieldMapper {
 
             @Override
             public Pair<List<String>, FieldValue> visit(NumberFieldSchema numberField) {
-                if (!fieldData.isNumber()) {
+                val valueOpt = fieldToDouble(fieldData);
+                if (valueOpt.isEmpty()) {
                     return new Pair<>(List.of("Field " + fieldName + " is not a number"), null);
                 }
-                val value = fieldData.asDouble();
+                val value = valueOpt.get().doubleValue();
                 if (numberField.getMin() != 0 && value < numberField.getMin()) {
                     errors.add("Field value for " + fieldName + " is less than allowed limit " + numberField.getMin());
                 }
@@ -123,12 +126,11 @@ public class TicketFieldMapper {
 
             @Override
             public Pair<List<String>, FieldValue> visit(BooleanFieldSchema booleanField) {
-                if (!fieldData.isBoolean()) {
-                    return new Pair<>(List.of("Field " + fieldName + " is not boolean"), null);
-                }
-                return errors.isEmpty()
-                       ? new Pair<>(List.of(), new BooleanFieldValue(fieldData.asBoolean()))
-                       : new Pair<>(errors, null);
+                return fieldToBoolean(fieldData)
+                        .<Pair<List<String>, FieldValue>>map(
+                                value -> errors.isEmpty() ? new Pair<>(List.of(), new BooleanFieldValue(value))
+                                                          : new Pair<>(errors, null))
+                        .orElseGet(() -> new Pair<>(List.of("Field " + fieldName + " is not boolean"), null));
             }
 
             @Override
@@ -147,12 +149,11 @@ public class TicketFieldMapper {
 
             @Override
             public Pair<List<String>, FieldValue> visit(DateFieldSchema dateField) {
-                if (!fieldData.isLong()) {
-                    return new Pair<>(List.of("Field " + fieldName + " is not epoch date"), null);
-                }
-                return errors.isEmpty()
-                       ? new Pair<>(List.of(), new DateFieldValue(new Date(fieldData.asLong())))
-                       : new Pair<>(errors, null);
+                return fieldToDate(fieldData)
+                        .<Pair<List<String>, FieldValue>>map(
+                                value -> errors.isEmpty() ? new Pair<>(List.of(), new DateFieldValue(value))
+                                                          : new Pair<>(errors, null))
+                        .orElseGet(() -> new Pair<>(List.of("Field " + fieldName + " is not a date"), null));
             }
 
             @Override
@@ -171,14 +172,53 @@ public class TicketFieldMapper {
                         .stream()
                         .map(ChoiceFieldSchema.Option::getValue)
                         .collect(Collectors.toUnmodifiableSet());
-                if(!valid.containsAll(choices)) {
-                    errors.add("Invalid choices " + Sets.difference(choices, valid) + " provided for field " + fieldName);
+                if (!valid.containsAll(choices)) {
+                    errors.add("Invalid choices " + Sets.difference(choices,
+                                                                    valid) + " provided for field " + fieldName);
                 }
                 return errors.isEmpty()
                        ? new Pair<>(List.of(), new ChoiceFieldValue(List.copyOf(choices)))
                        : new Pair<>(errors, null);
             }
         });
+    }
+
+    private static Optional<Double> fieldToDouble(JsonNode fieldData) {
+
+        if (fieldData.isNumber()) {
+            return Optional.of(fieldData.asDouble());
+        }
+        else if (fieldData.isTextual()) {
+            try {
+                return Optional.of(Double.parseDouble(fieldData.asText()));
+            }
+            catch (NumberFormatException e) {
+                //Don't let this leak
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static Optional<Boolean> fieldToBoolean(JsonNode fieldData) {
+
+        if (fieldData.isBoolean()) {
+            return Optional.of(fieldData.asBoolean());
+        }
+        else if (fieldData.isTextual()) {
+            return Optional.of(Boolean.parseBoolean(fieldData.asText()));
+        }
+        return Optional.empty();
+    }
+
+    private static Optional<Date> fieldToDate(JsonNode fieldData) {
+
+        if (fieldData.isLong()) {
+            return Optional.of(new Date(fieldData.asLong()));
+        }
+        else if (fieldData.isTextual()) {
+            return Optional.of(ConductorServerUtils.htmlDateToDate(fieldData.asText()));
+        }
+        return Optional.empty();
     }
 
 }

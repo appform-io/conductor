@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.ui.views.admin;
 
+import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.auth.Role;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
@@ -23,7 +24,9 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -33,9 +36,12 @@ import java.util.List;
 @ToString(callSuper = true)
 public class RolesListView extends BaseLoggedInView {
     List<Role> roles;
+    Set<Permission> permissions = EnumSet.allOf(Permission.class);
+    Role role;
 
-    public RolesListView(User currentUser, List<Role> roles) {
+    public RolesListView(User currentUser, List<Role> roles, Role role) {
         super("templates/admin/role-list.hbs", currentUser);
         this.roles = roles;
+        this.role = role;
     }
 }

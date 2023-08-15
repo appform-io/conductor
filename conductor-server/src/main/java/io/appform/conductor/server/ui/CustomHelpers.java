@@ -18,14 +18,14 @@ package io.appform.conductor.server.ui;
 
 import com.github.jknack.handlebars.Options;
 import com.google.common.base.Strings;
+import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.utils.Displayable;
 import io.appform.conductor.server.utils.dev.IgnoreGenerated;
 import lombok.SneakyThrows;
 import org.apache.commons.text.WordUtils;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  *
@@ -34,7 +34,11 @@ import java.util.Objects;
 @SuppressWarnings("unused")
 public class CustomHelpers {
     public String readable(Object input) {
-        if(input instanceof Displayable displayable) {
+        if(Objects.isNull(input)) {
+            return "";
+        }
+
+        if (input instanceof Displayable displayable) {
             return displayable.displayText();
         }
         return WordUtils.capitalizeFully(input.toString().replace('_', ' '));
@@ -43,29 +47,51 @@ public class CustomHelpers {
     @SneakyThrows
     public CharSequence emptyStr(String input, Options options) {
         return Strings.isNullOrEmpty(input)
-                ? options.fn()
+               ? options.fn()
                : options.inverse();
     }
 
     @SneakyThrows
     public CharSequence empty(Object input, Options options) {
         return Objects.isNull(input)
-                ? options.fn()
+                       || (input instanceof Collection<?> c && c.isEmpty())
+                       || (input instanceof String s && s.isEmpty())
+                       || (input instanceof Map<?, ?> m && m.isEmpty())
+               ? options.fn()
                : options.inverse();
     }
 
     @SneakyThrows
-    public CharSequence contains(Collection<String> collection, String key, Options options) {
+    public <T> CharSequence contains(Collection<T> collection, T key, Options options) {
         return (null != collection && collection.contains(key))
-                ? options.fn()
-                : options.inverse();
+               ? options.fn()
+               : options.inverse();
     }
 
     @SneakyThrows
     public CharSequence hasKey(Map<String, Boolean> collection, String key, Options options) {
         return collection.containsKey(key)
+               ? options.fn()
+               : options.inverse();
+    }
+
+    @SneakyThrows
+    public CharSequence fieldTypeEquals(FieldType lhs, String value, Options options) {
+        return FieldType.valueOf(value).equals(lhs)
+               ? options.fn()
+               : options.inverse();
+    }
+
+    @SneakyThrows
+    public <E extends Enum<E>> CharSequence eqEnum(final E lhs, final Object rhs, Options options) {
+        return lhs != null && lhs.name().equals(rhs)
                 ? options.fn()
-                : options.inverse();
+               : options.inverse();
+    }
+
+    @SneakyThrows
+    public CharSequence htmlDate(Date date, boolean time) {
+        return null == date ? "1970-01-01" : new SimpleDateFormat("yyyy-MM-dd").format(date);
     }
 
     public Object map(Map<String, Object> map, String key) {

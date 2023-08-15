@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.resources;
+package io.appform.conductor.server.resources.ui;
 
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.schema.Schema;
@@ -27,6 +27,8 @@ import io.appform.conductor.model.workflow.WorkflowState;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.ui.views.manage.*;
+import io.appform.conductor.server.usermanagement.UserLifecycleManager;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.workflowmanagement.WorkflowManager;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
@@ -45,13 +47,11 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.lowerSnake;
-import static io.appform.conductor.server.utils.ConductorServerUtils.upperSnake;
+import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 
 /**
  * Administration ui
@@ -65,19 +65,18 @@ public class Manage {
     private final SchemaStore schemaStore;
     private final WorkflowStore workflowStore;
     private final WorkflowManager workflowManager;
+    private final UserLifecycleManager userLifecycleManager;
 
     @GET
     @Path("/schema")
     public Response renderSchemaList(@Auth ConductorUser user) {
-        return Response.ok(new SchemaListView(user.getUserSession().getUser(), schemaStore.list()))
-                .build();
+        return render(new SchemaListView(user.getUserSession().getUser(), schemaStore.list()));
     }
 
     @GET
     @Path("/schema/create")
     public Response renderSchemaCreate(@Auth ConductorUser user) {
-        return Response.ok(new SchemaCreateView(user.getUserSession().getUser()))
-                .build();
+        return render(new SchemaView(user.getUserSession().getUser(), null));
     }
 
     @POST
@@ -89,8 +88,8 @@ public class Manage {
             @FormParam("description") @Length(max = 255) final String description) {
         return schemaStore.create(name, description)
                 .flatMap(schemaSummary -> schemaStore.updateState(schemaSummary.getId(), SchemaState.ACTIVE))
-                .map(schemaSummary -> Response.seeOther(URI.create("/manage/schema/" + schemaSummary.getId())).build())
-                .orElse(Response.seeOther(URI.create("/manage/schema")).build());
+                .map(schemaSummary -> redirect("/manage/schema/" + schemaSummary.getId()))
+                .orElseThrow(() -> fail("Could not create state", "/manage/schema"));
     }
 
 
@@ -102,8 +101,8 @@ public class Manage {
             @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId,
             @FormParam("description") @Length(max = 255) final String description) {
         return schemaStore.updateDescription(schemaId, description)
-                .map(schemaSummary -> Response.seeOther(URI.create("/manage/schema/" + schemaSummary.getId())).build())
-                .orElse(Response.seeOther(URI.create("/manage/schema")).build());
+                .map(schemaSummary -> redirect("/manage/schema/" + schemaSummary.getId()))
+                .orElseThrow(() -> fail("Failed to update schema " + schemaId, "/manage/schema"));
     }
 
     @GET
@@ -112,10 +111,9 @@ public class Manage {
             @Auth ConductorUser user,
             @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId) {
         return schemaStore.get(schemaId)
-                .map(schema -> Response.ok(new SchemaDetailsView(user.getUserSession().getUser(), schema)).build())
-                .orElse(Response.seeOther(URI.create("/manage/schema")).build());
+                .map(schema -> render(new SchemaView(user.getUserSession().getUser(), schema)))
+                .orElseThrow(() -> fail("Failed to find schema " + schemaId, "/manage/schema"));
     }
-
 
     @POST
     @Path("/schema/{schemaId}/fields/add")
@@ -148,6 +146,7 @@ public class Manage {
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
+                    .required(fieldRequired)
                     .allowMultiple(fieldChoiceMullti)
                     .choices(Arrays.stream(fieldChoiceChoices.split(","))
                                      .map(choice -> new ChoiceFieldSchema.Option(upperSnake(choice), choice))
@@ -157,11 +156,13 @@ public class Manage {
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
+                    .required(fieldRequired)
                     .build();
             case NUMBER -> NumberFieldSchema.builder()
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
+                    .required(fieldRequired)
                     .min(fieldNumberMin)
                     .max(fieldNumberMax)
                     .build();
@@ -169,36 +170,49 @@ public class Manage {
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
+                    .required(fieldRequired)
                     .build();
             case DATE -> DateFieldSchema.builder()
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
+                    .required(fieldRequired)
                     .build();
         };
         return schemaStore.addField(schemaId, schemaId + "-" + name, fs)
-                .map(f -> Response.seeOther(URI.create("/manage/schema/" + schemaId)).build())
-                .orElse(Response.seeOther(URI.create("/manage/schema")).build());
+                .map(f -> redirect("/manage/schema/" + schemaId))
+                .orElseThrow(() -> fail("Failed to add field to schema " + schemaId, "/manage/schema"));
+    }
+
+    @POST
+    @Path("/schema/{schemaId}/fields/{fieldId}/delete")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response deleteField(
+            @Auth ConductorUser user,
+            @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId,
+            @PathParam("fieldId") @NotEmpty @Length(max = 45) final String fieldId) {
+        if (schemaStore.deleteField(schemaId, fieldId)) {
+            return redirect("/manage/schema/" + schemaId);
+        }
+        throw fail("Failed to remove field from schema " + schemaId, "/manage/schema");
     }
 
     @GET
     @Path("/workflow")
     public Response renderWorkflowList(@Auth ConductorUser user) {
-        return Response.ok(new WorkflowListView(user.getUserSession().getUser(),
-                                                workflowStore.list(EnumSet.allOf(WorkflowState.class))))
-                .build();
+        return render(new WorkflowListView(user.getUserSession().getUser(),
+                                           workflowStore.list(EnumSet.allOf(WorkflowState.class))));
     }
 
     @GET
     @Path("/workflow/create")
     public Response renderWorkflowCreateScreen(@Auth ConductorUser user) {
-        return Response.ok(new WorkflowCreateView(user.getUserSession().getUser(),
-                                                  schemaStore.list()
-                                                          .stream()
-                                                          .filter(schemaSummary -> schemaSummary.getState()
-                                                                  .equals(SchemaState.ACTIVE))
-                                                          .toList()))
-                .build();
+        return render(new WorkflowCreateView(user.getUserSession().getUser(),
+                                             schemaStore.list()
+                                                     .stream()
+                                                     .filter(schemaSummary -> schemaSummary.getState()
+                                                             .equals(SchemaState.ACTIVE))
+                                                     .toList()));
     }
 
     @POST
@@ -208,19 +222,16 @@ public class Manage {
             @Auth ConductorUser user,
             @FormParam("name") @NotEmpty @Length(max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
-            @FormParam("schemaId") @NotEmpty @Length(max = 255) final String schemaId,
-            @FormParam("titleTemplate") @NotEmpty @Length(max = 4096) final String titleTemplate,
-            @FormParam("descriptionTemplate") @NotEmpty @Length(max = 4096) final String descriptionTemplate,
-            @FormParam("subjectTemplate") @NotEmpty @Length(max = 4096) final String subjectTemplate) {
+            @FormParam("schemaId") @NotEmpty @Length(max = 255) final String schemaId) {
         return workflowStore.create(lowerSnake(name),
                                     name,
                                     description,
                                     schemaId,
-                                    template(titleTemplate),
-                                    template(descriptionTemplate),
-                                    template(subjectTemplate))
-                .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
-                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+                                    null,
+                                    null,
+                                    null)
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Failed to create workflow", "/manage/workflow"));
     }
 
     @GET
@@ -231,27 +242,61 @@ public class Manage {
         return workflowStore.read(workflowId)
                 .flatMap(workflow -> schemaStore.get(workflow.getSchemaId())
                         .map(schema -> new WorkflowDetailsView(user.getUserSession().getUser(), workflow, schema)))
-                .map(view -> Response.ok(view).build())
-                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+                .map(ConductorServerUtils::render)
+                .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
     }
 
     @POST
     @Path("/workflow/{workflowId}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response updateWorkflow(
+    public Response updateWorkflowDescription(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = 255) final String description) {
+        return workflowManager.updateDescription(workflowId, description)
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Failed to update workflow " + workflowId, "/manage/workflow"));
+    }
+
+    @POST
+    @Path("/workflow/{workflowId}/dynamic")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response updateWorkflowDynamicTemplates(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @FormParam("titleTemplate") @NotEmpty @Length(max = 4096) final String titleTemplate,
             @FormParam("descriptionTemplate") @NotEmpty @Length(max = 4096) final String descriptionTemplate,
             @FormParam("subjectTemplate") @NotEmpty @Length(max = 4096) final String subjectTemplate) {
-        return workflowStore.update(workflowId,
-                                    workflow -> workflow.setDescription(description)
-                                            .setTitleTemplate(template(titleTemplate))
-                                            .setDescriptionTemplate(template(descriptionTemplate))
-                                            .setSubjectIdTemplate(template(subjectTemplate)))
-                .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
-                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+        return workflowManager.updateTemplates(workflowId,
+                                               template(titleTemplate),
+                                               template(descriptionTemplate),
+                                               template(subjectTemplate))
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Failed to update workflow " + workflowId, "/manage/workflow"));
+    }
+
+    @POST
+    @Path("/workflow/{workflowId}/selectionrules/add")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response addWorkflowSelectionRule(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @FormParam("selectionRule") @NotEmpty @Length(max = 4096) final String selectionRule) {
+        return workflowManager.addSelectionRule(workflowId, new Rule(Rule.RuleType.HOPE, selectionRule))
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Failed to update workflow " + workflowId, "/manage/workflow"));
+    }
+
+    @POST
+    @Path("/workflow/{workflowId}/selectionrules/{ruleId}/delete")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response deleteWorkflowSelectionRule(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @PathParam("ruleId") @NotEmpty @Length(max = 45) final String ruleId) {
+        return workflowManager.deleteSelectionRule(workflowId, ruleId)
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Failed to update workflow " + workflowId, "/manage/workflow"));
     }
 
     @GET
@@ -259,17 +304,17 @@ public class Manage {
     public Response createState(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
-        val fields = workflowManager.read(workflowId)
+        return workflowManager.read(workflowId)
                 .map(Workflow::getSchemaId)
                 .flatMap(schemaStore::get)
                 .map(Schema::getFields)
-                .orElse(List.of());
-        return Response.ok(new WorkflowStateView(user.getUserSession().getUser(),
-                                                 workflowId,
-                                                 null,
-                                                 List.of(),
-                                                 fields))
-                .build();
+                .map(fields -> render(new WorkflowStateView(
+                        user.getUserSession().getUser(),
+                        workflowId,
+                        null,
+                        List.of(),
+                        fields)))
+                .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
     }
 
     @GET
@@ -280,23 +325,23 @@ public class Manage {
             @PathParam("stateId") @NotEmpty @Length(max = 1024) final String stateId) {
         val workflow = workflowManager.read(workflowId);
         if (workflow.isEmpty()) {
-            return Response.seeOther(URI.create("/")).build();
+            throw fail("No workflow found for: " + workflowId, "/");
         }
         val state = workflow.map(wf -> wf.getStates().get(stateId)).orElse(null);
         if (null == state) {
-            return Response.seeOther(URI.create("/manage/workflow/" + workflowId)).build();
+            throw fail("No state " + stateId + " found for workflow: " + workflowId,
+                       "/manage/workflow/" + workflowId);
         }
         val fields = workflow
                 .map(Workflow::getSchemaId)
                 .flatMap(schemaStore::get)
                 .map(Schema::getFields)
                 .orElse(List.of());
-        return Response.ok(new WorkflowStateView(user.getUserSession().getUser(),
-                                                 workflowId,
-                                                 state,
-                                                 List.of(),
-                                                 fields))
-                .build();
+        return render(new WorkflowStateView(user.getUserSession().getUser(),
+                                            workflowId,
+                                            state,
+                                            List.of(),
+                                            fields));
     }
 
     @POST
@@ -318,8 +363,8 @@ public class Manage {
                                            allowedActions,
                                            editableFields,
                                            visibleFields)
-                .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
-                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Could not add state " + stateName, "/manage/workflow"));
     }
 
     @POST
@@ -336,11 +381,12 @@ public class Manage {
             @FormParam("visibleFields") final List<String> visibleFields) {
         val workflow = workflowManager.read(workflowId);
         if (workflow.isEmpty()) {
-            return Response.seeOther(URI.create("/")).build();
+            throw fail("No workflow found for: " + workflowId, "/");
         }
         val state = workflow.map(wf -> wf.getStates().get(stateId)).orElse(null);
         if (null == state) {
-            return Response.seeOther(URI.create("/manage/workflow/" + workflowId)).build();
+            throw fail("No state " + stateId + " found for workflow: " + workflowId,
+                       "/manage/workflow/" + workflowId);
         }
         return workflowManager.updateState(workflowId,
                                            stateId,
@@ -349,8 +395,22 @@ public class Manage {
                                            allowedActions,
                                            editableFields,
                                            visibleFields)
-                .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
-                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Could not setup initial state state " + stateId + " for workflow " + workflowId,
+                                        "/manage/workflow"));
+    }
+
+    @POST
+    @Path("/workflow/{workflowId}/states/{stateId}/initial")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response setupInitialStateForWorkflow(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @PathParam("stateId") @NotEmpty @Length(max = 45) final String stateId) {
+        return workflowManager.setupInitialStateForWorkflow(workflowId, stateId)
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Could not setup initial state " + stateId + " for workflow " + workflowId,
+                                        "/manage/workflow"));
     }
 
     @POST
@@ -361,8 +421,9 @@ public class Manage {
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @PathParam("stateId") @NotEmpty @Length(max = 45) final String stateId) {
         return workflowManager.deleteState(workflowId, stateId)
-                .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
-                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Could not delete state " + stateId + " for workflow " + workflowId,
+                                        "/manage/workflow"));
     }
 
     @POST
@@ -383,8 +444,9 @@ public class Manage {
                                                         transitionType == TicketStateTransition.TicketStateTransitionType.EVALUATED
                                                         ? new Rule(Rule.RuleType.HOPE, rule) : null,
                                                         allowedActions)
-                .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
-                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Could not add transition to workflow " + workflowId,
+                                        "/manage/workflow"));
     }
 
     @POST
@@ -395,12 +457,88 @@ public class Manage {
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @PathParam("transitionId") @NotEmpty @Length(max = 1024) final String transitionId) {
         return workflowStore.deleteTransition(workflowId, transitionId)
-                .map(wf -> Response.seeOther(URI.create("/manage/workflow/" + wf.getId())).build())
-                .orElse(Response.seeOther(URI.create("/manage/workflow")).build());
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Could not delete transition from workflow " + workflowId,
+                                        "/manage/workflow"));
+    }
+
+    @GET
+    @Path("/groups")
+    public Response renderGroupList(@Auth ConductorUser user) {
+        return render(new GroupListView(user.getUserSession().getUser(), userLifecycleManager.listGroups(), null));
+    }
+
+    @POST
+    @Path("/groups")
+    public Response createGroups(
+            @Auth ConductorUser user,
+            @FormParam("name") @NotEmpty @Length(max = 45) final String name,
+            @FormParam("description") @Length(max = 255) final String description) {
+        return userLifecycleManager.createGroup(name, description)
+                .map(group -> redirect("/manage/groups/" + group.getId()))
+                .orElseThrow(() -> fail("Could not create group", "/manage/groups"));
+    }
+
+    @GET
+    @Path("/groups/{groupId}")
+    public Response createGroup(
+            @Auth ConductorUser user,
+            @PathParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
+        return userLifecycleManager.readGroup(groupId)
+                .map(group -> render(new GroupListView(user.getUserSession().getUser(),
+                                                       userLifecycleManager.listGroups(),
+                                                       group)))
+                .orElseThrow(() -> fail("No such group exists", "/manage/groups"));
+    }
+
+    @POST
+    @Path("/groups/{groupId}/update")
+    public Response updateGroup(
+            @Auth ConductorUser user,
+            @PathParam("groupId") @NotEmpty @Length(max = 45) final String groupId,
+            @FormParam("description") @NotEmpty @Length(max = 45) final String description) {
+        return userLifecycleManager.updateGroupDescription(groupId, description)
+                .map(group -> redirect("/manage/groups/" + group.getId()))
+                .orElseThrow(() -> fail("Could not update group", "/manage/groups"));
+    }
+
+    @POST
+    @Path("/groups/{groupId}/delete")
+    public Response deleteGroup(
+            @Auth ConductorUser user,
+            @PathParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
+
+        return userLifecycleManager.deleteGroup(groupId)
+                .map(group -> redirect("/manage/groups/"))
+                .orElseThrow(() -> fail("Could not create group", "/manage/groups"));
+    }
+
+    @POST
+    @Path("/users/{userId}/groups/add")
+    public Response addUserToGroup(
+            @Auth final ConductorUser user,
+            @PathParam("userId") @NotEmpty @Length(max = 45) final String userId,
+            @FormParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
+        if(userLifecycleManager.addUserToGroup(groupId, userId)) {
+            return redirect("/admin/users/" + userId);
+        }
+        throw fail("Could not add user to group", "/admin/users/" + userId);
+    }
+
+    @POST
+    @Path("/users/{userId}/groups/{groupId}/remove")
+    public Response removeUserFromGroup(
+            @Auth final ConductorUser user,
+            @PathParam("userId") @NotEmpty @Length(max = 45) final String userId,
+            @PathParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
+        if(userLifecycleManager.removeUserFromGroup(groupId, userId)) {
+            return redirect("/admin/users/" + userId);
+        }
+        throw fail("Could not remove user from group", "/admin/users/" + userId);
     }
 
     private static io.appform.conductor.model.workflow.Template template(String templateValue) {
-        return new io.appform.conductor.model.workflow.Template(io.appform.conductor.model.workflow.Template.Type.HANDLEBARS,
+        return new io.appform.conductor.model.workflow.Template(io.appform.conductor.model.workflow.Template.Type.STRING_SUBSTITUTION,
                                                                 templateValue);
     }
 }

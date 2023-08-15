@@ -58,11 +58,13 @@ public class DBSubjectStore implements SubjectStore {
             List<SubjectID> ids,
             @Throws.RuntimeParam("id") String globalSubjectId,
             String name,
-            Date dob) {
+            Date dob,
+            Gender gender) {
         val storedSummary = new StoredSubjectSummary()
                 .setGlobalId(globalSubjectId)
                 .setName(name)
-                .setDob(dob);
+                .setDob(dob)
+                .setGender(Objects.requireNonNullElse(gender, Gender.OTHER));
         val savedSummary = subjectDao.saveAndGetExecutor(storedSummary)
                 .saveAll(subjectIdDao,
                          summary -> ids.stream()
@@ -106,6 +108,26 @@ public class DBSubjectStore implements SubjectStore {
     }
 
     @Override
+    public Optional<Subject> updateSubjectSummary(String globalSubjectId, UnaryOperator<SubjectSummary> updater) {
+        val updatedRes = subjectDao.update(globalSubjectId,
+                                           subOptional -> subOptional.map(stored -> {
+                                                       val updated = updater.apply(toWireSummary(stored));
+                                                       if (null == updated) {
+                                                           return null;
+                                                       }
+                                                       return stored
+                                                               .setName(updated.getName())
+                                                               .setDob(updated.getDob())
+                                                               .setGender(updated.getGender());
+                                                   })
+                                                   .orElse(null));
+        if (updatedRes) {
+            return getSubject(globalSubjectId);
+        }
+        return Optional.empty();
+    }
+
+    @Override
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredSubjectSummary.SUBJECT_TABLE_NAME))
@@ -113,11 +135,11 @@ public class DBSubjectStore implements SubjectStore {
         return subjectDao.readOnlyExecutor(subjectId)
                 .readAugmentParent(subjectIdDao,
                                    criteriaForSubject(subjectId, StoredSubjectID.class),
-                                   1, Integer.MAX_VALUE,
+                                   0, Integer.MAX_VALUE,
                                    StoredSubjectSummary::setIds)
                 .readAugmentParent(addressDao,
                                    criteriaForSubject(subjectId, StoredAddress.class),
-                                   1, Integer.MAX_VALUE,
+                                   0, Integer.MAX_VALUE,
                                    StoredSubjectSummary::setAddresses)
                 .execute()
                 .map(DBSubjectStore::toWire);
@@ -164,15 +186,28 @@ public class DBSubjectStore implements SubjectStore {
             String value,
             SubjectIDVerificationStatus status) {
         val extId = generateIdForSubjectID(globalSubjectId, type, subType, value);
+        val hasPrimary = 0 < subjectIdDao.count(globalSubjectId,
+                                                criteriaForSubject(globalSubjectId, StoredSubjectID.class)
+                                                        .add(Property.forName(StoredSubjectID.Fields.primary)
+                                                                     .eq(true)));
+
         val updatedSummary = subjectDao.lockAndGetExecutor(globalSubjectId) //For safety
-                .save(subjectIdDao, summary -> new StoredSubjectID()
-                        .setSubjectGlobalId(summary.getGlobalId())
-                        .setType(type)
-                        .setSubType(subType)
-                        .setExtId(extId)
-                        .setValue(value)
-                        .setPrimary(false)
-                        .setVerificationStatus(status))
+                .createOrUpdate(subjectIdDao,
+                                DetachedCriteria.forClass(StoredSubjectID.class)
+                                        .add(Property.forName(StoredSubjectID.Fields.subjectGlobalId)
+                                                     .eq(globalSubjectId))
+                                        .add(Property.forName(StoredSubjectID.Fields.extId).eq(extId)),
+                                existing -> existing.setDeleted(false)
+                                        .setVerificationStatus(status)
+                                        .setPrimary(!hasPrimary),
+                                () -> new StoredSubjectID()
+                                        .setSubjectGlobalId(globalSubjectId)
+                                        .setType(type)
+                                        .setSubType(subType)
+                                        .setExtId(extId)
+                                        .setValue(value)
+                                        .setPrimary(!hasPrimary) //First id is marked as primary
+                                        .setVerificationStatus(status))
                 .execute();
         if (null == updatedSummary) {
             return Optional.empty();
@@ -203,8 +238,42 @@ public class DBSubjectStore implements SubjectStore {
                         },
                         () -> false)
                 .execute() != null;
-        log.info("Update statud for id {}/{}: {}", globalSubjectId, idExtId, status);
+        log.info("Update status for id {}/{}: {}", globalSubjectId, idExtId, status);
         return readSubjectId(globalSubjectId, idExtId);
+    }
+
+    @Override
+    @Throws(value = ConductorErrorCode.STORE_RELATED_ENTITY_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredSubjectID.SUBJECT_ID_TABLE_NAME))
+    public Optional<SubjectID> markIdentifierAsPrimary(
+            @Throws.RuntimeParam("id") String globalSubjectId,
+            @Throws.RuntimeParam("subId") String idExtId) {
+        val status = subjectDao.lockAndGetExecutor(globalSubjectId)
+                .update(subjectIdDao,
+                        criteriaForSubject(globalSubjectId, StoredSubjectID.class),
+                        id -> id.setPrimary(id.getExtId().equals(idExtId)),
+                        () -> true)
+                .execute() != null;
+        log.info("Update status for id {}/{}: {}", globalSubjectId, idExtId, status);
+        return readSubjectId(globalSubjectId, idExtId);
+    }
+
+    @Override
+    public boolean deleteIdentifier(
+            @Throws.RuntimeParam("id") String globalSubjectId,
+            @Throws.RuntimeParam("subId") String idExtId) {
+        subjectDao.lockAndGetExecutor(globalSubjectId)
+                .update(subjectIdDao,
+                        criteriaForSubject(globalSubjectId, StoredSubjectID.class)
+                                .add(Property.forName(StoredSubjectID.Fields.extId).eq(idExtId))
+                                .add(Property.forName(StoredSubjectID.Fields.primary).eq(false)),
+                        id -> id.setDeleted(true)
+                                .setVerificationStatus(SubjectIDVerificationStatus.UNVERIFIED),
+                        () -> false)
+                .execute();
+        return subjectIdDao.count(globalSubjectId,
+                                  criteriaForSubject(globalSubjectId, StoredSubjectID.class)
+                                          .add(Property.forName(StoredSubjectID.Fields.extId).eq(idExtId))) == 0;
     }
 
     @Override
@@ -213,7 +282,8 @@ public class DBSubjectStore implements SubjectStore {
     public List<SubjectSummary> lookupSummaryById(SubjectID id) {
         val subGlobalIds = fetchSubjectIdsFoId(id);
         return subjectDao.scatterGather(DetachedCriteria.forClass(StoredSubjectSummary.class)
-                                                .add(Property.forName(StoredSubjectSummary.Fields.globalId).in(subGlobalIds)))
+                                                .add(Property.forName(StoredSubjectSummary.Fields.globalId)
+                                                             .in(subGlobalIds)))
                 .stream()
                 .map(DBSubjectStore::toWireSummary)
                 .toList();
@@ -301,7 +371,8 @@ public class DBSubjectStore implements SubjectStore {
     public List<Address> findAddressesForSubject(String globalSubjectId) {
         return addressDao.select(globalSubjectId,
                                  DetachedCriteria.forClass(StoredAddress.class)
-                                         .add(Property.forName(StoredAddress.Fields.subjectGlobalId).eq(globalSubjectId))
+                                         .add(Property.forName(StoredAddress.Fields.subjectGlobalId)
+                                                      .eq(globalSubjectId))
                                          .add(Property.forName(StoredAddress.Fields.deleted).eq(false)),
                                  0,
                                  Integer.MAX_VALUE)
@@ -312,8 +383,8 @@ public class DBSubjectStore implements SubjectStore {
 
     private static <T> DetachedCriteria criteriaForSubject(String id, Class<T> clazz) {
         return DetachedCriteria.forClass(clazz)
-                .add(Property.forName("subjectGlobalId").eq(id))
-                .add(Property.forName("deleted").eq(false));
+                .add(Property.forName(StoredSubjectID.Fields.subjectGlobalId).eq(id))
+                .add(Property.forName(StoredSubjectID.Fields.deleted).eq(false));
     }
 
     private static Subject toWire(final StoredSubjectSummary stored) {
@@ -333,6 +404,7 @@ public class DBSubjectStore implements SubjectStore {
         return new SubjectSummary(stored.getGlobalId(),
                                   stored.getName(),
                                   stored.getDob(),
+                                  stored.getGender(),
                                   stored.isDeleted(),
                                   stored.getCreated(),
                                   stored.getUpdated());
@@ -388,8 +460,10 @@ public class DBSubjectStore implements SubjectStore {
     private List<String> fetchSubjectIdsFoId(SubjectID id) {
         return subjectIdDao.scatterGather(DetachedCriteria.forClass(StoredSubjectID.class)
                                                   .add(Property.forName(StoredSubjectID.Fields.type).eq(id.getType()))
-                                                  .add(Property.forName(StoredSubjectID.Fields.subType).eq(id.getSubType()))
-                                                  .add(Property.forName(StoredSubjectID.Fields.value).eq(id.getValue())),
+                                                  .add(Property.forName(StoredSubjectID.Fields.subType)
+                                                               .eq(id.getSubType()))
+                                                  .add(Property.forName(StoredSubjectID.Fields.value)
+                                                               .eq(id.getValue())),
                                           0, Integer.MAX_VALUE)
                 .stream()
                 .map(StoredSubjectID::getSubjectGlobalId)

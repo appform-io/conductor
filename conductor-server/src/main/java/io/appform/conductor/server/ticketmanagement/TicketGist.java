@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.manage;
+package io.appform.conductor.server.ticketmanagement;
 
-import io.appform.conductor.model.schema.Schema;
-import io.appform.conductor.model.usermgmt.User;
-import io.appform.conductor.server.ui.views.BaseLoggedInView;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import io.appform.conductor.model.ticket.TicketPriority;
 import lombok.Value;
+
+import java.util.Date;
 
 /**
  *
  */
 @Value
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class SchemaDetailsView extends BaseLoggedInView {
-    Schema schema;
-
-    public SchemaDetailsView(User currentUser, Schema schema) {
-        super("templates/manage/schema-details.hbs", currentUser);
-        this.schema = schema;
-    }
+public class TicketGist {
+    String ticketId;
+    String title;
+    String workflowName;
+    String stateName;
+    boolean terminated;
+    TicketPriority priority;
+    Date created;
+    Date updated;
 }

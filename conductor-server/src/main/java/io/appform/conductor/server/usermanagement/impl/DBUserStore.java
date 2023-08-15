@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.usermanagement.impl;
 
+import com.google.common.base.Strings;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.usermgmt.UserState;
@@ -74,8 +75,9 @@ public class DBUserStore implements UserStore {
     @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
             fixedParams = @Throws.Param(name = "type", value = USER_TABLE_NAME))
     public Optional<UserSummary> getById(@Throws.RuntimeParam("id") String userId) {
-        return userDao.get(userId)
-                .map(DBUserStore::toWire);
+        return Strings.isNullOrEmpty(userId)
+               ? Optional.empty()
+               : userDao.get(userId).map(DBUserStore::toWire);
     }
 
     @Override

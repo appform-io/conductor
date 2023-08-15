@@ -68,15 +68,15 @@ public class StoredTicketState implements Serializable {
     @Column
     private boolean terminal;
 
-    @Column(name = "allowed_actions")
+    @Column(name = "allowed_actions", columnDefinition = "blob")
     @Convert(converter = StringListConverter.class)
     private List<String> allowedActions;
 
-    @Column(name = "editable_fields")
+    @Column(name = "editable_fields", columnDefinition = "blob")
     @Convert(converter = StringListConverter.class)
     private List<String> editableFields;
 
-    @Column(name = "visible_fields")
+    @Column(name = "visible_fields", columnDefinition = "blob")
     @Convert(converter = StringListConverter.class)
     private List<String> visibleFields;
 

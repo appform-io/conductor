@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.workflowmanagement.impl;
 
+import com.google.common.base.Strings;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.TicketState;
@@ -80,7 +81,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                   .setTitleTemplate(titleTemplate)
                                   .setDescriptionTemplate(descriptionTemplate)
                                   .setSubjectIdTemplate(subjectIdTemplate)
-                                  .setState(WorkflowState.INACTIVE))
+                                  .setState(WorkflowState.ACTIVE)) //TODO::ACTIVATION WORKFLOW
                 .map(DBWorkflowStore::toWirePartial);
     }
 
@@ -246,6 +247,7 @@ public class DBWorkflowStore implements WorkflowStore {
             TicketStateTransition.TicketStateTransitionType type,
             Rule rule,
             List<String> actionIds) {
+        val actions = actionIds.stream().filter(id -> !Strings.isNullOrEmpty(id)).toList();
         val updated = wfDao.lockAndGetExecutor(workflowId)
                 .createOrUpdate(tstrnDao,
                                 createCriteria(StoredTicketStateTransition.class, workflowId, false)
@@ -253,7 +255,8 @@ public class DBWorkflowStore implements WorkflowStore {
                                 existing -> existing
                                         .setType(type)
                                         .setRule(rule)
-                                        .setActionIds(actionIds),
+                                        .setActionIds(actions)
+                                        .setDeleted(false),
                                 () -> new StoredTicketStateTransition()
                                         .setWorkflowId(workflowId)
                                         .setExtId(transitionId)
@@ -261,7 +264,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                         .setToState(to)
                                         .setType(type)
                                         .setRule(rule)
-                                        .setActionIds(actionIds))
+                                        .setActionIds(actions))
                 .execute() != null;
         log.info("State transition create status for {}/{}: {}", workflowId, transitionId, updated);
         return read(workflowId);
@@ -320,7 +323,7 @@ public class DBWorkflowStore implements WorkflowStore {
             @Throws.RuntimeParam("id") String workflowId,
             @Throws.RuntimeParam("subId") String ruleId) {
         val updated = wfDao.lockAndGetExecutor(workflowId)
-                .update(tsDao,
+                .update(wfselDao,
                         createCriteria(StoredWorkflowSelectionRule.class, workflowId)
                                 .add(Property.forName("extId").eq(ruleId)),
                         state -> state.setDeleted(true),

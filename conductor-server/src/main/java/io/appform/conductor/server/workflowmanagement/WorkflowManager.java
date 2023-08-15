@@ -27,10 +27,7 @@ import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiFunction;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.ensure;
@@ -79,6 +76,16 @@ public class WorkflowManager {
 
     public Optional<Workflow> updateDescription(final String workflowId, final String description) {
         return workflowStore.update(workflowId, wf -> wf.setDescription(description));
+    }
+
+    public Optional<Workflow> updateTemplates(
+            final String workflowId,
+            final Template titleTemplate,
+            final Template descriptionTemplate,
+            final Template subjectIdTemplate) {
+        return workflowStore.update(workflowId, wf -> wf.setTitleTemplate(titleTemplate)
+                .setDescriptionTemplate(descriptionTemplate)
+                .setSubjectIdTemplate(subjectIdTemplate));
     }
 
     public Optional<Workflow> createState(
@@ -169,6 +176,16 @@ public class WorkflowManager {
                                                  terminal);
     }*/
 
+    public Optional<Workflow> setupInitialStateForWorkflow(String workflowId, String stateId) {
+        val wf = workflowStore.read(workflowId).orElse(null);
+        ensureNotNull(workflowId, wf);
+        val state = wf.getStates().get(stateId);
+        ConductorServerUtils.notNull(state, ConductorErrorCode.WORKFLOW_ERROR_INVALID_INITIAL_STATE,
+                                     "State " + stateId + " is not associated with this workflow");
+        return workflowStore.update(workflowId,
+                                    workflow -> workflow.setStartStateId(stateId).setState(WorkflowState.ACTIVE));
+    }
+
     public Optional<Workflow> deleteState(
             String workflowId,
             String stateId) {
@@ -211,7 +228,7 @@ public class WorkflowManager {
         ensure(null != toState,
                ConductorErrorCode.WORKFLOW_ERROR,
                "No state found for ID: " + to);
-        val transitionId = readableId(workflowId, from, to);
+        val transitionId = readableId(workflowId, from, to, Objects.toString(System.currentTimeMillis()));
         val updated = workflowStore.createOrUpdateTransition(workflowId,
                                                              transitionId,
                                                              from,
@@ -303,7 +320,7 @@ public class WorkflowManager {
     public Optional<Workflow> addSelectionRule(final String workflowId, final Rule rule) {
         val wf = workflowStore.read(workflowId).orElse(null);
         ensureNotNull(workflowId, wf);
-        val ruleId = UUID.fromString(rule.getRule()).toString();
+        val ruleId = UUID.randomUUID().toString();
         val updated = workflowStore.createOrUpdateSelectionRule(workflowId, ruleId, rule);
         ensure(updated.filter(workflow -> workflow.getSelectionRules().containsKey(ruleId)).isPresent(),
                ConductorErrorCode.WORKFLOW_ERROR,
@@ -311,7 +328,7 @@ public class WorkflowManager {
         return updated;
     }
 
-    public Optional<Workflow> updateRule(final String workflowId, final String ruleId, final Rule rule) {
+    public Optional<Workflow> updateSelectionRule(final String workflowId, final String ruleId, final Rule rule) {
         val wf = workflowStore.read(workflowId).orElse(null);
         ensureNotNull(workflowId, wf);
         val updated = workflowStore.createOrUpdateSelectionRule(workflowId, ruleId, rule);
@@ -321,7 +338,7 @@ public class WorkflowManager {
         return updated;
     }
 
-    public Optional<Workflow> deleteRule(final String workflowId, final String ruleId) {
+    public Optional<Workflow> deleteSelectionRule(final String workflowId, final String ruleId) {
         val wf = workflowStore.read(workflowId).orElse(null);
         ensureNotNull(workflowId, wf);
         val updated = workflowStore.deleteSelectionRule(workflowId, ruleId);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.resources;
+package io.appform.conductor.server.resources.ui;
 
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.ui.views.HomeView;
@@ -27,6 +27,9 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import static io.appform.conductor.server.utils.ConductorServerUtils.render;
 
 /**
  *
@@ -36,10 +39,10 @@ import javax.ws.rs.core.MediaType;
 @Template
 @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
 @PermitAll
-public class UI {
+public class Home {
 
     @GET
-    public HomeView home(@Auth ConductorUser user) {
-        return new HomeView(user.getUserSession().getUser());
+    public Response home(@Auth ConductorUser user) {
+        return render(new HomeView(user.getUserSession().getUser()));
     }
 }

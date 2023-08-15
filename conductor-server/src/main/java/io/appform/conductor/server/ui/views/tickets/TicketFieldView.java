@@ -14,16 +14,35 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.user;
+package io.appform.conductor.server.ui.views.tickets;
 
-import io.appform.conductor.model.usermgmt.User;
-import io.appform.conductor.server.ui.views.BaseLoggedInView;
+import io.appform.conductor.model.schema.FieldSchema;
+import io.appform.conductor.model.schema.FieldType;
+import io.appform.conductor.model.ticket.fields.FieldValue;
 
 /**
  *
  */
-public final class UserSearchView extends BaseLoggedInView {
-    public UserSearchView(User currentUser) {
-        super("templates/user/search.hbs", currentUser);
-    }
+@lombok.Value
+public class TicketFieldView {
+
+    /**
+     * Type of field
+     */
+    FieldType type;
+
+    /**
+     * Global id for the field schema
+     */
+    FieldSchema schema;
+
+    /**
+     * Actual field fieldValue
+     */
+    FieldValue fieldValue;
+
+    /**
+     * Is field editable
+     */
+    boolean editable;
 }

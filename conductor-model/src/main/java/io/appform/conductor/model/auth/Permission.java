@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 /**
  *
  */
+@Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum Permission implements Displayable {
     ADMIN(Values.ADMIN, "Administration tasks"),
@@ -55,7 +56,6 @@ public enum Permission implements Displayable {
         public static final String TICKET_WRITE = "TICKET_WRITE";
     }
 
-    @Getter
     private final String value;
     @Getter
     private final String displayText;

@@ -14,23 +14,13 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.manage;
-
-import io.appform.conductor.model.usermgmt.User;
-import io.appform.conductor.server.ui.views.BaseLoggedInView;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import lombok.Value;
+package io.appform.conductor.model.subject;
 
 /**
  *
  */
-@Value
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class SchemaCreateView extends BaseLoggedInView {
-
-    public SchemaCreateView(User currentUser) {
-        super("templates/manage/schema-create.hbs", currentUser);
-    }
+public enum Gender {
+    MALE,
+    FEMALE,
+    OTHER
 }

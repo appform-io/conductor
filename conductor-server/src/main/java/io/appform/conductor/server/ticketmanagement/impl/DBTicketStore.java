@@ -49,6 +49,7 @@ import lombok.val;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.criterion.*;
+import org.hibernate.sql.JoinType;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -94,6 +95,7 @@ public class DBTicketStore implements TicketStore {
                                              .setCreatedByUserId(ConductorServerUtils.operatingUserId())
                                              .setSubjectId(subjectId)
                                              .setTicketStateId(ticketStateId)
+                                             .setCreatedByUserId(ConductorServerUtils.operatingUserId())
                                              .setPriority(priority))
                 .saveAll(fieldDao, ticket -> toStoredFields(ticket, fields))
                 .execute();
@@ -127,6 +129,7 @@ public class DBTicketStore implements TicketStore {
                             val updated = updater.apply(toSummary(ticket, false));
                             ticket.setTitle(updated.getTitle())
                                     .setDescription(updated.getDescription())
+                                    .setAssignedToGroupId(updated.getAssignedToGroupId())
                                     .setSubjectId(updated.getSubjectId())
                                     .setTicketStateId(updated.getTicketStateId())
                                     .setPriority(updated.getPriority());
@@ -459,7 +462,7 @@ public class DBTicketStore implements TicketStore {
             List<TicketFieldFilter> filters,
             final Map<String, FieldSchema> relevantFields,
             DetachedCriteria rootCriteria) {
-        var top = rootCriteria.createCriteria(StoredTicketSkeleton.Fields.fields);
+        var top = rootCriteria.createCriteria(StoredTicketSkeleton.Fields.fields, JoinType.LEFT_OUTER_JOIN);
         for (val filter : filters) {
             val fieldSchema = relevantFields.get(filter.getFieldSchemaId());
             val finalTop = top;

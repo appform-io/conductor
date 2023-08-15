@@ -14,28 +14,34 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.admin;
+package io.appform.conductor.server.ui.views.tickets;
 
-import io.appform.conductor.model.auth.Permission;
+import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.model.workflow.Workflow;
+import io.appform.conductor.server.ticketmanagement.TicketSkeletonListResult;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
-import java.util.Set;
+import java.util.*;
 
 /**
- *
+ * View for tickets listing page
  */
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class RoleCreateView extends BaseLoggedInView {
-    Set<Permission> permissions;
-
-    public RoleCreateView(User currentUser, Set<Permission> permissions) {
-        super("templates/admin/role-create.hbs", currentUser);
-        this.permissions = permissions;
+public class TicketCreateView extends BaseLoggedInView {
+    List<Workflow> workflows;
+    Set<SubjectIDType> subIdTypes;
+    TicketSkeletonListResult results;
+    public TicketCreateView(User currentUser, List<Workflow> workflows, TicketSkeletonListResult results) {
+        super("templates/tickets/ticket-create.hbs", currentUser);
+        this.workflows = workflows;
+        this.results = results;
+        this.subIdTypes = new TreeSet<>(Comparator.comparing(SubjectIDType::getDisplayName));
+        subIdTypes.addAll(EnumSet.allOf(SubjectIDType.class));
     }
 }

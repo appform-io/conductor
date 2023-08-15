@@ -1,19 +1,84 @@
 {{#partial "content"}}
     <section>
+        <div class="row">
+            <div class="col-auto">
+                {{#empty role}}
+                    <h4>Create a new role</h4>
+                {{else}}
+                    <h4>Updating role: <b>{{role.name}}</b></h4>
+                {{/empty}}
+            </div>
+        </div>
+        <form method="post"
+            {{#empty role}}
+              action="/admin/roles/create"
+            {{else}}
+              action="/admin/roles/update/{{role.id}}"
+            {{/empty}}
+        >
+            <div class="row">
+                <div class="col-sm-12 col-md-6">
+                    <div class="mb-3">
+                        <label for="name" class="col-form-label fw-bold">Name</label>
+                        <input type="text" id="name" name="name" class="form-control border border-dark"
+                               maxlength="45" placeholder="Role Name" aria-describedby="nameHelp"
+                               value="{{role.name}}"
+                               {{#empty role}}required{{else}}disabled{{/empty}}
+                        >
+                        <div id="nameHelp" class="form-text">Name <i>can not</i> be changed once created</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="col-form-label fw-bold">Description</label>
+                        <textarea id="description" name="description"
+                                  class="form-control border border-dark" rows="5"
+                                  placeholder="A description for the role" aria-describedby="descriptionHelp"
+                                  aria-describedby="descriptionHelp">{{role.description}}</textarea>
+                        <div id="descriptionHelp" class="form-text">Optional, can be upto 255 characters long</div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                    <div class="mb-3">
+                        <label for="permissions" class="col-form-label fw-bold">Permissions</label>
+                        <select id="permissions" name="permissions" class="form-control border border-dark"
+                                multiple size="10" aria-describedby="permissionsHelp" required>
+                            {{#each permissions}}
+                                <option value="{{this}}"
+                                        {{#contains role.permissions this}}selected{{/contains}}>
+                                    {{readable this}}
+                                </option>
+                            {{/each}}
+                        </select>
+                        <div id="permissionsHelp" class="form-text">This will control what users with this role can do.
+                            <br><b>Note: </b> People having ticket permissions will still be governed by their group
+                            membership
+                        </div>
+
+                    </div>
+                </div>
+                <div class="row g-3 justify-content-center m-2">
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-success mb-3"><i class="bi bi-save"></i> Save</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <section>
         <div class="row mb-2">
-            <div class="col-sm-12 col-md-7"><h2>Roles</h2></div>
+            <div class="col-sm-12 col-md-7"><h4>Roles</h4></div>
             <div class="col-sm-12 col-md-5 d-flex justify-content-end">
                 <div class="btn-toolbar" role="toolbar">
                     <div class="btn-group me-2" role="group">
                         <div class="input-group border border-dark col-3">
                             <span class="input-group-text" id="search-box"><i class="bi fs2 bi-search"></i></span>
-                            <input type="text" class="form-control form-control-sm  bg-light data-table-search"
+                            <input type="text" class="form-control form-control-sm  data-table-search"
                                    id="roles-search"
                                    placeholder="Search roles" aria-label="Search roles" aria-describedby="search-box">
                         </div>
                     </div>
-                    <div class="btn-group" role="group">
-                        <a href="/admin/roles/create" class="btn btn-sm btn-outline-dark"><i
+                    <div class="btn-group pt-1 pb-1" role="group">
+                        <a href="/admin/roles/create" class="btn btn-sm btn-success" role="button"><i
                                 class="bi fs2 bi-plus-lg"></i>Create</a>
                     </div>
 
@@ -22,32 +87,27 @@
             </div>
         </div>
         <div class="row justify-content-center">
-            <div class="col">
+            <div class="col table-responsive">
                 <table class="table table-bordered border-dark data-table" data-table-search="#roles-search">
                     <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th></th>
+                        <th class="col-4">Name</th>
+                        <th class="col-7">Description</th>
+                        <th class="col"></th>
                     </tr>
                     </thead>
                     <tbody>
                     {{#each roles}}
                         <tr>
-                            <td class="col-4">{{name}}</td>
-                            <td class="col-sm-6 col-md-7">{{description}}</td>
+                            <td class="col-4"><a href="/admin/roles/update/{{id}}">{{name}}</a></td>
+                            <td class="col-7">{{description}}</td>
                             <td class="col d-flex justify-content-center">
                                 <div class="btn-toolbar" role="toolbar">
-                                    <div class="btn-group me-2" role="group">
-                                        <form method="get" action="/admin/roles/update/{{id}}">
-                                            <button type="submit" class="btn btn-link p-0"><i class="bi bi-pencil"></i></button>
-                                        </form>
-                                    </div>
                                     <div class="btn-group" role="group">
                                         <form class="confirmed-form" method="post" action="/admin/roles/delete/{{id}}"
                                         data-cnf-title="Deleting role {{name}}"
                                         data-cnf-text="Are you sure you want to delete this role?">
-                                            <button type="submit" class="btn btn-link p-0 text-danger"><i class="bi bi-trash"></i></button>
+                                            <button type="submit" class="btn btn-link p-0 text-danger"><i class="bi bi-trash-fill"></i></button>
                                         </form>
                                     </div>
                                 </div>

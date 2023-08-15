@@ -21,10 +21,13 @@ import lombok.Value;
 import java.util.List;
 
 /**
- * Resultset for a list query. Returns latest results first.
+ * Result set for a list query. Returns latest results first.
  */
 @Value
+@SuppressWarnings("javs:S6548")
 public class TicketSkeletonListResult {
+    public static final TicketSkeletonListResult EMPTY = new TicketSkeletonListResult(List.of(), null);
+
     List<TicketSkeleton> results;
     String next;
 }

@@ -29,8 +29,8 @@ import java.util.Date;
 public class Group {
     private final String id;
     private final String name;
-    private final String description;
-    boolean deleted;
+    private String description;
+    private boolean deleted;
     private final Date created;
     private final Date updated;
 }

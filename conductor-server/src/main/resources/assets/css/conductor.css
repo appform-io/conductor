@@ -1,4 +1,33 @@
+.note {
+    display: none;
+}
 
+@media screen and (min-width: 800px) {
+    .logo-area {
+        border-right: solid 0.1rem;
+        padding-right: 1rem;
+    }
+
+    .note {
+        display: block;
+        border: solid 1px #ffc744;
+        border-left: solid 0.5rem #ffc744 !important;
+        background: lightyellow;
+        height: 100%;
+    }
+
+    .note-header {
+        font-weight: bolder;
+        font-size: larger;
+        padding: 2rem;
+        padding-bottom: 1rem !important;
+    }
+
+    .note-body {
+        padding: 2rem;
+        padding-top: 0rem;
+    }
+}
 
 .tab-pane {
     padding-top: 1rem;

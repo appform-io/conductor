@@ -1,96 +1,212 @@
+{{#partial "page_css_includes"}}
+    <link href="/css/bootstrap-select.min.css" rel="stylesheet">
+{{/partial}}
+{{#partial "page_js_includes"}}
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+{{/partial}}
 {{#partial "content"}}
     <section>
-        <div class="row">
-            <div class="col-sm-12 col-md-4">
-                <h2>User Details</h2>
+        <div class="row m-4 p-4 border border-dark">
+            <div class="col-sm-12 col-md-6">
+                <form class="row" method="post" action="/admin/users/email">
+                    <div class="col-12">
+                        <div class="input-group border border-dark">
+                            <span class="input-group-text" id="search-box"><i class="bi fs2 bi-envelope-at"></i></span>
+                            <input type="email" class="form-control form-control-sm  data-table-search"
+                                   id="email" name="email" maxlength="255"
+                                   placeholder="Find by email" aria-label="Search email"
+                                   title="Find user by Email ID" aria-describedby="emailSearchBoxHelp">
+                        </div>
+                        <div id="emailSearchBoxHelp" class="form-text">Email ID for the user you want to find</div>
+                    </div>
+                </form>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-12">
-            {{#with userDetails}}
-                <table class="table table-bordered">
-                    <tbody>
-                    {{#with summary}}
-                        <tr>
-                            <th scope="row">Name</th>
-                            <td>{{name}}</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Type</th>
-                            <td>{{type}}</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">E-Mail</th>
-                            <td>{{email}}</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Created On</th>
-                            <td>{{created}}</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Last updated</th>
-                            <td>{{updated}}</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">State</th>
-                            <td>
-                                <div class="row">
-                                    <div class="col-6">{{state}}</div>
-                                    <div class="col-6">
-                                        <form class="row row-cols-lg-auto confirmed-form justify-content-end" method="post" action="/admin/users/{{id}}/state"
-                                            data-cnf-title="Changing state for {{name}}"
-                                            data-cnf-text="Are you sure?">
-                                            <div class="col-12">
-                                                <select id="state" name="state" class="form-control border border-dark bg-light"
-                                                        required>
-                                                    <option disabled selected value="">Select new state</option>
-                                                    <option value="LOCKED">Locked</option>
-                                                    <option value="EXITED">Exited</option>
-                                                    <option value="INACTIVE">Inactive</option>
-                                                    <option value="ACTIVE">Active</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-12">
-                                                <button class="btn btn-outline-danger">Change</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Current Role</th>
-                            <td>
-                                <div class="row">
-                                    <div class="col-6">{{#with assignedRole}}{{name}}{{/with}}</div>
-                                    <div class="col-6">
-                                        <form class="row row-cols-lg-auto confirmed-form justify-content-end" method="post" action="/admin/users/{{id}}/role"
-                                            data-cnf-title="Assigning role to {{name}}"
-                                            data-cnf-text="Are you sure?">
-                                            <div class="col-12">
-                                                <select id="roleId" name="roleId" class="form-control border border-dark bg-light"
-                                                        required>
-                                                    <option disabled selected value="">Select role to assign</option>
-                                                    {{#each ../availableRoles}}
-                                                        <option value="{{id}}">{{name}}</option>
-                                                    {{/each}}
-                                                </select>
-                                            </div>
-                                            <div class="col-12">
-                                                <button class="btn btn-outline-dark">Assign</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-
-                    {{/with}}
-                    </tbody>
-                </table>
-            {{/with}}
+            <div class="col-sm-12 col-md-6">
+                <form class="row" method="post" action="/admin/users/userid">
+                    <div class="col-12">
+                        <div class="input-group border border-dark">
+                            <span class="input-group-text" id="search-box"><i class="bi fs2 bi-person"></i></span>
+                            <input type="text" class="form-control form-control-sm  data-table-search"
+                                   id="searchUserId" name="searchUserId"
+                                   placeholder="Find by user id" aria-label="Search User ID"
+                                   title="Find user by user ID" aria-describedby="searchUserIdHelp">
+                        </div>
+                        <div id="searchUserIdHelp" class="form-text">User ID for the user you want to find</div>
+                    </div>
+                </form>
             </div>
         </div>
     </section>
+    {{#with userDetails}}
+        <section>
+            <div class="row">
+                <div class="col-sm-12 col-md-4">
+                    <h4>User Details</h4>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <table class="table table-bordered">
+                        <tbody>
+                        {{#with summary}}
+                            <tr>
+                                <th scope="row">ID</th>
+                                <td>{{id}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Name</th>
+                                <td>{{name}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Type</th>
+                                <td>{{type}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">E-Mail</th>
+                                <td>{{email}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Created On</th>
+                                <td>{{created}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Last updated</th>
+                                <td>{{updated}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">State</th>
+                                <td>
+                                    <div class="row">
+                                        <div class="col-6">{{readable state}}</div>
+                                        <div class="col-6">
+                                            <!-- TODO BASED ON PERMISSION -->
+                                            <form class="row row-cols-lg-auto confirmed-form justify-content-end"
+                                                  method="post" action="/admin/users/{{id}}/state"
+                                                  data-cnf-title="Changing state for {{name}}"
+                                                  data-cnf-text="Are you sure?">
+                                                <div class="col-12">
+                                                    <select id="state" name="state"
+                                                            class="form-control border border-dark"
+                                                            required>
+                                                        <option disabled selected value="">Select new state</option>
+                                                        <option value="LOCKED">Locked</option>
+                                                        <option value="EXITED">Exited</option>
+                                                        <option value="INACTIVE">Inactive</option>
+                                                        <option value="ACTIVE">Active</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-12">
+                                                    <button class="btn btn-danger">Change</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Current Role</th>
+                                <td>
+                                    <div class="row">
+                                        <div class="col-6">{{#with assignedRole}}{{name}}{{/with}}</div>
+                                        <div class="col-6">
+                                            <!-- TODO BASED ON PERMISSION -->
+                                            <form class="row row-cols-lg-auto confirmed-form justify-content-end"
+                                                  method="post" action="/admin/users/{{id}}/role"
+                                                  data-cnf-title="Assigning role to {{name}}"
+                                                  data-cnf-text="Are you sure?">
+                                                <div class="col-12">
+                                                    <select id="roleId" name="roleId"
+                                                            class="form-control border border-dark"
+                                                            required>
+                                                        <option disabled selected value="">Select role to assign
+                                                        </option>
+                                                        {{#each ../availableRoles}}
+                                                            <option value="{{id}}">{{name}}</option>
+                                                        {{/each}}
+                                                    </select>
+                                                </div>
+                                                <div class="col-12">
+                                                    <button class="btn btn-primary">Assign</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+
+                        {{/with}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <section>
+            <div class="row">
+                <div class="col-sm-12 col-md-6">
+                    <div class="row">
+                        <div class="col-12">
+                            <h4>Group Memberships</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <form method="post" action="/manage/users/{{summary.id}}/groups/add">
+                                <div class="row mb-3">
+                                    <div class="col-sm-12 col-md-9">
+                                        <label for="groupId" class="col-form-label fw-bold">Select Group</label>
+                                        <select class="form-control selectpicker border border-dark"
+                                                id="groupId" name="groupId"
+                                                data-live-search="true"
+                                                aria-describedby="groupIdHelp" required>
+                                            {{#each ../availableGroups}}
+                                                <option value="{{id}}" title="{{description}}">{{name}}</option>
+                                            {{/each}}
+                                        </select>
+                                        <div id="groupIdHelp" class="form-text">User will be added to this group</div>
+                                    </div>
+                                    <div class="col-sm-12 col-md-3 mt-2 justify-content-center">
+                                        <button type="submit" class="btn btn-success mt-4"><i class="bi bi-plus-lg"></i> Add
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 table-responsive">
+                            <table class="table table-bordered border-dark">
+                                <thead>
+                                    <tr>
+                                        <th>Group</th>
+                                        <th>Description</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {{#each groups}}
+                                    <tr>
+                                        <td title="{{id}}">{{name}}</td>
+                                        <td>{{desciption}}</td>
+                                        <td>
+                                            <form class="confirmed-form" method="post"
+                                                  action="/manage/users/{{../userDetails/summary/id}}/groups/{{id}}/remove"
+                                                  data-cnf-title="Removing user from group"
+                                                  data-cnf-text="Are you sure you want to remove the user {{../name}} from group {{name}}?">
+                                                <button type="submit" class="btn btn-link p-0 text-danger"><i
+                                                        class="bi bi-trash-fill"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    {{/with}}
+
 {{/partial}}
 {{> common/base}}

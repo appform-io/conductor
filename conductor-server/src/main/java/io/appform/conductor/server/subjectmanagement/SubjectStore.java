@@ -28,9 +28,11 @@ import java.util.function.UnaryOperator;
  */
 public interface SubjectStore {
 
-    Optional<SubjectSummary> saveSubject(List<SubjectID> ids, String globalSubjectId, String name, Date dob);
+    Optional<SubjectSummary> saveSubject(List<SubjectID> ids, String globalSubjectId, String name, Date dob,
+                                         Gender gender);
 
     Optional<Subject> updateSubject(String globalSubjectId, UnaryOperator<Subject> updater);
+    Optional<Subject> updateSubjectSummary(String globalSubjectId, UnaryOperator<SubjectSummary> updater);
 
     Optional<Subject> getSubject(String globalSubjectId);
 
@@ -46,6 +48,8 @@ public interface SubjectStore {
             SubjectIDVerificationStatus status);
 
     Optional<SubjectID> updateIdentifier(final String globalSubjectId, String idExtId, UnaryOperator<SubjectID> updater);
+    Optional<SubjectID> markIdentifierAsPrimary(final String globalSubjectId, String idExtId);
+    boolean deleteIdentifier(final String globalSubjectId, String idExtId);
 
     List<SubjectSummary> lookupSummaryById(final SubjectID id);
 

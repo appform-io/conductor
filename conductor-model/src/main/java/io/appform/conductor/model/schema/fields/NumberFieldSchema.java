@@ -46,6 +46,8 @@ public class NumberFieldSchema extends FieldSchema {
      */
     private double min;
 
+    //TODO::STEP VALUE
+
     /**
      * Default value to be filled in if field is not mandatory
      */

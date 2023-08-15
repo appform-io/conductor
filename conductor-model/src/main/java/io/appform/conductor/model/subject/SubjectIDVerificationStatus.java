@@ -23,5 +23,5 @@ public enum SubjectIDVerificationStatus {
     UNVERIFIED,
     AUTO_VERIFIED,
     SYSTEM_VERIFIED,
-    MANUAL_VERIFIED
+    MANUALLY_VERIFIED
 }

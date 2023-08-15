@@ -16,10 +16,25 @@
 
 package io.appform.conductor.model.workflow;
 
+import io.appform.conductor.model.utils.Displayable;
+import lombok.Getter;
+
 /**
  * Whether the
  */
-public enum WorkflowState {
-    INACTIVE,
-    ACTIVE
+@Getter
+public enum WorkflowState implements Displayable {
+    INACTIVE("Inactive"),
+    ACTIVE("Active");
+
+    private final String displayText;
+
+    WorkflowState(String displayText) {
+        this.displayText = displayText;
+    }
+
+    @Override
+    public String displayText() {
+        return displayText;
+    }
 }

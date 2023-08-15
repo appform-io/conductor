@@ -29,9 +29,11 @@ import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.ticket.TicketDetails;
+import io.appform.conductor.model.ticket.fields.FieldValue;
 import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
 import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.fields.impl.*;
+import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.usermanagement.CurrentUserSessionStore;
 import lombok.experimental.UtilityClass;
 import lombok.val;
@@ -42,9 +44,17 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
+import ru.vyarus.guicey.gsp.views.template.TemplateView;
 
 import javax.annotation.Nullable;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.NewCookie;
+import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -75,14 +85,15 @@ public class ConductorServerUtils {
                 .trim()
                 .toLowerCase()
                 .replaceAll("\\p{Space}", "_")
-                .replaceAll("\\p{Punct}","_");
+                .replaceAll("\\p{Punct}", "_");
     }
+
     public static String upperSnake(final String value) {
         return value
                 .trim()
                 .toUpperCase()
                 .replaceAll("\\p{Space}", "_")
-                .replaceAll("\\p{Punct}","_");
+                .replaceAll("\\p{Punct}", "_");
     }
 
     public static String readableId(final String... values) {
@@ -110,13 +121,19 @@ public class ConductorServerUtils {
     }
 
     public static void ensure(boolean condition, ConductorErrorCode errorCode, String message) {
-        if(!condition) {
+        if (!condition) {
             throw new ConductorException(errorCode, Map.of("message", message), null);
         }
     }
 
+    public static void ensure(boolean condition, ConductorErrorCode errorCode, Map<String, Object> context) {
+        if (!condition) {
+            throw new ConductorException(errorCode, context, null);
+        }
+    }
+
     public static void notNull(Object object, ConductorErrorCode errorCode, String message) {
-        if(null == object) {
+        if (null == object) {
             throw new ConductorException(errorCode, Map.of("message", message), null);
         }
     }
@@ -133,7 +150,10 @@ public class ConductorServerUtils {
         ensureNonNull(testObject, errorCode, Map.of());
     }
 
-    public static void ensureNonNull(@Nullable final Object testObject, ConductorErrorCode errorCode, Map<String, Object> context) {
+    public static void ensureNonNull(
+            @Nullable final Object testObject,
+            ConductorErrorCode errorCode,
+            Map<String, Object> context) {
         ensureCondition(null != testObject, errorCode, context);
     }
 
@@ -166,13 +186,20 @@ public class ConductorServerUtils {
         val fields = mapper.createObjectNode();
         node.set("fields", fields);
         ticket.getFields()
-                .forEach(field -> fields.set(fieldSchemaMap.get(field.getFieldSchemaId()).getName(),
-                                             mapValueToJsonNode(mapper, field)));
+                .forEach(field -> {
+                    val fieldSchema = fieldSchemaMap.get(field.getFieldSchemaId());
+                    fields.set(fieldSchema.getName(),
+                               mapValueToJsonNode(mapper, fieldSchema, field));
+                });
         return node;
     }
 
-    public static JsonNode mapValueToJsonNode(ObjectMapper mapper, TicketField field) {
-        return field.getFieldValue().accept(new FieldValueVisitor<>() {
+    public static JsonNode mapValueToJsonNode(ObjectMapper mapper, FieldSchema fieldSchema, TicketField field) {
+        return mapValueToJsonNode(mapper, fieldSchema, field.getFieldValue());
+    }
+
+    public static JsonNode mapValueToJsonNode(ObjectMapper mapper, FieldSchema fieldSchema, FieldValue fieldValue) {
+        return fieldValue.accept(new FieldValueVisitor<>() {
             @Override
             public JsonNode visit(StringFieldValue stringFieldValue) {
                 return mapper.createObjectNode()
@@ -181,10 +208,18 @@ public class ConductorServerUtils {
 
             @Override
             public JsonNode visit(ChoiceFieldValue choiceFieldValue) {
-                val choices = mapper.createArrayNode();
-                Objects.requireNonNullElse(choiceFieldValue.getValue(), List.<String>of())
-                        .forEach(choices::add);
-                return choices;
+                val selection = Objects.requireNonNullElse(choiceFieldValue.getValue(), List.<String>of());
+                if (fieldSchema.isAllowMultiple()) {
+                    val choices = mapper.createArrayNode();
+                    selection.forEach(choices::add);
+                    return choices;
+                }
+
+                return selection.stream()
+                        .limit(1)
+                        .findFirst()
+                        .map(choice -> (JsonNode) mapper.createObjectNode().textNode(choice))
+                        .orElse(mapper.nullNode());
             }
 
             @Override
@@ -239,4 +274,43 @@ public class ConductorServerUtils {
                 .build();
     }
 
+    public static Response render(final TemplateView view) {
+        return Response.ok(view).build();
+    }
+
+    public static Response redirect(final String uri) {
+        return Response.seeOther(URI.create(uri)).build();
+    }
+
+    public static WebApplicationException fail(final String message, final String uri) {
+        throw new WebApplicationException(message,
+                                          Response.seeOther(URI.create(uri))
+                                                  .cookie(new NewCookie(
+                                                          "server-error-message",
+                                                          message,
+                                                          "/",
+                                                          null,
+                                                          Cookie.DEFAULT_VERSION,
+                                                          null,
+                                                          NewCookie.DEFAULT_MAX_AGE,
+                                                          null,
+                                                          false,
+                                                          false))
+                                                  .build());
+    }
+
+    public static String userId(ConductorUser user) {
+        return user.getUserSession().getUser().getSummary().getId();
+    }
+
+    public static Date htmlDateToDate(String date) {
+        return Strings.isNullOrEmpty(date)
+               ? null
+                : Date.from(LocalDate.parse(date)
+                                   .atStartOfDay(ZoneId.systemDefault())
+                                   .toInstant());
+    }
 }
+
+
+

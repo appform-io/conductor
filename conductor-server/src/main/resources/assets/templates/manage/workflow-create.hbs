@@ -1,83 +1,77 @@
+{{#partial "page_css_includes"}}
+    <link href="/css/bootstrap-select.min.css" rel="stylesheet">
+{{/partial}}
+{{#partial "page_js_includes"}}
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+{{/partial}}
 {{#partial "content"}}
     <section>
-        <div class="row text-center justify-content-center">
-            <div class="col-auto"><h2>Create A New Workflow</h2></div>
+        <div class="row">
+            <div class="col-auto"><h4>Create A New Ticket Workflow</h4></div>
         </div>
-        <div class="row justify-content-center">
-            <div class="col-12">
-                <form method="post" action="/manage/workflow/create" id="workflow-create">
-                    <div class="row g-3 m-2">
-                        <div class="col-3 text-end">
-                            <label for="name" class="col-form-label fw-bold">Name</label>
-                        </div>
-                        <div class="col-6">
-                            <input type="text" id="name" name="name" class="form-control border border-dark bg-light"
-                                   maxlength="45" placeholder="Workflow Name" required>
-                        </div>
+        <form method="post" action="/manage/workflow/create" id="workflow-create">
+            <div class="row">
+                <div class="col-sm-12 col-md-6">
+                    <div class="mb-3">
+                        <label for="name" class="col-form-label fw-bold">Name</label>
+                        <input type="text" id="name" name="name" class="form-control border border-dark"
+                               maxlength="45" placeholder="Workflow Name"
+                               aria-describedby="nameHelp" required>
+                        <div id="nameHelp" class="form-text">Name <i>can not</i> be changed once saved. Max Length: 45.</div>
                     </div>
-                    <div class="row g-3 m-2">
-                        <div class="col-3 text-end">
-                            <label for="description" class="col-form-label fw-bold">Description</label>
-                        </div>
-                        <div class="col-6">
-                            <textarea id="description" name="description"
-                                      class="form-control border border-dark bg-light"
-                                      placeholder="A description for the workflow"
-                                      maxlength="255"></textarea>
-                        </div>
+                    <div class="mb-3">
+                        <label for="description" class="col-form-label fw-bold">Description</label>
+
+                        <textarea id="description" name="description"
+                                  class="form-control border border-dark"
+                                  placeholder="A description for the workflow"
+                                  maxlength="255" aria-describedby="descriptionHelp"></textarea>
+                        <div id="descriptionHelp" class="form-text">Optional, can be upto 255 characters long.</div>
                     </div>
-                    <div class="row g-3 m-2">
-                        <div class="col-3 text-end">
-                            <label for="schemaId" class="col-form-label fw-bold">Ticket Schema</label>
-                        </div>
-                        <div class="col-6">
-                            <select id="schemaId" name="schemaId"
-                                      class="form-control border border-dark bg-light" required>
-                                <option value="" disabled selected>Select a Ticket Schema</option>
+                    <div class="mb-3">
+                        <label for="schemaId" class="col-form-label fw-bold">Ticket Schema</label>
+
+                        <select id="schemaId" name="schemaId"
+                                class="form-control selectpicker border border-dark"
+                                data-live-search="true" aria-describedby="schemaIdHelp" required>
+                            <option value="" disabled selected>Select a Ticket Schema</option>
                             {{#each schemas}}
                                 <option value="{{id}}">{{name}}</option>
                             {{/each}}
-                            </select>
+                        </select>
+                        <div id="schemaIdHelp" class="form-text">Associated schema, which is used to manage fields.</div>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-center">
+                        <button type="submit" class="btn btn-success mb-3"><i class="bi bi-save"></i> Save</button>
+                    </div>
+                </div>
+                <div class="col-sm-0 col-md-1"></div>
+                <div class="col-sm-0 col-md-4">
+                    <div class="alert alert-light note" role="alert">
+                        <div class="row note-header">
+                            What Is A Ticket Workflow?
+                        </div>
+                        <div class="row note-body">
+                            A Ticket Workflow controls the state machine of a ticket. Fields in a ticket are derived
+                            form the associated Schema.
+                            <br>
+                            A Workflow consists of
+                            <ul>
+                                <li>Dynamic Configuration details that are used to generate the title, description and
+                                    select a workflow when a raw payload is encountered
+                                </li>
+                                <li>States that the workflow might be in. These can be used to trigger Actions and
+                                    show/hide fields
+                                </li>
+                                <li>Rule based and direct transitions from State to State based on updates received to a
+                                    ticket
+                                </li>
+                            </ul>
                         </div>
                     </div>
-                    <div class="row g-3 m-2">
-                        <div class="col-3 text-end">
-                            <label for="titleTemplate" class="col-form-label fw-bold">Title Template</label>
-                        </div>
-                        <div class="col-6">
-                            <textarea id="titleTemplate" name="titleTemplate"
-                                      class="form-control border border-dark bg-light"
-                                      placeholder="Handlebars template to extract ticket title from raw payload" required></textarea>
-                        </div>
-                    </div>
-                    <div class="row g-3 m-2">
-                        <div class="col-3 text-end">
-                            <label for="descriptionTemplate" class="col-form-label fw-bold">Description Template</label>
-                        </div>
-                        <div class="col-6">
-                            <textarea id="descriptionTemplate" name="descriptionTemplate"
-                                      class="form-control border border-dark bg-light"
-                                      placeholder="Handlebars template to extract ticket description from raw payload"></textarea>
-                        </div>
-                    </div>
-                    <div class="row g-3 m-2">
-                        <div class="col-3 text-end">
-                            <label for="subjectTemplate" class="col-form-label fw-bold">Subject ID Template</label>
-                        </div>
-                        <div class="col-6">
-                            <textarea id="subjectTemplate" name="subjectTemplate"
-                                      class="form-control border border-dark bg-light"
-                                      placeholder="Handlebars template to extract subject from raw payload"></textarea>
-                        </div>
-                    </div>
-                    <div class="row g-3 justify-content-center m-2">
-                        <div class="col-auto">
-                            <button type="submit" class="btn btn-outline-primary mb-3">Create</button>
-                        </div>
-                    </div>
-                </form>
+                </div>
             </div>
-        </div>
+        </form>
     </section>
 {{/partial}}
 {{> common/base}}

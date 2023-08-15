@@ -29,9 +29,9 @@ import java.util.function.Consumer;
 public interface GroupStore {
 
     Optional<Group> create(String name, String description);
-    Optional<Group> get(String groupId);
+    Optional<Group> read(String groupId);
 
-    List<Group> get(List<String> groupIds);
+    List<Group> read(List<String> groupIds);
     Optional<Group> delete(String groupId);
     Optional<Group> update(String groupId, Consumer<Group> handler);
     boolean addUserToGroup(String groupId, String userId);
@@ -40,4 +40,6 @@ public interface GroupStore {
 
     List<String> findUsersForGroup(String groupId, int start, int limit);
     List<Group> findGroupsForUser(String userId);
+
+    List<Group> list();
 }

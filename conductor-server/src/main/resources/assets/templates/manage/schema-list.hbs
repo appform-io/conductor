@@ -1,20 +1,20 @@
 {{#partial "content"}}
     <section>
         <div class="row mb-2">
-            <div class="col-sm-12 col-md-7"><h2>Schema</h2></div>
+            <div class="col-sm-12 col-md-7"><h4>Schema</h4></div>
             <div class="col-sm-12 col-md-5 d-flex justify-content-end">
                 <div class="btn-toolbar" role="toolbar">
                     <div class="btn-group me-2" role="group">
                         <div class="input-group border border-dark col-3">
                             <span class="input-group-text" id="search-box"><i class="bi fs2 bi-search"></i></span>
-                            <input type="text" class="form-control form-control-sm  bg-light data-table-search"
+                            <input type="text" class="form-control form-control-sm  data-table-search"
                                    id="schema-search"
                                    placeholder="Search Schema" aria-label="Search Schema" aria-describedby="search-box">
                         </div>
                     </div>
-                    <div class="btn-group" role="group">
-                        <a href="/manage/schema/create" class="btn btn-sm btn-outline-dark"><i
-                                class="bi fs2 bi-plus-lg"></i>Create</a>
+                    <div class="btn-group pt-1 pb-1" role="group">
+                        <a href="/manage/schema/create" class="btn btn-sm btn-success" role="button">
+                            <i class="bi fs2 bi-plus-lg"></i>Create</a>
                     </div>
 
                 </div>
@@ -22,8 +22,8 @@
             </div>
         </div>
         <div class="row justify-content-center">
-            <div class="col">
-                <table class="table table-bordered border-dark data-table" data-table-search="#roles-search">
+            <div class="col table-responsive">
+                <table class="table table-bordered border-dark data-table" data-table-search="#schema-search">
                     <thead>
                     <tr>
                         <th>Name</th>
@@ -38,7 +38,7 @@
                         <tr>
                             <td><a href="/manage/schema/{{id}}">{{name}}</td>
                             <td>{{description}}</td>
-                            <td>{{state}}</td>
+                            <td>{{readable state}}</td>
                             <td>{{created}}</td>
                             <td>{{updated}}</td>
                         </tr>

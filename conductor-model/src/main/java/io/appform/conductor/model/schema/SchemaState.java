@@ -16,12 +16,14 @@
 
 package io.appform.conductor.model.schema;
 
+import io.appform.conductor.model.utils.Displayable;
 import lombok.Getter;
 
 /**
  * Represents current state of a schema
  */
-public enum SchemaState {
+@Getter
+public enum SchemaState implements Displayable {
 
     /**
      * Schema is active and ticket creation is allowed
@@ -33,11 +35,14 @@ public enum SchemaState {
      */
     INACTIVE("Inactive");
 
-    @Getter
     private final String displayName;
 
     SchemaState(String displayName) {
         this.displayName = displayName;
     }
 
+    @Override
+    public String displayText() {
+        return displayName;
+    }
 }
