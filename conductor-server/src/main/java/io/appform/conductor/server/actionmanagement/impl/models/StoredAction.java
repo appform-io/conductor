@@ -1,5 +1,6 @@
 package io.appform.conductor.server.actionmanagement.impl.models;
 
+import io.appform.conductor.model.actions.ActionScope;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.*;
@@ -46,6 +47,13 @@ public abstract class StoredAction implements Serializable {
 
     @Column(name = "description")
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "scope_type", nullable = false, length = 45)
+    private ActionScope.ScopeType scopeType;
+
+    @Column(name = "scope_reference_id", nullable = true, length = 45)
+    private String scopeReferenceId;
 
     @CreationTimestamp
     @Column(name = "created", columnDefinition = "timestamp")

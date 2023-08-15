@@ -75,8 +75,7 @@ class DBTicketStoreTest {
                                    TicketPriority.MEDIUM,
                                    List.of(new TicketFieldData("TF001", new BooleanFieldValue(true)),
                                            new TicketFieldData("TF002", new StringFieldValue("Random")),
-                                           new TicketFieldData("TF004", new StringFieldValue("Random Value"))),
-                                   user.getUserSession().getUser().getSummary().getId())
+                                           new TicketFieldData("TF004", new StringFieldValue("Random Value"))))
                 .orElse(null);
 
         assertNotNull(store.create("T002",
@@ -88,9 +87,8 @@ class DBTicketStoreTest {
                                    TicketPriority.MEDIUM,
                                    List.of(new TicketFieldData("TF001", new BooleanFieldValue(true)),
                                            new TicketFieldData("TF003", new NumberFieldValue(23)),
-                                           new TicketFieldData("TF004", new StringFieldValue("Random Value"))),
-                                   user.getUserSession().getUser().getSummary().getId())
-                              .orElse(null));
+                                           new TicketFieldData("TF004", new StringFieldValue("Random Value"))))
+                                           .orElse(null));
         assertNotNull(created);
         val read = store.read("T001", true).orElse(null);
         assertNotNull(read);

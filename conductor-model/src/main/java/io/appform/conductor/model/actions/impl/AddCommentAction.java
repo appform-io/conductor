@@ -17,6 +17,7 @@
 package io.appform.conductor.model.actions.impl;
 
 import io.appform.conductor.model.actions.Action;
+import io.appform.conductor.model.actions.ActionScope;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.workflow.Template;
@@ -45,11 +46,12 @@ public class AddCommentAction extends Action {
     public AddCommentAction(
             String id,
             String name,
+            ActionScope scope,
             String description,
             Date created,
             Date updated,
             Template contentTemplate) {
-        super(ActionType.ADD_COMMENT, id, name, description, created, updated);
+        super(ActionType.ADD_COMMENT, id, name, description, scope, created, updated);
         this.contentTemplate = contentTemplate;
     }
 

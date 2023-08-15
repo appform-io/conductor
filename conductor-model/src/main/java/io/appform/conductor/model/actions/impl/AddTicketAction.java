@@ -17,6 +17,7 @@
 package io.appform.conductor.model.actions.impl;
 
 import io.appform.conductor.model.actions.Action;
+import io.appform.conductor.model.actions.ActionScope;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import lombok.*;
@@ -42,10 +43,11 @@ public class AddTicketAction extends Action {
     public AddTicketAction(String id,
                            String name,
                            String description,
+                           ActionScope scope,
                            Date created,
                            Date updated,
                            String actionId) {
-        super(ActionType.ADD_TICKET_ACTION, id, name, description, created, updated);
+        super(ActionType.ADD_TICKET_ACTION, id, name, description, scope, created, updated);
         this.actionId = actionId;
     }
 

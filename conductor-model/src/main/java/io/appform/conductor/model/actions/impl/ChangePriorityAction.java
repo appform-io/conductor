@@ -17,6 +17,7 @@
 package io.appform.conductor.model.actions.impl;
 
 import io.appform.conductor.model.actions.Action;
+import io.appform.conductor.model.actions.ActionScope;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.ticket.TicketPriority;
@@ -42,10 +43,11 @@ public class ChangePriorityAction extends Action {
             String id,
             String name,
             String description,
+            ActionScope scope,
             Date created,
             Date updated,
             TicketPriority priority) {
-        super(ActionType.CHANGE_PRIORITY, id, name, description, created, updated);
+        super(ActionType.CHANGE_PRIORITY, id, name, description, scope, created, updated);
         this.priority = priority;
     }
 
