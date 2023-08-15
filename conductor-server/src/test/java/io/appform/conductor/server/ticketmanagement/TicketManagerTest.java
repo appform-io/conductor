@@ -39,10 +39,7 @@ import io.appform.conductor.server.subjectmanagement.impl.DBSubjectStore;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredAddress;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectID;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectSummary;
-import io.appform.conductor.server.templateengines.FixedObjectTemplateEvaluator;
-import io.appform.conductor.server.templateengines.FixedTextTemplateEvaluator;
-import io.appform.conductor.server.templateengines.StringSubstitutionTextTemplateEvaluator;
-import io.appform.conductor.server.templateengines.TemplateEngine;
+import io.appform.conductor.server.templateengines.*;
 import io.appform.conductor.server.ticketmanagement.impl.DBTicketStore;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredAttachment;
@@ -194,6 +191,7 @@ class TicketManagerTest {
         val re = new RuleEngine(new HopeRuleEvaluator(), new JsonRuleEvaluator(mapper));
         val te = new TemplateEngine(new FixedTextTemplateEvaluator(),
                                     new StringSubstitutionTextTemplateEvaluator(mapper),
+                                    new HandlebarsTextTemplateEvaluator(mapper),
                                     new FixedObjectTemplateEvaluator(mapper));
         val workflowSelector = new WorkflowSelector(wStore, re);
         workflowSelector.start();

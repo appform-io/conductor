@@ -17,6 +17,7 @@
 package io.appform.conductor.server.ui;
 
 import com.github.jknack.handlebars.Helper;
+import io.appform.conductor.server.utils.HandlebarsUtils;
 import io.appform.conductor.server.utils.dev.IgnoreGenerated;
 import io.dropwizard.Configuration;
 import io.dropwizard.ConfiguredBundle;
@@ -42,22 +43,22 @@ public abstract class HandlebarsHelperBundle<C extends Configuration> implements
     }
 
     public static <H> void registerHelperMissing(Helper<H> helper) {
-        HandlebarsViewRenderer.HANDLEBARS.registerHelperMissing(helper);
+        HandlebarsUtils.handlebars().registerHelperMissing(helper);
     }
 
     public static <H> void registerHelper(String name, Helper<H> helper) {
-        HandlebarsViewRenderer.HANDLEBARS.registerHelper(name, helper);
+        HandlebarsUtils.handlebars().registerHelper(name, helper);
     }
 
     public static void registerHelpers(Object helperSource) {
-        HandlebarsViewRenderer.HANDLEBARS.registerHelpers(helperSource);
+        HandlebarsUtils.handlebars().registerHelpers(helperSource);
     }
 
     public static void setPrettyPrint(boolean prettyPrint) {
-        HandlebarsViewRenderer.HANDLEBARS.setPrettyPrint(prettyPrint);
+        HandlebarsUtils.handlebars().setPrettyPrint(prettyPrint);
     }
 
     public static void setInfiniteLoops(boolean infiniteLoops) {
-        HandlebarsViewRenderer.HANDLEBARS.setInfiniteLoops(infiniteLoops);
+        HandlebarsUtils.handlebars().setInfiniteLoops(infiniteLoops);
     }
 }
