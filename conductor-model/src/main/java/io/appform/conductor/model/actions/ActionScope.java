@@ -2,6 +2,8 @@ package io.appform.conductor.model.actions;
 
 import lombok.Value;
 
+import javax.annotation.Nullable;
+
 @Value
 public class ActionScope {
 
@@ -13,6 +15,8 @@ public class ActionScope {
     }
 
     private ScopeType type;
+
+    @Nullable
     private String referenceId;
 
 }
