@@ -52,7 +52,7 @@ public abstract class StoredAction implements Serializable {
     @Column(name = "scope_type", nullable = false, length = 45)
     private ActionScope.ScopeType scopeType;
 
-    @Column(name = "scope_reference_id", nullable = true, length = 45)
+    @Column(name = "scope_reference_id", length = 45)
     private String scopeReferenceId;
 
     @CreationTimestamp

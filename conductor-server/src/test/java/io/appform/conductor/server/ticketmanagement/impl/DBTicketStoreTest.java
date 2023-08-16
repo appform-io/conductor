@@ -88,7 +88,7 @@ class DBTicketStoreTest {
                                    List.of(new TicketFieldData("TF001", new BooleanFieldValue(true)),
                                            new TicketFieldData("TF003", new NumberFieldValue(23)),
                                            new TicketFieldData("TF004", new StringFieldValue("Random Value"))))
-                                           .orElse(null));
+                              .orElse(null));
         assertNotNull(created);
         val read = store.read("T001", true).orElse(null);
         assertNotNull(read);
