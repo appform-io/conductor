@@ -7,10 +7,7 @@ import io.appform.conductor.model.actions.ActionExecutionResult;
 import io.appform.conductor.model.actions.impl.WebhookAction;
 import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.server.actionmanagement.ActionExecutor;
-import io.appform.conductor.server.templateengines.FixedObjectTemplateEvaluator;
-import io.appform.conductor.server.templateengines.FixedTextTemplateEvaluator;
-import io.appform.conductor.server.templateengines.StringSubstitutionTextTemplateEvaluator;
-import io.appform.conductor.server.templateengines.TemplateEngine;
+import io.appform.conductor.server.templateengines.*;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.dropwizard.jackson.Jackson;
 import lombok.val;
@@ -32,6 +29,7 @@ public class WebhookActionExecutorTest {
         val mapper = Jackson.newObjectMapper();
         val templateEngine = new TemplateEngine(new FixedTextTemplateEvaluator(),
                 new StringSubstitutionTextTemplateEvaluator(mapper),
+                new HandlebarsTextTemplateEvaluator(mapper),
                 new FixedObjectTemplateEvaluator(mapper));
         val httpClient = ConductorServerUtils.createHttpClient();
         //create webhookActionExecutor
@@ -71,6 +69,7 @@ public class WebhookActionExecutorTest {
         val mapper = Jackson.newObjectMapper();
         val templateEngine = new TemplateEngine(new FixedTextTemplateEvaluator(),
                 new StringSubstitutionTextTemplateEvaluator(mapper),
+                new HandlebarsTextTemplateEvaluator(mapper),
                 new FixedObjectTemplateEvaluator(mapper));
         val httpClient = ConductorServerUtils.createHttpClient();
         //create webhookActionExecutor
