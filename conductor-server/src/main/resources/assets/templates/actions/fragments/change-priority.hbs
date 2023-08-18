@@ -7,9 +7,9 @@
     <div class="col-12">
         <form method="post"
             {{#with currentAction}}
-              action="/actions/{{scope.type}}/{{scope.referenceId}}/{{id}}/ROUTE_TO_GROUP/update"
+              action="/actions/{{scope.type}}/{{scope.referenceId}}/{{id}}/CHANGE_PRIORITY/update"
             {{else}}
-              action="/actions/{{scope.type}}/{{scope.referenceId}}/ROUTE_TO_GROUP/create"
+              action="/actions/{{scope.type}}/{{scope.referenceId}}/CHANGE_PRIORITY/create"
             {{/with}}
         >
             <div class="mb-3">
@@ -28,16 +28,16 @@
                 <div id="descriptionHelp" class="form-text">Optional, . Max Length: 45</div>
             </div>
             <div class="mb-3">
-                <label for="groupId" class="col-form-label fw-bold">Group To Be Set</label>
+                <label for="priority" class="col-form-label fw-bold">Priority To Be Set</label>
                 <select class="form-control border border-dark"
-                        id="groupId" name="groupId"
-                        aria-describedby="groupIdHelp" required>
-                    {{#each availableGroups}}
-                        <option value="{{id}}" title="{{description}}"
-                                {{#eq ../currentAction/groupId id}}selected{{/eq}}>{{name}}</option>
+                        id="priority" name="priority"
+                        aria-describedby="priorityHelp" required>
+                    {{#each availablePriorities}}
+                        <option value="{{this}}"
+                                {{#eq ../currentAction/priority this}}selected{{/eq}}>{{readable this}}</option>
                     {{/each}}
                 </select>
-                <div id="groupIdHelp" class="form-text">Ticket will be routed to this group</div>
+                <div id="priorityHelp" class="form-text">Ticket priority will be set to this</div>
             </div>
             <div class="mb-3 d-flex justify-content-center">
                 <button type="submit" class="btn btn-success"><i class="bi bi-save me-2"></i>Save</button>

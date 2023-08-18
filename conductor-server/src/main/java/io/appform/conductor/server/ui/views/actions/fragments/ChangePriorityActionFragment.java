@@ -18,13 +18,14 @@ package io.appform.conductor.server.ui.views.actions.fragments;
 
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionScope;
-import io.appform.conductor.model.usermgmt.Group;
+import io.appform.conductor.model.ticket.TicketPriority;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 import ru.vyarus.guicey.gsp.views.template.TemplateView;
 
-import java.util.List;
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  *
@@ -32,15 +33,16 @@ import java.util.List;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class RouteToGroupActionFragment extends TemplateView {
-    List<Group> availableGroups;
+public class ChangePriorityActionFragment extends TemplateView {
+    Set<TicketPriority> availablePriorities = EnumSet.allOf(TicketPriority.class);
     ActionScope scope;
     Action currentAction;
 
-    public RouteToGroupActionFragment(List<Group> availableGroups, ActionScope scope,
-                                      Action currentAction) {
-        super("templates/actions/fragments/route-to-group.hbs");
-        this.availableGroups = availableGroups;
+    public ChangePriorityActionFragment(
+            ActionScope scope,
+            Action currentAction) {
+        super("templates/actions/fragments/change-priority.hbs");
+
         this.scope = scope;
         this.currentAction = currentAction;
     }

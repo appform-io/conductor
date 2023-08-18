@@ -18,10 +18,13 @@ package io.appform.conductor.server.resources.ui;
 
 import io.appform.conductor.model.actions.ActionScope;
 import io.appform.conductor.model.actions.ActionType;
+import io.appform.conductor.model.actions.impl.ChangePriorityAction;
 import io.appform.conductor.model.actions.impl.RouteToGroupAction;
+import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.ui.views.actions.ActionListView;
+import io.appform.conductor.server.ui.views.actions.fragments.ChangePriorityActionFragment;
 import io.appform.conductor.server.ui.views.actions.fragments.RouteToGroupActionFragment;
 import io.appform.conductor.server.usermanagement.GroupStore;
 import io.dropwizard.auth.Auth;
@@ -38,7 +41,6 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import java.util.UUID;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
@@ -93,10 +95,10 @@ public class Actions {
         val scope = ActionScope.build(scopeType, referenceId);
         val fragment = switch (type) {
             case WEBHOOK -> null;
-            case ROUTE_TO_GROUP -> new RouteToGroupActionFragment(groupStore.list(), null, scope, null);
+            case ROUTE_TO_GROUP -> new RouteToGroupActionFragment(groupStore.list(), scope, null);
             case ADD_COMMENT -> null;
             case ADD_TICKET_ACTION -> null;
-            case CHANGE_PRIORITY -> null;
+            case CHANGE_PRIORITY -> new ChangePriorityActionFragment(scope, null);
             case SET_FIELD -> null;
         };
         return render(fragment);
@@ -116,10 +118,10 @@ public class Actions {
         val scope = ActionScope.build(scopeType, referenceId);
         val fragment = switch (action.getType()) {
             case WEBHOOK -> null;
-            case ROUTE_TO_GROUP -> new RouteToGroupActionFragment(groupStore.list(), null, scope, action);
+            case ROUTE_TO_GROUP -> new RouteToGroupActionFragment(groupStore.list(), scope, action);
             case ADD_COMMENT -> null;
             case ADD_TICKET_ACTION -> null;
-            case CHANGE_PRIORITY -> null;
+            case CHANGE_PRIORITY -> new ChangePriorityActionFragment(scope, action);
             case SET_FIELD -> null;
         };
         return render(fragment);
@@ -159,15 +161,64 @@ public class Actions {
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
         val scope = ActionScope.build(scopeType, referenceId);
-        if(actionStore.update(actionId,
-                                  action ->
-                                          new RouteToGroupAction(action.getId(),
-                                                                 name,
-                                                                 description,
-                                                                 scope,
-                                                                 action.getCreated(),
-                                                                 null,
-                                                                 groupId))) {
+        if (actionStore.update(actionId,
+                               action ->
+                                       new RouteToGroupAction(action.getId(),
+                                                              name,
+                                                              description,
+                                                              scope,
+                                                              action.getCreated(),
+                                                              null,
+                                                              groupId))) {
+            return redirect(actionList(scopeType, referenceId));
+        }
+        throw fail("Could not create action", actionList(scopeType, referenceId));
+    }
+
+
+    @POST
+    @Path("{scopeType}/{referenceId}/CHANGE_PRIORITY/create")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response createChangePriorityAction(
+            @Auth final ConductorUser user,
+            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("referenceId") @Length(max = 45) final String referenceId,
+            @FormParam("name") @Length(min = 1, max = 45) final String name,
+            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("priority") @NotNull TicketPriority priority) {
+        val scope = ActionScope.build(scopeType, referenceId);
+        return actionStore.save(new ChangePriorityAction(UUID.randomUUID().toString(),
+                                                         name,
+                                                         description,
+                                                         scope,
+                                                         null,
+                                                         null,
+                                                         priority))
+                .map(a -> redirect(actionList(scopeType, referenceId)))
+                .orElseThrow(() -> fail("Could not create action", actionList(scopeType, referenceId)));
+    }
+
+    @POST
+    @Path("{scopeType}/{referenceId}/{actionId}/CHANGE_PRIORITY/update")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response updateChangePriorityAction(
+            @Auth final ConductorUser user,
+            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("referenceId") @Length(max = 45) final String referenceId,
+            @PathParam("actionId") @Length(max = 45) final String actionId,
+            @FormParam("name") @Length(min = 1, max = 45) final String name,
+            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("priority") @NotNull TicketPriority priority) {
+        val scope = ActionScope.build(scopeType, referenceId);
+        if (actionStore.update(actionId,
+                               action ->
+                                       new ChangePriorityAction(action.getId(),
+                                                              name,
+                                                              description,
+                                                              scope,
+                                                              action.getCreated(),
+                                                              null,
+                                                              priority))) {
             return redirect(actionList(scopeType, referenceId));
         }
         throw fail("Could not create action", actionList(scopeType, referenceId));

@@ -114,10 +114,10 @@ public class DBActionStore implements ActionStore {
                                                                .entrySet()
                                                                .stream()
                                                                .map(header -> new StoredWebhookActionHeaderTemplate()
-                                                                                    .setActive(true)
-                                                                                    .setAction(storedWebhookAction)
-                                                                                    .setName(header.getKey())
-                                                                                    .setTemplate(header.getValue()))
+                                                                       .setActive(true)
+                                                                       .setAction(storedWebhookAction)
+                                                                       .setName(header.getKey())
+                                                                       .setTemplate(header.getValue()))
                                                                .toList());
                 return storedWebhookAction;
             }
@@ -279,7 +279,8 @@ public class DBActionStore implements ActionStore {
     }
 
     private static abstract class Creator<T> {
-        TypeToken<T> type = new TypeToken<>() {};
+        TypeToken<T> type = new TypeToken<>() {
+        };
 
         abstract T create();
     }
@@ -288,37 +289,44 @@ public class DBActionStore implements ActionStore {
 
         val type = TypeToken.of(newObject.getClass());
 
-        val res = action.accept(new StoredActionVisitor<T>() {
-            @Override
-            public T visit(StoredSetFieldAction storedSetFieldAction) {
-                return type.getRawType().equals(storedSetFieldAction.getClass()) ? (T)storedSetFieldAction : null;
-            }
+        return Objects.requireNonNullElse(action, newObject)
+                .accept(new StoredActionVisitor<>() {
+                    @Override
+                    public T visit(StoredSetFieldAction storedSetFieldAction) {
+                        return type.getRawType().equals(storedSetFieldAction.getClass()) ? (T) storedSetFieldAction
+                                                                                         : null;
+                    }
 
-            @Override
-            public T visit(StoredAddCommentAction storedAddCommentAction) {
-                return type.getRawType().equals(storedAddCommentAction.getClass()) ? (T)storedAddCommentAction : null;
-            }
+                    @Override
+                    public T visit(StoredAddCommentAction storedAddCommentAction) {
+                        return type.getRawType().equals(storedAddCommentAction.getClass()) ? (T) storedAddCommentAction
+                                                                                           : null;
+                    }
 
-            @Override
-            public T visit(StoredAddTicketAction storedAddTicketAction) {
-                return type.getRawType().equals(storedAddTicketAction.getClass()) ? (T)storedAddTicketAction : null;
-            }
+                    @Override
+                    public T visit(StoredAddTicketAction storedAddTicketAction) {
+                        return type.getRawType().equals(storedAddTicketAction.getClass()) ? (T) storedAddTicketAction
+                                                                                          : null;
+                    }
 
-            @Override
-            public T visit(StoredChangePriorityAction storedChangePriorityAction) {
-                return type.getRawType().equals(storedChangePriorityAction.getClass()) ? (T)storedChangePriorityAction : null;
-            }
+                    @Override
+                    public T visit(StoredChangePriorityAction storedChangePriorityAction) {
+                        return type.getRawType().equals(storedChangePriorityAction.getClass())
+                               ? (T) storedChangePriorityAction : null;
+                    }
 
-            @Override
-            public T visit(StoredRouteToGroupAction storedRouteToGroupAction) {
-                return type.getRawType().equals(storedRouteToGroupAction.getClass()) ? (T)storedRouteToGroupAction : null;
-            }
+                    @Override
+                    public T visit(StoredRouteToGroupAction storedRouteToGroupAction) {
+                        return type.getRawType().equals(storedRouteToGroupAction.getClass())
+                               ? (T) storedRouteToGroupAction : null;
+                    }
 
-            @Override
-            public T visit(StoredWebhookAction storedWebhookAction) {
-                return type.getRawType().equals(storedWebhookAction.getClass()) ? (T)storedWebhookAction : null;
-            }
-        });
-        return Objects.requireNonNullElse(res, newObject);
+                    @Override
+                    public T visit(StoredWebhookAction storedWebhookAction) {
+                        return type.getRawType().equals(storedWebhookAction.getClass()) ? (T) storedWebhookAction
+                                                                                        : null;
+                    }
+                });
+
     }
 }
