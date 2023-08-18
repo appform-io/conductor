@@ -17,6 +17,7 @@
 package io.appform.conductor.server.ui.views.admin;
 
 import io.appform.conductor.model.auth.Role;
+import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
@@ -34,9 +35,11 @@ import java.util.List;
 public class UserAdminView extends BaseLoggedInView {
     User userDetails;
     List<Role> availableRoles;
-    public UserAdminView(User currentUser, User userDetails, List<Role> availableRoles) {
+    List<Group> availableGroups;
+    public UserAdminView(User currentUser, User userDetails, List<Role> availableRoles, List<Group> availableGroups) {
         super("templates/admin/user-admin.hbs", currentUser);
         this.userDetails = userDetails;
         this.availableRoles = availableRoles;
+        this.availableGroups = availableGroups;
     }
 }

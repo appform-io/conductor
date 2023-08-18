@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.usermgmt;
+package io.appform.conductor.server.ticketmanagement;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Builder;
+import lombok.Value;
 
-import java.util.Date;
+import java.util.List;
 
 /**
- * A group of users in the system. Ticket routing will be done to groups or users.
+ * Result set for a list query. Returns latest results first.
  */
-@Data
-@AllArgsConstructor
-public class Group {
-    private final String id;
-    private final String name;
-    private String description;
-    private boolean deleted;
-    private final Date created;
-    private final Date updated;
+@Value
+@Builder
+@SuppressWarnings("javs:S6548")
+public class TicketGistListResult {
+    public static final TicketGistListResult EMPTY = new TicketGistListResult(List.of(), null);
+
+    List<TicketGist> results;
+    String next;
 }

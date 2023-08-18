@@ -27,10 +27,7 @@ import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiFunction;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.ensure;
@@ -231,7 +228,7 @@ public class WorkflowManager {
         ensure(null != toState,
                ConductorErrorCode.WORKFLOW_ERROR,
                "No state found for ID: " + to);
-        val transitionId = readableId(workflowId, from, to);
+        val transitionId = readableId(workflowId, from, to, Objects.toString(System.currentTimeMillis()));
         val updated = workflowStore.createOrUpdateTransition(workflowId,
                                                              transitionId,
                                                              from,

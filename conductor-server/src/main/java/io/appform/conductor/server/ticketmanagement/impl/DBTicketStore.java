@@ -129,6 +129,7 @@ public class DBTicketStore implements TicketStore {
                             val updated = updater.apply(toSummary(ticket, false));
                             ticket.setTitle(updated.getTitle())
                                     .setDescription(updated.getDescription())
+                                    .setAssignedToGroupId(updated.getAssignedToGroupId())
                                     .setSubjectId(updated.getSubjectId())
                                     .setTicketStateId(updated.getTicketStateId())
                                     .setPriority(updated.getPriority());

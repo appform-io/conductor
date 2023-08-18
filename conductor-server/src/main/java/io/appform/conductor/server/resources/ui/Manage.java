@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.resources;
+package io.appform.conductor.server.resources.ui;
 
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.schema.Schema;
@@ -27,6 +27,7 @@ import io.appform.conductor.model.workflow.WorkflowState;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.ui.views.manage.*;
+import io.appform.conductor.server.usermanagement.UserLifecycleManager;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.workflowmanagement.WorkflowManager;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
@@ -64,6 +65,7 @@ public class Manage {
     private final SchemaStore schemaStore;
     private final WorkflowStore workflowStore;
     private final WorkflowManager workflowManager;
+    private final UserLifecycleManager userLifecycleManager;
 
     @GET
     @Path("/schema")
@@ -189,7 +191,7 @@ public class Manage {
             @Auth ConductorUser user,
             @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId,
             @PathParam("fieldId") @NotEmpty @Length(max = 45) final String fieldId) {
-        if(schemaStore.deleteField(schemaId, fieldId)) {
+        if (schemaStore.deleteField(schemaId, fieldId)) {
             return redirect("/manage/schema/" + schemaId);
         }
         throw fail("Failed to remove field from schema " + schemaId, "/manage/schema");
@@ -267,8 +269,8 @@ public class Manage {
             @FormParam("subjectTemplate") @NotEmpty @Length(max = 4096) final String subjectTemplate) {
         return workflowManager.updateTemplates(workflowId,
                                                template(titleTemplate),
-                                    template(descriptionTemplate),
-                                    template(subjectTemplate))
+                                               template(descriptionTemplate),
+                                               template(subjectTemplate))
                 .map(wf -> redirect("/manage/workflow/" + wf.getId()))
                 .orElseThrow(() -> fail("Failed to update workflow " + workflowId, "/manage/workflow"));
     }
@@ -395,7 +397,8 @@ public class Manage {
                                            visibleFields)
                 .map(wf -> redirect("/manage/workflow/" + wf.getId()))
                 .orElseThrow(() -> fail("Could not setup initial state state " + stateId + " for workflow " + workflowId,
-                                        "/manage/workflow"));    }
+                                        "/manage/workflow"));
+    }
 
     @POST
     @Path("/workflow/{workflowId}/states/{stateId}/initial")
@@ -457,6 +460,81 @@ public class Manage {
                 .map(wf -> redirect("/manage/workflow/" + wf.getId()))
                 .orElseThrow(() -> fail("Could not delete transition from workflow " + workflowId,
                                         "/manage/workflow"));
+    }
+
+    @GET
+    @Path("/groups")
+    public Response renderGroupList(@Auth ConductorUser user) {
+        return render(new GroupListView(user.getUserSession().getUser(), userLifecycleManager.listGroups(), null));
+    }
+
+    @POST
+    @Path("/groups")
+    public Response createGroups(
+            @Auth ConductorUser user,
+            @FormParam("name") @NotEmpty @Length(max = 45) final String name,
+            @FormParam("description") @Length(max = 255) final String description) {
+        return userLifecycleManager.createGroup(name, description)
+                .map(group -> redirect("/manage/groups/" + group.getId()))
+                .orElseThrow(() -> fail("Could not create group", "/manage/groups"));
+    }
+
+    @GET
+    @Path("/groups/{groupId}")
+    public Response createGroup(
+            @Auth ConductorUser user,
+            @PathParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
+        return userLifecycleManager.readGroup(groupId)
+                .map(group -> render(new GroupListView(user.getUserSession().getUser(),
+                                                       userLifecycleManager.listGroups(),
+                                                       group)))
+                .orElseThrow(() -> fail("No such group exists", "/manage/groups"));
+    }
+
+    @POST
+    @Path("/groups/{groupId}/update")
+    public Response updateGroup(
+            @Auth ConductorUser user,
+            @PathParam("groupId") @NotEmpty @Length(max = 45) final String groupId,
+            @FormParam("description") @NotEmpty @Length(max = 45) final String description) {
+        return userLifecycleManager.updateGroupDescription(groupId, description)
+                .map(group -> redirect("/manage/groups/" + group.getId()))
+                .orElseThrow(() -> fail("Could not update group", "/manage/groups"));
+    }
+
+    @POST
+    @Path("/groups/{groupId}/delete")
+    public Response deleteGroup(
+            @Auth ConductorUser user,
+            @PathParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
+
+        return userLifecycleManager.deleteGroup(groupId)
+                .map(group -> redirect("/manage/groups/"))
+                .orElseThrow(() -> fail("Could not create group", "/manage/groups"));
+    }
+
+    @POST
+    @Path("/users/{userId}/groups/add")
+    public Response addUserToGroup(
+            @Auth final ConductorUser user,
+            @PathParam("userId") @NotEmpty @Length(max = 45) final String userId,
+            @FormParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
+        if(userLifecycleManager.addUserToGroup(groupId, userId)) {
+            return redirect("/admin/users/" + userId);
+        }
+        throw fail("Could not add user to group", "/admin/users/" + userId);
+    }
+
+    @POST
+    @Path("/users/{userId}/groups/{groupId}/remove")
+    public Response removeUserFromGroup(
+            @Auth final ConductorUser user,
+            @PathParam("userId") @NotEmpty @Length(max = 45) final String userId,
+            @PathParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
+        if(userLifecycleManager.removeUserFromGroup(groupId, userId)) {
+            return redirect("/admin/users/" + userId);
+        }
+        throw fail("Could not remove user from group", "/admin/users/" + userId);
     }
 
     private static io.appform.conductor.model.workflow.Template template(String templateValue) {

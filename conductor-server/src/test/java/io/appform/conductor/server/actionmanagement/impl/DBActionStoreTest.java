@@ -1,5 +1,6 @@
 package io.appform.conductor.server.actionmanagement.impl;
 
+import io.appform.conductor.model.actions.ActionScope;
 import io.appform.conductor.model.actions.impl.*;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
@@ -39,6 +40,7 @@ class DBActionStoreTest {
                         .id("TestAddTicketAction1")
                         .name("TestingNameAddTicketAction")
                         .description("Testing description for AddTicketAction")
+                        .scope(new ActionScope(ActionScope.ScopeType.STATE, "S123"))
                         .build())
                 .orElse(null);
         assertNotNull(createdAction);
@@ -53,6 +55,7 @@ class DBActionStoreTest {
                         .contentTemplate(new Template(Template.Type.HANDLEBARS, "CommentTemplate"))
                         .id("TestAddCommentAction1")
                         .name("TestingNameAddCommentAction")
+                        .scope(new ActionScope(ActionScope.ScopeType.STATE, "S123"))
                         .description("Testing description for AddCommentAction")
                         .build())
                 .orElse(null);
@@ -75,6 +78,7 @@ class DBActionStoreTest {
                         .id("TestWebhookAction")
                         .name("TestingNameWebhookAction")
                         .description("Testing description for WebhookAction")
+                        .scope(new ActionScope(ActionScope.ScopeType.STATE, "S123"))
                         .callMode(WebhookAction.CallMode.SYNC)
                         .callType(WebhookAction.CallType.POST)
                         .urlTemplate(new Template(Template.Type.STRING_SUBSTITUTION,"urlTemplate"))
@@ -113,6 +117,7 @@ class DBActionStoreTest {
                     .id("TestNormalActionId1")
                     .name("TestingName")
                     .description("Testing description")
+                    .scope(new ActionScope(ActionScope.ScopeType.STATE, "S123"))
                     .build());
             fail("Should have thrown exception.");
         } catch (Exception e) {

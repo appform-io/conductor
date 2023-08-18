@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.resources;
+package io.appform.conductor.server.resources.ui;
 
+import com.google.common.base.Strings;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.fields.TicketField;
-import io.appform.conductor.model.ticket.filter.ticketfilters.TicketWorkflowEquals;
+import io.appform.conductor.model.ticket.filter.TicketFilter;
+import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import io.appform.conductor.model.workflow.WorkflowState;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.appform.conductor.server.ticketmanagement.TicketSkeletonListResult;
-import io.appform.conductor.server.ui.views.tickets.TicketCreateView;
-import io.appform.conductor.server.ui.views.tickets.TicketDetailsView;
-import io.appform.conductor.server.ui.views.tickets.TicketFieldView;
-import io.appform.conductor.server.ui.views.tickets.TicketsView;
+import io.appform.conductor.server.ui.views.tickets.*;
+import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
@@ -39,13 +39,13 @@ import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -64,14 +64,15 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 public class Tickets {
     private final WorkflowStore workflowStore;
     private final SchemaStore schemaStore;
+    private final GroupStore groupStore;
     private final TicketManager ticketManager;
 
     @GET
     @Path("/create")
     public Response renderTicketCreateView(@Auth final ConductorUser user) {
         return render(new TicketCreateView(user.getUserSession().getUser(),
-                                                                workflowStore.list(Set.of(WorkflowState.ACTIVE)),
-                                                                TicketSkeletonListResult.EMPTY));
+                                           workflowStore.list(Set.of(WorkflowState.ACTIVE)),
+                                           TicketSkeletonListResult.EMPTY));
     }
 
     @POST
@@ -92,7 +93,7 @@ public class Tickets {
                         subIdSubType,
                         subIdValue, workflowId)
                 .map(t -> redirect("/tickets/" + t.getSummary().getId() + "/details"))
-                .orElseThrow(() -> fail("Could not create ticket for workflow "+ workflowId,
+                .orElseThrow(() -> fail("Could not create ticket for workflow " + workflowId,
                                         "/tickets/create"));
     }
 
@@ -102,11 +103,12 @@ public class Tickets {
             @Auth final ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
         return render(new TicketsView(user.getUserSession().getUser(),
-                                           workflowId, workflowStore.list(Set.of(WorkflowState.ACTIVE)),
-                                           ticketManager.list(List.of(new TicketWorkflowEquals(workflowId)),
-                                                              List.of(),
-                                                              null,
-                                                              1024)));
+                                      workflowId, workflowStore.list(Set.of(WorkflowState.ACTIVE)),
+                                      groupStore.list(),
+                                      ticketManager.search(List.of(new TicketWorkflowEquals(workflowId)),
+                                                           List.of(),
+                                                           null,
+                                                           1024)));
     }
 
     @POST
@@ -150,11 +152,12 @@ public class Tickets {
                 })
                 .toList();
         return render(new TicketDetailsView(user.getUserSession().getUser(),
-                                                 ticket,
-                                                 wf,
-                                                 schema.get(),
-                                                 ticketState,
-                                                 fields));
+                                            ticket,
+                                            wf,
+                                            schema.get(),
+                                            ticketState,
+                                            fields,
+                                            groupStore.list()));
     }
 
     @POST
@@ -172,6 +175,19 @@ public class Tickets {
     }
 
     @POST
+    @Path("/{ticketId}/group/update")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response updateTicketGroup(
+            @Auth final ConductorUser user,
+            @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
+            @FormParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
+        if(ticketManager.assignTicketToGroup(ticketId, groupId)) {
+            return redirect("/tickets/" + ticketId + "/details");
+        }
+        throw fail("Could not assign ticket to group", "/tickets/" + ticketId + "/details");
+    }
+
+    @POST
     @Path("/{ticketId}/fields/update")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response updateTicketFields(
@@ -181,6 +197,71 @@ public class Tickets {
         return ticketManager.processFormFieldUpdate(ticketId, form)
                 .map(t -> Response.seeOther(URI.create("/tickets/" + ticketId + "/details")).build())
                 .orElse(Response.seeOther(URI.create("/")).build());
+    }
+
+    @GET
+    public Response response(@Auth ConductorUser user) {
+        return render(TicketSearchView.builder()
+                              .currentUser(user.getUserSession().getUser())
+                              .workflows(workflowStore.list(Set.of(WorkflowState.ACTIVE)))
+                              .states(List.of())
+                              .groups(groupStore.list())
+                              .build());
+    }
+
+    @GET
+    @Path("/list")
+    public Response searchTickets(
+            @Auth ConductorUser user,
+            @QueryParam("workflowId") @Length(max = 45) String workflowId,
+            @QueryParam("priority") final TicketPriority priority,
+            @QueryParam("stateIds") @Length(max = 45) final String stateId,
+            @QueryParam("subjectId") @Length(max = 45) String subjectId,
+            @QueryParam("groupId") @Length(max = 45) String groupId,
+            @QueryParam("createdById") @Length(max = 45) String createdById,
+            @QueryParam("assignedToId") @Length(max = 45) String assignedToId,
+            @QueryParam("next") @Length(max = 1024) String next,
+            @QueryParam("size") @DefaultValue("100") @Min(10) @Max(200) int size) {
+        val ticketFilters = new ArrayList<TicketFilter>();
+        if (!Strings.isNullOrEmpty(workflowId)) {
+            ticketFilters.add(new TicketWorkflowEquals(workflowId));
+        }
+        if (null != priority) {
+            ticketFilters.add(new TicketPriorityEquals(priority));
+        }
+        if (!Strings.isNullOrEmpty(stateId)) {
+            ticketFilters.add(new TicketStateEquals(stateId));
+        }
+        if (!Strings.isNullOrEmpty(subjectId)) {
+            ticketFilters.add(new TicketSubjectEquals(subjectId));
+        }
+        if (!Strings.isNullOrEmpty(groupId)) {
+            ticketFilters.add(new TicketAssignedToGroup(groupId));
+        }
+        if (!Strings.isNullOrEmpty(createdById)) {
+            ticketFilters.add(new TicketCreatedBy(createdById));
+        }
+        if (!Strings.isNullOrEmpty(assignedToId)) {
+            ticketFilters.add(new TicketAssignedToUser(assignedToId));
+        }
+        val results = ticketManager.search(ticketFilters, List.of(), next, size);
+        return render(TicketSearchView.builder()
+                              .currentUser(user.getUserSession().getUser())
+                              .workflows(workflowStore.list(Set.of(WorkflowState.ACTIVE)))
+                              .states(Strings.isNullOrEmpty(workflowId) ? List.of() : workflowStore.read(workflowId)
+                                      .map(workflow -> workflow.getStates().values())
+                                      .map(List::copyOf)
+                                      .orElse(List.of()))
+                              .groups(groupStore.list())
+                              .workflowId(workflowId)
+                              .stateId(stateId)
+                              .priority(priority)
+                              .subjectId(subjectId)
+                              .groupId(groupId)
+                              .createdById(createdById)
+                              .assignedToId(assignedToId)
+                              .results(results)
+                              .build());
     }
 
 }

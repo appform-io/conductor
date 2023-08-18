@@ -49,6 +49,7 @@ import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFie
 import io.appform.conductor.server.usermanagement.*;
 import io.appform.conductor.server.usermanagement.impl.*;
 import io.appform.conductor.server.usermanagement.impl.models.*;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.utils.dev.IgnoreGenerated;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.appform.conductor.server.workflowmanagement.impl.DBWorkflowStore;
@@ -61,6 +62,7 @@ import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.dropwizard.setup.Environment;
 import lombok.RequiredArgsConstructor;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 
 /**
  * Guice module
@@ -232,4 +234,11 @@ public class ConductorModule extends AbstractModule {
     public RelationalDao<StoredAttachment> attachmentDao() {
         return dbBundle.createRelatedObjectDao(StoredAttachment.class);
     }
+
+    @Provides
+    @Singleton
+    public CloseableHttpClient httpClient() {
+        return ConductorServerUtils.createHttpClient();
+    }
+
 }

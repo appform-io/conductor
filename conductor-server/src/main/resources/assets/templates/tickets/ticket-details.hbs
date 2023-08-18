@@ -11,7 +11,8 @@
                 <h4>Details for ticket: <b>{{summary/id}}</b></h4>
                 <p>
                     <small>Created by <a href="/admin/users/{{summary/createdBy/id}}">
-                        <b>{{summary/createdBy/name}}</b></a> on {{summary/created}}. Last updated on {{summary/updated}}.
+                        <b>{{summary/createdBy/name}}</b></a> on {{summary/created}}. Last updated
+                        on {{summary/updated}}.
                     </small>
                 </p>
             </div>
@@ -82,30 +83,59 @@
                     {{/with}}
                 </div>
                 <div class="col-sm-12 col-md-4 mt-2">
+                    <div class="row">
+                        <div class="col-12 p-4 mb-3 border border-dark">
+                            <label for="subId" class="col-form-label fw-bold"><i class="bi bi-person-lines-fill"></i>
+                                &nbsp; Subject</label>
+                            <a id="subId" class="ms-1" aria-describedby="subIdHelp"
+                               href="/subjects/{{summary/subject/globalId}}/details">
+                                {{#empty summary.subject.name}}
+                                    {{summary/subject/globalId}}
+                                {{else}}
+                                    {{summary.subject.name}}
+                                {{/empty}}
+                            </a>
+                            <div id="subIdHelp" class="form-text">
+                                Person who is the subject of this ticket
+                            </div>
+                        </div>
+                    </div>
                     <div class="accordion accordion-flush border border-dark" id="ticketSections">
                         <div class="accordion-item">
                             <h2 class="accordion-header">
                                 <button class="accordion-button bg-dark text-white collapsed" type="button"
                                         data-bs-toggle="collapse"
-                                        data-bs-target="#flush-subjectInfo" aria-expanded="false"
-                                        aria-controls="flush-subjectInfo">
-                                    <i class="bi bi-person-lines-fill"></i> &nbsp; Subject {{summary/subject/globalId}}
+                                        data-bs-target="#flush-assignment" aria-expanded="false"
+                                        aria-controls="flush-assignment">
+                                    <i class="bi bi-person-people-fill"></i> &nbsp; Assignment
                                 </button>
                             </h2>
-                            <div id="flush-subjectInfo" class="accordion-collapse collapse show"
+                            <div id="flush-assignment" class="accordion-collapse collapse show"
                                  data-bs-parent="#ticketSections">
                                 <div class="accordion-body">
-                                    <div class="row">
-                                        <div class="md-3">
-                                            <label for="subId" class="col-form-label fw-bold">ID</label>
-                                            <a id="subId" class="ms-1" aria-describedby="subIdHelp"
-                                               href="/subjects/{{summary/subject/globalId}}/details">
-                                                {{summary/subject/globalId}}</a>
-                                            <div id="subIdHelp" class="form-text">
-                                                Person who is the subject of this ticket
+                                    <form method="post" action="/tickets/{{summary.id}}/group/update">
+                                        <div class="row">
+                                            <div class="col-sm-4 col-md-2">
+                                                <label for="groupId" class="col-form-label fw-bold">Group</label>
+                                            </div>
+                                            <div class="col-sm-8 col-md-8">
+                                                <select id="groupId" name="groupId"
+                                                        class="form-control selectpicker border border-dark"
+                                                        aria-describedby="groupIdHelp" data-live-search="true">
+                                                    {{#each ../availableGroups}}
+                                                        <option value="{{id}}" {{#eq id
+                                                                                    ../ticket/summary/assignedToGroup/id}}selected{{/eq}}>{{name}}</option>
+                                                    {{/each}}
+                                                </select>
+                                                <div id="groupIdHelp" class="form-text">Group to assign this ticket to
+                                                </div>
+                                            </div>
+                                            <div class="col justify-content-end text-end">
+                                                <button type="submit" class="btn btn-primary">Assign</button>
                                             </div>
                                         </div>
-                                    </div>
+
+                                    </form>
 
                                 </div>
                             </div>
@@ -134,7 +164,8 @@
                                                            id="ticketField-{{schema/name}}"
                                                            name="ticketField-{{schema/name}}"
                                                            aria-describedby="ticketField-{{schema/name}}-Help"
-                                                        {{#gt schema/maxLength 0}}maxlength="{{schema/maxLength}}" {{/gt}}
+                                                        {{#gt schema/maxLength
+                                                              0}}maxlength="{{schema/maxLength}}" {{/gt}}
                                                         {{#empty
                                                                 schema/matchPattern}}{{else}}pattern="{{schema/matchPattern}}" {{/empty}}
                                                         {{#empty
@@ -175,17 +206,21 @@
                                                 {{#fieldTypeEquals type "BOOLEAN"}}
                                                     <select class="form-control selectpicker border border-dark"
                                                             data-live-search="true"
-                                                           id="ticketField-{{schema/name}}"
-                                                           name="ticketField-{{schema/name}}"
-                                                           aria-describedby="ticketField-{{schema/name}}-Help"
+                                                            id="ticketField-{{schema/name}}"
+                                                            name="ticketField-{{schema/name}}"
+                                                            aria-describedby="ticketField-{{schema/name}}-Help"
                                                         {{#eq editable true}}
                                                             {{#eq schema/required true}}required{{/eq}}
                                                         {{else}}
                                                             disabled
                                                         {{/eq}}>
                                                         <option value="" disabled>Select option</option>
-                                                        <option value="true" {{#eq fieldValue/value true}}selected{{/eq}}>Yes</option>
-                                                        <option value="false" {{#eq fieldValue/value false}}selected{{/eq}}>No</option>
+                                                        <option value="true"
+                                                                {{#eq fieldValue/value true}}selected{{/eq}}>Yes
+                                                        </option>
+                                                        <option value="false"
+                                                                {{#eq fieldValue/value false}}selected{{/eq}}>No
+                                                        </option>
                                                     </select>
                                                 {{/fieldTypeEquals}}
                                                 {{#fieldTypeEquals type "LOCATION"}}
@@ -240,29 +275,6 @@
                             </div>
                         </div>
                     </div>
-                    <!--                    <div class="row ms-1">
-                                            <div class="col-12 border border-dark">
-                                                <div class="row">
-                                                    <div class="col p-2 bg-dark text-white">
-                                                        <h5><i class="bi bi-person-lines-fill"></i> Subject</h5>
-                                                    </div>
-                                                </div>
-                                                <div class="row p-2">
-                                                    <div class="col-12">
-
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row ms-1 mt-2">
-                                            <div class="col-12 border border-dark">
-                                                <div class="row">
-                                                    <div class="col p-2 bg-dark text-white">
-                                                        <h5><i class="bi bi-file-ruled"></i> Fields</h5>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>-->
                 </div>
             </div>
         </section>

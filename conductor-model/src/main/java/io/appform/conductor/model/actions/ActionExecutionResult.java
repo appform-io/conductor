@@ -22,13 +22,13 @@ import lombok.Getter;
  *
  */
 public enum ActionExecutionResult {
-    SUCCESS("Fail") {
+    SUCCESS("Success") {
         @Override
         public <T> T accept(ActionExecutionResultVisitor<T> visitor) {
             return visitor.visitSuccess();
         }
     },
-    FAILURE("Ignore") {
+    FAILURE("Failure") {
         @Override
         public <T> T accept(ActionExecutionResultVisitor<T> visitor) {
             return visitor.visitSuccess();

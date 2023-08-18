@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.resources;
+package io.appform.conductor.server.resources.ui;
 
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.ui.views.HomeView;

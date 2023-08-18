@@ -48,6 +48,11 @@ public abstract class Action {
     private final String description;
 
     /**
+     * Scope of the action i.e STATE, TRANSITION, GLOBAL etc along with the identifier for the same
+     */
+    private final ActionScope scope;
+
+    /**
      * Date when action was created
      */
     private final Date created;

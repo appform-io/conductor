@@ -17,6 +17,7 @@
 package io.appform.conductor.model.actions.impl;
 
 import io.appform.conductor.model.actions.Action;
+import io.appform.conductor.model.actions.ActionScope;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.workflow.Template;
@@ -124,6 +125,7 @@ public class WebhookAction extends Action {
             String id,
             String name,
             String description,
+            ActionScope scope,
             Date created,
             Date updated,
             Template urlTemplate,
@@ -134,7 +136,7 @@ public class WebhookAction extends Action {
             Set<Integer> successCodes, CallMode callMode,
             int timeoutMs,
             RetryStrategy retryStrategy, int numRetries) {
-        super(ActionType.WEBHOOK, id, name, description, created, updated);
+        super(ActionType.WEBHOOK, id, name, description, scope, created, updated);
         this.urlTemplate = urlTemplate;
         this.callType = callType;
         this.payloadTemplate = payloadTemplate;

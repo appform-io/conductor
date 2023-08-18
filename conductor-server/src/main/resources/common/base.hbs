@@ -36,7 +36,7 @@
                         aria-controls="main-menu" aria-expanded="false" aria-label="Toggle Main Menu">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <a class="navbar-brand logo-area" href="#">
+                <a class="navbar-brand logo-area" href="/">
                     <img src="/images/conductor.png" width="30" height="24" class="d-inline-block align-text-top">
                     CONDUCTOR
                 </a>
@@ -47,7 +47,7 @@
                             <a href="/" class="nav-link active">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a href="/" class="nav-link">Browse Tickets</a>
+                            <a href="/tickets" class="nav-link">Browse Tickets</a>
                         </li>
                         <li class="nav-item">
                             <a href="/" class="nav-link">Analytics</a>
@@ -62,6 +62,7 @@
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="/manage/schema">Schema Management</a></li>
                                 <li><a class="dropdown-item" href="/manage/workflow">Workflow Management</a></li>
+                                <li><a class="dropdown-item" href="/manage/groups">Group Management</a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
@@ -71,7 +72,6 @@
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="/admin/roles">Role Management</a></li>
                                 <li><a class="dropdown-item" href="/admin/users/search">User Management</a></li>
-                                <li><a class="dropdown-item" href="/admin/groups">Group Management</a></li>
                             </ul>
                         </li>
                     </ul>
@@ -258,6 +258,10 @@
     }
 
     function timeSince(data, type, row, meta) {
+        return '<span title="' + new Date(data) + '">' + timeSinceString(data, type, row, meta) +  '</span>';
+    }
+
+    function timeSinceString(data, type, row, meta) {
         if(type === "sort") return data;
 
         var date = new Date(data);
@@ -285,7 +289,7 @@
         if (interval > 1) {
             return interval + " minutes";
         }
-        return Math.floor(seconds) + " seconds";
+        return Math.floor(seconds);
     }
 
     function lifetime(data, type, row, meta) {

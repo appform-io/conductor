@@ -39,7 +39,7 @@ public class RouteToGroupActionExecutor {
     private final TicketStore ticketStore;
 
     public ActionExecutionResult run(RouteToGroupAction action, final ActionExecutor.ActionEvalData evalData) {
-        val group = groupStore.get(action.getGroupId()).filter(g -> !g.isDeleted()).orElse(null);
+        val group = groupStore.read(action.getGroupId()).filter(g -> !g.isDeleted()).orElse(null);
         val ticketId = evalData.getTicket().getSummary().getId();
         if(null == group) {
             log.info("Could not assign ticket {} to non-existent group {}",

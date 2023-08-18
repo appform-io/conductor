@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.resources;
+package io.appform.conductor.server.resources.ui;
 
 import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.auth.Role;
@@ -22,9 +22,9 @@ import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserRoleMappingStore;
-import io.appform.conductor.server.ui.views.admin.RoleDetailsView;
 import io.appform.conductor.server.ui.views.admin.RolesListView;
 import io.appform.conductor.server.ui.views.admin.UserAdminView;
+import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.usermanagement.UserLifecycleManager;
 import io.appform.conductor.server.usermanagement.UserStore;
 import io.dropwizard.auth.Auth;
@@ -62,19 +62,20 @@ public class Admin {
 
     private final RoleStore roleStore;
     private final UserStore userStore;
+    private final GroupStore groupStore;
     private final UserRoleMappingStore roleMappingStore;
     private final UserLifecycleManager userLifecycleManager;
 
     @GET
     @Path("/roles")
     public Response renderRolesList(@Auth ConductorUser user) {
-        return render(new RolesListView(user.getUserSession().getUser(), roleStore.list()));
+        return render(new RolesListView(user.getUserSession().getUser(), roleStore.list(), null));
     }
 
     @GET
     @Path("/roles/create")
     public Response renderCreateRoleView(@Auth ConductorUser user) {
-        return render(new RoleDetailsView(user.getUserSession().getUser(), null));
+        return redirect(ROLES_LIST_PATH);
     }
 
     @POST
@@ -85,7 +86,7 @@ public class Admin {
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("permissions") @NotEmpty List<Permission> permissions) {
         return roleStore.create(lowerSnake(name), name, description, Set.copyOf(permissions))
-                .map(role -> redirect(ROLES_LIST_PATH))
+                .map(role -> redirect("ROLES_LIST_PATH"))
                 .orElseThrow(() -> fail("Failed to create role", ROLES_LIST_PATH));
     }
 
@@ -100,7 +101,8 @@ public class Admin {
                     Arrays.stream(Permission.values())
                             .forEach(permission -> permissions.put(permission,
                                                                    role.getPermissions().contains(permission)));
-                    return render(new RoleDetailsView(user.getUserSession().getUser(),
+                    return render(new RolesListView(user.getUserSession().getUser(),
+                                                    roleStore.list(),
                                                       role));
                 })
                 .orElseThrow(() -> fail("Could not find role with id: " + roleId, ROLES_LIST_PATH));
@@ -139,7 +141,7 @@ public class Admin {
     @GET
     @Path("/users/search")
     public Response renderUserSearchScreen(@Auth ConductorUser user) {
-        return render(new UserAdminView(user.getUserSession().getUser(), null, List.of()));
+        return render(new UserAdminView(user.getUserSession().getUser(), null, List.of(), List.of()));
     }
 
     @POST
@@ -170,7 +172,8 @@ public class Admin {
         return userLifecycleManager.userDetails(userId)
                 .map(userDetails -> render(new UserAdminView(user.getUserSession().getUser(),
                                                              userDetails,
-                                                             roleStore.list())))
+                                                             roleStore.list(),
+                                                             groupStore.list())))
                 .orElseThrow(() -> fail("No user found for " + userId, USER_SEARCH_PATH));
     }
 

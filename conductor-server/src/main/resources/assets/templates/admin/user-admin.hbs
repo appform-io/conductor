@@ -1,3 +1,9 @@
+{{#partial "page_css_includes"}}
+    <link href="/css/bootstrap-select.min.css" rel="stylesheet">
+{{/partial}}
+{{#partial "page_js_includes"}}
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+{{/partial}}
 {{#partial "content"}}
     <section>
         <div class="row m-4 p-4 border border-dark">
@@ -32,7 +38,7 @@
         </div>
     </section>
     {{#with userDetails}}
-    <section>
+        <section>
             <div class="row">
                 <div class="col-sm-12 col-md-4">
                     <h4>User Details</h4>
@@ -71,14 +77,16 @@
                                 <th scope="row">State</th>
                                 <td>
                                     <div class="row">
-                                        <div class="col-6">{{state}}</div>
+                                        <div class="col-6">{{readable state}}</div>
                                         <div class="col-6">
                                             <!-- TODO BASED ON PERMISSION -->
-                                            <form class="row row-cols-lg-auto confirmed-form justify-content-end" method="post" action="/admin/users/{{id}}/state"
+                                            <form class="row row-cols-lg-auto confirmed-form justify-content-end"
+                                                  method="post" action="/admin/users/{{id}}/state"
                                                   data-cnf-title="Changing state for {{name}}"
                                                   data-cnf-text="Are you sure?">
                                                 <div class="col-12">
-                                                    <select id="state" name="state" class="form-control border border-dark"
+                                                    <select id="state" name="state"
+                                                            class="form-control border border-dark"
                                                             required>
                                                         <option disabled selected value="">Select new state</option>
                                                         <option value="LOCKED">Locked</option>
@@ -102,13 +110,16 @@
                                         <div class="col-6">{{#with assignedRole}}{{name}}{{/with}}</div>
                                         <div class="col-6">
                                             <!-- TODO BASED ON PERMISSION -->
-                                            <form class="row row-cols-lg-auto confirmed-form justify-content-end" method="post" action="/admin/users/{{id}}/role"
+                                            <form class="row row-cols-lg-auto confirmed-form justify-content-end"
+                                                  method="post" action="/admin/users/{{id}}/role"
                                                   data-cnf-title="Assigning role to {{name}}"
                                                   data-cnf-text="Are you sure?">
                                                 <div class="col-12">
-                                                    <select id="roleId" name="roleId" class="form-control border border-dark"
+                                                    <select id="roleId" name="roleId"
+                                                            class="form-control border border-dark"
                                                             required>
-                                                        <option disabled selected value="">Select role to assign</option>
+                                                        <option disabled selected value="">Select role to assign
+                                                        </option>
                                                         {{#each ../availableRoles}}
                                                             <option value="{{id}}">{{name}}</option>
                                                         {{/each}}
@@ -128,7 +139,73 @@
                     </table>
                 </div>
             </div>
-    </section>
+        </section>
+        <section>
+            <div class="row">
+                <div class="col-sm-12 col-md-6">
+                    <div class="row">
+                        <div class="col-12">
+                            <h4>Group Memberships</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <form method="post" action="/manage/users/{{summary.id}}/groups/add">
+                                <div class="row mb-3">
+                                    <div class="col-sm-12 col-md-9">
+                                        <label for="groupId" class="col-form-label fw-bold">Select Group</label>
+                                        <select class="form-control selectpicker border border-dark"
+                                                id="groupId" name="groupId"
+                                                data-live-search="true"
+                                                aria-describedby="groupIdHelp" required>
+                                            {{#each ../availableGroups}}
+                                                <option value="{{id}}" title="{{description}}">{{name}}</option>
+                                            {{/each}}
+                                        </select>
+                                        <div id="groupIdHelp" class="form-text">User will be added to this group</div>
+                                    </div>
+                                    <div class="col-sm-12 col-md-3 mt-2 justify-content-center">
+                                        <button type="submit" class="btn btn-success mt-4"><i class="bi bi-plus-lg"></i> Add
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 table-responsive">
+                            <table class="table table-bordered border-dark">
+                                <thead>
+                                    <tr>
+                                        <th>Group</th>
+                                        <th>Description</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {{#each groups}}
+                                    <tr>
+                                        <td title="{{id}}">{{name}}</td>
+                                        <td>{{desciption}}</td>
+                                        <td>
+                                            <form class="confirmed-form" method="post"
+                                                  action="/manage/users/{{../userDetails/summary/id}}/groups/{{id}}/remove"
+                                                  data-cnf-title="Removing user from group"
+                                                  data-cnf-text="Are you sure you want to remove the user {{../name}} from group {{name}}?">
+                                                <button type="submit" class="btn btn-link p-0 text-danger"><i
+                                                        class="bi bi-trash-fill"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     {{/with}}
 
 {{/partial}}

@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.admin;
+package io.appform.conductor.server.ui.views.manage;
 
-import io.appform.conductor.model.auth.Permission;
-import io.appform.conductor.model.auth.Role;
+import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
-import java.util.EnumSet;
-import java.util.Set;
+import java.util.List;
 
 /**
  *
@@ -33,13 +31,13 @@ import java.util.Set;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class RoleDetailsView extends BaseLoggedInView {
-    Set<Permission> permissions;
-    Role role;
+public class GroupListView extends BaseLoggedInView {
+    List<Group> groups;
+    Group currentGroup;
 
-    public RoleDetailsView(User currentUser, Role role) {
-        super("templates/admin/role-details.hbs", currentUser);
-        this.permissions = EnumSet.allOf(Permission.class);
-        this.role = role;
+    public GroupListView(User currentUser, List<Group> groups, Group currentGroup) {
+        super("templates/manage/group-list.hbs", currentUser);
+        this.groups = groups;
+        this.currentGroup = currentGroup;
     }
 }

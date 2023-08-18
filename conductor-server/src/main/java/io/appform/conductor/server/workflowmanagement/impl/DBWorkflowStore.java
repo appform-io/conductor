@@ -81,7 +81,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                   .setTitleTemplate(titleTemplate)
                                   .setDescriptionTemplate(descriptionTemplate)
                                   .setSubjectIdTemplate(subjectIdTemplate)
-                                  .setState(WorkflowState.INACTIVE))
+                                  .setState(WorkflowState.ACTIVE)) //TODO::ACTIVATION WORKFLOW
                 .map(DBWorkflowStore::toWirePartial);
     }
 

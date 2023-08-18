@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.ticketmanagement;
 
+import io.appform.conductor.model.ticket.TicketPriority;
 import lombok.Value;
 
 import java.util.Date;
@@ -30,6 +31,7 @@ public class TicketGist {
     String workflowName;
     String stateName;
     boolean terminated;
+    TicketPriority priority;
     Date created;
     Date updated;
 }

@@ -37,6 +37,13 @@ import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.usermanagement.CurrentUserSessionStore;
 import lombok.experimental.UtilityClass;
 import lombok.val;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import ru.vyarus.guicey.gsp.views.template.TemplateView;
 
 import javax.annotation.Nullable;
@@ -45,6 +52,7 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
@@ -242,6 +250,28 @@ public class ConductorServerUtils {
                                             .toEpochMilli());
             }
         });
+    }
+
+    public static CloseableHttpClient createHttpClient() {
+        val connectionTimeout = Timeout.of(Duration.ofSeconds(3));
+        val connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setDefaultMaxPerRoute(100);
+        connectionManager.setMaxTotal(Integer.MAX_VALUE);
+        connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom()
+                .setConnectTimeout(connectionTimeout)
+                .setSocketTimeout(connectionTimeout)
+                .setValidateAfterInactivity(TimeValue.ofSeconds(10))
+                .setTimeToLive(TimeValue.ofHours(1))
+                .build());
+        val requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(connectionTimeout)
+                .setResponseTimeout(Timeout.of(Duration.ofSeconds(5)))
+                .build();
+        return HttpClients.custom()
+                .disableRedirectHandling()
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(requestConfig)
+                .build();
     }
 
     public static Response render(final TemplateView view) {

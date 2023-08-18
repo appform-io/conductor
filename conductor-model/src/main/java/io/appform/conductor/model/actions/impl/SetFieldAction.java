@@ -17,6 +17,7 @@
 package io.appform.conductor.model.actions.impl;
 
 import io.appform.conductor.model.actions.Action;
+import io.appform.conductor.model.actions.ActionScope;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.ticket.fields.FieldValue;
@@ -50,11 +51,12 @@ public class SetFieldAction extends Action {
             String id,
             String name,
             String description,
+            ActionScope scope,
             Date created,
             Date updated,
             String fieldSchemaId,
             FieldValue fieldValue) {
-        super(ActionType.SET_FIELD, id, name, description, created, updated);
+        super(ActionType.SET_FIELD, id, name, description, scope, created, updated);
         this.fieldSchemaId = fieldSchemaId;
         this.fieldValue = fieldValue;
     }

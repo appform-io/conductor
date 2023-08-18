@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.resources;
+package io.appform.conductor.server.resources.ui;
 
 import io.appform.conductor.model.subject.*;
 import io.appform.conductor.server.auth.ConductorUser;
@@ -97,7 +97,8 @@ public class Subjects {
         return subjectStore.getSubject(subjectId)
                 .map(subject -> render(new SubjectDetailsView(user.getUserSession().getUser(),
                                                               subject,
-                                                              ticketManager.ticketsForSubject(subjectId))))
+                                                              ticketManager.ticketsForSubject(subjectId, null, 10)
+                                                                      .getResults())))
                 .orElseThrow(() -> fail("No such subject", SUBJECTS_LIST_PAGE));
     }
 
@@ -180,7 +181,7 @@ public class Subjects {
             @Auth ConductorUser user,
             @PathParam("subjectId") @Length(max = 45) final String subjectId,
             @PathParam("subIdId") @Length(max = 45) final String subIdId) {
-        if(subjectStore.deleteIdentifier(subjectId, subIdId)) {
+        if (subjectStore.deleteIdentifier(subjectId, subIdId)) {
             return redirect("/subjects/" + subjectId + "/details");
         }
         throw fail("Could not delete ID", "/subjects/" + subjectId + "/details");

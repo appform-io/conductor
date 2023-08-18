@@ -20,6 +20,7 @@ import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.ticket.TicketDetails;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
@@ -43,14 +44,16 @@ public class TicketDetailsView extends BaseLoggedInView {
     Schema schema;
     TicketState state;
     List<TicketFieldView> fields;
+    List<Group> availableGroups;
     Set<TicketPriority> priorities = EnumSet.allOf(TicketPriority.class);
     public TicketDetailsView(User currentUser, TicketDetails ticket, Workflow workflow, Schema schema,
-                             TicketState state, List<TicketFieldView> fields) {
+                             TicketState state, List<TicketFieldView> fields, List<Group> availableGroups) {
         super("templates/tickets/ticket-details.hbs", currentUser);
         this.ticket = ticket;
         this.workflow = workflow;
         this.schema = schema;
         this.state = state;
         this.fields = fields;
+        this.availableGroups = availableGroups;
     }
 }

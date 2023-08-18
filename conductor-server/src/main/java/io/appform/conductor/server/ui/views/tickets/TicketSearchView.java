@@ -16,39 +16,68 @@
 
 package io.appform.conductor.server.ui.views.tickets;
 
-import io.appform.conductor.model.subject.SubjectIDType;
+import io.appform.conductor.model.schema.TicketState;
+import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.server.ticketmanagement.TicketGistListResult;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 
 /**
- * View for tickets listing page
+ *
  */
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TicketsView extends BaseLoggedInView {
-    String workflowId;
+public class TicketSearchView extends BaseLoggedInView {
     List<Workflow> workflows;
-    Set<SubjectIDType> subIdTypes;
+    Set<TicketPriority> priorities = EnumSet.allOf(TicketPriority.class);
+    Collection<TicketState> states;
     List<Group> groups;
+    String workflowId;
+    String stateId;
+    TicketPriority priority;
+    String subjectId;
+    String groupId;
+    String createdById;
+    String assignedToId;
     TicketGistListResult results;
-    public TicketsView(User currentUser, String workflowId, List<Workflow> workflows,
-                       List<Group> groups,
-                       TicketGistListResult results) {
+
+    @Builder
+    public TicketSearchView(
+            User currentUser,
+            List<Workflow> workflows,
+            List<TicketState> states,
+            List<Group> groups,
+            String workflowId,
+            String stateId,
+            TicketPriority priority,
+            String subjectId,
+            String groupId,
+            String createdById,
+            String assignedToId,
+            TicketGistListResult results) {
         super("templates/tickets/tickets-list.hbs", currentUser);
-        this.workflowId = workflowId;
         this.workflows = workflows;
+        this.states = states;
         this.groups = groups;
+        this.workflowId = workflowId;
+        this.stateId = stateId;
+        this.priority = priority;
+        this.subjectId = subjectId;
+        this.groupId = groupId;
+        this.createdById = createdById;
+        this.assignedToId = assignedToId;
         this.results = results;
-        this.subIdTypes = new TreeSet<>(Comparator.comparing(SubjectIDType::getDisplayName));
-        subIdTypes.addAll(EnumSet.allOf(SubjectIDType.class));
     }
 }
