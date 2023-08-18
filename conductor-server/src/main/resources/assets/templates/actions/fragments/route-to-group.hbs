@@ -1,0 +1,47 @@
+<div class="row">
+    <div class="col-12">
+        <h5>Route to a group</h5>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <form method="post"
+            {{#with currentAction}}
+              action="/actions/{{scope.type}}/{{scope.referenceId}}/{{id}}/ROUTE_TO_GROUP/update"
+            {{else}}
+              action="/actions/{{scope.type}}/{{scope.referenceId}}/ROUTE_TO_GROUP/create"
+            {{/with}}
+        >
+            <div class="mb-3">
+                <label for="name" class="col-form-label fw-bold">Name</label>
+                <input type="text" id="name" name="name" class="form-control border border-dark"
+                       maxlength="45" placeholder="Action Name" aria-describedby="nameHelp"
+                       value="{{currentAction.name}}">
+                <div id="nameHelp" class="form-text">Name for the action. Max Length: 45</div>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="col-form-label fw-bold">Description</label>
+                <textarea id="description" name="description"
+                          class="form-control border border-dark" rows="5"
+                          placeholder="A description for the action" aria-describedby="descriptionHelp"
+                          aria-describedby="descriptionHelp">{{currentAction.description}}</textarea>
+                <div id="descriptionHelp" class="form-text">Optional, . Max Length: 45</div>
+            </div>
+            <div class="mb-3">
+                <label for="groupId" class="col-form-label fw-bold">Select Group</label>
+                <select class="form-control border border-dark"
+                        id="groupId" name="groupId"
+                        aria-describedby="groupIdHelp" required>
+                    {{#each availableGroups}}
+                        <option value="{{id}}" title="{{description}}"
+                                {{#eq ../currentAction/groupId id}}selected{{/eq}}>{{name}}</option>
+                    {{/each}}
+                </select>
+                <div id="groupIdHelp" class="form-text">Ticket will be routed to this group</div>
+            </div>
+            <div class="mb-3 d-flex justify-content-center">
+                <button type="submit" class="btn btn-success"><i class="bi bi-save me-2"></i>Save</button>
+            </div>
+        </form>
+    </div>
+</div>

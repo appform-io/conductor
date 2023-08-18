@@ -1,5 +1,6 @@
 package io.appform.conductor.server.actionmanagement.impl;
 
+import com.google.common.reflect.TypeToken;
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionScope;
 import io.appform.conductor.model.actions.ActionVisitor;
@@ -13,11 +14,15 @@ import io.appform.functionmetrics.MonitoredFunction;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Property;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_READ_ERROR;
@@ -36,10 +41,35 @@ public class DBActionStore implements ActionStore {
     @Throws(value = STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredAction.ACTION_TABLE_NAME))
     public Optional<Action> save(Action action) {
-        return actionDao.save(toStored(action))
+        return actionDao.save(toStored(action, null))
                 .map(this::toWired);
     }
 
+    @Override
+    public boolean update(String actionId, UnaryOperator<Action> handler) {
+        return actionDao.update(actionId,
+                                storedAction -> storedAction.map(s -> toStored(handler.apply(toWired(s)), s))
+                                        .orElse(null));
+    }
+
+    @Override
+    public List<Action> list(ActionScope scope) {
+        return actionDao.scatterGather(DetachedCriteria.forClass(StoredAction.class)
+                                               .add(Property.forName(StoredAction.Fields.scopeType).eq(scope.getType()))
+                                               .add(Property.forName(StoredAction.Fields.scopeReferenceId)
+                                                            .eq(scope.getReferenceId()))
+                                               .add(Property.forName(StoredAction.Fields.deleted).eq(false))
+                                      )
+                .stream()
+                .map(this::toWired)
+                .toList();
+    }
+
+    @Override
+    public boolean delete(String actionId) {
+        return actionDao.update(actionId,
+                                storedAction -> storedAction.map(action -> action.setDeleted(true)).orElse(null));
+    }
 
     @Override
     @MonitoredFunction
@@ -48,6 +78,7 @@ public class DBActionStore implements ActionStore {
             fixedParams = @Throws.Param(name = "type", value = StoredAction.ACTION_TABLE_NAME))
     public Optional<Action> read(@Throws.RuntimeParam("id") String actionId) {
         return actionDao.get(actionId)
+                .filter(storedAction -> !storedAction.isDeleted())
                 .map(this::toWired);
     }
 
@@ -63,12 +94,12 @@ public class DBActionStore implements ActionStore {
                 .collect(Collectors.toList());
     }
 
-    private StoredAction toStored(Action action) {
-        val storedAction =   action.accept(new ActionVisitor<StoredAction>() {
+    private StoredAction toStored(Action action, StoredAction existing) {
+        val storedAction = action.accept(new ActionVisitor<StoredAction>() {
 
             @Override
             public StoredAction visit(WebhookAction webhookAction) {
-                val storedWebhookAction =  new StoredWebhookAction()
+                val storedWebhookAction = safeCast(existing, new StoredWebhookAction())
                         .setCallType(webhookAction.getCallType())
                         .setCallMode(webhookAction.getCallMode())
                         .setUrlTemplate(webhookAction.getUrlTemplate())
@@ -80,60 +111,62 @@ public class DBActionStore implements ActionStore {
                         .setNumRetries(webhookAction.getNumRetries());
 
                 storedWebhookAction.setHeaderTemplates(webhookAction.getHeaderTemplates()
-                        .entrySet()
-                        .stream()
-                        .map(header ->
-                                new StoredWebhookActionHeaderTemplate()
-                                        .setActive(true)
-                                        .setAction(storedWebhookAction)
-                                        .setName(header.getKey())
-                                        .setTemplate(header.getValue())
-                        ).collect(Collectors.toList()));
+                                                               .entrySet()
+                                                               .stream()
+                                                               .map(header -> new StoredWebhookActionHeaderTemplate()
+                                                                                    .setActive(true)
+                                                                                    .setAction(storedWebhookAction)
+                                                                                    .setName(header.getKey())
+                                                                                    .setTemplate(header.getValue()))
+                                                               .toList());
                 return storedWebhookAction;
             }
 
             @Override
             public StoredAction visit(RouteToGroupAction routeToGroupAction) {
-                return new StoredRouteToGroupAction()
+                return safeCast(existing, new StoredRouteToGroupAction())
                         .setGroupId(routeToGroupAction.getGroupId());
             }
 
             @Override
             public StoredAction visit(AddCommentAction addCommentAction) {
-                return new StoredAddCommentAction()
+                return safeCast(existing, new StoredAddCommentAction())
                         .setContentTemplate(addCommentAction.getContentTemplate());
             }
 
             @Override
             public StoredAction visit(AddTicketAction addTicketAction) {
-                return new StoredAddTicketAction()
+                return safeCast(existing, new StoredAddTicketAction())
                         .setTicketActionId(addTicketAction.getActionId());
 
             }
 
             @Override
             public StoredAction visit(ChangePriorityAction changePriorityAction) {
-                return new StoredChangePriorityAction()
+                return safeCast(existing, new StoredChangePriorityAction())
                         .setPriority(changePriorityAction.getPriority());
             }
 
             @Override
             public StoredAction visit(SetFieldAction setFieldAction) {
-                return new StoredSetFieldAction()
+                return safeCast(existing, new StoredSetFieldAction())
                         .setFieldSchemaId(setFieldAction.getFieldSchemaId())
                         .setStoredFieldValue(new StoredEmbeddedFieldValue(setFieldAction.getFieldValue()));
 
             }
         });
-
-        if(action.getScope() == null) {
-            storedAction.setScopeType(ActionScope.ScopeType.GLOBAL);
+        if (null == existing) {
+            if (action.getScope() == null) {
+                storedAction.setScopeType(ActionScope.ScopeType.GLOBAL)
+                        .setScopeReferenceId(ActionScope.GLOBAL_STATE_REF_ID);
+            }
+            else {
+                storedAction.setScopeType(action.getScope().getType())
+                        .setScopeReferenceId(action.getScope().getReferenceId());
+            }
+            storedAction.setActionId(action.getId());
         }
-        else {
-            storedAction.setScopeType(action.getScope().getType())
-                    .setScopeReferenceId(action.getScope().getReferenceId());
-        }
-        storedAction.setActionId(action.getId())
+        Objects.requireNonNullElse(existing, storedAction)
                 .setName(action.getName())
                 .setDescription(action.getDescription());
 
@@ -148,7 +181,8 @@ public class DBActionStore implements ActionStore {
                         .id(storedSetFieldAction.getActionId())
                         .name(storedSetFieldAction.getName())
                         .description(storedSetFieldAction.getDescription())
-                        .scope(new ActionScope(storedSetFieldAction.getScopeType(), storedSetFieldAction.getScopeReferenceId()))
+                        .scope(ActionScope.build(storedSetFieldAction.getScopeType(),
+                                                 storedSetFieldAction.getScopeReferenceId()))
                         .fieldSchemaId(storedSetFieldAction.getFieldSchemaId())
                         .fieldValue(storedSetFieldAction.getStoredFieldValue().toFieldValue())
                         .created(storedSetFieldAction.getCreated())
@@ -162,7 +196,8 @@ public class DBActionStore implements ActionStore {
                         .id(storedAddCommentAction.getActionId())
                         .name(storedAddCommentAction.getName())
                         .description(storedAddCommentAction.getDescription())
-                        .scope(new ActionScope(storedAddCommentAction.getScopeType(), storedAddCommentAction.getScopeReferenceId()))
+                        .scope(ActionScope.build(storedAddCommentAction.getScopeType(),
+                                                 storedAddCommentAction.getScopeReferenceId()))
                         .contentTemplate(storedAddCommentAction.getContentTemplate())
                         .created(storedAddCommentAction.getCreated())
                         .updated(storedAddCommentAction.getUpdated())
@@ -175,7 +210,8 @@ public class DBActionStore implements ActionStore {
                         .id(storedAddTicketAction.getActionId())
                         .name(storedAddTicketAction.getName())
                         .description(storedAddTicketAction.getDescription())
-                        .scope(new ActionScope(storedAddTicketAction.getScopeType(), storedAddTicketAction.getScopeReferenceId()))
+                        .scope(ActionScope.build(storedAddTicketAction.getScopeType(),
+                                                 storedAddTicketAction.getScopeReferenceId()))
                         .actionId(storedAddTicketAction.getTicketActionId())
                         .created(storedAddTicketAction.getCreated())
                         .updated(storedAddTicketAction.getUpdated())
@@ -188,7 +224,8 @@ public class DBActionStore implements ActionStore {
                         .id(storedChangePriorityAction.getActionId())
                         .name(storedChangePriorityAction.getName())
                         .description(storedChangePriorityAction.getDescription())
-                        .scope(new ActionScope(storedChangePriorityAction.getScopeType(), storedChangePriorityAction.getScopeReferenceId()))
+                        .scope(ActionScope.build(storedChangePriorityAction.getScopeType(),
+                                                 storedChangePriorityAction.getScopeReferenceId()))
                         .priority(storedChangePriorityAction.getPriority())
                         .created(storedChangePriorityAction.getCreated())
                         .updated(storedChangePriorityAction.getUpdated())
@@ -201,7 +238,8 @@ public class DBActionStore implements ActionStore {
                         .id(storedRouteToGroupAction.getActionId())
                         .name(storedRouteToGroupAction.getName())
                         .description(storedRouteToGroupAction.getDescription())
-                        .scope(new ActionScope(storedRouteToGroupAction.getScopeType(), storedRouteToGroupAction.getScopeReferenceId()))
+                        .scope(ActionScope.build(storedRouteToGroupAction.getScopeType(),
+                                                 storedRouteToGroupAction.getScopeReferenceId()))
                         .groupId(storedRouteToGroupAction.getGroupId())
                         .created(storedRouteToGroupAction.getCreated())
                         .updated(storedRouteToGroupAction.getUpdated())
@@ -218,11 +256,12 @@ public class DBActionStore implements ActionStore {
                         .callMode(storedWebhookAction.getCallMode())
                         .urlTemplate(storedWebhookAction.getUrlTemplate())
                         .headerTemplates(storedWebhookAction.getHeaderTemplates()
-                                .stream()
-                                .filter(StoredWebhookActionHeaderTemplate::isActive)
-                                .collect(Collectors.toMap(StoredWebhookActionHeaderTemplate::getName,
-                                        StoredWebhookActionHeaderTemplate::getTemplate)))
-                        .scope(new ActionScope(storedWebhookAction.getScopeType(), storedWebhookAction.getScopeReferenceId()))
+                                                 .stream()
+                                                 .filter(StoredWebhookActionHeaderTemplate::isActive)
+                                                 .collect(Collectors.toMap(StoredWebhookActionHeaderTemplate::getName,
+                                                                           StoredWebhookActionHeaderTemplate::getTemplate)))
+                        .scope(ActionScope.build(storedWebhookAction.getScopeType(),
+                                                 storedWebhookAction.getScopeReferenceId()))
                         .payloadTemplate(storedWebhookAction.getPayloadTemplate())
                         .successCodes(storedWebhookAction.getSuccessCodes())
                         .mimeType(storedWebhookAction.getMimeType())
@@ -237,5 +276,49 @@ public class DBActionStore implements ActionStore {
                         .build();
             }
         });
+    }
+
+    private static abstract class Creator<T> {
+        TypeToken<T> type = new TypeToken<>() {};
+
+        abstract T create();
+    }
+
+    public static <T extends StoredAction> T safeCast(StoredAction action, T newObject) {
+
+        val type = TypeToken.of(newObject.getClass());
+
+        val res = action.accept(new StoredActionVisitor<T>() {
+            @Override
+            public T visit(StoredSetFieldAction storedSetFieldAction) {
+                return type.getRawType().equals(storedSetFieldAction.getClass()) ? (T)storedSetFieldAction : null;
+            }
+
+            @Override
+            public T visit(StoredAddCommentAction storedAddCommentAction) {
+                return type.getRawType().equals(storedAddCommentAction.getClass()) ? (T)storedAddCommentAction : null;
+            }
+
+            @Override
+            public T visit(StoredAddTicketAction storedAddTicketAction) {
+                return type.getRawType().equals(storedAddTicketAction.getClass()) ? (T)storedAddTicketAction : null;
+            }
+
+            @Override
+            public T visit(StoredChangePriorityAction storedChangePriorityAction) {
+                return type.getRawType().equals(storedChangePriorityAction.getClass()) ? (T)storedChangePriorityAction : null;
+            }
+
+            @Override
+            public T visit(StoredRouteToGroupAction storedRouteToGroupAction) {
+                return type.getRawType().equals(storedRouteToGroupAction.getClass()) ? (T)storedRouteToGroupAction : null;
+            }
+
+            @Override
+            public T visit(StoredWebhookAction storedWebhookAction) {
+                return type.getRawType().equals(storedWebhookAction.getClass()) ? (T)storedWebhookAction : null;
+            }
+        });
+        return Objects.requireNonNullElse(res, newObject);
     }
 }

@@ -1,0 +1,102 @@
+{{#partial "page_css_includes"}}
+    <link href="/css/bootstrap-select.min.css" rel="stylesheet">
+{{/partial}}
+{{#partial "page_js_includes"}}
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+{{/partial}}
+{{#partial "content"}}
+    <section>
+        <div class="row">
+            <div class="col-12">
+                <h4>Actions</h4>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12 col-md-6" id="action-area">
+                <form method="get" id="action-create">
+                    <!--                      action="/actions/{{scope.type}}/{{scope.referenceId}}/create">-->
+                    <div class="row">
+                        <div class="col-sm-12 col-md-10 mb-3">
+                            <select class="selectpicker form-control border-dark" id="type" name="type" required
+                                    data-live-search="true">
+                                {{#each availableActionTypes}}
+                                    <option value="{{this}}">{{readable this}}</option>
+                                {{/each}}
+                            </select>
+                        </div>
+                        <div class="col d-flex justify-content-center mb-3">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Create</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <div class="row">
+                    <div class="col-12">
+                        <h5>Existing Actions (for this scope)</h5>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12 table-responsive">
+                        <table class="table table-bordered border-dark">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Type</th>
+                                <th>Scope</th>
+                                <th>Created</th>
+                                <th>Updated</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{#each actions}}
+                                <tr>
+                                    <td title="{{id}}"><a data-action-id="{{id}}" class="action-link">{{name}}</a></td>
+                                    <td>{{description}}</td>
+                                    <td>{{readable type}}</td>
+                                    <td>{{scope.referenceId}} <span class="badge bg-outline-info ms-2">{{readable
+                                            scope.type}}</span></td>
+                                    <td>{{created}}</td>
+                                    <td>{{updated}}</td>
+                                    <td class="col d-flex justify-content-center">
+                                        <div class="btn-toolbar" role="toolbar">
+                                            <div class="btn-group" role="group">
+                                                <form class="confirmed-form" method="post"
+                                                      action="/actions/{{scope.type}}/{{scope.referenceId}}/{{id}}/delete"
+                                                      data-cnf-title="Deleting action {{name}}"
+                                                      data-cnf-text="Are you sure you want to delete this action?">
+                                                    <button type="submit" class="btn btn-link p-0 text-danger"><i
+                                                            class="bi bi-trash-fill"></i></button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{{/partial}}
+
+{{#partial "page_js"}}
+    $('#action-create').submit(function(e) {
+        e.preventDefault();
+        console.log('Creating action of type: ' +  $('#type').val());
+        $.get('/actions/fragments/{{scope.type}}/{{scope.referenceId}}/' + $('#type').val() + '/create',
+            response => $('#action-area').html(response));
+    });
+    $('.action-link').on('click', function(e) {
+        e.preventDefault();
+        $.get('/actions/fragments/{{scope.type}}/{{scope.referenceId}}/' + $(this).attr('data-action-id'),
+        response => $('#action-area').html(response));
+    });
+{{/partial}}
+
+{{> common/base}}

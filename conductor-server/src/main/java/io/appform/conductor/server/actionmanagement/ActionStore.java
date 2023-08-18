@@ -17,9 +17,11 @@
 package io.appform.conductor.server.actionmanagement;
 
 import io.appform.conductor.model.actions.Action;
+import io.appform.conductor.model.actions.ActionScope;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.UnaryOperator;
 
 /**
  *
@@ -28,4 +30,10 @@ public interface ActionStore {
     Optional<Action> read(final String actionId);
     List<Action> read(final List<String> actionId);
     Optional<Action> save(final Action action);
+
+    boolean update(final String actionId, final UnaryOperator<Action> handler);
+
+    List<Action> list(final ActionScope scope);
+
+    boolean delete(final String actionId);
 }
