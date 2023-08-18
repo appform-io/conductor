@@ -52,6 +52,9 @@ public enum ConductorErrorCode {
     TICKET_NO_TRANSITION(4005, "Could not find any transition for ticket ${ticketId}." +
             " Workflow: ${workflow}. Current state: ${state}"),
     TICKET_MGMT_NO_ACTION(4006, "No action found for ${ticketId}/$workflowId}/${actionId}"),
+    TICKET_MGMT_NO_TICKET(4007, "No ticket found for ${ticketId}"),
+    TICKET_MGMT_NO_SUBJECT(4002, "No subject found for ${subjectId}"),
+
 
 
     DATA_FORMAT_ERROR(5001, "Error reading data. Format error. Conversion to: ${type}. Content: ${content}"),

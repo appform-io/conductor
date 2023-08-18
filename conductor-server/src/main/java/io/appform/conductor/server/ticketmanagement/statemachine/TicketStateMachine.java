@@ -47,7 +47,7 @@ public class TicketStateMachine {
         this.currentState = ticket.getSummary().getTicketState();
     }
 
-    public void trigger(TicketEvent event, TriggerStrategy strategy) {
+    public void trigger(Trigger event, TriggerStrategy strategy) {
         if (strategy == TriggerStrategy.EXECUTE_FIRST) {
             trigger(event);
         } else if (strategy == TriggerStrategy.EXECUTE_ALL) {
@@ -57,7 +57,7 @@ public class TicketStateMachine {
         }
     }
 
-    private boolean trigger(TicketEvent event) {
+    private boolean trigger(Trigger event) {
         if(this.currentState.isTerminal()) {
             log.info("Ticket {} is already in terminal state {}",
                     this.ticket.getSummary().getId(),
@@ -77,23 +77,23 @@ public class TicketStateMachine {
         return false;
     }
 
-    private void beforeTransition(TicketStateTransition transition, TicketDetails ticket, TicketEvent event) {
+    private void beforeTransition(TicketStateTransition transition, TicketDetails ticket, Trigger event) {
        this.ticket = executor.beforeTransition(transition, ticket, event);
     }
 
 
-    private void onTransition(TicketStateTransition transition, TicketDetails ticket, TicketEvent event) {
+    private void onTransition(TicketStateTransition transition, TicketDetails ticket, Trigger event) {
         this.ticket = executor.onTransition(transition, ticket, event);
         this.currentState = ticket.getSummary().getTicketState();
     }
 
 
-    private void afterTransition(TicketStateTransition transition, TicketDetails ticket, TicketEvent event) {
+    private void afterTransition(TicketStateTransition transition, TicketDetails ticket, Trigger event) {
         this.ticket = executor.afterTransition(transition, ticket, event);
         this.transitionAuditLog.add(transition.getId());
     }
 
-    private TicketStateTransition selectTransition(TicketEvent event) {
+    private TicketStateTransition selectTransition(Trigger event) {
         //TODO: fix move this out along with mapper and schema
         val evalDataJson = mapper.createObjectNode();
         evalDataJson.set("ticket", ConductorServerUtils.ticketToJsonNode(mapper, this.ticket, this.schema));

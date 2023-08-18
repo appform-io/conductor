@@ -4,15 +4,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Value;
 
 @Value
-public class TicketEvent {
+public class Trigger {
 
-    public enum EventSource {
+    public enum TriggerSource {
         INGRESS_RAW,
         INGRESS_CALLBACK,
         TICKET_UPDATE,
     }
 
-    private EventSource source;
+    private TriggerSource source;
     private JsonNode payload;
 
 }

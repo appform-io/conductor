@@ -5,10 +5,10 @@ import io.appform.conductor.model.workflow.TicketStateTransition;
 
 public interface TransitionHandler {
 
-    TicketDetails beforeTransition(TicketStateTransition transition, TicketDetails ticket, TicketEvent ticketEvent);
+    TicketDetails beforeTransition(TicketStateTransition transition, TicketDetails ticket, Trigger trigger);
 
-    TicketDetails onTransition(TicketStateTransition transition, TicketDetails ticket, TicketEvent ticketEvent);
+    TicketDetails onTransition(TicketStateTransition transition, TicketDetails ticket, Trigger trigger);
 
-    TicketDetails afterTransition(TicketStateTransition transition, TicketDetails ticket, TicketEvent ticketEvent);
+    TicketDetails afterTransition(TicketStateTransition transition, TicketDetails ticket, Trigger trigger);
 
 }
