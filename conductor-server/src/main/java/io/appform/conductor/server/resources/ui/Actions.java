@@ -41,6 +41,7 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.List;
 import java.util.UUID;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
@@ -226,7 +227,7 @@ public class Actions {
 
     private Response renderListPage(ConductorUser user, ActionScope.ScopeType scopeType, String referenceId) {
         val scope = ActionScope.build(scopeType, referenceId);
-        return render(new ActionListView(user.getUserSession().getUser(), actionStore.list(scope), scope));
+        return render(new ActionListView(user.getUserSession().getUser(), actionStore.list(List.of(scope)), scope));
     }
 
     private static String actionList(ActionScope.ScopeType scopeType, String referenceId) {

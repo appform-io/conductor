@@ -16,12 +16,11 @@ import lombok.SneakyThrows;
 import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Property;
+import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -53,13 +52,14 @@ public class DBActionStore implements ActionStore {
     }
 
     @Override
-    public List<Action> list(ActionScope scope) {
-        return actionDao.scatterGather(DetachedCriteria.forClass(StoredAction.class)
-                                               .add(Property.forName(StoredAction.Fields.scopeType).eq(scope.getType()))
-                                               .add(Property.forName(StoredAction.Fields.scopeReferenceId)
-                                                            .eq(scope.getReferenceId()))
-                                               .add(Property.forName(StoredAction.Fields.deleted).eq(false))
-                                      )
+    public List<Action> list(final Collection<ActionScope> scopes) {
+        val criteria = DetachedCriteria.forClass(StoredAction.class)
+                .add(Property.forName(StoredAction.Fields.deleted).eq(false));
+        val scopeChain = Restrictions.or();
+        scopes.forEach(scope -> scopeChain.add(Restrictions.and(
+                Property.forName(StoredAction.Fields.scopeType).eq(scope.getType()),
+                Property.forName(StoredAction.Fields.scopeReferenceId).eq(scope.getReferenceId()))));
+        return actionDao.scatterGather(criteria.add(scopeChain))
                 .stream()
                 .map(this::toWired)
                 .toList();
