@@ -10,6 +10,7 @@ public class Trigger {
         INGRESS_RAW,
         INGRESS_CALLBACK,
         TICKET_UPDATE,
+        TICKET_CREATE,
     }
 
     private TriggerSource source;

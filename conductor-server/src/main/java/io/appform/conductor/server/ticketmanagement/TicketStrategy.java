@@ -3,27 +3,31 @@ package io.appform.conductor.server.ticketmanagement;
 
 enum TicketStrategy {
 
-    GET_FROM_PROVIDED_ID(WorkflowStrategy.GET_FROM_TICKET, SubjectStrategy.GET_FROM_TICKET, SchemaStrategy.GET_FROM_WORKFLOW, SubjectIdempotencyStrategy.IGNORE_CHECK, AlreadyEndedStrategy.ABORT),
-    GET_FROM_EXTRACTED_ID(null, null, null, null, null),
-    CREATE_FROM_RAW_DATA(WorkflowStrategy.SELECT_WORKFLOW, SubjectStrategy.EXTRACT_FROM_RAW_DATA, SchemaStrategy.GET_FROM_WORKFLOW, SubjectIdempotencyStrategy.CHECK_FOR_SUBJECT, AlreadyEndedStrategy.CREATE_NEW),
-    CREATE_FROM_GIVEN_DATA(WorkflowStrategy.GET_FROM_PROVIDED_ID, SubjectStrategy.GET_FROM_PROVIDED_ID, SchemaStrategy.GET_FROM_WORKFLOW, SubjectIdempotencyStrategy.CHECK_FOR_SUBJECT, AlreadyEndedStrategy.CREATE_NEW),
+    GET_FROM_PROVIDED_ID(WorkflowStrategy.GET_FROM_TICKET, SubjectStrategy.GET_FROM_TICKET, SchemaStrategy.GET_FROM_WORKFLOW, SubjectIdempotencyStrategy.IGNORE_CHECK, AlreadyEndedStrategy.ABORT, TicketMetaDataStrategy.FROM_TEMPLATE),
+    GET_FROM_EXTRACTED_ID(null, null, null, null, null, null),
+    CREATE_FROM_RAW_DATA(WorkflowStrategy.SELECT_WORKFLOW, SubjectStrategy.EXTRACT_FROM_RAW_DATA, SchemaStrategy.GET_FROM_WORKFLOW, SubjectIdempotencyStrategy.CHECK_FOR_SUBJECT, AlreadyEndedStrategy.CREATE_NEW, TicketMetaDataStrategy.FROM_TEMPLATE),
+    CREATE_FROM_GIVEN_DATA(WorkflowStrategy.GET_FROM_PROVIDED_ID, SubjectStrategy.GET_FROM_PROVIDED_ID, SchemaStrategy.GET_FROM_WORKFLOW, SubjectIdempotencyStrategy.CHECK_FOR_SUBJECT, AlreadyEndedStrategy.CREATE_NEW, TicketMetaDataStrategy.FROM_PROVIDED),
     ;
     WorkflowStrategy workflowStrategy;
     SubjectStrategy subjectStrategy;
     SchemaStrategy schemaStrategy;
     SubjectIdempotencyStrategy subjectIdempotencyStrategy;
     AlreadyEndedStrategy alreadyEndedStrategy;
+    TicketMetaDataStrategy ticketMetaDataStrategy;
+
 
     TicketStrategy(WorkflowStrategy workflowStrategy,
                    SubjectStrategy subjectStrategy,
                    SchemaStrategy schemaStrategy,
                    SubjectIdempotencyStrategy subjectIdempotencyStrategy,
-                   AlreadyEndedStrategy alreadyEndedStrategy) {
+                   AlreadyEndedStrategy alreadyEndedStrategy,
+                   TicketMetaDataStrategy ticketMetaDataStrategy) {
         this.workflowStrategy = workflowStrategy;
         this.subjectStrategy = subjectStrategy;
         this.schemaStrategy = schemaStrategy;
         this.subjectIdempotencyStrategy = subjectIdempotencyStrategy;
         this.alreadyEndedStrategy = alreadyEndedStrategy;
+        this.ticketMetaDataStrategy = ticketMetaDataStrategy;
     }
 
 }
@@ -56,5 +60,11 @@ enum SubjectIdempotencyStrategy {
 enum AlreadyEndedStrategy {
     ABORT,
     CREATE_NEW,
+    ;
+}
+
+enum TicketMetaDataStrategy {
+    FROM_TEMPLATE,
+    FROM_PROVIDED,
     ;
 }
