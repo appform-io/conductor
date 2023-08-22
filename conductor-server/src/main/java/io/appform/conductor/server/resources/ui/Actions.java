@@ -26,6 +26,7 @@ import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.ui.views.actions.ActionListView;
 import io.appform.conductor.server.ui.views.actions.fragments.ChangePriorityActionFragment;
 import io.appform.conductor.server.ui.views.actions.fragments.RouteToGroupActionFragment;
+import io.appform.conductor.server.ui.views.actions.fragments.WebHookActionFragment;
 import io.appform.conductor.server.usermanagement.GroupStore;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
@@ -86,16 +87,17 @@ public class Actions {
         throw fail("Could not delete action", actionList(scopeType, referenceId));
     }
 
-    @GET
-    @Path("/fragments/{scopeType}/{referenceId}/{type}/create")
+    @POST
+    @Path("/{scopeType}/{referenceId}/create")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response renderFragment(
             @Auth final ConductorUser user,
             @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
-            @PathParam("type") @NotNull final ActionType type) {
+            @FormParam("type") @NotNull final ActionType type) {
         val scope = ActionScope.build(scopeType, referenceId);
-        val fragment = switch (type) {
-            case WEBHOOK -> null;
+        val fragment     = switch (type) {
+            case WEBHOOK -> new WebHookActionFragment(null);
             case ROUTE_TO_GROUP -> new RouteToGroupActionFragment(groupStore.list(), scope, null);
             case ADD_COMMENT -> null;
             case ADD_TICKET_ACTION -> null;
@@ -106,7 +108,7 @@ public class Actions {
     }
 
     @GET
-    @Path("/fragments/{scopeType}/{referenceId}/{actionId}")
+    @Path("/{scopeType}/{referenceId}/{actionId}")
     public Response renderFragment(
             @Auth final ConductorUser user,
             @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
@@ -117,15 +119,15 @@ public class Actions {
             return Response.noContent().build();
         }
         val scope = ActionScope.build(scopeType, referenceId);
-        val fragment = switch (action.getType()) {
-            case WEBHOOK -> null;
+        val view = switch (action.getType()) {
+            case WEBHOOK -> new WebHookActionFragment(action);
             case ROUTE_TO_GROUP -> new RouteToGroupActionFragment(groupStore.list(), scope, action);
             case ADD_COMMENT -> null;
             case ADD_TICKET_ACTION -> null;
             case CHANGE_PRIORITY -> new ChangePriorityActionFragment(scope, action);
             case SET_FIELD -> null;
         };
-        return render(fragment);
+        return render(view);
     }
 
     @POST

@@ -84,7 +84,7 @@ class DBActionStoreTest {
                         .urlTemplate(new Template(Template.Type.STRING_SUBSTITUTION,"urlTemplate"))
                         .headerTemplates(Map.of("headerName1", new Template(Template.Type.STRING_SUBSTITUTION,"headersTemplate")))
                         .payloadTemplate(new Template(Template.Type.STRING_SUBSTITUTION,"payloadTemplate"))
-                        .mimeType("application/pdf")
+                        .mimeType(WebhookAction.MimeType.JSON)
                         .successCodes(Set.of(200,202))
                         .timeoutMs(2000)
                         .retryStrategy(WebhookAction.RetryStrategy.FIXED_INTERVAL)

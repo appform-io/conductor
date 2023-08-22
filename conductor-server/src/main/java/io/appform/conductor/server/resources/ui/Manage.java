@@ -241,7 +241,9 @@ public class Manage {
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
         return workflowStore.read(workflowId)
                 .flatMap(workflow -> schemaStore.get(workflow.getSchemaId())
-                        .map(schema -> new WorkflowDetailsView(user.getUserSession().getUser(), workflow, schema)))
+                        .map(schema -> new WorkflowDetailsView(user.getUserSession().getUser(),
+                                                               workflow,
+                                                               schema)))
                 .map(ConductorServerUtils::render)
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
     }
