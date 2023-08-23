@@ -55,6 +55,9 @@ public abstract class StoredAction implements Serializable {
     @Column(name = "scope_reference_id", length = 45)
     private String scopeReferenceId;
 
+    @Column
+    private boolean deleted;
+
     @CreationTimestamp
     @Column(name = "created", columnDefinition = "timestamp")
     private Date created;

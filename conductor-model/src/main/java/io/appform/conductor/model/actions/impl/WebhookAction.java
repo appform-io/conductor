@@ -21,10 +21,7 @@ import io.appform.conductor.model.actions.ActionScope;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.workflow.Template;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import lombok.Value;
+import lombok.*;
 
 import java.util.Date;
 import java.util.Map;
@@ -48,6 +45,24 @@ public class WebhookAction extends Action {
         POST,
         PATCH,
         DELETE
+    }
+
+    /**
+     * Supported MIME types for the call. Payload template will be interpreted based on that
+     */
+    @Getter
+    public enum MimeType {
+        JSON("application/json"),
+        FORM("application/x-www-form-urlencoded"),
+        TEXT("text/plain"),
+        XML("application/xml")
+        ;
+
+        private final String contentType;
+
+        MimeType(String contentType) {
+            this.contentType = contentType;
+        }
     }
 
     /**
@@ -87,7 +102,7 @@ public class WebhookAction extends Action {
     /**
      * The mimetype of the body
      */
-    String mimeType;
+    MimeType mimeType;
 
     /**
      * A {@link io.appform.conductor.model.workflow.Template} to generate the header value that need to be passed for the HTTP call.
@@ -131,7 +146,7 @@ public class WebhookAction extends Action {
             Template urlTemplate,
             CallType callType,
             Template payloadTemplate,
-            String mimeType,
+            MimeType mimeType,
             Map<String,Template> headerTemplates,
             Set<Integer> successCodes, CallMode callMode,
             int timeoutMs,

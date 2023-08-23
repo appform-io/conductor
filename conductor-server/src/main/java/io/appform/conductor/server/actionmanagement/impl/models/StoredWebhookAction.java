@@ -50,8 +50,9 @@ public class StoredWebhookAction  extends StoredAction {
     @Column(name = "success_codes", length = 127)
     private Set<Integer> successCodes;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "mime_type", length = 127)
-    private String mimeType;
+    private WebhookAction.MimeType mimeType;
 
     @Column(name = "timeout_ms")
     private int timeoutMs;

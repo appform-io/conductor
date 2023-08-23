@@ -17,7 +17,9 @@
 package io.appform.conductor.server.ui;
 
 import com.github.jknack.handlebars.Options;
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.utils.Displayable;
 import io.appform.conductor.server.utils.dev.IgnoreGenerated;
@@ -25,7 +27,10 @@ import lombok.SneakyThrows;
 import org.apache.commons.text.WordUtils;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  *
@@ -96,6 +101,21 @@ public class CustomHelpers {
 
     public Object map(Map<String, Object> map, String key) {
         return map.get(key);
+    }
+
+    public Object join(Collection<Object> collection) {
+        return null == collection ? "" : Joiner.on(",").join(collection);
+    }
+
+    public String actionFragment(final ActionType type) {
+        return switch (type) {
+            case WEBHOOK -> "actions/fragments/webhook.hbs";
+            case ROUTE_TO_GROUP -> "actions/fragments/add-to-group.hbs";
+            case ADD_COMMENT -> "actions/fragments/add-comment.hbs";
+            case ADD_TICKET_ACTION -> "actions/fragments/add-ticket.hbs";
+            case CHANGE_PRIORITY -> "actions/fragments/change-priority.hbs";
+            case SET_FIELD -> "actions/fragments/set-field.hbs";
+        };
     }
 
 }
