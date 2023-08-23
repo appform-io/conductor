@@ -17,6 +17,7 @@
 package io.appform.conductor.model.subject;
 
 import lombok.*;
+import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
 
@@ -25,6 +26,7 @@ import java.util.Date;
  */
 @Data
 @Builder
+@FieldNameConstants
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
 public class SubjectID {
 

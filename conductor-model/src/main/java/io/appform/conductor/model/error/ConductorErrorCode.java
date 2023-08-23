@@ -53,7 +53,7 @@ public enum ConductorErrorCode {
             " Workflow: ${workflow}. Current state: ${state}"),
     TICKET_MGMT_NO_ACTION(4006, "No action found for ${ticketId}/$workflowId}/${actionId}"),
     TICKET_MGMT_NO_TICKET(4007, "No ticket found for ${ticketId}"),
-    TICKET_MGMT_NO_SUBJECT(4002, "No subject found for ${subjectId}"),
+    TICKET_MGMT_NO_SUBJECT(4008, "No subject found for ${subjectId}"),
 
 
 
