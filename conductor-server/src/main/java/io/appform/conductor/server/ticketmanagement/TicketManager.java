@@ -206,7 +206,7 @@ public class TicketManager {
         payload.put(INTERNAL_WORKFLOW_FIELD, workflowId);
         payload.set(INTERNAL_SUBJECT_FIELD, subjectID);
 
-        return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CONSOLE_UPDATE,
+        return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CONSOLE,
                 payload, (node, fields, schema) -> {
                 });
     }
@@ -234,7 +234,7 @@ public class TicketManager {
                 });
         //adding ticketId
         payload.put(INTERNAL_TICKET_FIELD, ticketId);
-        return triggerTicketStateMachine( TicketStateMachineContextBuilderStrategy.RAW_DATA,
+        return triggerTicketStateMachine( TicketStateMachineContextBuilderStrategy.CONSOLE_UPDATE,
                 payload, (node, fields, schema) -> {
                     val fs = schema.getFields()
                             .stream().collect(Collectors.toMap(FieldSchema::getId,
@@ -266,7 +266,7 @@ public class TicketManager {
                         Map.of(TICKET_ID, ticketId));
         val payload = mapper.createObjectNode();
         payload.put(INTERNAL_TICKET_FIELD, ticketId);
-        return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CALLBACK,
+        return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CONSOLE_UPDATE,
                 payload, (node, fields, schema) -> {
                 });
     }

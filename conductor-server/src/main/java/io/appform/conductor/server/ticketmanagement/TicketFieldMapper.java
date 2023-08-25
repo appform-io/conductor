@@ -57,6 +57,10 @@ public class TicketFieldMapper {
             val field = it.next();
             val fieldData = field.getValue();
             val fieldName = field.getKey();
+            if(fieldName.startsWith("__") && fieldName.endsWith("__")){
+                //skipping internal fields for mapping
+                continue;
+            }
             val fieldId = schemaId + "-" + fieldName;
             val fieldSchema = fieldsMap.get(fieldId);
             if (null == fieldData) {
