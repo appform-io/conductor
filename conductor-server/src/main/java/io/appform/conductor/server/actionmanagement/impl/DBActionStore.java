@@ -1,14 +1,17 @@
 package io.appform.conductor.server.actionmanagement.impl;
 
+import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.ActionScope;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.actions.impl.*;
 import io.appform.conductor.model.error.Throws;
+import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.actionmanagement.impl.models.*;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredEmbeddedFieldValue;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +24,7 @@ import org.hibernate.criterion.Restrictions;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -109,17 +113,30 @@ public class DBActionStore implements ActionStore {
                         .setTimeoutMs(webhookAction.getTimeoutMs())
                         .setRetryStrategy(webhookAction.getRetryStrategy())
                         .setNumRetries(webhookAction.getNumRetries());
-
-                storedWebhookAction.setHeaderTemplates(webhookAction.getHeaderTemplates()
-                                                               .entrySet()
-                                                               .stream()
-                                                               .map(header -> new StoredWebhookActionHeaderTemplate()
-                                                                       .setActive(true)
-                                                                       .setAction(storedWebhookAction)
-                                                                       .setName(header.getKey())
-                                                                       .setTemplate(header.getValue()))
-                                                               .toList());
-                return storedWebhookAction;
+                val existingHeaders = new HashMap<>(Objects.requireNonNullElse(storedWebhookAction.getHeaderTemplates(),
+                                                                 List.<StoredWebhookActionHeaderTemplate>of())
+                        .stream()
+                        .collect(Collectors.toMap(StoredWebhookActionHeaderTemplate::getName, Function.identity())));
+                val newHeaders = Objects.requireNonNullElse(webhookAction.getHeaderTemplates(),
+                                                            Map.<String, Template>of());
+                //Delete non existing
+                Sets.difference(existingHeaders.keySet(), newHeaders.keySet())
+                                .forEach(missingHeader -> existingHeaders.get(missingHeader).setActive(false));
+                //Now create or update
+                newHeaders.forEach((header, value) -> {
+                    existingHeaders.compute(header, (headerName, existing) -> {
+                        if(null != existing) {
+                            return existing.setTemplate(value).setActive(true);
+                        }
+                        return new StoredWebhookActionHeaderTemplate()
+                                .setId(action.getId() + "-" + ConductorServerUtils.lowerSnake(headerName))
+                                .setActive(true)
+                                .setAction(storedWebhookAction)
+                                .setName(headerName)
+                                .setTemplate(value);
+                    });
+                });
+                return storedWebhookAction.setHeaderTemplates(List.copyOf(existingHeaders.values()));
             }
 
             @Override

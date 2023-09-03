@@ -17,6 +17,7 @@
 package io.appform.conductor.server.ui.views.actions.fragments;
 
 import io.appform.conductor.model.actions.Action;
+import io.appform.conductor.model.actions.ActionScope;
 import io.appform.conductor.model.actions.impl.WebhookAction;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -36,10 +37,12 @@ public class WebHookActionFragment extends TemplateView {
     Set<WebhookAction.CallType> availableCallTypes = EnumSet.allOf(WebhookAction.CallType.class);
     Set<WebhookAction.MimeType> availableMimeTypes = EnumSet.allOf(WebhookAction.MimeType.class);
     Set<WebhookAction.CallMode> availableCallModes = EnumSet.allOf(WebhookAction.CallMode.class);
-    Action currentaction;
+    ActionScope scope;
+    Action currentAction;
 
-    public WebHookActionFragment(Action currentaction) {
+    public WebHookActionFragment(ActionScope scope, Action currentAction) {
         super("templates/actions/fragments/webhook.hbs");
-        this.currentaction = currentaction;
+        this.scope = scope;
+        this.currentAction = currentAction;
     }
 }

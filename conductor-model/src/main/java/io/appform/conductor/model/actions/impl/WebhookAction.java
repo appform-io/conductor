@@ -150,7 +150,8 @@ public class WebhookAction extends Action {
             Map<String,Template> headerTemplates,
             Set<Integer> successCodes, CallMode callMode,
             int timeoutMs,
-            RetryStrategy retryStrategy, int numRetries) {
+            RetryStrategy retryStrategy,
+            int numRetries) {
         super(ActionType.WEBHOOK, id, name, description, scope, created, updated);
         this.urlTemplate = urlTemplate;
         this.callType = callType;

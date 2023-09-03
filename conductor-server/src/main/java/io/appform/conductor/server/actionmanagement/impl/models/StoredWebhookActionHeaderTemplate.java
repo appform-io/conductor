@@ -34,8 +34,7 @@ public class StoredWebhookActionHeaderTemplate implements Serializable {
     public static final String WEBHOOK_ACTION_HEADER_TEMPLATE_TABLE = "webhook_action_header_templates";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private String id;
 
     @JsonIgnore
     @ToString.Exclude

@@ -44,7 +44,8 @@
                             id="callType" name="callType"
                             aria-describedby="callTypeHelp" required>
                         {{#each availableCallTypes}}
-                            <option value="{{this}}" {{#eq currentAction.callType this}}selected{{/eq}}>{{this}}</option>
+                            <option value="{{this}}"
+                                    {{#eq currentAction.callType this}}selected{{/eq}}>{{this}}</option>
                         {{/each}}
                     </select>
                     <div id="callTypeHelp" class="form-text">Type of call to be made to upstream</div>
@@ -55,7 +56,8 @@
                            maxlength="1024" placeholder="Template for URL (including {protocol}://{hostname}:{port}"
                            aria-describedby="urlTemplateHelp"
                            value="{{currentAction.urlTemplate.template}}" required>
-                    <div id="urlTemplateHelp" class="form-text">This is a Handlebars template. Use <b>\{{}}</b> to refer to
+                    <div id="urlTemplateHelp" class="form-text">This is a Handlebars template. Use <b>\{{}}</b> to refer
+                        to
                         variables. Max length: 1024
                     </div>
                 </div>
@@ -65,7 +67,8 @@
                             id="mimeType" name="mimeType"
                             aria-describedby="mimeTypeHelp">
                         {{#each availableMimeTypes}}
-                            <option value="{{this}}" {{#eq currentAction.mimeType this}}selected{{/eq}}>{{this}}</option>
+                            <option value="{{this}}"
+                                    {{#eq currentAction.mimeType this}}selected{{/eq}}>{{this}}</option>
                         {{/each}}
                     </select>
                     <div id="mimeTypeHelp" class="form-text">Type of payload to be sent upstream. Ignored for GET/DELETE
@@ -77,8 +80,8 @@
                     <textarea id="payloadTemplate" name="payloadTemplate" class="form-control border border-dark"
                               maxlength="4096" placeholder="Template for the payload."
                               aria-describedby="urlTemplateHelp">{{currentAction.payloadTemplate.template}}</textarea>
-                    <div id="urlTemplateHelp" class="form-text">This is a Handlebars template. Create a JSON template. It
-                        will be converted to appropriate format based on the provided MIME Type. . Ignored for GET/DELETE
+                    <div id="urlTemplateHelp" class="form-text">This is a Handlebars template. Ignored for
+                        GET/DELETE
                         calls. Max length: 4096
                     </div>
                 </div>
@@ -86,13 +89,12 @@
                     <div class="mb-3">
                         <label for="headerTemplates" class="col-form-label fw-bold">Headers</label>
                         <textarea id="headerTemplates" name="headerTemplates" class="form-control border border-dark"
-                                  maxlength="4096" placeholder="Template for URL (including {protocol}://{hostname}:{port}"
-                                  aria-describedby="headerTemplatesHelp">
-                            {{#each currentAction.headerTemplates}}
-                                {{@key}} : {{this.template}}
-                            {{/each}}
-                        </textarea>
-                        <div id="headerTemplatesHelp" class="form-text">Please put headers, one on each line, separated by
+                                  maxlength="4096"
+                                  placeholder="Template for URL (including {protocol}://{hostname}:{port}"
+                                  aria-describedby="headerTemplatesHelp"
+                        >{{#each currentAction.headerTemplates}}{{@key}} : {{this.template}}&#13;&#10;{{/each}} </textarea>
+                        <div id="headerTemplatesHelp" class="form-text">Please put headers, one on each line, separated
+                            by
                             &quot; :&quot;. The value for a header is a template and can refer to fields in the payload.
                         </div>
                     </div>
@@ -100,11 +102,12 @@
                 <div class="mb-3">
                     <label for="successCodes" class="col-form-label fw-bold">Successful API HTTP Status Codes</label>
                     <input type="text" id="successCodes" name="successCodes" class="form-control border border-dark"
-                           maxlength="45" placeholder="Comma separated list of HTTP status codes"
+                           maxlength="128" placeholder="Comma separated list of HTTP status codes"
                            pattern="\b(?:1\d{2}|2\d{2}|3\d{2}|4\d{2}|5\d{2})(?:,\s*(?:1\d{2}|2\d{2}|3\d{2}|4\d{2}|5\d{2}))*\b"
                            aria-describedby="successCodesHelp"
                            value="{{join currentAction.successCodes}}">
-                    <div id="successCodesHelp" class="form-text">List of valid HTTP status codes (200, 201 etc), separated
+                    <div id="successCodesHelp" class="form-text">List of valid HTTP status codes (200, 201 etc),
+                        separated
                         by Commas.
                     </div>
                 </div>
@@ -117,11 +120,14 @@
         <div class="col-sm-0 col-md-4">
             <div class="alert alert-light note" role="alert">
                 <div class="row note-header">
-                    What is a Route to Group Action?
+                    What is a Webhook Action?
                 </div>
                 <div class="row note-body">
-                    A route to group action can be used to automatically assign a ticket to a group.
-                    This action can be triggered as part of a transition, or on landing on a state.
+                    A webhook action is used to make an HTTP call to another service.
+                    <br>
+                    All parts of the call can be customised based on the payload. This includes, the URL, the header,
+                    and the body. This can be used to integrate with any remote service. For example for triggering
+                    notification systems, sending data etc.
                 </div>
             </div>
         </div>

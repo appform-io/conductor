@@ -20,6 +20,7 @@ import io.appform.conductor.model.actions.ActionScope;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.impl.ChangePriorityAction;
 import io.appform.conductor.model.actions.impl.RouteToGroupAction;
+import io.appform.conductor.model.actions.impl.WebhookAction;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.auth.ConductorUser;
@@ -28,6 +29,7 @@ import io.appform.conductor.server.ui.views.actions.fragments.ChangePriorityActi
 import io.appform.conductor.server.ui.views.actions.fragments.RouteToGroupActionFragment;
 import io.appform.conductor.server.ui.views.actions.fragments.WebHookActionFragment;
 import io.appform.conductor.server.usermanagement.GroupStore;
+import io.appform.conductor.server.utils.Pair;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,8 +44,8 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 
@@ -96,8 +98,8 @@ public class Actions {
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @FormParam("type") @NotNull final ActionType type) {
         val scope = ActionScope.build(scopeType, referenceId);
-        val fragment     = switch (type) {
-            case WEBHOOK -> new WebHookActionFragment(null);
+        val fragment = switch (type) {
+            case WEBHOOK -> new WebHookActionFragment(scope, null);
             case ROUTE_TO_GROUP -> new RouteToGroupActionFragment(groupStore.list(), scope, null);
             case ADD_COMMENT -> null;
             case ADD_TICKET_ACTION -> null;
@@ -120,7 +122,7 @@ public class Actions {
         }
         val scope = ActionScope.build(scopeType, referenceId);
         val view = switch (action.getType()) {
-            case WEBHOOK -> new WebHookActionFragment(action);
+            case WEBHOOK -> new WebHookActionFragment(scope, action);
             case ROUTE_TO_GROUP -> new RouteToGroupActionFragment(groupStore.list(), scope, action);
             case ADD_COMMENT -> null;
             case ADD_TICKET_ACTION -> null;
@@ -216,12 +218,87 @@ public class Actions {
         if (actionStore.update(actionId,
                                action ->
                                        new ChangePriorityAction(action.getId(),
-                                                              name,
-                                                              description,
-                                                              scope,
-                                                              action.getCreated(),
-                                                              null,
-                                                              priority))) {
+                                                                name,
+                                                                description,
+                                                                scope,
+                                                                action.getCreated(),
+                                                                null,
+                                                                priority))) {
+            return redirect(actionList(scopeType, referenceId));
+        }
+        throw fail("Could not create action", actionList(scopeType, referenceId));
+    }
+
+    @POST
+    @Path("{scopeType}/{referenceId}/WEBHOOK/create")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response createWebhookAction(
+            @Auth final ConductorUser user,
+            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("referenceId") @Length(max = 45) final String referenceId,
+            @FormParam("name") @Length(min = 1, max = 45) final String name,
+            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("callType") @NotNull WebhookAction.CallType callType,
+            @FormParam("urlTemplate") @NotEmpty @Length(max = 1024) String urlTemplate,
+            @FormParam("mimeType") WebhookAction.MimeType mimeType,
+            @FormParam("payloadTemplate") @Length(max = 4096) String payloadTemplate,
+            @FormParam("headerTemplates") @Length(max = 4096) String headerTemplates,
+            @FormParam("successCodes") @Length(max = 128) String successCodes) {
+        val scope = ActionScope.build(scopeType, referenceId);
+        return actionStore.save(new WebhookAction(UUID.randomUUID().toString(),
+                                                  name,
+                                                  description,
+                                                  scope,
+                                                  null,
+                                                  null,
+                                                  handlebarsTemplate(urlTemplate),
+                                                  callType,
+                                                  handlebarsTemplate(payloadTemplate),
+                                                  mimeType,
+                                                  parseHeaders(headerTemplates),
+                                                  parseSuccessCodes(successCodes),
+                                                  WebhookAction.CallMode.ASYNC,
+                                                  3000,
+                                                  WebhookAction.RetryStrategy.FIXED_INTERVAL,
+                                                  3))
+                .map(a -> redirect(actionList(scopeType, referenceId)))
+                .orElseThrow(() -> fail("Could not create action", actionList(scopeType, referenceId)));
+    }
+
+    @POST
+    @Path("{scopeType}/{referenceId}/{actionId}/WEBHOOK/update")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response updateWebhookAction(
+            @Auth final ConductorUser user,
+            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("referenceId") @Length(max = 45) final String referenceId,
+            @PathParam("actionId") @Length(max = 45) final String actionId,
+            @FormParam("name") @Length(min = 1, max = 45) final String name,
+            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("callType") @NotNull WebhookAction.CallType callType,
+            @FormParam("urlTemplate") @NotEmpty @Length(max = 1024) String urlTemplate,
+            @FormParam("mimeType") WebhookAction.MimeType mimeType,
+            @FormParam("payloadTemplate") @Length(max = 4096) String payloadTemplate,
+            @FormParam("headerTemplates") @Length(max = 4096) String headerTemplates,
+            @FormParam("successCodes") @Length(max = 128) String successCodes) {
+        val scope = ActionScope.build(scopeType, referenceId);
+        if (actionStore.update(actionId,
+                               action -> new WebhookAction(action.getId(),
+                                                           name,
+                                                           description,
+                                                           scope,
+                                                           action.getCreated(),
+                                                           null,
+                                                           handlebarsTemplate(urlTemplate),
+                                                           callType,
+                                                           handlebarsTemplate(payloadTemplate),
+                                                           mimeType,
+                                                           parseHeaders(headerTemplates),
+                                                           parseSuccessCodes(successCodes),
+                                                           WebhookAction.CallMode.ASYNC,
+                                                           3000,
+                                                           WebhookAction.RetryStrategy.FIXED_INTERVAL,
+                                                           3))) {
             return redirect(actionList(scopeType, referenceId));
         }
         throw fail("Could not create action", actionList(scopeType, referenceId));
@@ -235,4 +312,32 @@ public class Actions {
     private static String actionList(ActionScope.ScopeType scopeType, String referenceId) {
         return String.format("/actions/%s/%s", scopeType, referenceId);
     }
+
+    private static io.appform.conductor.model.workflow.Template handlebarsTemplate(String urlTemplate) {
+        return new io.appform.conductor.model.workflow.Template(io.appform.conductor.model.workflow.Template.Type.HANDLEBARS,
+                                                                urlTemplate);
+    }
+
+    private static Set<Integer> parseSuccessCodes(String successCodes) {
+        return Arrays.stream(successCodes.split(","))
+                .map(String::trim)
+                .filter(text -> text.matches("\\d{3}"))
+                .map(Integer::parseInt)
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    private static Map<String, io.appform.conductor.model.workflow.Template> parseHeaders(String headerTemplates) {
+        return Arrays.stream(headerTemplates.trim().split("\\r?\\n"))
+                .map(headerStr -> {
+                    val parts = headerStr.split(":");
+                    if (parts.length < 2) {
+                        return null;
+                    }
+                    return new Pair<>(parts[0].trim(), handlebarsTemplate(parts[1].trim())
+                    );
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
+    }
+
 }
