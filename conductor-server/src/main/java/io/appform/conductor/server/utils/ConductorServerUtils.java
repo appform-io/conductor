@@ -29,11 +29,13 @@ import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.ticket.TicketDetails;
+import io.appform.conductor.model.ticket.TicketSummary;
 import io.appform.conductor.model.ticket.fields.FieldValue;
 import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
 import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.fields.impl.*;
 import io.appform.conductor.server.auth.ConductorUser;
+import io.appform.conductor.server.ticketmanagement.statemachine.models.TicketStateMachineContext;
 import io.appform.conductor.server.usermanagement.CurrentUserSessionStore;
 import lombok.experimental.UtilityClass;
 import lombok.val;
@@ -301,6 +303,24 @@ public class ConductorServerUtils {
 
     public static String userId(ConductorUser user) {
         return user.getUserSession().getUser().getSummary().getId();
+    }
+
+    public static TicketDetails ticketDetails(TicketStateMachineContext ticketStateMachineContext) {
+        val skeleton = ticketStateMachineContext.getTicketSkeleton();
+        return new TicketDetails(new TicketSummary(skeleton.getTicketId(),
+                skeleton.getTitle(),
+                skeleton.getDescription(),
+                skeleton.getWorkflowId(),
+                ticketStateMachineContext.getTicketCreatedBy(),
+                ticketStateMachineContext.getTicketAssignedToGroup(),
+                ticketStateMachineContext.getTicketAssignedToUser(),
+                ticketStateMachineContext.getSubject(),
+                ticketStateMachineContext.getWorkflow().getStates().get(skeleton.getTicketStateId()),
+                skeleton.getPriority(),
+                skeleton.getCreated(),
+                skeleton.getUpdated()),
+                skeleton.getFields(),
+                List.of()); //TODO::ACTION
     }
 
     public static Date htmlDateToDate(String date) {
