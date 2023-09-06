@@ -26,7 +26,8 @@ import java.util.Date;
  */
 @Value
 public class SkillValue {
-    String id;
+    String skillId;
+    String skillValueId;
     String name;
     String value;
     Date created;

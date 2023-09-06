@@ -23,6 +23,6 @@ import lombok.Value;
  */
 @Value
 public class Skill {
-    String name;
-    String value;
+    String skillId;
+    String skillValueId;
 }

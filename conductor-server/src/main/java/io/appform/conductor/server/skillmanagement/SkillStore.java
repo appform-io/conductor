@@ -17,6 +17,8 @@
 package io.appform.conductor.server.skillmanagement;
 
 import io.appform.conductor.model.skills.SkillDefinition;
+import io.appform.conductor.model.skills.SkillValue;
+import io.appform.conductor.model.usermgmt.Skill;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,14 +27,23 @@ import java.util.Optional;
  *
  */
 public interface SkillStore {
-    Optional<SkillDefinition> createSkill(final String name);
-    Optional<SkillDefinition> addValueToSkill(final String id, final String value);
-    Optional<SkillDefinition> removeValueFromSkill(final String id, final String valueId);
+    Optional<SkillDefinition> createSkillDefinition(final String name);
+    Optional<SkillDefinition> addValueToSkillDefinition(final String id, final String value);
+    Optional<SkillDefinition> removeValueFromSkillDefinition(final String id, final String valueId);
     Optional<SkillDefinition> updateSkillValue(final String id, final String valueId, final String value);
 
-    Optional<SkillDefinition> readSkill(final String id);
+    Optional<SkillDefinition> readSkillDefinition(final String id);
 
-    boolean deleteSkill(final String id);
+    Optional<SkillValue> readSkillValue(String id, String valueId);
+
+    boolean deleteSkillDefinition(final String id);
 
     List<SkillDefinition> list();
+
+    boolean associateSkillWithUser(final String userId, final String skillId, final String valueId);
+
+    boolean disassociateSkillWithUser(final String userId, final String skillId, final String valueId);
+
+    List<Skill> listSkillsForUser(final String userId);
+
 }

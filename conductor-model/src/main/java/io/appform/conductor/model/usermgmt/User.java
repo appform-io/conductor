@@ -32,5 +32,5 @@ public class User {
     Role assignedRole;
     Set<Permission> permissions;
     Collection<Group> groups;
-    Set<Skill> skills;
+    Collection<Skill> skills;
 }

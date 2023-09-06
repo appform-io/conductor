@@ -24,6 +24,7 @@ import io.appform.conductor.server.auth.UserAuthValidator;
 import io.appform.conductor.server.auth.UserRoleMappingStore;
 import io.appform.conductor.server.internalmodels.auth.PasswordAuthData;
 import io.appform.conductor.server.internalmodels.auth.UserTokenAuthData;
+import io.appform.conductor.server.skillmanagement.SkillStore;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -67,6 +68,7 @@ public class UserLifecycleManager {
     private final Provider<UserActivationTokenStore> userActivationTokenStore;
     private final UserAuthValidator userAuthValidator;
     private final Provider<GroupStore> groupStore;
+    private final Provider<SkillStore> skillStore;
 
     public Optional<User> userDetails(@NonNull final String userId) {
         val roleId = roleMappingStore.get().roleForUser(userId).orElse(null);
@@ -77,7 +79,7 @@ public class UserLifecycleManager {
                                              Strings.isNullOrEmpty(roleId) ? Set.of()
                                                                            : roleStore.get().permissionsForRoles(List.of(roleId)),
                                              groupStore.get().findGroupsForUser(userSummary.getId()),
-                                             Set.of()));
+                                             skillStore.get().listSkillsForUser(userId)));
     }
 
     /**
@@ -305,37 +307,17 @@ public class UserLifecycleManager {
         return userStore.get().getByIds(userIds);
     }
 
-    /**
-     * Create a {@link Skill}
-     *
-     * @param value The skill value
-     * @return created Skill object
-     */
-    public Optional<Skill> createSkill(String value) {
-        //TODO::IMPLEMENT
-        return Optional.empty();
+    public boolean addUserSkill(String userId, Skill skill) {
+        return skillStore.get().associateSkillWithUser(userId, skill.getSkillId(), skill.getSkillValueId());
     }
 
-    public Optional<Skill> deleteSkill(String skillId) {
-        //TODO::IMPLEMENT
-        return Optional.empty();
-    }
-
-    public boolean addUserSkill() {
-        //TODO::IMPLEMENT
-        return false;
+    public boolean removeUserSkill(String userId, Skill skill) {
+        return skillStore.get().disassociateSkillWithUser(userId, skill.getSkillId(), skill.getSkillValueId());
     }
 
     public List<Skill> getSkillsForUser(String userId) {
-        //TODO::IMPLEMENT
-        return List.of();
+        return skillStore.get().listSkillsForUser(userId);
     }
-
-    public List<UserSummary> getUsersWithSkill(String skillvalue) {
-        //TODO::IMPLEMENT
-        return List.of();
-    }
-
 
     private void createToken(String userId) {
         val token = userActivationTokenStore.get()

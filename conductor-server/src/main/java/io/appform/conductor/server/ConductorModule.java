@@ -23,9 +23,9 @@ import com.google.inject.Singleton;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.actionmanagement.impl.DBActionStore;
 import io.appform.conductor.server.actionmanagement.impl.models.StoredAction;
+import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserRoleMappingStore;
 import io.appform.conductor.server.auth.impl.DBRoleStore;
-import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.impl.DBUserRoleMappingStore;
 import io.appform.conductor.server.auth.impl.models.StoredRole;
 import io.appform.conductor.server.auth.impl.models.StoredUserRoleMapping;
@@ -35,6 +35,11 @@ import io.appform.conductor.server.schemamanagement.impl.DBSchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.models.StoredFieldSchema;
 import io.appform.conductor.server.schemamanagement.impl.models.StoredSchemaSummary;
+import io.appform.conductor.server.skillmanagement.SkillStore;
+import io.appform.conductor.server.skillmanagement.impl.DBSkillStore;
+import io.appform.conductor.server.skillmanagement.impl.models.StoredSkillDefinition;
+import io.appform.conductor.server.skillmanagement.impl.models.StoredSkillValue;
+import io.appform.conductor.server.skillmanagement.impl.models.StoredUserSkillAssociation;
 import io.appform.conductor.server.subjectmanagement.SubjectStore;
 import io.appform.conductor.server.subjectmanagement.impl.DBSubjectStore;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredAddress;
@@ -83,7 +88,7 @@ public class ConductorModule extends AbstractModule {
 
         bind(RoleStore.class).to(DBRoleStore.class);
         bind(UserRoleMappingStore.class).to(DBUserRoleMappingStore.class);
-
+        bind(SkillStore.class).to(DBSkillStore.class);
         bind(SubjectStore.class).to(DBSubjectStore.class);
         bind(ActionStore.class).to(DBActionStore.class);
         bind(SchemaStore.class).to(DBSchemaStore.class);
@@ -233,6 +238,24 @@ public class ConductorModule extends AbstractModule {
     @Singleton
     public RelationalDao<StoredAttachment> attachmentDao() {
         return dbBundle.createRelatedObjectDao(StoredAttachment.class);
+    }
+
+    @Provides
+    @Singleton
+    public LookupDao<StoredSkillDefinition> skillDao() {
+        return dbBundle.createParentObjectDao(StoredSkillDefinition.class);
+    }
+
+    @Provides
+    @Singleton
+    public RelationalDao<StoredSkillValue> skillValueDao() {
+        return dbBundle.createRelatedObjectDao(StoredSkillValue.class);
+    }
+
+    @Provides
+    @Singleton
+    public RelationalDao<StoredUserSkillAssociation> skillAssociationDao() {
+        return dbBundle.createRelatedObjectDao(StoredUserSkillAssociation.class);
     }
 
     @Provides
