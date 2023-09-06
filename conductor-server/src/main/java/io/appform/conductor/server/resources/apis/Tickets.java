@@ -16,11 +16,8 @@
 
 package io.appform.conductor.server.resources.apis;
 
-import com.google.common.base.Strings;
 import io.appform.conductor.model.apis.ConductorApiResponse;
 import io.appform.conductor.model.ticket.TicketPriority;
-import io.appform.conductor.model.ticket.filter.TicketFilter;
-import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.ticketmanagement.TicketGistListResult;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
@@ -35,8 +32,9 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
 import java.util.List;
+
+import static io.appform.conductor.server.resources.apis.Analytics.translateToTicketFilters;
 
 /**
  *
@@ -61,28 +59,13 @@ public class Tickets {
             @QueryParam("assignedToId") @Length(max = 45) String assignedToId,
             @QueryParam("next") @Length(max = 1024) String next,
             @QueryParam("length") @DefaultValue("100") @Min(5) @Max(200) int size) {
-        val ticketFilters = new ArrayList<TicketFilter>();
-        if (!Strings.isNullOrEmpty(workflowId)) {
-            ticketFilters.add(new TicketWorkflowEquals(workflowId));
-        }
-        if (null != priority) {
-            ticketFilters.add(new TicketPriorityEquals(priority));
-        }
-        if (!Strings.isNullOrEmpty(stateId)) {
-            ticketFilters.add(new TicketStateEquals(stateId));
-        }
-        if (!Strings.isNullOrEmpty(subjectId)) {
-            ticketFilters.add(new TicketSubjectEquals(subjectId));
-        }
-        if (!Strings.isNullOrEmpty(groupId)) {
-            ticketFilters.add(new TicketAssignedToGroup(groupId));
-        }
-        if (!Strings.isNullOrEmpty(createdById)) {
-            ticketFilters.add(new TicketCreatedBy(createdById));
-        }
-        if (!Strings.isNullOrEmpty(assignedToId)) {
-            ticketFilters.add(new TicketAssignedToUser(assignedToId));
-        }
+        val ticketFilters = translateToTicketFilters(workflowId,
+                                                     priority,
+                                                     stateId,
+                                                     subjectId,
+                                                     groupId,
+                                                     createdById,
+                                                     assignedToId);
         return ConductorApiResponse.success(ticketManager.search(ticketFilters, List.of(), next, size));
     }
 }

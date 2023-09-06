@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.schema.fields.NumberFieldSchema;
 import io.appform.conductor.model.schema.fields.StringFieldSchema;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.analytics.TimeResolution;
 import io.appform.conductor.model.ticket.fields.impl.BooleanFieldValue;
 import io.appform.conductor.model.ticket.fields.impl.NumberFieldValue;
 import io.appform.conductor.model.ticket.fields.impl.StringFieldValue;
@@ -161,5 +162,22 @@ class DBTicketStoreTest {
                                  ), null,
                           Integer.MAX_VALUE, relevantFieldSchema);
         assertEquals(1, list.getResults().size());
+        assertNotNull(store.create("T003",
+                                   "Test",
+                                   "This is a test ticket",
+                                   "WF001",
+                                   "S001",
+                                   "TS002",
+                                   TicketPriority.MEDIUM,
+                                   List.of(new TicketFieldData("TF001", new BooleanFieldValue(true)),
+                                           new TicketFieldData("TF003", new NumberFieldValue(23)),
+                                           new TicketFieldData("TF004", new StringFieldValue("Random Value"))))
+                              .orElse(null));
+        val groups = store.groupCount(List.of(), List.of(), relevantFieldSchema, StoredTicketSkeleton.Fields.ticketStateId);
+        assertEquals(2, groups.getCounts().get("TS001"));
+        assertEquals(1, groups.getCounts().get("TS002"));
+
+        val ts = store.timeSeries(List.of(), List.of(), relevantFieldSchema, TimeResolution.MINUTE);
+        assertNotNull(ts);
     }
 }

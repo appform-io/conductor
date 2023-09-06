@@ -32,6 +32,9 @@ import io.appform.conductor.model.subject.SubjectSummary;
 import io.appform.conductor.model.ticket.TicketDetails;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.TicketSummary;
+import io.appform.conductor.model.ticket.analytics.FlatGroupCountResponse;
+import io.appform.conductor.model.ticket.analytics.TimeResolution;
+import io.appform.conductor.model.ticket.analytics.TimeSeriesResponse;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilterType;
@@ -180,6 +183,19 @@ public class TicketManager {
                                  })
                                  .toList())
                 .build();
+    }
+
+    public FlatGroupCountResponse groupCount(
+            final List<TicketFilter> ticketFilters,
+            final List<TicketFieldFilter> fieldFilters,
+            final String ticketPropertyName) {
+        return ticketStore.groupCount(ticketFilters, fieldFilters, Map.of(), ticketPropertyName);
+    }
+
+    public TimeSeriesResponse timeSeries(final List<TicketFilter> ticketFilters,
+                                  final List<TicketFieldFilter> fieldFilters,
+                                         final TimeResolution resolution) {
+        return ticketStore.timeSeries(ticketFilters, fieldFilters, Map.of(), resolution);
     }
 
     @SneakyThrows

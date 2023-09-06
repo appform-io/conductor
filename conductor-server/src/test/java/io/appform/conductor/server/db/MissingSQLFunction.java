@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket;
+package io.appform.conductor.server.db;
 
-import lombok.Value;
-
-import java.util.List;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  *
  */
-@Value
-public class TicketListResult {
-    List<TicketSummary> results;
-    String next;
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD})
+
+public @interface MissingSQLFunction {
+    String value();
 }

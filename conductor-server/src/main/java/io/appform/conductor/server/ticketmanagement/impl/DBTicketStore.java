@@ -23,6 +23,10 @@ import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.analytics.FlatGroupCountResponse;
+import io.appform.conductor.model.ticket.analytics.TimeResolution;
+import io.appform.conductor.model.ticket.analytics.TimeSeriesResponse;
+import io.appform.conductor.model.ticket.analytics.TimeSnapshot;
 import io.appform.conductor.model.ticket.comments.Attachment;
 import io.appform.conductor.model.ticket.comments.Comment;
 import io.appform.conductor.model.ticket.fields.TicketField;
@@ -32,13 +36,17 @@ import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilterVisitor;
 import io.appform.conductor.model.ticket.filter.fieldfilters.*;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
-import io.appform.conductor.server.ticketmanagement.*;
+import io.appform.conductor.server.ticketmanagement.TicketFieldData;
+import io.appform.conductor.server.ticketmanagement.TicketSkeleton;
+import io.appform.conductor.server.ticketmanagement.TicketSkeletonListResult;
+import io.appform.conductor.server.ticketmanagement.TicketStore;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredAttachment;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredComment;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredEmbeddedFieldValue;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
 import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.server.utils.Pair;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.dropwizard.sharding.scroll.ScrollPointer;
@@ -50,6 +58,8 @@ import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.criterion.*;
 import org.hibernate.sql.JoinType;
+import org.hibernate.type.LongType;
+import org.hibernate.type.Type;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -57,6 +67,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.*;
 
@@ -175,17 +186,11 @@ public class DBTicketStore implements TicketStore {
             final String start,
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema) {
-        val filterCriteria = DetachedCriteria.forClass(StoredTicketSkeleton.class, StoredFieldValue.Fields.ticket)
-                .add(Property.forName(StoredTicketSkeleton.Fields.deleted).eq(false))
-                .setProjection(Projections.distinct(Projections.property(StoredTicketSkeleton.Fields.ticketId)));
-        applyTicketFilter(ticketFilters, filterCriteria);
-        applyFieldFilters(fieldFilters, relevantFieldSchema, filterCriteria);
+        val resultCriteria = createTicketQueryCriteria(ticketFilters, fieldFilters, relevantFieldSchema);
         val pointer = Strings.isNullOrEmpty(start)
                       ? null
                       : mapper.readValue(Base64.getUrlDecoder().decode(start.getBytes(StandardCharsets.UTF_8)),
                                          ScrollPointer.class);
-        val resultCriteria = DetachedCriteria.forClass(StoredTicketSkeleton.class)
-                .add(Property.forName(StoredTicketSkeleton.Fields.ticketId).in(filterCriteria));
         val results = ticketDao.scrollUp(resultCriteria, pointer, size, "id");
         return new TicketSkeletonListResult(
                 results.getResult()
@@ -195,6 +200,70 @@ public class DBTicketStore implements TicketStore {
                 Base64.getUrlEncoder().encodeToString(
                         mapper.writeValueAsString(results.getPointer())
                                 .getBytes(StandardCharsets.UTF_8))); //Keep charset consistent
+    }
+
+    private DetachedCriteria createTicketQueryCriteria(
+            List<TicketFilter> ticketFilters,
+            List<TicketFieldFilter> fieldFilters,
+            Map<String, FieldSchema> relevantFieldSchema) {
+        val filterCriteria = DetachedCriteria.forClass(StoredTicketSkeleton.class, StoredFieldValue.Fields.ticket)
+                .add(Property.forName(StoredTicketSkeleton.Fields.deleted).eq(false))
+                .setProjection(Projections.distinct(Projections.property(StoredTicketSkeleton.Fields.ticketId)));
+        applyTicketFilter(ticketFilters, filterCriteria);
+        applyFieldFilters(fieldFilters, relevantFieldSchema, filterCriteria);
+        return DetachedCriteria.forClass(StoredTicketSkeleton.class)
+                .add(Property.forName(StoredTicketSkeleton.Fields.ticketId).in(filterCriteria));
+    }
+
+    @Override
+    public FlatGroupCountResponse groupCount(
+            List<TicketFilter> ticketFilters,
+            List<TicketFieldFilter> fieldFilters,
+            Map<String, FieldSchema> relevantFieldSchema,
+            String ticketPropertyName) {
+        val resultCriteria = createTicketQueryCriteria(ticketFilters, fieldFilters, relevantFieldSchema);
+        resultCriteria.setProjection(Projections.projectionList()
+                                             .add(Projections.groupProperty(ticketPropertyName))
+                                             .add(Projections.rowCount()));
+        val queryResults = ticketDao.run(resultCriteria);
+        @SuppressWarnings("unchecked")
+        val counts = queryResults.values()
+                .stream()
+                .map(list -> (List<Object[]>)list)
+                .flatMap(groupList -> groupList.stream()
+                        .map(element -> new Pair<>((String) element[0], (Long) element[1])))
+                .collect(Collectors.groupingBy(Pair::getFirst, Collectors.summingLong(Pair::getSecond)));
+        return new FlatGroupCountResponse(counts);
+    }
+
+    @Override
+    public TimeSeriesResponse timeSeries(
+            List<TicketFilter> ticketFilters,
+            List<TicketFieldFilter> fieldFilters,
+            Map<String, FieldSchema> relevantFieldSchema,
+            TimeResolution resolution) {
+        val resultCriteria = createTicketQueryCriteria(ticketFilters, fieldFilters, relevantFieldSchema);
+        val divisor = switch (resolution) {
+
+            case MINUTE -> 60;
+            case HOUR -> 36_00;
+            case DAY -> 864_000;
+            case WEEK -> 7 * 864_000;
+            case MONTH -> 30 * 864_000;
+        };
+        resultCriteria.setProjection(Projections.sqlGroupProjection("floor(unix_timestamp(updated) / " + divisor + ") as timestamp, count(*) as rowcount",
+                                                                                 "timestamp",
+                                                                                 new String[] {"timestamp", "rowcount"},
+                                                                                 new Type[] {LongType.INSTANCE, LongType.INSTANCE}));
+        val queryResults = ticketDao.run(resultCriteria);
+        @SuppressWarnings("unchecked")
+        val counts = queryResults.values()
+                .stream()
+                .map(list -> (List<Object[]>)list)
+                .flatMap(groupList -> groupList.stream()
+                        .map(element -> new TimeSnapshot(new Date(1000L * divisor * (Long) element[0]), (Long) element[1])))
+                .toList();
+        return new TimeSeriesResponse(Map.of("data", counts));
     }
 
     @Override

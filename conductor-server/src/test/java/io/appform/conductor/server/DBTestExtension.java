@@ -20,6 +20,7 @@ import com.codahale.metrics.SharedMetricRegistries;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import io.appform.conductor.server.db.InjectedSQLFunctions;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import io.appform.dropwizard.sharding.config.ShardedHibernateFactory;
 import io.appform.functionmetrics.FunctionMetricsManager;
@@ -32,6 +33,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.extension.*;
 
 import java.util.Arrays;
@@ -45,7 +47,7 @@ import static org.mockito.Mockito.when;
  *
  */
 @Slf4j
-public class DBTestExtension implements BeforeEachCallback, ParameterResolver {
+public class DBTestExtension implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
     private final TestConfig testConfig = new TestConfig();
     private final HealthCheckRegistry healthChecks = mock(HealthCheckRegistry.class);
     private final JerseyEnvironment jerseyEnvironment = mock(JerseyEnvironment.class);
@@ -82,7 +84,10 @@ public class DBTestExtension implements BeforeEachCallback, ParameterResolver {
         bundle.run(testConfig, environment);
         FunctionMetricsManager.initialize("test", SharedMetricRegistries.getOrCreate("test"));
         log.debug("DB sharding bundle initialized...");
+        bundle.getSessionFactories().forEach(InjectedSQLFunctions::register);
     }
+
+
 
     @Override
     public boolean supportsParameter(
@@ -99,6 +104,7 @@ public class DBTestExtension implements BeforeEachCallback, ParameterResolver {
     }
 
     private static DataSourceFactory createConfig(String dbName) {
+//        InjectedSQLFunctions.register(dbName);
         Map<String, String> properties = Maps.newHashMap();
         properties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
         properties.put("hibernate.hbm2ddl.auto", "create");
@@ -112,5 +118,10 @@ public class DBTestExtension implements BeforeEachCallback, ParameterResolver {
         shard.setProperties(properties);
 
         return shard;
+    }
+
+    @Override
+    public void afterEach(ExtensionContext extensionContext) throws Exception {
+        bundle.getSessionFactories().forEach(SessionFactory::close);
     }
 }

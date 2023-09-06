@@ -20,6 +20,9 @@ import com.google.common.net.MediaType;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.analytics.FlatGroupCountResponse;
+import io.appform.conductor.model.ticket.analytics.TimeResolution;
+import io.appform.conductor.model.ticket.analytics.TimeSeriesResponse;
 import io.appform.conductor.model.ticket.comments.Attachment;
 import io.appform.conductor.model.ticket.comments.Comment;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
@@ -113,6 +116,17 @@ public interface TicketStore {
             final String start,
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema);
+
+    FlatGroupCountResponse groupCount(
+            final List<TicketFilter> ticketFilters,
+            final List<TicketFieldFilter> fieldFilters,
+            final Map<String, FieldSchema> relevantFieldSchema,
+            final String ticketPropertyName);
+
+    TimeSeriesResponse timeSeries(final List<TicketFilter> ticketFilters,
+                                  final List<TicketFieldFilter> fieldFilters,
+                                  final Map<String, FieldSchema> relevantFieldSchema,
+                                  final TimeResolution resolution);
 
     Optional<Comment> addComment(
             final String ticketId,
