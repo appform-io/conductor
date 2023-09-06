@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.usermgmt;
+package io.appform.conductor.model.skills;
 
+import io.appform.conductor.model.usermgmt.User;
 import lombok.Value;
+
+import java.util.Date;
+import java.util.Set;
 
 /**
  * Represents a particular skill. For example language proficiency. A {@link User} can have multiple skills.
  */
 @Value
-public class Skill {
+public class SkillDefinition {
+    String id;
     String name;
-    String value;
+    Set<SkillValue> values;
+    Date created;
+    Date updated;
 }
