@@ -28,6 +28,7 @@ import java.util.Optional;
  */
 public interface SkillStore {
     Optional<SkillDefinition> createSkillDefinition(final String name);
+    Optional<SkillDefinition> updateSkillDefinition(final String skillId, final String name);
     Optional<SkillDefinition> addValueToSkillDefinition(final String id, final String value);
     Optional<SkillDefinition> removeValueFromSkillDefinition(final String id, final String valueId);
     Optional<SkillDefinition> updateSkillValue(final String id, final String valueId, final String value);

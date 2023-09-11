@@ -18,6 +18,7 @@ package io.appform.conductor.server.usermanagement;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.google.common.base.Strings;
+import io.appform.conductor.model.skills.SkillDefinition;
 import io.appform.conductor.model.usermgmt.*;
 import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserAuthValidator;
@@ -307,12 +308,49 @@ public class UserLifecycleManager {
         return userStore.get().getByIds(userIds);
     }
 
+    public Optional<SkillDefinition> createSkill(final String name) {
+        return skillStore.get()
+                .createSkillDefinition(name);
+    }
+
+    public Optional<SkillDefinition> updateSkillDefinition(final String skillId,
+                                                           final String name) {
+        return skillStore.get()
+                .updateSkillDefinition(skillId, name);
+    }
+
+    public boolean deleteSkillDefinition(final String skillId) {
+        return skillStore.get()
+                .deleteSkillDefinition(skillId);
+    }
+
+    public Optional<SkillDefinition> getSkill(final String skillId) {
+        return skillStore.get()
+                .readSkillDefinition(skillId);
+    }
+
+    public Optional<SkillDefinition> addSkillValue(final String skillId,
+                                                   final String value) {
+        return skillStore.get()
+                .addValueToSkillDefinition(skillId, value);
+    }
+
+    public Optional<SkillDefinition> removeSkillValue(final String skillId,
+                                                      final String valueId) {
+        return skillStore.get()
+                .removeValueFromSkillDefinition(skillId, valueId);
+    }
+
     public boolean addUserSkill(String userId, Skill skill) {
         return skillStore.get().associateSkillWithUser(userId, skill.getSkillId(), skill.getSkillValueId());
     }
 
     public boolean removeUserSkill(String userId, Skill skill) {
         return skillStore.get().disassociateSkillWithUser(userId, skill.getSkillId(), skill.getSkillValueId());
+    }
+
+    public List<SkillDefinition> listSkills() {
+        return skillStore.get().list();
     }
 
     public List<Skill> getSkillsForUser(String userId) {

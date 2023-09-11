@@ -521,7 +521,7 @@ public class Manage {
             @Auth final ConductorUser user,
             @PathParam("userId") @NotEmpty @Length(max = 45) final String userId,
             @FormParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
-        if(userLifecycleManager.addUserToGroup(groupId, userId)) {
+        if (userLifecycleManager.addUserToGroup(groupId, userId)) {
             return redirect("/admin/users/" + userId);
         }
         throw fail("Could not add user to group", "/admin/users/" + userId);
@@ -533,10 +533,87 @@ public class Manage {
             @Auth final ConductorUser user,
             @PathParam("userId") @NotEmpty @Length(max = 45) final String userId,
             @PathParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
-        if(userLifecycleManager.removeUserFromGroup(groupId, userId)) {
+        if (userLifecycleManager.removeUserFromGroup(groupId, userId)) {
             return redirect("/admin/users/" + userId);
         }
         throw fail("Could not remove user from group", "/admin/users/" + userId);
+    }
+
+    @GET
+    @Path("/skills")
+    public Response listSkills(
+            @Auth final ConductorUser user) {
+        return render(new SkillListView(user.getUserSession().getUser(),
+                                        userLifecycleManager.listSkills(),
+                                        null));
+    }
+
+    @GET
+    @Path("/skills/{skillId}")
+    public Response showSkill(
+            @Auth final ConductorUser user,
+            @PathParam("skillId") @NotEmpty @Length(max = 45) final String skillId) {
+        val skill = userLifecycleManager.getSkill(skillId).orElse(null);
+        if(null != skill) {
+            return render(new SkillListView(user.getUserSession().getUser(),
+                                            userLifecycleManager.listSkills(),
+                                            skill));
+        }
+        throw fail("No skill found for id: " + skillId, "/manage/skills");
+    }
+
+    @POST
+    @Path("/skills")
+    public Response createSkill(
+            @Auth final ConductorUser user,
+            @FormParam("name") @NotEmpty @Length(max = 45) final String name) {
+        return userLifecycleManager.createSkill(name)
+                .map(skill -> redirect("/manage/skills/" + skill.getId()))
+                .orElseThrow(() -> fail("Could not create skill", "/manage/skills"));
+    }
+
+    @POST
+    @Path("/skills/{skillId}")
+    public Response createSkill(
+            @Auth final ConductorUser user,
+            @PathParam("skillId") @NotEmpty @Length(max = 45) final String skillId,
+            @FormParam("name") @NotEmpty @Length(max = 45) final String name) {
+        return userLifecycleManager.updateSkillDefinition(skillId, name)
+                .map(skill -> redirect("/manage/skills/" + skill.getId()))
+                .orElseThrow(() -> fail("Could not create skill", "/manage/skills"));
+    }
+
+    @POST
+    @Path("/skills/{skillId}/delete")
+    public Response deleteSkill(
+            @Auth final ConductorUser user,
+            @PathParam("skillId") @NotEmpty @Length(max = 45) final String skillId) {
+        if(userLifecycleManager.deleteSkillDefinition(skillId)) {
+            return redirect("/manage/skills/");
+        }
+         throw  fail("Could not delete skill " + skillId, "/manage/skills");
+    }
+
+    @POST
+    @Path("/skills/{skillId}/values")
+    public Response createSkillValue(
+            @Auth final ConductorUser user,
+            @PathParam("skillId") @NotEmpty @Length(max = 45) final String skillId,
+            @FormParam("value") @NotEmpty @Length(max = 45) final String value) {
+        return userLifecycleManager.addSkillValue(skillId, value)
+                .map(skill -> redirect("/manage/skills/" + skill.getId()))
+                .orElseThrow(() -> fail("Could not create skill", "/manage/skills"));
+    }
+
+    @POST
+    @Path("/skills/{skillId}/values/{skillValueId}/delete")
+    public Response deleteSkillValue(
+            @Auth final ConductorUser user,
+            @PathParam("skillId") @NotEmpty @Length(max = 45) final String skillId,
+            @PathParam("skillValueId") @NotEmpty @Length(max = 45) final String skillValueId) {
+        return userLifecycleManager.removeSkillValue(skillId, skillValueId)
+                .map(skill -> redirect("/manage/skills/" + skill.getId()))
+                .orElseThrow(() -> fail("Could not create skill", "/manage/skills"));
     }
 
     private static io.appform.conductor.model.workflow.Template template(String templateValue) {

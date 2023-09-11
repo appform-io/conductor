@@ -69,6 +69,18 @@ public class DBSkillStore implements SkillStore {
     }
 
     @Override
+    @Throws(value = ConductorErrorCode.STORE_UPDATE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredSkillDefinition.SKILL_DEFINITION_TABLE_NAME))
+    @MonitoredFunction
+    public Optional<SkillDefinition> updateSkillDefinition(
+            @Throws.RuntimeParam("id") String skillId,
+            String name) {
+        return skillDao.update(skillId, skill -> skill.map(s -> s.setName(name)).orElse(null))
+                ? readSkillDefinition(skillId)
+                : Optional.empty();
+    }
+
+    @Override
     @MonitoredFunction
     @SneakyThrows
     @Throws(value = STORE_RELATED_ENTITY_WRITE_ERROR,

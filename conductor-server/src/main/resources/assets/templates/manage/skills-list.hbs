@@ -1,0 +1,141 @@
+{{#partial "content"}}
+    <section>
+        <div class="row mb-2">
+            <div class="col-sm-7">
+                <h4>Skills</h4>
+            </div>
+            <!--                <div class="col-sm-5 d-flex justify-content-end">
+                                <a href="/manage/groups" role="button" class="btn btn-sm mt-2 btn-primary"><i class="bi bi-plus-lg"></i> Create</a>
+                            </div>-->
+            <div class="col-sm-12 col-md-5 d-flex justify-content-end">
+                <div class="btn-toolbar" role="toolbar">
+                    <div class="btn-group me-2" role="group">
+                        <div class="input-group border border-dark col-3">
+                            <span class="input-group-text" id="search-box"><i class="bi fs2 bi-search"></i></span>
+                            <input type="text" class="form-control form-control-sm  data-table-search"
+                                   id="skill-search"
+                                   placeholder="Search Skills" aria-label="Search Skills" aria-describedby="search-box">
+                        </div>
+                    </div>
+                    <div class="btn-group pt-1 pb-1" role="group">
+                        <a href="/manage/skills" class="btn btn-sm btn-primary" role="button">
+                            <i class="bi fs2 bi-plus-lg"></i>Create</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row">
+            <div class="col-sm-12 col-md-6">
+                <div class="row">
+                    <div class="col-12">
+                        <form method="post"
+                              {{#empty currentSkill}}
+                                action="/manage/skills"
+                              {{else}}
+                                action="/manage/skills/{{currentSkill.id}}"
+                              {{/empty}}
+                              class="row">
+                            <div class="col-8 col-md-10">
+                                <label class="visually-hidden" for="name">Skill Name</label>
+                                <input type="text" id="name" name="name"
+                                       class="form-control border border-dark"
+                                       maxlength="45" aria-describedby="titleHelp" placeholder="Skill name"
+                                       value="{{currentSkill.name}}" required>
+                            </div>
+                            <div class="col-4 col-md-2 d-flex justify-content-end">
+                                {{#empty currentSkill}}
+                                    <button type="submit" class="btn btn-success"><i class="bi bi-plus-lg"></i> Create
+                                    </button>
+                                {{else}}
+                                    <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Update
+                                    </button>
+                                {{/empty}}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 table-responsive">
+                        <table class="table table-bordered border-dark data-table" data-table-search="#skill-search">
+                            <thead>
+                            <tr>
+                                <th>Skill</th>
+                                <th>Created</th>
+                                <th>Updated</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{#each skills}}
+                                <tr>
+                                    <td><a href="/manage/skills/{{id}}">{{name}}</a></td>
+                                    <td>{{created}}</td>
+                                    <td>{{updated}}</td>
+                                    <td>
+                                        <form class="confirmed-form" method="post" action="/manage/skills/{{id}}/delete"
+                                              data-cnf-title="Deleting skill {{name}}"
+                                              data-cnf-text="Are you sure you want to delete this skill?">
+                                            <button type="submit" class="btn btn-link p-0 text-danger"><i
+                                                    class="bi bi-trash-fill"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-6">
+                {{#with currentSkill}}
+                    <div class="row md-3">
+                        <h5>Values for <b>{{name}}</b></h5>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <form method="post" action="/manage/skills/{{id}}/values" class="row">
+                                <div class="col-8 col-md-10">
+                                    <label class="visually-hidden" for="value">Skill Value</label>
+                                    <input type="text" id="value" name="value"
+                                           class="form-control border border-dark"
+                                           maxlength="45" aria-describedby="titleHelp" placeholder="Skill Value" required>
+                                </div>
+                                <div class="col-4 col-md-2 d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-plus-lg"></i> Add
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="row md-3 mt-3">
+                        <div class="col-12 table-responsive">
+                            <table class="table table-bordered">
+                                <tbody>
+                                {{#each values}}
+                                    <tr>
+                                        <td>{{value}}</td>
+                                        <td>
+                                            <form class="confirmed-form" method="post"
+                                                  action="/manage/skills/{{skillId}}/values/{{skillValueId}}/delete"
+                                                  data-cnf-title="Deleting value {{name}}"
+                                                  data-cnf-text="Are you sure you want to delete this value for skill {{../name}}?">
+                                                <button type="submit" class="btn btn-link p-0 text-danger"><i
+                                                        class="bi bi-trash-fill"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                {{/with}}
+            </div>
+        </div>
+    </section>
+{{/partial}}
+{{> common/base}}
