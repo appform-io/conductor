@@ -20,7 +20,6 @@ import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.skills.SkillDefinition;
 import io.appform.conductor.model.skills.SkillValue;
-import io.appform.conductor.model.usermgmt.Skill;
 import io.appform.conductor.server.skillmanagement.SkillStore;
 import io.appform.conductor.server.skillmanagement.impl.models.StoredSkillDefinition;
 import io.appform.conductor.server.skillmanagement.impl.models.StoredSkillValue;
@@ -37,7 +36,10 @@ import org.hibernate.criterion.Property;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_RELATED_ENTITY_WRITE_ERROR;
@@ -264,7 +266,7 @@ public class DBSkillStore implements SkillStore {
     @SneakyThrows
     @Throws(value = ConductorErrorCode.STORE_LIST_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredSkillDefinition.SKILL_DEFINITION_TABLE_NAME))
-    public List<Skill> listSkillsForUser(String userId) {
+    public List<SkillValue> listSkillsForUser(String userId) {
         return userSkillDao.select(userId,
                                    DetachedCriteria.forClass(StoredUserSkillAssociation.class)
                                            .add(Property.forName(StoredUserSkillAssociation.Fields.userId)
@@ -274,7 +276,8 @@ public class DBSkillStore implements SkillStore {
                                    0,
                                    Integer.MAX_VALUE)
                 .stream()
-                .map(data -> new Skill(data.getSkillId(), data.getValueId()))
+                .map(data -> readSkillValue(data.getSkillId(), data.getValueId()).orElse(null))
+                .filter(Objects::nonNull)
                 .toList();
     }
 

@@ -18,6 +18,7 @@ package io.appform.conductor.model.usermgmt;
 
 import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.auth.Role;
+import io.appform.conductor.model.skills.SkillValue;
 import lombok.Value;
 
 import java.util.Collection;
@@ -32,5 +33,5 @@ public class User {
     Role assignedRole;
     Set<Permission> permissions;
     Collection<Group> groups;
-    Collection<Skill> skills;
+    Collection<SkillValue> skills;
 }

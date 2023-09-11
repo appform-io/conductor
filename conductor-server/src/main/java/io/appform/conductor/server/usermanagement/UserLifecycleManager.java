@@ -19,6 +19,7 @@ package io.appform.conductor.server.usermanagement;
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.google.common.base.Strings;
 import io.appform.conductor.model.skills.SkillDefinition;
+import io.appform.conductor.model.skills.SkillValue;
 import io.appform.conductor.model.usermgmt.*;
 import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserAuthValidator;
@@ -353,7 +354,7 @@ public class UserLifecycleManager {
         return skillStore.get().list();
     }
 
-    public List<Skill> getSkillsForUser(String userId) {
+    public List<SkillValue> getSkillsForUser(String userId) {
         return skillStore.get().listSkillsForUser(userId);
     }
 

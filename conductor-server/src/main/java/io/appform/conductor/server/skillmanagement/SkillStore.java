@@ -18,7 +18,6 @@ package io.appform.conductor.server.skillmanagement;
 
 import io.appform.conductor.model.skills.SkillDefinition;
 import io.appform.conductor.model.skills.SkillValue;
-import io.appform.conductor.model.usermgmt.Skill;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +44,6 @@ public interface SkillStore {
 
     boolean disassociateSkillWithUser(final String userId, final String skillId, final String valueId);
 
-    List<Skill> listSkillsForUser(final String userId);
+    List<SkillValue> listSkillsForUser(final String userId);
 
 }

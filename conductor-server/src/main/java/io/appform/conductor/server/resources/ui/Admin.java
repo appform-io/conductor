@@ -18,10 +18,12 @@ package io.appform.conductor.server.resources.ui;
 
 import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.auth.Role;
+import io.appform.conductor.model.skills.SkillDefinition;
 import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserRoleMappingStore;
+import io.appform.conductor.server.skillmanagement.SkillStore;
 import io.appform.conductor.server.ui.views.admin.RolesListView;
 import io.appform.conductor.server.ui.views.admin.UserAdminView;
 import io.appform.conductor.server.usermanagement.GroupStore;
@@ -63,6 +65,7 @@ public class Admin {
     private final RoleStore roleStore;
     private final UserStore userStore;
     private final GroupStore groupStore;
+    private final SkillStore skillStore;
     private final UserRoleMappingStore roleMappingStore;
     private final UserLifecycleManager userLifecycleManager;
 
@@ -103,7 +106,7 @@ public class Admin {
                                                                    role.getPermissions().contains(permission)));
                     return render(new RolesListView(user.getUserSession().getUser(),
                                                     roleStore.list(),
-                                                      role));
+                                                    role));
                 })
                 .orElseThrow(() -> fail("Could not find role with id: " + roleId, ROLES_LIST_PATH));
 
@@ -141,7 +144,7 @@ public class Admin {
     @GET
     @Path("/users/search")
     public Response renderUserSearchScreen(@Auth ConductorUser user) {
-        return render(new UserAdminView(user.getUserSession().getUser(), null, List.of(), List.of()));
+        return render(new UserAdminView(user.getUserSession().getUser(), null, List.of(), List.of(), List.of()));
     }
 
     @POST
@@ -173,7 +176,15 @@ public class Admin {
                 .map(userDetails -> render(new UserAdminView(user.getUserSession().getUser(),
                                                              userDetails,
                                                              roleStore.list(),
-                                                             groupStore.list())))
+                                                             groupStore.list(),
+                                                             skillStore.list()
+                                                                     .stream()
+                                                                     .flatMap(skillDefinition -> skillStore.readSkillDefinition(
+                                                                                     skillDefinition.getId())
+                                                                             .map(SkillDefinition::getValues)
+                                                                             .orElse(Set.of())
+                                                                             .stream())
+                                                                     .toList())))
                 .orElseThrow(() -> fail("No user found for " + userId, USER_SEARCH_PATH));
     }
 

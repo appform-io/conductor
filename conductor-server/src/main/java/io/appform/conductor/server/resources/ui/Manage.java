@@ -20,6 +20,7 @@ import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.schema.fields.*;
+import io.appform.conductor.model.usermgmt.Skill;
 import io.appform.conductor.model.workflow.Rule;
 import io.appform.conductor.model.workflow.TicketStateTransition;
 import io.appform.conductor.model.workflow.Workflow;
@@ -537,6 +538,32 @@ public class Manage {
             return redirect("/admin/users/" + userId);
         }
         throw fail("Could not remove user from group", "/admin/users/" + userId);
+    }
+
+    @POST
+    @Path("/users/{userId}/skills/add")
+    public Response addUserSkill(
+            @Auth final ConductorUser user,
+            @PathParam("userId") @NotEmpty @Length(max = 45) final String userId,
+            @FormParam("skillValueId") @NotEmpty @Length(max = 91) final String skillValueId) {
+        val parts = skillValueId.split("/");
+        if (parts.length == 2 && userLifecycleManager.addUserSkill(userId, new Skill(parts[0], parts[1]))) {
+            return redirect("/admin/users/" + userId);
+        }
+        throw fail("Could not add skill to user", "/admin/users/" + userId);
+    }
+
+    @POST
+    @Path("/users/{userId}/skills/{skillId}/{skillValueId}/remove")
+    public Response addUserToGroup(
+            @Auth final ConductorUser user,
+            @PathParam("userId") @NotEmpty @Length(max = 45) final String userId,
+            @PathParam("skillId") @NotEmpty @Length(max = 45) final String skillId,
+            @PathParam("skillValueId") @NotEmpty @Length(max = 45) final String skillValueId) {
+        if (userLifecycleManager.removeUserSkill(userId, new Skill(skillId, skillValueId))) {
+            return redirect("/admin/users/" + userId);
+        }
+        throw fail("Could not remove skill from user", "/admin/users/" + userId);
     }
 
     @GET

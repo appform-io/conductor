@@ -165,7 +165,8 @@
                                         <div id="groupIdHelp" class="form-text">User will be added to this group</div>
                                     </div>
                                     <div class="col-sm-12 col-md-3 mt-2 justify-content-center">
-                                        <button type="submit" class="btn btn-success mt-4"><i class="bi bi-plus-lg"></i> Add
+                                        <button type="submit" class="btn btn-success mt-4"><i class="bi bi-plus-lg"></i>
+                                            Add
                                         </button>
                                     </div>
 
@@ -177,11 +178,11 @@
                         <div class="col-12 table-responsive">
                             <table class="table table-bordered border-dark">
                                 <thead>
-                                    <tr>
-                                        <th>Group</th>
-                                        <th>Description</th>
-                                        <th></th>
-                                    </tr>
+                                <tr>
+                                    <th>Group</th>
+                                    <th>Description</th>
+                                    <th></th>
+                                </tr>
                                 </thead>
                                 <tbody>
                                 {{#each groups}}
@@ -193,6 +194,71 @@
                                                   action="/manage/users/{{../userDetails/summary/id}}/groups/{{id}}/remove"
                                                   data-cnf-title="Removing user from group"
                                                   data-cnf-text="Are you sure you want to remove the user {{../name}} from group {{name}}?">
+                                                <button type="submit" class="btn btn-link p-0 text-danger"><i
+                                                        class="bi bi-trash-fill"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                    <div class="row">
+                        <div class="col-12">
+                            <h4>Skills</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <form method="post" action="/manage/users/{{summary.id}}/skills/add">
+                                <div class="row mb-3">
+                                    <div class="col-sm-12 col-md-9">
+                                        <label for="skillValueId" class="col-form-label fw-bold">Select Skill</label>
+                                        <select class="form-control selectpicker border border-dark"
+                                                id="skillValueId" name="skillValueId"
+                                                data-live-search="true"
+                                                aria-describedby="skillValueIdHelp" required>
+                                            {{#each ../availableSkills}}
+                                                <option value="{{skillId}}/{{skillValueId}}">{{name}} - {{value}}</option>
+                                            {{/each}}
+                                        </select>
+                                        <div id="skillValueIdHelp" class="form-text">Skills that the user has. Dynamic
+                                            group assignment will happen based on this.
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12 col-md-3 mt-2 justify-content-center">
+                                        <button type="submit" class="btn btn-success mt-4"><i class="bi bi-plus-lg"></i>
+                                            Add
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 table-responsive">
+                            <table class="table table-bordered border-dark">
+                                <thead>
+                                <tr>
+                                    <th>Skill Name</th>
+                                    <th>Skill Value</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {{#each skills}}
+                                    <tr>
+                                        <td title="Skill: {{skillId}}">{{name}}</td>
+                                        <td title="Value:  Value: {{skillValueId}}">{{value}}</td>
+                                        <td>
+                                            <form class="confirmed-form" method="post"
+                                                  action="/manage/users/{{../userDetails/summary/id}}/skills/{{skillId}}/{{skillValueId}}/remove"
+                                                  data-cnf-title="Removing skill value {{name}}:{{value}} for user"
+                                                  data-cnf-text="Are you sure you want to remove this skillu?">
                                                 <button type="submit" class="btn btn-link p-0 text-danger"><i
                                                         class="bi bi-trash-fill"></i></button>
                                             </form>
