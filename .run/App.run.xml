@@ -5,7 +5,7 @@
     <option name="PROGRAM_PARAMETERS" value="server conductor-server/configs/local.yml" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="io.appform.conductor.server.*" />
+        <option name="PATTERN" value="io.appform.conductor.server.eventmanagement.impl.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>

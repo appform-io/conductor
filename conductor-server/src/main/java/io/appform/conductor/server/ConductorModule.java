@@ -18,8 +18,9 @@ package io.appform.conductor.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
 import com.google.inject.Provides;
-import com.google.inject.Singleton;
+import com.google.inject.name.Names;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.actionmanagement.impl.DBActionStore;
 import io.appform.conductor.server.actionmanagement.impl.models.StoredAction;
@@ -31,10 +32,15 @@ import io.appform.conductor.server.auth.impl.models.StoredRole;
 import io.appform.conductor.server.auth.impl.models.StoredUserRoleMapping;
 import io.appform.conductor.server.config.AppConfig;
 import io.appform.conductor.server.config.AuthConfig;
+import io.appform.conductor.server.eventmanagement.EventBus;
+import io.appform.conductor.server.eventmanagement.EventHandler;
+import io.appform.conductor.server.eventmanagement.EventHandlerImplementation;
+import io.appform.conductor.server.eventmanagement.impl.SignalDrivenEventBus;
 import io.appform.conductor.server.schemamanagement.impl.DBSchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.models.StoredFieldSchema;
 import io.appform.conductor.server.schemamanagement.impl.models.StoredSchemaSummary;
+import io.appform.conductor.server.skillmanagement.EventGeneratingSkillStore;
 import io.appform.conductor.server.skillmanagement.SkillStore;
 import io.appform.conductor.server.skillmanagement.impl.DBSkillStore;
 import io.appform.conductor.server.skillmanagement.impl.models.StoredSkillDefinition;
@@ -67,7 +73,16 @@ import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.dropwizard.setup.Environment;
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.reflections.Reflections;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import java.util.concurrent.ExecutorService;
+
+import static org.reflections.Reflections.log;
 
 /**
  * Guice module
@@ -77,6 +92,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 @SuppressWarnings("unused")
 public class ConductorModule extends AbstractModule {
     private final BalancedDBShardingBundle<AppConfig> dbBundle;
+    private final Reflections reflections = new Reflections("io.appform.conductor");
 
     @Override
     protected void configure() {
@@ -88,12 +104,20 @@ public class ConductorModule extends AbstractModule {
 
         bind(RoleStore.class).to(DBRoleStore.class);
         bind(UserRoleMappingStore.class).to(DBUserRoleMappingStore.class);
-        bind(SkillStore.class).to(DBSkillStore.class);
+        bind(SkillStore.class).annotatedWith(Names.named("root")).to(DBSkillStore.class);
+        bind(SkillStore.class).to(EventGeneratingSkillStore.class);
         bind(SubjectStore.class).to(DBSubjectStore.class);
         bind(ActionStore.class).to(DBActionStore.class);
         bind(SchemaStore.class).to(DBSchemaStore.class);
         bind(WorkflowStore.class).to(DBWorkflowStore.class);
         bind(TicketStore.class).to(DBTicketStore.class);
+    }
+
+    @Provides
+    @Singleton
+    @Named("eventHandlingPool")
+    public ExecutorService executorService(final Environment environment) {
+        return environment.lifecycle().executorService("event-handler").build();
     }
 
     @Provides
@@ -264,4 +288,16 @@ public class ConductorModule extends AbstractModule {
         return ConductorServerUtils.createHttpClient();
     }
 
+    @Provides
+    @Singleton
+    public EventBus eventBus(Injector injector) {
+        val handlers = reflections.getTypesAnnotatedWith(EventHandlerImplementation.class);
+        val eventBus = injector.getInstance(SignalDrivenEventBus.class);
+        handlers.forEach(handlerClass -> {
+            val handler = (EventHandler)injector.getInstance(handlerClass);
+            eventBus.register(handler);
+            log.info("Registered event handler: {}", handlerClass.getSimpleName());
+        });
+        return eventBus;
+    }
 }
