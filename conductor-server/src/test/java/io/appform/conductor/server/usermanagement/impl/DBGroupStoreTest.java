@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.usermanagement.impl;
 
+import io.appform.conductor.model.usermgmt.GroupType;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
@@ -27,6 +28,8 @@ import io.appform.dropwizard.sharding.dao.RelationalDao;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -40,14 +43,14 @@ class DBGroupStoreTest {
     @Test
     void testCreate(BalancedDBShardingBundle<TestConfig> bundle) {
         val groupStore = new DBGroupStore(createRealGroupDao(bundle), createRealGroupUserMappingDao(bundle));
-        val group = groupStore.create("Test", "Test group", type, assignmentRule).orElse(null);
+        val group = groupStore.create("Test", "Test group", GroupType.MANUALLY_ASSIGNED, Set.of()).orElse(null);
         assertNotNull(group);
     }
 
     @Test
     void testCreateAssociation(BalancedDBShardingBundle<TestConfig> bundle) {
         val groupStore = new DBGroupStore(createRealGroupDao(bundle), createRealGroupUserMappingDao(bundle));
-        groupStore.create("Test", "Test Group", type, assignmentRule);
+        groupStore.create("Test", "Test Group", GroupType.MANUALLY_ASSIGNED, Set.of());
         assertTrue(groupStore.addUserToGroup("test", "test-user"));
         assertEquals(1, groupStore.findUsersForGroup("test", 0, Integer.MAX_VALUE).size());
         assertTrue(groupStore.removeUserFromGroup("test", "test-user"));
@@ -59,6 +62,7 @@ class DBGroupStoreTest {
     private LookupDao<StoredGroup> createRealGroupDao(BalancedDBShardingBundle<TestConfig> bundle) {
         return bundle.createParentObjectDao(StoredGroup.class);
     }
+
     private RelationalDao<StoredGroupUserMapping> createRealGroupUserMappingDao(BalancedDBShardingBundle<TestConfig> bundle) {
         return bundle.createRelatedObjectDao(StoredGroupUserMapping.class);
     }
