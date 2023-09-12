@@ -273,11 +273,10 @@ public class TicketManager {
             final String title,
             final String description,
             final TicketPriority priority) {
-        ConductorServerUtils.ensureNonNull(ticketStore.update(ticketId,
+        ConductorServerUtils.ensureNonNull(ticketStore.updateSkeleton(ticketId,
                         ticketSkeleton -> ticketSkeleton.setTitle(title)
                                 .setDescription(description)
-                                .setPriority(priority),
-                        List.of()).orElse(null),
+                                .setPriority(priority)).orElse(null),
                         ConductorErrorCode.TICKET_MGMT_NO_TICKET,
                         Map.of(TICKET_ID, ticketId));
         val payload = mapper.createObjectNode();
@@ -297,9 +296,7 @@ public class TicketManager {
 
     public boolean assignTicketToGroup(final String ticketId, final String groupId) {
         return groupStore.read(groupId)
-                .flatMap(group -> ticketStore.update(ticketId,
-                        ticketSkeleton -> ticketSkeleton.setAssignedToGroupId(groupId),
-                        List.of()))
+                .flatMap(group -> ticketStore.assignToGroup(ticketId, groupId))
                 .filter(ticketSkeleton -> groupId.equals(ticketSkeleton.getAssignedToGroupId()))
                 .isPresent();
     }
@@ -311,7 +308,7 @@ public class TicketManager {
 
     private Optional<TicketSkeleton> updateTicketFields(TicketSkeleton skeleton,
             List<TicketFieldData> fields) {
-        return ticketStore.update(skeleton.getTicketId(), t -> t, fields);
+        return ticketStore.setFields(skeleton.getTicketId(), fields);
     }
 
     private Optional<TicketSkeleton> updateTicketState(

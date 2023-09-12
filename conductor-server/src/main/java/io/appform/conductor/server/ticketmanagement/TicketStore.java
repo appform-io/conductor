@@ -57,6 +57,12 @@ public interface TicketStore {
             final UnaryOperator<TicketSkeleton> updater,
             final List<TicketFieldData> fields);
 
+    default Optional<TicketSkeleton> updateSkeleton(
+            final String ticketId,
+            final UnaryOperator<TicketSkeleton> updater) {
+        return update(ticketId, updater, List.of());
+    }
+
     default Optional<TicketSkeleton> updateState(
             final String ticketId,
             @NonNull final TicketState newState) {
@@ -146,7 +152,7 @@ public interface TicketStore {
 
     Optional<Attachment> registerAttachment(
             final String ticketId,
-            final String attchmentId,
+            final String attachmentId,
             final MediaType type,
             final URL url,
             final long sizeInBytes,

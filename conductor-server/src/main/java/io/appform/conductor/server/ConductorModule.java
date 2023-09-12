@@ -22,8 +22,11 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.name.Names;
 import io.appform.conductor.server.actionmanagement.ActionStore;
+import io.appform.conductor.server.actionmanagement.EventGeneratingActionStore;
 import io.appform.conductor.server.actionmanagement.impl.DBActionStore;
 import io.appform.conductor.server.actionmanagement.impl.models.StoredAction;
+import io.appform.conductor.server.auth.EventGeneratingRoleStore;
+import io.appform.conductor.server.auth.EventGeneratingUserRoleMappingStore;
 import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserRoleMappingStore;
 import io.appform.conductor.server.auth.impl.DBRoleStore;
@@ -37,6 +40,7 @@ import io.appform.conductor.server.eventmanagement.EventHandler;
 import io.appform.conductor.server.eventmanagement.EventHandlerImplementation;
 import io.appform.conductor.server.eventmanagement.impl.SignalDrivenEventBus;
 import io.appform.conductor.server.schemamanagement.impl.DBSchemaStore;
+import io.appform.conductor.server.schemamanagement.impl.EventGeneratingSchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.models.StoredFieldSchema;
 import io.appform.conductor.server.schemamanagement.impl.models.StoredSchemaSummary;
@@ -46,11 +50,13 @@ import io.appform.conductor.server.skillmanagement.impl.DBSkillStore;
 import io.appform.conductor.server.skillmanagement.impl.models.StoredSkillDefinition;
 import io.appform.conductor.server.skillmanagement.impl.models.StoredSkillValue;
 import io.appform.conductor.server.skillmanagement.impl.models.StoredUserSkillAssociation;
+import io.appform.conductor.server.subjectmanagement.EventGeneratingSubjectStore;
 import io.appform.conductor.server.subjectmanagement.SubjectStore;
 import io.appform.conductor.server.subjectmanagement.impl.DBSubjectStore;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredAddress;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectID;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectSummary;
+import io.appform.conductor.server.ticketmanagement.EventGeneratingTicketStore;
 import io.appform.conductor.server.ticketmanagement.TicketStore;
 import io.appform.conductor.server.ticketmanagement.impl.DBTicketStore;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
@@ -62,6 +68,7 @@ import io.appform.conductor.server.usermanagement.impl.*;
 import io.appform.conductor.server.usermanagement.impl.models.*;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.utils.dev.IgnoreGenerated;
+import io.appform.conductor.server.workflowmanagement.EventGeneratingWorkflowStore;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.appform.conductor.server.workflowmanagement.impl.DBWorkflowStore;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketState;
@@ -96,21 +103,44 @@ public class ConductorModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(UserStore.class).to(DBUserStore.class);
-        bind(GroupStore.class).to(DBGroupStore.class);
-        bind(SessionStore.class).to(DBSessionStore.class);
-        bind(UserActivationTokenStore.class).to(DBUserActivationTokenStore.class);
-        bind(UserPasswordAuthStore.class).to(DBUserPasswordAuthStore.class);
+        bind(UserStore.class).annotatedWith(Names.named("root")).to(DBUserStore.class);
+        bind(UserStore.class).to(EventGeneratingUserStore.class);
 
-        bind(RoleStore.class).to(DBRoleStore.class);
-        bind(UserRoleMappingStore.class).to(DBUserRoleMappingStore.class);
+        bind(GroupStore.class).annotatedWith(Names.named("root")).to(DBGroupStore.class);
+        bind(GroupStore.class).to(EventGeneratingGroupStore.class);
+
+        bind(SessionStore.class).annotatedWith(Names.named("root")).to(DBSessionStore.class);
+        bind(SessionStore.class).to(EventGeneratingSessionStore.class);
+
+        bind(UserActivationTokenStore.class).annotatedWith(Names.named("root")).to(DBUserActivationTokenStore.class);
+        bind(UserActivationTokenStore.class).to(EventGeneratingUserActivationTokenStore.class);
+
+        bind(UserPasswordAuthStore.class).annotatedWith(Names.named("root")).to(DBUserPasswordAuthStore.class);
+        bind(UserPasswordAuthStore.class).to(EventGeneratingUserPasswordAuthStore.class);
+
+        bind(RoleStore.class).annotatedWith(Names.named("root")).to(DBRoleStore.class);
+        bind(RoleStore.class).to(EventGeneratingRoleStore.class);
+
+        bind(UserRoleMappingStore.class).annotatedWith(Names.named("root")).to(DBUserRoleMappingStore.class);
+        bind(UserRoleMappingStore.class).to(EventGeneratingUserRoleMappingStore.class);
+
         bind(SkillStore.class).annotatedWith(Names.named("root")).to(DBSkillStore.class);
         bind(SkillStore.class).to(EventGeneratingSkillStore.class);
-        bind(SubjectStore.class).to(DBSubjectStore.class);
-        bind(ActionStore.class).to(DBActionStore.class);
-        bind(SchemaStore.class).to(DBSchemaStore.class);
-        bind(WorkflowStore.class).to(DBWorkflowStore.class);
-        bind(TicketStore.class).to(DBTicketStore.class);
+
+        bind(SubjectStore.class).annotatedWith(Names.named("root")).to(DBSubjectStore.class);
+        bind(SubjectStore.class).to(EventGeneratingSubjectStore.class);
+
+        bind(ActionStore.class).annotatedWith(Names.named("root")).to(DBActionStore.class);
+        bind(ActionStore.class).to(EventGeneratingActionStore.class);
+
+        bind(SchemaStore.class).annotatedWith(Names.named("root")).to(DBSchemaStore.class);
+        bind(SchemaStore.class).to(EventGeneratingSchemaStore.class);
+
+        bind(WorkflowStore.class).annotatedWith(Names.named("root")).to(DBWorkflowStore.class);
+        bind(WorkflowStore.class).to(EventGeneratingWorkflowStore.class);
+
+        bind(TicketStore.class).annotatedWith(Names.named("root")).to(DBTicketStore.class);
+        bind(TicketStore.class).to(EventGeneratingTicketStore.class);
     }
 
     @Provides
