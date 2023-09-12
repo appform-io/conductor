@@ -67,7 +67,6 @@ class DBSchemaStoreTest {
                                                                   "f1",
                                                                   "F1",
                                                                   "Test field 1",
-                                                                  true,
                                                                   null,
                                                                   null,
                                                                   null,
@@ -81,7 +80,6 @@ class DBSchemaStoreTest {
                                                                    "f2",
                                                                    "F2",
                                                                    "Test field 2",
-                                                                   true,
                                                                    null,
                                                                    null,
                                                                    null,
@@ -93,7 +91,6 @@ class DBSchemaStoreTest {
                                                                 "f3",
                                                                 "F3",
                                                                 "Test field 3",
-                                                                true,
                                                                 null,
                                                                 null,
                                                                 null,
@@ -105,7 +102,6 @@ class DBSchemaStoreTest {
                                                                     "f4",
                                                                     "F4",
                                                                     "Test field 4",
-                                                                    true,
                                                                     null,
                                                                     null,
                                                                     null,
@@ -119,7 +115,6 @@ class DBSchemaStoreTest {
                                                                   "f5",
                                                                   "F5",
                                                                   "Test field 5",
-                                                                  true,
                                                                   null,
                                                                   null,
                                                                   null,
@@ -134,7 +129,6 @@ class DBSchemaStoreTest {
                                                                   "f6",
                                                                   "F6",
                                                                   "Test field 6",
-                                                                  true,
                                                                   null,
                                                                   null,
                                                                   null,
@@ -157,7 +151,6 @@ class DBSchemaStoreTest {
         assertEquals("f1", schema.getFields().get(0).getName());
         assertEquals("F1", schema.getFields().get(0).getDisplayName());
         assertEquals("Test field 1", schema.getFields().get(0).getDescription());
-        assertTrue(schema.getFields().get(0).isRequired());
         assertNull(schema.getFields().get(0).getParent());
         assertNull(schema.getFields().get(0).getVisibilityCondition());
         assertNull(schema.getFields().get(0).getEditableCondition());
@@ -170,7 +163,6 @@ class DBSchemaStoreTest {
                                         schema.getFields().get(0).getName(),
                                         schema.getFields().get(0).getDisplayName(),
                                         schema.getFields().get(0).getDescription(),
-                                        schema.getFields().get(0).isRequired(),
                                         schema.getFields().get(0).getParent(),
                                         schema.getFields().get(0).getVisibilityCondition(),
                                         schema.getFields().get(0).getEditableCondition(),
@@ -201,7 +193,6 @@ class DBSchemaStoreTest {
         assertEquals("f2", schema.getFields().get(1).getName());
         assertEquals("F2", schema.getFields().get(1).getDisplayName());
         assertEquals("Test field 2", schema.getFields().get(1).getDescription());
-        assertTrue(schema.getFields().get(1).isRequired());
         assertNull(schema.getFields().get(1).getParent());
         assertNull(schema.getFields().get(1).getVisibilityCondition());
         assertNull(schema.getFields().get(1).getEditableCondition());
@@ -214,7 +205,6 @@ class DBSchemaStoreTest {
                 schema.getFields().get(1).getName(),
                 schema.getFields().get(1).getDisplayName(),
                 schema.getFields().get(1).getDescription(),
-                schema.getFields().get(1).isRequired(),
                 schema.getFields().get(1).getParent(),
                 schema.getFields().get(1).getVisibilityCondition(),
                 schema.getFields().get(1).getEditableCondition(),
@@ -227,7 +217,6 @@ class DBSchemaStoreTest {
         assertEquals(fieldSchema, schema.getFields().get(1));
         assertNotEquals(booleanFieldSchemaStored, booleanFieldSchema);
 
-        assertFalse(booleanFieldSchema.setRequired(false).isRequired());
         assertTrue(booleanFieldSchema.setDefaultValue(true).isDefaultValue());
         /* ****** Boolean field tests end ****** */
 
@@ -237,7 +226,6 @@ class DBSchemaStoreTest {
         assertEquals("f3", schema.getFields().get(2).getName());
         assertEquals("F3", schema.getFields().get(2).getDisplayName());
         assertEquals("Test field 3", schema.getFields().get(2).getDescription());
-        assertTrue(schema.getFields().get(2).isRequired());
         assertNull(schema.getFields().get(2).getParent());
         assertNull(schema.getFields().get(2).getVisibilityCondition());
         assertNull(schema.getFields().get(2).getEditableCondition());
@@ -250,7 +238,6 @@ class DBSchemaStoreTest {
                 schema.getFields().get(2).getName(),
                 schema.getFields().get(2).getDisplayName(),
                 schema.getFields().get(2).getDescription(),
-                schema.getFields().get(2).isRequired(),
                 schema.getFields().get(2).getParent(),
                 schema.getFields().get(2).getVisibilityCondition(),
                 schema.getFields().get(2).getEditableCondition(),
@@ -263,7 +250,6 @@ class DBSchemaStoreTest {
         assertEquals(fieldSchema, schema.getFields().get(2));
         assertNotEquals(dateFieldSchemaStored, dateFieldSchema);
 
-        assertFalse(dateFieldSchema.setRequired(false).isRequired());
         assertEquals(new Date(),dateFieldSchema.setDefaultValue(new Date()).getDefaultValue());
         /* ******* Date field tests end ****** */
 
@@ -273,7 +259,6 @@ class DBSchemaStoreTest {
         assertEquals("f4", schema.getFields().get(3).getName());
         assertEquals("F4", schema.getFields().get(3).getDisplayName());
         assertEquals("Test field 4", schema.getFields().get(3).getDescription());
-        assertTrue(schema.getFields().get(3).isRequired());
         assertNull(schema.getFields().get(3).getParent());
         assertNull(schema.getFields().get(3).getVisibilityCondition());
         assertNull(schema.getFields().get(3).getEditableCondition());
@@ -286,7 +271,6 @@ class DBSchemaStoreTest {
                 schema.getFields().get(3).getName(),
                 schema.getFields().get(3).getDisplayName(),
                 schema.getFields().get(3).getDescription(),
-                schema.getFields().get(3).isRequired(),
                 schema.getFields().get(3).getParent(),
                 schema.getFields().get(3).getVisibilityCondition(),
                 schema.getFields().get(3).getEditableCondition(),
@@ -301,7 +285,6 @@ class DBSchemaStoreTest {
         assertEquals(fieldSchema, schema.getFields().get(3));
         assertNotEquals(locationFieldSchemaStored, locationFieldSchema);
 
-        assertFalse(locationFieldSchema.setRequired(false).isRequired());
         assertEquals(10.0,locationFieldSchema.setDefaultLat(10.0).getDefaultLat());
         assertEquals(20.0,locationFieldSchema.setDefaultLon(20.0).getDefaultLon());
         /* ******* Location field tests end ****** */
@@ -312,7 +295,6 @@ class DBSchemaStoreTest {
         assertEquals("f5", schema.getFields().get(4).getName());
         assertEquals("F5", schema.getFields().get(4).getDisplayName());
         assertEquals("Test field 5", schema.getFields().get(4).getDescription());
-        assertTrue(schema.getFields().get(4).isRequired());
         assertNull(schema.getFields().get(4).getParent());
         assertNull(schema.getFields().get(4).getVisibilityCondition());
         assertNull(schema.getFields().get(4).getEditableCondition());
@@ -325,7 +307,6 @@ class DBSchemaStoreTest {
                 schema.getFields().get(4).getName(),
                 schema.getFields().get(4).getDisplayName(),
                 schema.getFields().get(4).getDescription(),
-                schema.getFields().get(4).isRequired(),
                 schema.getFields().get(4).getParent(),
                 schema.getFields().get(4).getVisibilityCondition(),
                 schema.getFields().get(4).getEditableCondition(),
@@ -341,7 +322,6 @@ class DBSchemaStoreTest {
         assertEquals(fieldSchema, schema.getFields().get(4));
         assertNotEquals(numberFieldSchemaStored, numberFieldSchema);
 
-        assertFalse(numberFieldSchema.setRequired(false).isRequired());
         assertEquals(200.0,numberFieldSchema.setMax(200.0).getMax());
         assertEquals(0.0,numberFieldSchema.setMin(0.0).getMin());
         assertEquals(10.0,numberFieldSchema.setDefaultValue(10.0).getDefaultValue());
@@ -353,7 +333,6 @@ class DBSchemaStoreTest {
         assertEquals("f6", schema.getFields().get(5).getName());
         assertEquals("F6", schema.getFields().get(5).getDisplayName());
         assertEquals("Test field 6", schema.getFields().get(5).getDescription());
-        assertTrue(schema.getFields().get(5).isRequired());
         assertNull(schema.getFields().get(5).getParent());
         assertNull(schema.getFields().get(5).getVisibilityCondition());
         assertNull(schema.getFields().get(5).getEditableCondition());
@@ -368,7 +347,6 @@ class DBSchemaStoreTest {
                 schema.getFields().get(5).getName(),
                 schema.getFields().get(5).getDisplayName(),
                 schema.getFields().get(5).getDescription(),
-                schema.getFields().get(5).isRequired(),
                 schema.getFields().get(5).getParent(),
                 schema.getFields().get(5).getVisibilityCondition(),
                 schema.getFields().get(5).getEditableCondition(),
@@ -384,7 +362,6 @@ class DBSchemaStoreTest {
         assertEquals(fieldSchema, schema.getFields().get(5));
         assertNotEquals(choiceFieldSchemaStored, choiceFieldSchema);
 
-        assertFalse(choiceFieldSchema.setRequired(false).isRequired());
         assertEquals(List.of(
                         new ChoiceFieldSchema.Option("man", "Man"),
                         new ChoiceFieldSchema.Option("woman", "Woman")
@@ -439,7 +416,6 @@ class DBSchemaStoreTest {
                                                                              "f1",
                                                                              "F1",
                                                                              "Test field 1",
-                                                                             true,
                                                                              null,
                                                                              null,
                                                                              null,
@@ -460,7 +436,6 @@ class DBSchemaStoreTest {
                                                                    "f1",
                                                                    "F1",
                                                                    "Test field 1",
-                                                                   true,
                                                                    null,
                                                                    null,
                                                                    null,
@@ -477,7 +452,6 @@ class DBSchemaStoreTest {
                                                                              "f1",
                                                                              "F1",
                                                                              "Test field 1",
-                                                                             true,
                                                                              null,
                                                                              null,
                                                                              null,
@@ -600,7 +574,6 @@ class DBSchemaStoreTest {
                     "f1",
                     "F1",
                     "Test field 1",
-                    true,
                     null,
                     null,
                     null,

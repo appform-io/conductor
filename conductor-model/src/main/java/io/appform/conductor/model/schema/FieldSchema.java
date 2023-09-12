@@ -67,11 +67,6 @@ public abstract class FieldSchema {
     private String description;
 
     /**
-     * Field value must be supplied
-     */
-    private boolean required;
-
-    /**
      * This is possible if field is child of another field (TODO)
      */
     private String parent;

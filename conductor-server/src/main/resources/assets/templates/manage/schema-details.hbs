@@ -104,13 +104,6 @@
                                         </select>
                                         <div id="fieldTypeHelp" class="form-text">Select data type of field.</div>
                                     </div>
-                                    <div class="mb-3 form-check form-switch">
-                                        <label for="fieldRequired"
-                                               class="form-check-label fw-bold">Mandatory field</label>
-                                        <input id="fieldRequired" name="fieldRequired"
-                                               class="form-check-input border border-dark"
-                                               type="checkbox" role="switch" value="true">
-                                    </div>
                                     <div class="mb-3 field-extra string-meta d-none">
                                         <label for="fieldStringMaxLength"
                                                class="col-form-label fw-bold">Max Length</label>
@@ -187,7 +180,6 @@
                                         <th>Name</th>
                                         <th>Description</th>
                                         <th>Type</th>
-                                        <th class="text-center">Required</th>
                                         <th>Multiple Allowed</th>
                                         <th>Last Updated</th>
                                         <th></th>
@@ -199,7 +191,6 @@
                                             <td>{{displayName}}</td>
                                             <td>{{name}}</td>
                                             <td>{{description}}</td>
-
                                             <td
                                                 {{#eqEnum type "STRING"}}
                                                     title="Max Length: {{maxLength}}. Regex: {{matchPattern}}"
@@ -211,13 +202,6 @@
                                                     title="Choices: {{#each choices}}{{this.value}} {{/each}} Multi Select: {{allowMultiple}}"
                                                 {{/eqEnum}}
                                             >{{readable type}}</td>
-                                            <td>
-                                                {{#if required eq true}}
-                                                    <span class="badge bg-danger ms-2">Required</span>
-                                                {{else}}
-                                                    <span class="badge bg-success ms-2">Not required</span>
-                                                {{/if}}
-                                            </td>
                                             <td>
                                                 {{#if allowMultiple eq true}}
                                                     <span class="badge bg-info ms-2">Multiple</span>

@@ -191,7 +191,8 @@ public class DBWorkflowStore implements WorkflowStore {
             boolean terminal,
             List<String> allowedActions,
             List<String> editableFields,
-            List<String> visibleFields) {
+            List<String> visibleFields,
+            List<String> requiredFields) {
         val updated = wfDao.lockAndGetExecutor(workflowId)
                 .createOrUpdate(tsDao,
                                 createCriteria(StoredTicketState.class, workflowId, false)
@@ -202,6 +203,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                         .setAllowedActions(allowedActions)
                                         .setEditableFields(editableFields)
                                         .setVisibleFields(visibleFields)
+                                        .setRequiredFields(requiredFields)
                                         .setDeleted(false),
                                 () -> new StoredTicketState()
                                         .setWorkflowId(workflowId)
@@ -211,7 +213,8 @@ public class DBWorkflowStore implements WorkflowStore {
                                         .setTerminal(terminal)
                                         .setAllowedActions(allowedActions)
                                         .setEditableFields(editableFields)
-                                        .setVisibleFields(visibleFields))
+                                        .setVisibleFields(visibleFields)
+                                        .setRequiredFields(requiredFields))
                 .execute() != null;
         log.info("State create status for {}/{}: {}", workflowId, stateId, updated);
         return read(workflowId);
@@ -373,6 +376,7 @@ public class DBWorkflowStore implements WorkflowStore {
                 state.getAllowedActions(),
                 state.getEditableFields(),
                 state.getVisibleFields(),
+                state.getRequiredFields(),
                 state.getCreated(),
                 state.getUpdated());
     }

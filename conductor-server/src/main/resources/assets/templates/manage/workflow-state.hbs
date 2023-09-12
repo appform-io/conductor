@@ -99,6 +99,7 @@
                                 <th class="col-6">Description</th>
                                 <th class="col-1 text-center">Visible</th>
                                 <th class="col-1 text-center">Editable</th>
+                                <th class="col-1 text-center">Required</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -117,6 +118,12 @@
                                                role="switch"
                                                id="editableFields" name="editableFields" value="{{id}}"
                                                {{#contains state.editableFields id}}checked{{/contains}}>
+                                    </td>
+                                    <td class="text-center">
+                                        <input class="form-check-input  border border-dark" type="checkbox"
+                                               role="switch"
+                                               id="requiredFields" name="requiredFields" value="{{id}}"
+                                               {{#contains state.requiredFields id}}checked{{/contains}}>
                                     </td>
                                 </tr>
                             {{/each}}

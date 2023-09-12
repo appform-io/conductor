@@ -93,7 +93,6 @@ class TicketManagerTest {
                                                               "firstName",
                                                               "First Name",
                                                               "",
-                                                              true,
                                                               null,
                                                               null,
                                                               null,
@@ -107,7 +106,6 @@ class TicketManagerTest {
                                                               "lastName",
                                                               "Last Name",
                                                               "",
-                                                              true,
                                                               null,
                                                               null,
                                                               null,
@@ -122,11 +120,11 @@ class TicketManagerTest {
                                 new Date());
         val states = Map.of(
                 "START",
-                new TicketState("START", "Start", "", false, List.of(), List.of(), List.of(), new Date(), new Date()),
+                new TicketState("START", "Start", "", false, List.of(), List.of(), List.of(), List.of(), new Date(), new Date()),
                 "FIRST_NAME_COLLECTED",
-                new TicketState("FIRST_NAME_COLLECTED", "First name collected", "", false, List.of(), List.of(), List.of(), new Date(), new Date()),
+                new TicketState("FIRST_NAME_COLLECTED", "First name collected", "", false, List.of(), List.of(), List.of(), List.of(), new Date(), new Date()),
                 "FULL_NAME_COLLECTED",
-                new TicketState("FULL_NAME_COLLECTED", "Full name collected", "", true, List.of(), List.of(), List.of(), new Date(), new Date())
+                new TicketState("FULL_NAME_COLLECTED", "Full name collected", "", true, List.of(), List.of(), List.of(), List.of(), new Date(), new Date())
                            );
         val transitions = Map.of(
                 "START", List.of(new TicketStateTransition("S_F_N_C",

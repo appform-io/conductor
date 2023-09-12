@@ -155,7 +155,6 @@ public class DBSchemaStore implements SchemaStore {
                                     .setAllowMultiple(storedSchema.isAllowMultiple())
                                     .setEditableCondition(storedSchema.getEditableCondition())
                                     .setVisibilityCondition(storedSchema.getVisibilityCondition())
-                                    .setRequired(storedSchema.isRequired())
                                     .setDeleted(false)
                                     .accept(new StoredFieldSchemaVisitor<>() {
                                         @Override
@@ -288,7 +287,6 @@ public class DBSchemaStore implements SchemaStore {
                                              storedField.getName(),
                                              storedField.getDisplayName(),
                                              storedField.getDescription(),
-                                             storedField.isRequired(),
                                              storedField.getParent(),
                                              storedField.getVisibilityCondition(),
                                              storedField.getEditableCondition(),
@@ -306,7 +304,6 @@ public class DBSchemaStore implements SchemaStore {
                                               storedField.getName(),
                                               storedField.getDisplayName(),
                                               storedField.getDescription(),
-                                              storedField.isRequired(),
                                               storedField.getParent(),
                                               storedField.getVisibilityCondition(),
                                               storedField.getEditableCondition(),
@@ -322,7 +319,6 @@ public class DBSchemaStore implements SchemaStore {
                                                storedField.getName(),
                                                storedField.getDisplayName(),
                                                storedField.getDescription(),
-                                               storedField.isRequired(),
                                                storedField.getParent(),
                                                storedField.getVisibilityCondition(),
                                                storedField.getEditableCondition(),
@@ -339,7 +335,6 @@ public class DBSchemaStore implements SchemaStore {
                                            storedField.getName(),
                                            storedField.getDisplayName(),
                                            storedField.getDescription(),
-                                           storedField.isRequired(),
                                            storedField.getParent(),
                                            storedField.getVisibilityCondition(),
                                            storedField.getEditableCondition(),
@@ -355,7 +350,6 @@ public class DBSchemaStore implements SchemaStore {
                                              storedField.getName(),
                                              storedField.getDisplayName(),
                                              storedField.getDescription(),
-                                             storedField.isRequired(),
                                              storedField.getParent(),
                                              storedField.getVisibilityCondition(),
                                              storedField.getEditableCondition(),
@@ -374,7 +368,6 @@ public class DBSchemaStore implements SchemaStore {
                                              storedField.getName(),
                                              storedField.getDisplayName(),
                                              storedField.getDescription(),
-                                             storedField.isRequired(),
                                              storedField.getParent(),
                                              storedField.getVisibilityCondition(),
                                              storedField.getEditableCondition(),
@@ -401,7 +394,6 @@ public class DBSchemaStore implements SchemaStore {
                                                    fieldSchema.getName(),
                                                    fieldSchema.getDisplayName(),
                                                    fieldSchema.getDescription(),
-                                                   fieldSchema.isRequired(),
                                                    fieldSchema.getParent(),
                                                    fieldSchema.getVisibilityCondition(),
                                                    fieldSchema.getEditableCondition(),
@@ -418,7 +410,6 @@ public class DBSchemaStore implements SchemaStore {
                                                    fieldSchema.getName(),
                                                    fieldSchema.getDisplayName(),
                                                    fieldSchema.getDescription(),
-                                                   fieldSchema.isRequired(),
                                                    fieldSchema.getParent(),
                                                    fieldSchema.getVisibilityCondition(),
                                                    fieldSchema.getEditableCondition(),
@@ -435,7 +426,6 @@ public class DBSchemaStore implements SchemaStore {
                                                     fieldSchema.getName(),
                                                     fieldSchema.getDisplayName(),
                                                     fieldSchema.getDescription(),
-                                                    fieldSchema.isRequired(),
                                                     fieldSchema.getParent(),
                                                     fieldSchema.getVisibilityCondition(),
                                                     fieldSchema.getEditableCondition(),
@@ -450,7 +440,6 @@ public class DBSchemaStore implements SchemaStore {
                                                      fieldSchema.getName(),
                                                      fieldSchema.getDisplayName(),
                                                      fieldSchema.getDescription(),
-                                                     fieldSchema.isRequired(),
                                                      fieldSchema.getParent(),
                                                      fieldSchema.getVisibilityCondition(),
                                                      fieldSchema.getEditableCondition(),
@@ -466,7 +455,6 @@ public class DBSchemaStore implements SchemaStore {
                                                  fieldSchema.getName(),
                                                  fieldSchema.getDisplayName(),
                                                  fieldSchema.getDescription(),
-                                                 fieldSchema.isRequired(),
                                                  fieldSchema.getParent(),
                                                  fieldSchema.getVisibilityCondition(),
                                                  fieldSchema.getEditableCondition(),
@@ -482,7 +470,6 @@ public class DBSchemaStore implements SchemaStore {
                                                    fieldSchema.getName(),
                                                    fieldSchema.getDisplayName(),
                                                    fieldSchema.getDescription(),
-                                                   fieldSchema.isRequired(),
                                                    fieldSchema.getParent(),
                                                    fieldSchema.getVisibilityCondition(),
                                                    fieldSchema.getEditableCondition(),
@@ -498,7 +485,6 @@ public class DBSchemaStore implements SchemaStore {
         schema
                 .setDisplayName(schema.getDisplayName())
                 .setDescription(updated.getDescription())
-                .setRequired(updated.isRequired())
                 .setParent(updated.getParent())
                 .setVisibilityCondition(updated.getVisibilityCondition())
                 .setEditableCondition(updated.getEditableCondition())

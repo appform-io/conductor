@@ -171,7 +171,7 @@
                                                         {{#empty
                                                                 fieldValue}}{{else}}value="{{fieldValue/value}}" {{/empty}}
                                                         {{#eq editable true}}
-                                                            {{#eq schema/required true}}required{{/eq}}
+                                                            {{#eq required true}}required{{/eq}}
                                                         {{else}}
                                                            disabled
                                                         {{/eq}}>
@@ -185,7 +185,7 @@
                                                             aria-describedby="ticketField-{{schema/name}}-Help"
                                                         {{#eq schema/allowMultiple true}}multiple{{/eq}}
                                                         {{#eq editable true}}
-                                                            {{#eq schema/required true}}required{{/eq}}
+                                                            {{#eq required true}}required{{/eq}}
                                                         {{else}}
                                                             disabled
                                                         {{/eq}}>
@@ -210,7 +210,7 @@
                                                             name="ticketField-{{schema/name}}"
                                                             aria-describedby="ticketField-{{schema/name}}-Help"
                                                         {{#eq editable true}}
-                                                            {{#eq schema/required true}}required{{/eq}}
+                                                            {{#eq required true}}required{{/eq}}
                                                         {{else}}
                                                             disabled
                                                         {{/eq}}>
@@ -237,7 +237,7 @@
                                                         {{#empty fieldValue}}{{else}}value="{{htmlDate fieldValue/value
                                                                                                        false}}" {{/empty}}
                                                         {{#eq editable true}}
-                                                            {{#eq schema/required true}}required{{/eq}}
+                                                            {{#eq required true}}required{{/eq}}
                                                         {{else}}
                                                            disabled
                                                         {{/eq}}>
@@ -253,7 +253,7 @@
                                                         {{#empty
                                                                 fieldValue}}{{else}}value="{{fieldValue/value}}" {{/empty}}
                                                         {{#eq editable true}}
-                                                            {{#eq schema/required true}}required{{/eq}}
+                                                            {{#eq required true}}required{{/eq}}
                                                         {{else}}
                                                            disabled
                                                         {{/eq}}>

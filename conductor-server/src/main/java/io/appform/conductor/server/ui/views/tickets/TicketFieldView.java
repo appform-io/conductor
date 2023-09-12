@@ -45,4 +45,9 @@ public class TicketFieldView {
      * Is field editable
      */
     boolean editable;
+
+    /**
+     * Is field required
+     */
+    boolean required;
 }

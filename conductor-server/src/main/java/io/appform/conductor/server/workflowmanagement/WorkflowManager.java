@@ -95,7 +95,8 @@ public class WorkflowManager {
             final boolean terminal,
             List<String> allowedActions,
             List<String> editableFields,
-            List<String> visibleFields) {
+            List<String> visibleFields,
+            List<String> requiredFields) {
         val stateId = workflowId + "_" + readableId(displayName);
         val wf = workflowStore.read(workflowId).orElse(null);
         ensureNotNull(workflowId, wf);
@@ -108,7 +109,8 @@ public class WorkflowManager {
                                                         terminal,
                                                         allowedActions,
                                                         editableFields,
-                                                        visibleFields);
+                                                        visibleFields,
+                                                        requiredFields);
         ensure(updated.filter(workflow -> workflow.getStates().containsKey(stateId)).isPresent(),
                ConductorErrorCode.WORKFLOW_ERROR, "State " + stateId + " could not be added");
         return updated;
@@ -121,7 +123,8 @@ public class WorkflowManager {
             final boolean terminal,
             List<String> allowedActions,
             List<String> editableFields,
-            List<String> visibleFields) {
+            List<String> visibleFields,
+            List<String> requiredFields) {
         val wf = workflowStore.read(workflowId).orElse(null);
         ensureNotNull(workflowId, wf);
         ensure(wf.getStates().containsKey(stateId),
@@ -133,7 +136,8 @@ public class WorkflowManager {
                                                         terminal,
                                                         allowedActions,
                                                         editableFields,
-                                                        visibleFields);
+                                                        visibleFields,
+                                                        requiredFields);
         ensure(updated.filter(workflow -> workflow.getStates().containsKey(stateId)).isPresent(),
                ConductorErrorCode.WORKFLOW_ERROR, "State " + stateId + " could not be added");
         return updated;

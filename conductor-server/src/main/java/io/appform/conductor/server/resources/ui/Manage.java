@@ -124,7 +124,6 @@ public class Manage {
             @FormParam("fieldName") @NotEmpty @Length(max = 45) final String fieldName,
             @FormParam("fieldDescription") @Length(max = 255) final String fieldDescription,
             @FormParam("fieldType") @NotNull final FieldType fieldType,
-            @FormParam("fieldRequired") @DefaultValue("false") final boolean fieldRequired,
             @FormParam("fieldStringMaxLength") @Min(1) @Max(255) final int fieldStringMaxLength,
             @FormParam("fieldStringRegex") final String fieldStringRegex,
             @FormParam("fieldChoiceChoices") final String fieldChoiceChoices,
@@ -138,7 +137,6 @@ public class Manage {
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
-                    .required(fieldRequired)
                     .maxLength(fieldStringMaxLength)
                     .matchPattern(fieldStringRegex)
                     .build();
@@ -146,7 +144,6 @@ public class Manage {
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
-                    .required(fieldRequired)
                     .allowMultiple(fieldChoiceMullti)
                     .choices(Arrays.stream(fieldChoiceChoices.split(","))
                                      .map(choice -> new ChoiceFieldSchema.Option(upperSnake(choice), choice))
@@ -156,13 +153,11 @@ public class Manage {
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
-                    .required(fieldRequired)
                     .build();
             case NUMBER -> NumberFieldSchema.builder()
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
-                    .required(fieldRequired)
                     .min(fieldNumberMin)
                     .max(fieldNumberMax)
                     .build();
@@ -170,13 +165,11 @@ public class Manage {
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
-                    .required(fieldRequired)
                     .build();
             case DATE -> DateFieldSchema.builder()
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
-                    .required(fieldRequired)
                     .build();
         };
         return schemaStore.addField(schemaId, schemaId + "-" + name, fs)
@@ -357,14 +350,16 @@ public class Manage {
             @FormParam("stateIsTerminal") @DefaultValue("false") final boolean stateIsTerminal,
             @FormParam("allowedActions") final List<String> allowedActions,
             @FormParam("editableFields") final List<String> editableFields,
-            @FormParam("visibleFields") final List<String> visibleFields) {
+            @FormParam("visibleFields") final List<String> visibleFields,
+            @FormParam("requiredFields") final List<String> requiredFields) {
         return workflowManager.createState(workflowId,
                                            stateName,
                                            stateDescription,
                                            stateIsTerminal,
                                            allowedActions,
                                            editableFields,
-                                           visibleFields)
+                                           visibleFields,
+                                           requiredFields)
                 .map(wf -> redirect("/manage/workflow/" + wf.getId()))
                 .orElseThrow(() -> fail("Could not add state " + stateName, "/manage/workflow"));
     }
@@ -380,7 +375,8 @@ public class Manage {
             @FormParam("stateIsTerminal") @DefaultValue("false") final boolean stateIsTerminal,
             @FormParam("allowedActions") final List<String> allowedActions,
             @FormParam("editableFields") final List<String> editableFields,
-            @FormParam("visibleFields") final List<String> visibleFields) {
+            @FormParam("visibleFields") final List<String> visibleFields,
+            @FormParam("requiredFields") final List<String> requiredFields) {
         val workflow = workflowManager.read(workflowId);
         if (workflow.isEmpty()) {
             throw fail("No workflow found for: " + workflowId, "/");
@@ -396,7 +392,8 @@ public class Manage {
                                            stateIsTerminal,
                                            allowedActions,
                                            editableFields,
-                                           visibleFields)
+                                           visibleFields,
+                                           requiredFields)
                 .map(wf -> redirect("/manage/workflow/" + wf.getId()))
                 .orElseThrow(() -> fail("Could not setup initial state state " + stateId + " for workflow " + workflowId,
                                         "/manage/workflow"));

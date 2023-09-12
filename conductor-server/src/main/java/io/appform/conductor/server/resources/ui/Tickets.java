@@ -148,7 +148,8 @@ public class Tickets {
                     return new TicketFieldView(fs.getType(),
                                                fs,
                                                null != existing ? existing.getFieldValue() : null,
-                                               ticketState.getEditableFields().contains(fs.getId()));
+                                               ticketState.getEditableFields().contains(fs.getId()),
+                                               ticketState.getRequiredFields().contains(fs.getId()));
                 })
                 .toList();
         return render(new TicketDetailsView(user.getUserSession().getUser(),

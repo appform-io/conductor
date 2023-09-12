@@ -66,9 +66,6 @@ public abstract class StoredFieldSchema {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "required")
-    private boolean required;
-
     @Column(name = "parent_id")
     private String parent;
 
@@ -103,7 +100,6 @@ public abstract class StoredFieldSchema {
                                 final String fieldId, String name,
                                 final String displayName,
                                 final String description,
-                                final boolean required,
                                 final String parent,
                                 final Rule visibilityCondition,
                                 final Rule editableCondition,
@@ -114,7 +110,6 @@ public abstract class StoredFieldSchema {
         this.name = name;
         this.displayName = displayName;
         this.description = description;
-        this.required = required;
         this.parent = parent;
         this.visibilityCondition = visibilityCondition;
         this.editableCondition = editableCondition;

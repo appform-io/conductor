@@ -80,6 +80,10 @@ public class StoredTicketState implements Serializable {
     @Convert(converter = StringListConverter.class)
     private List<String> visibleFields;
 
+    @Column(name = "required_fields", columnDefinition = "blob")
+    @Convert(converter = StringListConverter.class)
+    private List<String> requiredFields;
+
     @Column
     private boolean deleted;
 

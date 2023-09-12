@@ -63,6 +63,11 @@ public class TicketState {
     List<String> visibleFields;
 
     /**
+     * Field ids for fields that are required for this state
+     */
+    List<String> requiredFields;
+
+    /**
      * Creation date of the state
      */
     Date created;
