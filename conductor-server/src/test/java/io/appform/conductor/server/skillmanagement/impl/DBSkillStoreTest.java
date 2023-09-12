@@ -82,7 +82,7 @@ class DBSkillStoreTest {
         }
         IntStream.rangeClosed(1, 10)
                 .forEach(i -> skillStore.createSkillDefinition("Skill_" + i));
-        assertEquals(10, skillStore.list().size());
+        assertEquals(10, skillStore.listSkillDefinitions().size());
     }
 
     @Test

@@ -19,6 +19,7 @@ package io.appform.conductor.server.usermanagement.impl;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.usermgmt.Group;
+import io.appform.conductor.model.usermgmt.GroupType;
 import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.usermanagement.impl.models.StoredGroup;
 import io.appform.conductor.server.usermanagement.impl.models.StoredGroupUserMapping;
@@ -37,6 +38,7 @@ import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -61,11 +63,17 @@ public class DBGroupStore implements GroupStore {
     @SneakyThrows
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredGroup.GROUP_TABLE_NAME))
-    public Optional<Group> create(@Throws.RuntimeParam("id") String name, String description) {
+    public Optional<Group> create(@Throws.RuntimeParam("id") String name,
+                                  String description,
+                                  GroupType type,
+                                  Set<String> requiredSkills) {
         val groupId = ConductorServerUtils.lowerSnake(name);
         return groupDao.createOrUpdate(groupId,
-                                       g -> g.setDescription(description).setDeleted(false),
-                                       () -> new StoredGroup(groupId, name, description))
+                                       g -> g.setDescription(description)
+                                               .setType(type)
+                                               .setRequiredSkills(requiredSkills)
+                                               .setDeleted(false),
+                                       () -> new StoredGroup(groupId, name, description, type, requiredSkills))
                 .map(DBGroupStore::toWire);
     }
 
@@ -108,6 +116,8 @@ public class DBGroupStore implements GroupStore {
                 val groupDetails = toWire(group);
                 handler.accept(groupDetails);
                 group.setDescription(groupDetails.getDescription())
+                        .setType(groupDetails.getType())
+                        .setRequiredSkills(groupDetails.getRequiredSkills())
                         .setDeleted(groupDetails.isDeleted());
                 return group;
             }
@@ -197,6 +207,8 @@ public class DBGroupStore implements GroupStore {
                 group.getGroupId(),
                 group.getName(),
                 group.getDescription(),
+                group.getType(),
+                group.getRequiredSkills(),
                 group.isDeleted(),
                 group.getCreated(),
                 group.getCreated());

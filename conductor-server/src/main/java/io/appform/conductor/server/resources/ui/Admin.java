@@ -18,7 +18,6 @@ package io.appform.conductor.server.resources.ui;
 
 import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.auth.Role;
-import io.appform.conductor.model.skills.SkillDefinition;
 import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.auth.RoleStore;
@@ -177,14 +176,7 @@ public class Admin {
                                                              userDetails,
                                                              roleStore.list(),
                                                              groupStore.list(),
-                                                             skillStore.list()
-                                                                     .stream()
-                                                                     .flatMap(skillDefinition -> skillStore.readSkillDefinition(
-                                                                                     skillDefinition.getId())
-                                                                             .map(SkillDefinition::getValues)
-                                                                             .orElse(Set.of())
-                                                                             .stream())
-                                                                     .toList())))
+                                                             skillStore.listSkillValues())))
                 .orElseThrow(() -> fail("No user found for " + userId, USER_SEARCH_PATH));
     }
 

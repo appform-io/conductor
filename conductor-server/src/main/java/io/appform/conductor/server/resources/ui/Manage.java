@@ -20,6 +20,7 @@ import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.schema.fields.*;
+import io.appform.conductor.model.usermgmt.GroupType;
 import io.appform.conductor.model.usermgmt.Skill;
 import io.appform.conductor.model.workflow.Rule;
 import io.appform.conductor.model.workflow.TicketStateTransition;
@@ -41,16 +42,14 @@ import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 
@@ -468,7 +467,8 @@ public class Manage {
     @GET
     @Path("/groups")
     public Response renderGroupList(@Auth ConductorUser user) {
-        return render(new GroupListView(user.getUserSession().getUser(), userLifecycleManager.listGroups(), null));
+        return render(new GroupListView(user.getUserSession().getUser(), userLifecycleManager.listGroups(), null,
+                                        userLifecycleManager.listSkillValues()));
     }
 
     @POST
@@ -476,8 +476,10 @@ public class Manage {
     public Response createGroups(
             @Auth ConductorUser user,
             @FormParam("name") @NotEmpty @Length(max = 45) final String name,
-            @FormParam("description") @Length(max = 255) final String description) {
-        return userLifecycleManager.createGroup(name, description)
+            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("type") @DefaultValue("MANUALLY_ASSIGNED") @NotNull final GroupType type,
+            @FormParam("skillValueId") @Size(max = 8) final Set<String> skillValueId) {
+        return userLifecycleManager.createGroup(name, description, type, skillValueId)
                 .map(group -> redirect("/manage/groups/" + group.getId()))
                 .orElseThrow(() -> fail("Could not create group", "/manage/groups"));
     }
@@ -490,7 +492,8 @@ public class Manage {
         return userLifecycleManager.readGroup(groupId)
                 .map(group -> render(new GroupListView(user.getUserSession().getUser(),
                                                        userLifecycleManager.listGroups(),
-                                                       group)))
+                                                       group,
+                                                       userLifecycleManager.listSkillValues())))
                 .orElseThrow(() -> fail("No such group exists", "/manage/groups"));
     }
 
@@ -499,11 +502,17 @@ public class Manage {
     public Response updateGroup(
             @Auth ConductorUser user,
             @PathParam("groupId") @NotEmpty @Length(max = 45) final String groupId,
-            @FormParam("description") @NotEmpty @Length(max = 45) final String description) {
-        return userLifecycleManager.updateGroupDescription(groupId, description)
+            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("type") @DefaultValue("MANUALLY_ASSIGNED") @NotNull final GroupType type,
+            @FormParam("skillValueId") @Size(max = 8) final Set<String> skillValueId) {
+        return userLifecycleManager.updateGroup(groupId,
+                                                description,
+                                                type,
+                                                skillValueId)
                 .map(group -> redirect("/manage/groups/" + group.getId()))
-                .orElseThrow(() -> fail("Could not update group", "/manage/groups"));
+                        .orElseThrow(() -> fail("Could not update group", "/manage/groups"));
     }
+
 
     @POST
     @Path("/groups/{groupId}/delete")
@@ -571,7 +580,7 @@ public class Manage {
     public Response listSkills(
             @Auth final ConductorUser user) {
         return render(new SkillListView(user.getUserSession().getUser(),
-                                        userLifecycleManager.listSkills(),
+                                        userLifecycleManager.listSkillDefinitions(),
                                         null));
     }
 
@@ -581,9 +590,9 @@ public class Manage {
             @Auth final ConductorUser user,
             @PathParam("skillId") @NotEmpty @Length(max = 45) final String skillId) {
         val skill = userLifecycleManager.getSkill(skillId).orElse(null);
-        if(null != skill) {
+        if (null != skill) {
             return render(new SkillListView(user.getUserSession().getUser(),
-                                            userLifecycleManager.listSkills(),
+                                            userLifecycleManager.listSkillDefinitions(),
                                             skill));
         }
         throw fail("No skill found for id: " + skillId, "/manage/skills");
@@ -615,10 +624,10 @@ public class Manage {
     public Response deleteSkill(
             @Auth final ConductorUser user,
             @PathParam("skillId") @NotEmpty @Length(max = 45) final String skillId) {
-        if(userLifecycleManager.deleteSkillDefinition(skillId)) {
+        if (userLifecycleManager.deleteSkillDefinition(skillId)) {
             return redirect("/manage/skills/");
         }
-         throw  fail("Could not delete skill " + skillId, "/manage/skills");
+        throw fail("Could not delete skill " + skillId, "/manage/skills");
     }
 
     @POST
@@ -647,4 +656,17 @@ public class Manage {
         return new io.appform.conductor.model.workflow.Template(io.appform.conductor.model.workflow.Template.Type.STRING_SUBSTITUTION,
                                                                 templateValue);
     }
+
+    private static Rule createAssignmentRule(GroupType type, List<String> skillValueId) {
+        return switch (type) {
+            case MANUALLY_ASSIGNED -> null;
+            case AUTOMATICALLY_ASSIGNED -> new Rule(Rule.RuleType.HOPE,
+                                                    String.format("arr.contains_all([%s], '/skills') == true",
+                                                                  String.join(",",
+                                                                              skillValueId.stream()
+                                                                                      .map(id -> "'" + id + "'")
+                                                                                      .toList())));
+        };
+    }
+
 }

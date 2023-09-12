@@ -18,9 +18,11 @@ package io.appform.conductor.server.usermanagement;
 
 
 import io.appform.conductor.model.usermgmt.Group;
+import io.appform.conductor.model.usermgmt.GroupType;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -28,7 +30,7 @@ import java.util.function.Consumer;
  */
 public interface GroupStore {
 
-    Optional<Group> create(String name, String description);
+    Optional<Group> create(String name, String description, GroupType type, Set<String> requiredSkills);
     Optional<Group> read(String groupId);
 
     List<Group> read(List<String> groupIds);

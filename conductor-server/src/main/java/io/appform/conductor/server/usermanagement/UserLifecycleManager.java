@@ -214,13 +214,15 @@ public class UserLifecycleManager {
     /**
      * Create a new {@link Group}
      *
-     * @param name        name of the group
-     * @param description description of the group
+     * @param name           name of the group
+     * @param description    description of the group
+     * @param type
+     * @param assignmentRule
      * @return The newly created group
      */
-    public Optional<Group> createGroup(String name, String description) {
+    public Optional<Group> createGroup(String name, String description, GroupType type, Set<String> requiredSkills) {
         return groupStore.get()
-                .create(name, description);
+                .create(name, description, type, requiredSkills);
     }
 
 
@@ -229,10 +231,20 @@ public class UserLifecycleManager {
      * Update description for a group
      * @param groupId Group ID for group
      * @param description New description
+     * @param type Type of group
+     * @param requiredSkills Set of skills needed to get automatically assigned to this group
      * @return Updated group data
      */
-    public Optional<Group> updateGroupDescription(final String groupId, final String description) {
-        return groupStore.get().update(groupId, group -> group.setDescription(description));
+    public Optional<Group> updateGroup(
+            final String groupId,
+            final String description,
+            final GroupType type,
+            final Set<String> requiredSkills) {
+        return groupStore.get()
+                .update(groupId,
+                       group -> group.setDescription(description)
+                               .setType(type)
+                               .setRequiredSkills(requiredSkills));
     }
 
     /**
@@ -350,8 +362,12 @@ public class UserLifecycleManager {
         return skillStore.get().disassociateSkillWithUser(userId, skill.getSkillId(), skill.getSkillValueId());
     }
 
-    public List<SkillDefinition> listSkills() {
-        return skillStore.get().list();
+    public List<SkillDefinition> listSkillDefinitions() {
+        return skillStore.get().listSkillDefinitions();
+    }
+
+    public List<SkillValue> listSkillValues() {
+        return skillStore.get().listSkillValues();
     }
 
     public List<SkillValue> getSkillsForUser(String userId) {

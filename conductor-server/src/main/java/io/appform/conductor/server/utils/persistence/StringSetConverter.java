@@ -14,26 +14,28 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.usermgmt;
+package io.appform.conductor.server.utils.persistence;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.google.common.base.Strings;
 
-import java.util.Date;
+import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
 import java.util.Set;
 
 /**
- * A group of users in the system. Ticket routing will be done to groups or users.
+ *
  */
-@Data
-@AllArgsConstructor
-public class Group {
-    private final String id;
-    private final String name;
-    private String description;
-    private GroupType type;
-    private Set<String> requiredSkills;
-    private boolean deleted;
-    private final Date created;
-    private final Date updated;
+@Converter
+public class StringSetConverter implements AttributeConverter<Set<String>, String> {
+    @Override
+    public String convertToDatabaseColumn(Set<String> attribute) {
+        return null == attribute ? null : String.join(",", attribute);
+    }
+
+    @Override
+    public Set<String> convertToEntityAttribute(String dbData) {
+        return Strings.isNullOrEmpty(dbData)
+                ? Set.of()
+                : Set.of(dbData.split(","));
+    }
 }

@@ -40,14 +40,14 @@ class DBGroupStoreTest {
     @Test
     void testCreate(BalancedDBShardingBundle<TestConfig> bundle) {
         val groupStore = new DBGroupStore(createRealGroupDao(bundle), createRealGroupUserMappingDao(bundle));
-        val group = groupStore.create("Test", "Test group").orElse(null);
+        val group = groupStore.create("Test", "Test group", type, assignmentRule).orElse(null);
         assertNotNull(group);
     }
 
     @Test
     void testCreateAssociation(BalancedDBShardingBundle<TestConfig> bundle) {
         val groupStore = new DBGroupStore(createRealGroupDao(bundle), createRealGroupUserMappingDao(bundle));
-        groupStore.create("Test", "Test Group");
+        groupStore.create("Test", "Test Group", type, assignmentRule);
         assertTrue(groupStore.addUserToGroup("test", "test-user"));
         assertEquals(1, groupStore.findUsersForGroup("test", 0, Integer.MAX_VALUE).size());
         assertTrue(groupStore.removeUserFromGroup("test", "test-user"));

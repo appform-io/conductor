@@ -38,7 +38,9 @@ public interface SkillStore {
 
     boolean deleteSkillDefinition(final String id);
 
-    List<SkillDefinition> list();
+    List<SkillDefinition> listSkillDefinitions();
+
+    List<SkillValue> listSkillValues();
 
     boolean associateSkillWithUser(final String userId, final String skillId, final String valueId);
 

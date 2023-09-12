@@ -78,8 +78,8 @@ public class DBSkillStore implements SkillStore {
             @Throws.RuntimeParam("id") String skillId,
             String name) {
         return skillDao.update(skillId, skill -> skill.map(s -> s.setName(name)).orElse(null))
-                ? readSkillDefinition(skillId)
-                : Optional.empty();
+               ? readSkillDefinition(skillId)
+               : Optional.empty();
     }
 
     @Override
@@ -213,12 +213,41 @@ public class DBSkillStore implements SkillStore {
     @Override
     @Throws(value = ConductorErrorCode.STORE_LIST_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredSkillDefinition.SKILL_DEFINITION_TABLE_NAME))
-    public List<SkillDefinition> list() {
+    public List<SkillDefinition> listSkillDefinitions() {
         return skillDao.scatterGather(DetachedCriteria.forClass(StoredSkillDefinition.class)
                                               .add(Property.forName(StoredSkillDefinition.Fields.deleted).eq(false)))
                 .stream()
                 .sorted(Comparator.comparing(StoredSkillDefinition::getName))
                 .map(DBSkillStore::toWire)
+                .toList();
+    }
+
+    @Override
+    @Throws(value = ConductorErrorCode.STORE_RELATED_ENTITY_LIST_ERROR,
+            fixedParams = {
+            @Throws.Param(name = "type", value = StoredSkillValue.SKILL_VALUE_TABLE_NAME),
+            @Throws.Param(name = "id", value = "all"),
+            })
+    public List<SkillValue> listSkillValues() {
+        val values = skillValueDao.scatterGather(DetachedCriteria.forClass(StoredSkillValue.class)
+                                                         .add(Property.forName(StoredSkillValue.Fields.deleted)
+                                                                      .eq(false)),
+                                                 0,
+                                                 Integer.MAX_VALUE);
+        val skillIds = skillDao.scatterGather(DetachedCriteria.forClass(StoredSkillDefinition.class)
+                                                      .add(Property.forName(StoredSkillDefinition.Fields.deleted)
+                                                                   .eq(false)))
+                .stream()
+                .collect(Collectors.toMap(StoredSkillDefinition::getSkillId, DBSkillStore::toWire));
+        return values.stream()
+                .filter(value -> skillIds.get(value.getSkillId()) != null)
+                .map(value -> new SkillValue(value.getSkillId(),
+                                             value.getValueId(),
+                                             skillIds.get(value.getSkillId()).getName(),
+                                             value.getValue(),
+                                             value.getCreated(),
+                                             value.getUpdated()
+                ))
                 .toList();
     }
 

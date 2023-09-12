@@ -16,24 +16,10 @@
 
 package io.appform.conductor.model.usermgmt;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-import java.util.Date;
-import java.util.Set;
-
 /**
- * A group of users in the system. Ticket routing will be done to groups or users.
+ * Type of the group
  */
-@Data
-@AllArgsConstructor
-public class Group {
-    private final String id;
-    private final String name;
-    private String description;
-    private GroupType type;
-    private Set<String> requiredSkills;
-    private boolean deleted;
-    private final Date created;
-    private final Date updated;
+public enum GroupType {
+    MANUALLY_ASSIGNED,
+    AUTOMATICALLY_ASSIGNED
 }

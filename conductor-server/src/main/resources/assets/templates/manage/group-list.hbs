@@ -1,112 +1,147 @@
+{{#partial "page_css_includes"}}
+    <link href="/css/bootstrap-select.min.css" rel="stylesheet">
+{{/partial}}
+{{#partial "page_js_includes"}}
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+{{/partial}}
 {{#partial "content"}}
-<section>
-    <div class="row">
+    <section>
+        <div class="row">
 
-        <div class="col-sm-12 col-md-6">
-            <div class="row">
-                <div class="col-auto">
-                    {{#empty currentGroup}}
-                        <h4>Create a new Group</h4>
-                    {{else}}
-                        <h4>Updating group: <b>{{currentGroup.name}}</b></h4>
-                    {{/empty}}
-                </div>
-            </div>
-            <form method="post"
-                {{#empty currentGroup}}
-                  action="/manage/groups"
-                {{else}}
-                  action="/manage/groups/{{currentGroup.id}}/update"
-                {{/empty}}
-            >
-                <div class="mb-3">
-                    <label for="name" class="col-form-label fw-bold">Name</label>
-                    <input type="text" id="name" name="name" class="form-control border border-dark"
-                           maxlength="45" placeholder="Group Name" aria-describedby="nameHelp"
-                           value="{{currentGroup.name}}"
-                           {{#empty currentGroup}}required{{else}}disabled{{/empty}}
-                    >
-                    <div id="nameHelp" class="form-text">
-                        Name for the group. Name <i>can not</i> be changed once created. Max Length: 45.
+            <div class="col-sm-12 col-md-6">
+                <div class="row">
+                    <div class="col-auto">
+                        {{#empty currentGroup}}
+                            <h4>Create a new Group</h4>
+                        {{else}}
+                            <h4>Updating group: <b>{{currentGroup.name}}</b></h4>
+                        {{/empty}}
                     </div>
                 </div>
-                <div class="mb-3">
-                    <label for="description" class="col-form-label fw-bold">Description</label>
-                    <textarea id="description" name="description"
-                              class="form-control border border-dark" rows="5"
-                              placeholder="A description for the group" aria-describedby="descriptionHelp"
-                              aria-describedby="descriptionHelp">{{currentGroup.description}}</textarea>
-                    <div id="descriptionHelp" class="form-text">Optional, can be upto 255 characters long</div>
-                </div>
-                <div class="mb-3">
-                    <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Save</button>
-                </div>
-            </form>
-        </div>
-        <div class="col-sm-12 col-md-6">
-            <div class="row mb-2">
-                <div class="col-sm-7">
-                    <h4>Groups</h4>
-                </div>
-<!--                <div class="col-sm-5 d-flex justify-content-end">
-                    <a href="/manage/groups" role="button" class="btn btn-sm mt-2 btn-primary"><i class="bi bi-plus-lg"></i> Create</a>
-                </div>-->
-                <div class="col-sm-12 col-md-5 d-flex justify-content-end">
-                    <div class="btn-toolbar" role="toolbar">
-                        <div class="btn-group me-2" role="group">
-                            <div class="input-group border border-dark col-3">
-                                <span class="input-group-text" id="search-box"><i class="bi fs2 bi-search"></i></span>
-                                <input type="text" class="form-control form-control-sm  data-table-search"
-                                       id="group-search"
-                                       placeholder="Search Groups" aria-label="Search Groups" aria-describedby="search-box">
+                <form method="post"
+                    {{#empty currentGroup}}
+                      action="/manage/groups"
+                    {{else}}
+                      action="/manage/groups/{{currentGroup.id}}/update"
+                    {{/empty}}
+                >
+                    <div class="mb-3">
+                        <label for="name" class="col-form-label fw-bold">Name</label>
+                        <input type="text" id="name" name="name" class="form-control border border-dark"
+                               maxlength="45" placeholder="Group Name" aria-describedby="nameHelp"
+                               value="{{currentGroup.name}}"
+                               {{#empty currentGroup}}required{{else}}disabled{{/empty}}
+                        >
+                        <div id="nameHelp" class="form-text">
+                            Name for the group. Name <i>can not</i> be changed once created. Max Length: 45.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="col-form-label fw-bold">Description</label>
+                        <textarea id="description" name="description"
+                                  class="form-control border border-dark" rows="5"
+                                  placeholder="A description for the group" aria-describedby="descriptionHelp"
+                                  aria-describedby="descriptionHelp">{{currentGroup.description}}</textarea>
+                        <div id="descriptionHelp" class="form-text">Optional, can be upto 255 characters long</div>
+                    </div>
+                    <div class="col-sm-12 col-md-9">
+                        <label for="type" class="col-form-label fw-bold">Group Type</label>
+                        <select class="form-control selectpicker border border-dark"
+                                id="type" name="type"
+                                aria-describedby="typeHelp" required>
+                            {{#each availableGroupTypes}}
+                                <option value="{{this}}" {{#eq ../currentGroup/type this}}selected{{/eq}}>{{readable this}}</option>
+                            {{/each}}
+                        </select>
+                        <div id="typeHelp" class="form-text">Type of group. Rule will be considered for automatic.</div>
+                    </div>
+                    <div class="col-sm-12 col-md-9">
+                        <label for="skillValueId" class="col-form-label fw-bold">Required Skills for Automatic Assignment</label>
+                        <select class="form-control selectpicker border border-dark"
+                                id="skillValueId" name="skillValueId" multiple
+                                data-live-search="true" data-selected-text-format="count > 2"
+                                aria-describedby="skillValueIdHelp">
+                            {{#each skills}}
+                                <option value="{{skillValueId}}"
+                                        {{#contains ../currentGroup/requiredSkills this.skillValueId}}selected{{/contains}}>{{name}} - {{value}}</option>
+                            {{/each}}
+                        </select>
+                        <div id="skillValueIdHelp" class="form-text">
+                            Skills required to be member of this group. Select multiple.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Save</button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-sm-12 col-md-6">
+                <div class="row mb-2">
+                    <div class="col-sm-7">
+                        <h4>Groups</h4>
+                    </div>
+                    <!--                <div class="col-sm-5 d-flex justify-content-end">
+                                        <a href="/manage/groups" role="button" class="btn btn-sm mt-2 btn-primary"><i class="bi bi-plus-lg"></i> Create</a>
+                                    </div>-->
+                    <div class="col-sm-12 col-md-5 d-flex justify-content-end">
+                        <div class="btn-toolbar" role="toolbar">
+                            <div class="btn-group me-2" role="group">
+                                <div class="input-group border border-dark col-3">
+                                    <span class="input-group-text" id="search-box"><i
+                                            class="bi fs2 bi-search"></i></span>
+                                    <input type="text" class="form-control form-control-sm  data-table-search"
+                                           id="group-search"
+                                           placeholder="Search Groups" aria-label="Search Groups"
+                                           aria-describedby="search-box">
+                                </div>
+                            </div>
+                            <div class="btn-group pt-1 pb-1" role="group">
+                                <a href="/manage/groups" class="btn btn-sm btn-primary" role="button">
+                                    <i class="bi fs2 bi-plus-lg"></i>Create</a>
                             </div>
                         </div>
-                        <div class="btn-group pt-1 pb-1" role="group">
-                            <a href="/manage/groups" class="btn btn-sm btn-primary" role="button">
-                                <i class="bi fs2 bi-plus-lg"></i>Create</a>
-                        </div>
+
                     </div>
 
                 </div>
-
-            </div>
-            <div class="row">
-                <div class="col-sm-12 table-responsive">
-                    <table class="table table-bordered border-dark data-table" data-table-search="#group-search">
-                        <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Description</th>
-                            <th>Created</th>
-                            <th>Updated</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {{#each groups}}
+                <div class="row">
+                    <div class="col-sm-12 table-responsive">
+                        <table class="table table-bordered border-dark data-table" data-table-search="#group-search">
+                            <thead>
                             <tr>
-                                <td><a href="/manage/groups/{{id}}">{{name}}</a></td>
-                                <td>{{description}}</td>
-                                <td>{{created}}</td>
-                                <td>{{updated}}</td>
-                                <td>
-                                    <form class="confirmed-form" method="post" action="/manage/groups/{{id}}/delete"
-                                          data-cnf-title="Deleting group {{name}}"
-                                          data-cnf-text="Are you sure you want to delete this group?">
-                                        <button type="submit" class="btn btn-link p-0 text-danger"><i class="bi bi-trash-fill"></i></button>
-                                    </form>
-                                </td>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Created</th>
+                                <th>Updated</th>
+                                <th></th>
                             </tr>
-                        {{/each}}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            {{#each groups}}
+                                <tr>
+                                    <td><a href="/manage/groups/{{id}}">{{name}}</a></td>
+                                    <td>{{description}}</td>
+                                    <td>{{created}}</td>
+                                    <td>{{updated}}</td>
+                                    <td>
+                                        <form class="confirmed-form" method="post" action="/manage/groups/{{id}}/delete"
+                                              data-cnf-title="Deleting group {{name}}"
+                                              data-cnf-text="Are you sure you want to delete this group?">
+                                            <button type="submit" class="btn btn-link p-0 text-danger"><i
+                                                    class="bi bi-trash-fill"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {{/each}}
+                            </tbody>
+                        </table>
+
+                    </div>
 
                 </div>
-
             </div>
-        </div>
 
-    </div>
-</section>
+        </div>
+    </section>
 {{/partial}}
 {{> common/base}}

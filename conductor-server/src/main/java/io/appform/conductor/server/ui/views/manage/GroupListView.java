@@ -16,13 +16,17 @@
 
 package io.appform.conductor.server.ui.views.manage;
 
+import io.appform.conductor.model.skills.SkillValue;
 import io.appform.conductor.model.usermgmt.Group;
+import io.appform.conductor.model.usermgmt.GroupType;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -34,10 +38,13 @@ import java.util.List;
 public class GroupListView extends BaseLoggedInView {
     List<Group> groups;
     Group currentGroup;
+    Collection<GroupType> availableGroupTypes = EnumSet.allOf(GroupType.class);
+    Collection<SkillValue> skills;
 
-    public GroupListView(User currentUser, List<Group> groups, Group currentGroup) {
+    public GroupListView(User currentUser, List<Group> groups, Group currentGroup, Collection<SkillValue> skills) {
         super("templates/manage/group-list.hbs", currentUser);
         this.groups = groups;
         this.currentGroup = currentGroup;
+        this.skills = skills;
     }
 }
