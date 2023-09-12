@@ -32,8 +32,6 @@ public interface EventVisitor<T> {
 
     T visit(SkillValueRemovedEvent skillValueRemovedEvent);
 
-    T visit(SkillValueUpdatedEvent skillValueUpdatedEvent);
-
     T visit(UserSkillAssociatedEvent userSkillAssociatedEvent);
 
     T visit(UserSkillDisasocciatedEvent userSkillDisasocciatedEvent);
