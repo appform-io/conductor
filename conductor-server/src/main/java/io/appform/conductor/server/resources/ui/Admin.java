@@ -18,6 +18,7 @@ package io.appform.conductor.server.resources.ui;
 
 import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.auth.Role;
+import io.appform.conductor.model.usermgmt.GroupType;
 import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.auth.RoleStore;
@@ -175,7 +176,9 @@ public class Admin {
                 .map(userDetails -> render(new UserAdminView(user.getUserSession().getUser(),
                                                              userDetails,
                                                              roleStore.list(),
-                                                             groupStore.list(),
+                                                             groupStore.list().stream()
+                                                                     .filter(group -> GroupType.MANUALLY_ASSIGNED.equals(group.getType()))
+                                                                     .toList(),
                                                              skillStore.listSkillValues())))
                 .orElseThrow(() -> fail("No user found for " + userId, USER_SEARCH_PATH));
     }

@@ -181,6 +181,7 @@
                                 <tr>
                                     <th>Group</th>
                                     <th>Description</th>
+                                    <th>Type</th>
                                     <th></th>
                                 </tr>
                                 </thead>
@@ -189,14 +190,20 @@
                                     <tr>
                                         <td title="{{id}}">{{name}}</td>
                                         <td>{{desciption}}</td>
+                                        <td><span class="badge bg-info ms-2">{{readable type}}</span></td>
                                         <td>
-                                            <form class="confirmed-form" method="post"
-                                                  action="/manage/users/{{../userDetails/summary/id}}/groups/{{id}}/remove"
-                                                  data-cnf-title="Removing user from group"
-                                                  data-cnf-text="Are you sure you want to remove the user {{../name}} from group {{name}}?">
-                                                <button type="submit" class="btn btn-link p-0 text-danger"><i
-                                                        class="bi bi-trash-fill"></i></button>
-                                            </form>
+                                            {{#eqEnum type "MANUALLY_ASSIGNED"}}
+                                                <form class="confirmed-form" method="post"
+                                                      action="/manage/users/{{../userDetails/summary/id}}/groups/{{id}}/remove"
+                                                      data-cnf-title="Removing user from group"
+                                                      data-cnf-text="Are you sure you want to remove the user {{../name}} from group {{name}}?">
+                                                    <button type="submit" class="btn btn-link p-0 text-danger"><i
+                                                            class="bi bi-trash-fill"></i></button>
+                                                </form>
+                                            {{else}}
+                                                <button type="button" class="btn p-0 text-secondary">
+                                                    <i class="bi bi-trash-fill"></i></button>
+                                            {{/eqEnum}}
                                         </td>
                                     </tr>
                                 {{/each}}

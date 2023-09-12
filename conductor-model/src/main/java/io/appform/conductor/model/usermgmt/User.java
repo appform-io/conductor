@@ -21,7 +21,7 @@ import io.appform.conductor.model.auth.Role;
 import io.appform.conductor.model.skills.SkillValue;
 import lombok.Value;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -32,6 +32,6 @@ public class User {
     UserSummary summary;
     Role assignedRole;
     Set<Permission> permissions;
-    Collection<Group> groups;
-    Collection<SkillValue> skills;
+    List<Group> groups;
+    List<SkillValue> skills;
 }
