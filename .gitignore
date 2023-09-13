@@ -1,6 +1,7 @@
 /.idea/
 .*.sw*
-/*.iml
+*.iml
+*/*.iml
 /creds.sh
 /target
 dep

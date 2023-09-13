@@ -237,7 +237,7 @@ public class Tickets {
             ticketFilters.add(new TicketSubjectEquals(subjectId));
         }
         if (!Strings.isNullOrEmpty(groupId)) {
-            ticketFilters.add(new TicketAssignedToGroup(groupId));
+            ticketFilters.add(new TicketAssignedToGroup(Set.of(groupId)));
         }
         if (!Strings.isNullOrEmpty(createdById)) {
             ticketFilters.add(new TicketCreatedBy(createdById));

@@ -404,7 +404,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketAssignedToGroup assignedToGroup) {
                 criteria.add(Property.forName(StoredTicketSkeleton.Fields.assignedToGroupId)
-                                     .eq(assignedToGroup.getAssignedGroupId()));
+                                     .in(assignedToGroup.getAssignedGroupIds()));
                 return null;
             }
 
