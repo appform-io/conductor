@@ -39,11 +39,12 @@ import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
-import javax.validation.constraints.*;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -182,7 +183,7 @@ public class Tickets {
             @Auth final ConductorUser user,
             @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
             @FormParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
-        if(ticketManager.assignTicketToGroup(ticketId, groupId)) {
+        if (ticketManager.assignTicketToGroup(ticketId, groupId)) {
             return redirect("/tickets/" + ticketId + "/details");
         }
         throw fail("Could not assign ticket to group", "/tickets/" + ticketId + "/details");
@@ -200,8 +201,65 @@ public class Tickets {
                 .orElse(Response.seeOther(URI.create("/")).build());
     }
 
+    @POST
+    @Path("/{ticketId}/assign")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response assignTicketToMe(
+            @Auth final ConductorUser user,
+            @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId) {
+        if (ticketManager.assignTicketToUser(ticketId, user.getUserSession().getUser().getSummary().getId())) {
+            return redirect("/tickets/" + ticketId + "/details");
+        }
+        throw fail("Could not assign ticket to user", "/tickets/" + ticketId + "/details");
+    }
+
+    @POST
+    @Path("/{ticketId}/assign/{userId}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response assignTicketToUser(
+            @Auth final ConductorUser user,
+            @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
+            @FormParam("userId") @NotEmpty @Length(max = 45) final String userId) {
+        if (ticketManager.assignTicketToUser(ticketId, userId)) {
+            return redirect("/tickets/" + ticketId + "/details");
+        }
+        throw fail("Could not assign ticket to user", "/tickets/" + ticketId + "/details");
+    }
+
+    @POST
+    @Path("/{ticketId}/unassign")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response unassignTicketFromMe(
+            @Auth final ConductorUser user,
+            @HeaderParam(com.google.common.net.HttpHeaders.REFERER) final URI referrer,
+            @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId) {
+        val referrerPath = null == referrer
+                           ? null
+                           : referrer.getPath();
+        val redirectPath = referrerPath == null
+                ? "/tickets/" + ticketId + "/details"
+                : referrerPath.replaceAll("/apis/ui", "");
+        if (ticketManager.unassignTicketFromEveryone(ticketId)) {
+            return redirect(redirectPath);
+        }
+        throw fail("Could not unassign ticket from user", redirectPath);
+    }
+
+    @POST
+    @Path("/{ticketId}/unassign/{userId}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response unassignTicketToUser(
+            @Auth final ConductorUser user,
+            @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
+            @FormParam("userId") @NotEmpty @Length(max = 45) final String userId) {
+        if (ticketManager.unassignTicketFromUser(ticketId, userId)) {
+            return redirect("/tickets/" + ticketId + "/details");
+        }
+        throw fail("Could not unassign ticket from user", "/tickets/" + ticketId + "/details");
+    }
+
     @GET
-    public Response response(@Auth ConductorUser user) {
+    public Response listTickets(@Auth ConductorUser user) {
         return render(TicketSearchView.builder()
                               .currentUser(user.getUserSession().getUser())
                               .workflows(workflowStore.list(Set.of(WorkflowState.ACTIVE)))

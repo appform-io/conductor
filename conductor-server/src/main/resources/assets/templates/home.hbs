@@ -18,6 +18,7 @@
                                 <th>Priority</th>
                                 <th>Created</th>
                                 <th>Last Updated</th>
+                                <td></td>
                             </tr>
                             </thead>
                             <tbody>
@@ -33,6 +34,11 @@
                                     <td>{{priority}}</td>
                                     <td>{{created}}</td>
                                     <td>{{updated}}</td>
+                                    <td>
+                                        <form method="post" action="/tickets/{{ticketId}}/assign">
+                                            <button type="submit" class="btn btn-outline-success btn-sm">Assign to me</button>
+                                        </form>
+                                    </td>
                                 </tr>
                             {{/each}}
                             </tbody>
@@ -57,6 +63,7 @@
                                 <th>Priority</th>
                                 <th>Created</th>
                                 <th>Last Updated</th>
+                                <td></td>
                             </tr>
                             </thead>
                             <tbody>
@@ -72,6 +79,11 @@
                                     <td>{{priority}}</td>
                                     <td>{{created}}</td>
                                     <td>{{updated}}</td>
+                                    <td>
+                                        <form method="post" action="/tickets/{{ticketId}}/unassign">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">Unassign</button>
+                                        </form>
+                                    </td>
                                 </tr>
                             {{/each}}
                             </tbody>

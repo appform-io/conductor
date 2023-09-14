@@ -79,7 +79,8 @@ public class Home {
         val relevantOpenTickets = groups.isEmpty()
                                   ? List.<TicketGist>of()
                                   : ticketManager.search(List.of(new TicketAssignedToGroup(groups),
-                                                                 new TicketStateIn(terminalStates, true)),
+                                                                 new TicketStateIn(terminalStates, true),
+                                                                 new TicketAssignedToUser(null)),
                                                          List.of(), null, 10).getResults();
         val myTickets = groups.isEmpty()
                         ? List.<TicketGist>of()

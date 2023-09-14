@@ -33,7 +33,7 @@ import java.util.List;
 public class HomeView extends BaseLoggedInView {
 
     List<TicketGist> relevantOpenTickets;
-    private final List<TicketGist> myTickets;
+    List<TicketGist> myTickets;
 
     public HomeView(User user, List<TicketGist> relevantOpenTickets, List<TicketGist> myTickets) {
         super("templates/home.hbs", user);
