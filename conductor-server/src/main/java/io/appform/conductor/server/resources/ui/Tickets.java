@@ -165,13 +165,24 @@ public class Tickets {
     @POST
     @Path("/{ticketId}/summary/update")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response updateTicket(
+    public Response updateTicketSummary(
             @Auth final ConductorUser user,
             @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
             @FormParam("title") @NotEmpty @Length(max = 255) final String title,
-            @FormParam("description") @DefaultValue("") @Length(max = 4096) final String description,
+            @FormParam("description") @DefaultValue("") @Length(max = 4096) final String description) {
+        return ticketManager.processFormSummaryUpdate(ticketId, title, description)
+                .map(t -> Response.seeOther(URI.create("/tickets/" + ticketId + "/details")).build())
+                .orElse(Response.seeOther(URI.create("/")).build());
+    }
+
+    @POST
+    @Path("/{ticketId}/priority/update")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response updateTicket(
+            @Auth final ConductorUser user,
+            @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
             @FormParam("priority") @DefaultValue("MEDIUM") final TicketPriority priority) {
-        return ticketManager.processFormSummaryUpdate(ticketId, title, description, priority)
+        return ticketManager.processFormTicketPriorityUpdate(ticketId, priority)
                 .map(t -> Response.seeOther(URI.create("/tickets/" + ticketId + "/details")).build())
                 .orElse(Response.seeOther(URI.create("/")).build());
     }

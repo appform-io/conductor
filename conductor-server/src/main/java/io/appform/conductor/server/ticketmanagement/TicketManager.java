@@ -274,12 +274,27 @@ public class TicketManager {
     public Optional<TicketDetails> processFormSummaryUpdate(
             final String ticketId,
             final String title,
-            final String description,
-            final TicketPriority priority) {
+            final String description) {
         ConductorServerUtils.ensureNonNull(ticketStore.update(ticketId,
                                                               ticketSkeleton -> ticketSkeleton.setTitle(title)
-                                                                      .setDescription(description)
-                                                                      .setPriority(priority),
+                                                                      .setDescription(description),
+                                                              List.of()).orElse(null),
+                                           ConductorErrorCode.TICKET_MGMT_NO_TICKET,
+                                           Map.of(TICKET_ID, ticketId));
+        val payload = mapper.createObjectNode();
+        payload.put(INTERNAL_TICKET_FIELD, ticketId);
+        return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CONSOLE_UPDATE,
+                                         payload, (node, fields, schema) -> {
+                });
+    }
+
+
+    @SneakyThrows
+    public Optional<TicketDetails> processFormTicketPriorityUpdate(
+            final String ticketId,
+            final TicketPriority priority) {
+        ConductorServerUtils.ensureNonNull(ticketStore.update(ticketId,
+                                                              ticketSkeleton -> ticketSkeleton.setPriority(priority),
                                                               List.of()).orElse(null),
                                            ConductorErrorCode.TICKET_MGMT_NO_TICKET,
                                            Map.of(TICKET_ID, ticketId));
