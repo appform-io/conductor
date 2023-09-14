@@ -1,0 +1,26 @@
+package io.appform.conductor.server.eventmanagement.events;
+
+import io.appform.conductor.server.eventmanagement.Event;
+import io.appform.conductor.server.eventmanagement.EventType;
+import io.appform.conductor.server.eventmanagement.EventVisitor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.Value;
+
+@Value
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class UserPasswordSetEvent extends Event {
+    String userId;
+
+    public UserPasswordSetEvent(String userId) {
+        super(EventType.USER_PASSWORD_SET);
+        this.userId = userId;
+    }
+
+    @Override
+    public <T> T accept(EventVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
+}

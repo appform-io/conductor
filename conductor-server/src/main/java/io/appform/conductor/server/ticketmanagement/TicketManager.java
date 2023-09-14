@@ -293,9 +293,8 @@ public class TicketManager {
     public Optional<TicketDetails> processFormTicketPriorityUpdate(
             final String ticketId,
             final TicketPriority priority) {
-        ConductorServerUtils.ensureNonNull(ticketStore.update(ticketId,
-                                                              ticketSkeleton -> ticketSkeleton.setPriority(priority),
-                                                              List.of()).orElse(null),
+        ConductorServerUtils.ensureNonNull(ticketStore.changePriority(ticketId,priority)
+                                            .orElse(null),
                                            ConductorErrorCode.TICKET_MGMT_NO_TICKET,
                                            Map.of(TICKET_ID, ticketId));
         val payload = mapper.createObjectNode();
@@ -324,10 +323,9 @@ public class TicketManager {
                                 && groupStore.findGroupsForUser(existingUserId).contains(group)
                         ? existingUserId
                         : null;
-        return ticketStore.update(ticketId,
+        return ticketStore.updateSkeleton(ticketId,
                                   ticketSkeleton -> ticketSkeleton.setAssignedToGroupId(groupId)
-                                          .setAssignedToUserId(newUserId),
-                                  List.of())
+                                                                .setAssignedToUserId(newUserId))
                 .filter(ticketSkeleton -> groupId.equals(ticketSkeleton.getAssignedToGroupId()))
                 .isPresent();
     }
@@ -372,7 +370,7 @@ public class TicketManager {
     private Optional<TicketSkeleton> updateTicketFields(
             TicketSkeleton skeleton,
             List<TicketFieldData> fields) {
-        return ticketStore.update(skeleton.getTicketId(), t -> t, fields);
+        return ticketStore.setFields(skeleton.getTicketId(), fields);
     }
 
     private Optional<TicketSkeleton> updateTicketState(
