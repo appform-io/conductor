@@ -19,6 +19,7 @@ package io.appform.conductor.server.ticketmanagement;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.FieldSchema;
@@ -41,6 +42,7 @@ import io.appform.conductor.model.ticket.filter.ticketfilters.TicketStateIn;
 import io.appform.conductor.model.ticket.filter.ticketfilters.TicketSubjectEquals;
 import io.appform.conductor.model.ticket.filter.ticketfilters.TicketWorkflowEquals;
 import io.appform.conductor.model.usermgmt.Group;
+import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.workflow.TicketStateTransition;
 import io.appform.conductor.model.workflow.Workflow;
@@ -50,9 +52,10 @@ import io.appform.conductor.server.ruleengines.RuleEngine;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.subjectmanagement.SubjectStore;
 import io.appform.conductor.server.templateengines.TemplateEngine;
-import io.appform.conductor.server.ticketmanagement.statemachine.models.*;
 import io.appform.conductor.server.ticketmanagement.statemachine.TicketStateMachine;
 import io.appform.conductor.server.ticketmanagement.statemachine.TransitionHandler;
+import io.appform.conductor.server.ticketmanagement.statemachine.models.TicketStateMachineContext;
+import io.appform.conductor.server.ticketmanagement.statemachine.models.TriggerData;
 import io.appform.conductor.server.ticketmanagement.statemachine.models.strategy.TicketMetaDataFetchStrategy;
 import io.appform.conductor.server.ticketmanagement.statemachine.models.strategy.TicketStateMachineContextBuilderStrategy;
 import io.appform.conductor.server.ticketmanagement.statemachine.models.strategy.TriggerStrategy;
@@ -66,7 +69,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.hibernate.jdbc.Work;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -171,9 +173,10 @@ public class TicketManager {
         return ticketStore.groupCount(ticketFilters, fieldFilters, Map.of(), ticketPropertyName);
     }
 
-    public TimeSeriesResponse timeSeries(final List<TicketFilter> ticketFilters,
-                                  final List<TicketFieldFilter> fieldFilters,
-                                         final TimeResolution resolution) {
+    public TimeSeriesResponse timeSeries(
+            final List<TicketFilter> ticketFilters,
+            final List<TicketFieldFilter> fieldFilters,
+            final TimeResolution resolution) {
         return ticketStore.timeSeries(ticketFilters, fieldFilters, Map.of(), resolution);
     }
 
@@ -223,14 +226,14 @@ public class TicketManager {
         payload.set(INTERNAL_SUBJECT_FIELD, subjectID);
 
         return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CONSOLE,
-                payload, (node, fields, schema) -> {
+                                         payload, (node, fields, schema) -> {
                 });
     }
 
     @SneakyThrows
     public Optional<TicketDetails> processRaw(final JsonNode payload) {
         return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.RAW_DATA,
-                payload, (node, fields, schema) -> {
+                                         payload, (node, fields, schema) -> {
                 });
     }
 
@@ -250,19 +253,19 @@ public class TicketManager {
                 });
         //adding ticketId
         payload.put(INTERNAL_TICKET_FIELD, ticketId);
-        return triggerTicketStateMachine( TicketStateMachineContextBuilderStrategy.CONSOLE_UPDATE,
-                payload, (node, fields, schema) -> {
+        return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CONSOLE_UPDATE,
+                                         payload, (node, fields, schema) -> {
                     val fs = schema.getFields()
                             .stream().collect(Collectors.toMap(FieldSchema::getId,
-                                    Function.identity()));
+                                                               Function.identity()));
                     val objectNode = (ObjectNode) node;
                     objectNode.removeAll();
                     fields.forEach(field -> {
                         val fieldSchema = fs.get(field.getSchemaFieldId());
                         objectNode.set(fieldSchema.getName(),
-                                ConductorServerUtils.mapValueToJsonNode(mapper,
-                                        fieldSchema,
-                                        field.getValue()));
+                                       ConductorServerUtils.mapValueToJsonNode(mapper,
+                                                                               fieldSchema,
+                                                                               field.getValue()));
                     });
                 });
     }
@@ -271,33 +274,91 @@ public class TicketManager {
     public Optional<TicketDetails> processFormSummaryUpdate(
             final String ticketId,
             final String title,
-            final String description,
-            final TicketPriority priority) {
-        ConductorServerUtils.ensureNonNull(ticketStore.updateSkeleton(ticketId,
-                        ticketSkeleton -> ticketSkeleton.setTitle(title)
-                                .setDescription(description)
-                                .setPriority(priority)).orElse(null),
-                        ConductorErrorCode.TICKET_MGMT_NO_TICKET,
-                        Map.of(TICKET_ID, ticketId));
+            final String description) {
+        ConductorServerUtils.ensureNonNull(ticketStore.update(ticketId,
+                                                              ticketSkeleton -> ticketSkeleton.setTitle(title)
+                                                                      .setDescription(description),
+                                                              List.of()).orElse(null),
+                                           ConductorErrorCode.TICKET_MGMT_NO_TICKET,
+                                           Map.of(TICKET_ID, ticketId));
         val payload = mapper.createObjectNode();
         payload.put(INTERNAL_TICKET_FIELD, ticketId);
         return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CONSOLE_UPDATE,
-                payload, (node, fields, schema) -> {
+                                         payload, (node, fields, schema) -> {
+                });
+    }
+
+
+    @SneakyThrows
+    public Optional<TicketDetails> processFormTicketPriorityUpdate(
+            final String ticketId,
+            final TicketPriority priority) {
+        ConductorServerUtils.ensureNonNull(ticketStore.changePriority(ticketId,priority)
+                                            .orElse(null),
+                                           ConductorErrorCode.TICKET_MGMT_NO_TICKET,
+                                           Map.of(TICKET_ID, ticketId));
+        val payload = mapper.createObjectNode();
+        payload.put(INTERNAL_TICKET_FIELD, ticketId);
+        return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CONSOLE_UPDATE,
+                                         payload, (node, fields, schema) -> {
                 });
     }
 
     @SneakyThrows
     public Optional<TicketDetails> processCallback(final String ticketId, final JsonNode payload) {
         ((ObjectNode) payload).put(INTERNAL_TICKET_FIELD, ticketId);
-        return triggerTicketStateMachine( TicketStateMachineContextBuilderStrategy.CALLBACK, 
-                payload, (node, fields, schema) -> {
+        return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CALLBACK,
+                                         payload, (node, fields, schema) -> {
                 });
     }
 
     public boolean assignTicketToGroup(final String ticketId, final String groupId) {
-        return groupStore.read(groupId)
-                .flatMap(group -> ticketStore.assignToGroup(ticketId, groupId))
+        val group = groupStore.read(groupId).orElse(null);
+        val ticketCurrState = ticketStore.read(ticketId, false).orElse(null);
+        if (null == group || null == ticketCurrState) {
+            return false;
+        }
+        val existingUserId = ticketCurrState.getAssignedToUserId();
+        val newUserId = !Strings.isNullOrEmpty(existingUserId)
+                                && groupStore.findGroupsForUser(existingUserId).contains(group)
+                        ? existingUserId
+                        : null;
+        return ticketStore.updateSkeleton(ticketId,
+                                  ticketSkeleton -> ticketSkeleton.setAssignedToGroupId(groupId)
+                                                                .setAssignedToUserId(newUserId))
                 .filter(ticketSkeleton -> groupId.equals(ticketSkeleton.getAssignedToGroupId()))
+                .isPresent();
+    }
+
+    public boolean assignTicketToUser(final String ticketId, final String userId) {
+        val ticketCurrState = ticketStore.read(ticketId, false).orElse(null);
+        if (null == ticketCurrState
+                || null == ticketCurrState.getAssignedToGroupId()
+                || groupStore.findGroupsForUser(userId)
+                .stream()
+                .map(Group::getId)
+                .noneMatch(gid -> gid.equals(ticketCurrState.getAssignedToGroupId()))) {
+            return false;
+        }
+        return userStore.getById(userId)
+                .filter(userSummary -> UserState.ACTIVE.equals(userSummary.getState()))
+                .flatMap(group -> ticketStore.update(ticketId,
+                                                     ticketSkeleton -> ticketSkeleton.setAssignedToUserId(userId),
+                                                     List.of()))
+                .filter(ticketSkeleton -> userId.equals(ticketSkeleton.getAssignedToUserId()))
+                .isPresent();
+    }
+
+    public boolean unassignTicketFromEveryone(final String ticketId) {
+        return unassignTicketFromUser(ticketId, null);
+    }
+
+    public boolean unassignTicketFromUser(final String ticketId, final String userId) {
+        return ticketStore.update(ticketId,
+                                  ticketSkeleton -> ticketSkeleton.setAssignedToUserId(userId),
+                                  List.of())
+                .filter(ticketSkeleton -> (null == userId && null == ticketSkeleton.getAssignedToUserId())
+                        || userId.equals(ticketSkeleton.getAssignedToUserId()))
                 .isPresent();
     }
 
@@ -306,7 +367,8 @@ public class TicketManager {
                 .orElse(null);
     }
 
-    private Optional<TicketSkeleton> updateTicketFields(TicketSkeleton skeleton,
+    private Optional<TicketSkeleton> updateTicketFields(
+            TicketSkeleton skeleton,
             List<TicketFieldData> fields) {
         return ticketStore.setFields(skeleton.getTicketId(), fields);
     }
@@ -316,13 +378,13 @@ public class TicketManager {
             TicketSkeleton ticketSkeleton,
             TicketStateTransition finalMatchingTransition) {
         return ticketStore.updateState(ticketSkeleton.getTicketId(),
-                workflow.getStates().get(finalMatchingTransition.getTo()));
+                                       workflow.getStates().get(finalMatchingTransition.getTo()));
     }
 
     private SubjectID extractSubjectId(JsonNode payload, Workflow workflow) {
         return templateEngine.evaluateToObject(workflow.getSubjectIdTemplate(),
-                        payload,
-                        SubjectID.class)
+                                               payload,
+                                               SubjectID.class)
                 .orElseThrow(() -> ConductorException.builder()
                         .errorCode(ConductorErrorCode.TICKET_SUBJECT_ID_EXTRACTION_FAILURE)
                         .build());
@@ -330,10 +392,10 @@ public class TicketManager {
 
     private SubjectSummary createEmptySubject(SubjectID sId) {
         return subjectStore.saveSubject(List.of(sId),
-                        UUID.randomUUID().toString(),
-                        "",
-                        null,
-                        Gender.OTHER)
+                                        UUID.randomUUID().toString(),
+                                        "",
+                                        null,
+                                        Gender.OTHER)
                 .orElse(null);
     }
 
@@ -357,19 +419,19 @@ public class TicketManager {
             final Workflow workflow,
             SubjectSummary subject) {
         return new TicketDetails(new TicketSummary(skeleton.getTicketId(),
-                skeleton.getTitle(),
-                skeleton.getDescription(),
-                skeleton.getWorkflowId(),
-                userSummary(skeleton.getCreatedByUserId()),
-                assignedToGroup(skeleton),
-                assignedToUser(skeleton),
-                subject,
-                workflow.getStates().get(skeleton.getTicketStateId()),
-                skeleton.getPriority(),
-                skeleton.getCreated(),
-                skeleton.getUpdated()),
-                skeleton.getFields(),
-                List.of()); //TODO::ACTION
+                                                   skeleton.getTitle(),
+                                                   skeleton.getDescription(),
+                                                   skeleton.getWorkflowId(),
+                                                   userSummary(skeleton.getCreatedByUserId()),
+                                                   assignedToGroup(skeleton),
+                                                   assignedToUser(skeleton),
+                                                   subject,
+                                                   workflow.getStates().get(skeleton.getTicketStateId()),
+                                                   skeleton.getPriority(),
+                                                   skeleton.getCreated(),
+                                                   skeleton.getUpdated()),
+                                 skeleton.getFields(),
+                                 List.of()); //TODO::ACTION
     }
 
     private UserSummary userSummary(String userId) {
@@ -379,20 +441,21 @@ public class TicketManager {
 
     private UserSummary assignedToUser(TicketSkeleton skeleton) {
         return Objects.nonNull(skeleton.getAssignedToUserId())
-                ? userSummary(skeleton.getAssignedToUserId())
-                : null;
+               ? userSummary(skeleton.getAssignedToUserId())
+               : null;
     }
 
     private Group assignedToGroup(TicketSkeleton skeleton) {
         return Objects.nonNull(skeleton.getAssignedToGroupId())
-                ? groupStore.read(skeleton.getAssignedToGroupId()).orElse(null)
-                : null;
+               ? groupStore.read(skeleton.getAssignedToGroupId()).orElse(null)
+               : null;
     }
 
 
-    private Optional<TicketDetails> triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy ticketStateMachineContextBuilderStrategy,
-                                                              JsonNode payload,
-                                                              TriConsumer<JsonNode, List<TicketFieldData>, Schema> mappedFieldDecorator) {
+    private Optional<TicketDetails> triggerTicketStateMachine(
+            TicketStateMachineContextBuilderStrategy ticketStateMachineContextBuilderStrategy,
+            JsonNode payload,
+            TriConsumer<JsonNode, List<TicketFieldData>, Schema> mappedFieldDecorator) {
         val ticketStateMachineContext = new TicketStateMachineContext();
         addExistingTicketToContext(ticketStateMachineContextBuilderStrategy, payload, ticketStateMachineContext);
         addWorkflowToContext(ticketStateMachineContextBuilderStrategy, payload, ticketStateMachineContext);
@@ -400,25 +463,27 @@ public class TicketManager {
         addSubjectToContext(ticketStateMachineContextBuilderStrategy, payload, ticketStateMachineContext);
         checkDuplicateTicketAndAddToContext(ticketStateMachineContextBuilderStrategy, ticketStateMachineContext);
         addTicketFieldMappingToContext(payload, ticketStateMachineContext, mappedFieldDecorator);
-        createOrUpdateTicketAndAddToContext(ticketStateMachineContextBuilderStrategy, payload, ticketStateMachineContext);
+        createOrUpdateTicketAndAddToContext(ticketStateMachineContextBuilderStrategy,
+                                            payload,
+                                            ticketStateMachineContext);
 
-        if(ticketStateMachineContext.currentState().isTerminal()) {
+        if (ticketStateMachineContext.currentState().isTerminal()) {
             switch (ticketStateMachineContextBuilderStrategy.getTicketTerminalStateStrategy()) {
                 case ABORT:
                     return Optional.of(ConductorServerUtils.ticketDetails(ticketStateMachineContext));
                 case CREATE_NEW:
                     createNewTicketAndAddToContext(ticketStateMachineContextBuilderStrategy
-                                        .getTicketMetaDataFetchStrategy(),
-                            payload, ticketStateMachineContext);
+                                                           .getTicketMetaDataFetchStrategy(),
+                                                   payload, ticketStateMachineContext);
             }
         }
 
         ticketStateMachineContext.setTicketAssignedToGroup(assignedToGroup(ticketStateMachineContext
-                                            .getTicketSkeleton()))
-                                .setTicketAssignedToUser(assignedToUser(ticketStateMachineContext
-                                            .getTicketSkeleton()))
-                                .setTicketCreatedBy(userSummary(ticketStateMachineContext
-                                            .getTicketSkeleton().getCreatedByUserId()));
+                                                                                   .getTicketSkeleton()))
+                .setTicketAssignedToUser(assignedToUser(ticketStateMachineContext
+                                                                .getTicketSkeleton()))
+                .setTicketCreatedBy(userSummary(ticketStateMachineContext
+                                                        .getTicketSkeleton().getCreatedByUserId()));
 
         val stateMachine = ticketStateMachine(ticketStateMachineContext);
         stateMachine.trigger(new TriggerData(payload), TriggerStrategy.EXECUTE_ALL);
@@ -434,33 +499,36 @@ public class TicketManager {
                 new TransitionHandler() {
 
                     @Override
-                    public void beforeTransition(TicketStateTransition transition,
-                                                                      TicketStateMachineContext context,
-                                                                      TriggerData event) {
+                    public void beforeTransition(
+                            TicketStateTransition transition,
+                            TicketStateMachineContext context,
+                            TriggerData event) {
                         log.info("Ticket {} beforeTransition is now in state: {}",
-                                context.ticketId(),
-                                context.currentState());
+                                 context.ticketId(),
+                                 context.currentState());
                     }
 
                     @Override
-                    public void onTransition(TicketStateTransition transition,
-                                                                  TicketStateMachineContext context,
-                                                                  TriggerData event) {
+                    public void onTransition(
+                            TicketStateTransition transition,
+                            TicketStateMachineContext context,
+                            TriggerData event) {
                         val workflow = ticketStateMachineContext.getWorkflow();
                         Objects.requireNonNull(
                                 updateTicketState(workflow,
-                                        ticketStateMachineContext.getTicketSkeleton(),
-                                        transition)
-                                .map(context::setTicketSkeleton));
+                                                  ticketStateMachineContext.getTicketSkeleton(),
+                                                  transition)
+                                        .map(context::setTicketSkeleton));
                         log.info("Ticket {} onTransitions is now in state: {}",
-                                context.ticketId(),
-                                context.currentState());
+                                 context.ticketId(),
+                                 context.currentState());
                     }
 
                     @Override
-                    public void afterTransition(TicketStateTransition transition,
-                                                                     TicketStateMachineContext context,
-                                                                     TriggerData event) {
+                    public void afterTransition(
+                            TicketStateTransition transition,
+                            TicketStateMachineContext context,
+                            TriggerData event) {
                         val ticketId = context.ticketId();
                         val workflow = context.getWorkflow();
                         val schema = context.getSchema();
@@ -476,8 +544,8 @@ public class TicketManager {
                                     .orElseThrow(() -> ConductorException.builder()
                                             .errorCode(ConductorErrorCode.TICKET_MGMT_NO_ACTION)
                                             .context(Map.of(TICKET_ID, ticketId,
-                                                    WORKFLOW_ID, workflow.getId(),
-                                                    ACTION_ID, actionId))
+                                                            WORKFLOW_ID, workflow.getId(),
+                                                            ACTION_ID, actionId))
                                             .build());
                             val result = actionExecutor.execute(action, actionExecutionData);
                             log.info("Status for action execution: {}", result);
@@ -488,47 +556,51 @@ public class TicketManager {
                 });
     }
 
-    private void createOrUpdateTicketAndAddToContext(TicketStateMachineContextBuilderStrategy ticketStateMachineContextBuilderStrategy,
-                                                     JsonNode payload,
-                                                     TicketStateMachineContext ticketStateMachineContext) {
+    private void createOrUpdateTicketAndAddToContext(
+            TicketStateMachineContextBuilderStrategy ticketStateMachineContextBuilderStrategy,
+            JsonNode payload,
+            TicketStateMachineContext ticketStateMachineContext) {
         if (ticketStateMachineContext.getTicketSkeleton() == null) {
             //create new
             createNewTicketAndAddToContext(ticketStateMachineContextBuilderStrategy.getTicketMetaDataFetchStrategy(),
-                    payload,
-                    ticketStateMachineContext);
-        } else {
+                                           payload,
+                                           ticketStateMachineContext);
+        }
+        else {
             //update existing
             List<TicketFieldData> fieldData = ticketStateMachineContext.getFieldMappingResult().getData();
             if (!fieldData.isEmpty() && !ticketStateMachineContext.currentState().isTerminal()) {
                 ticketStateMachineContext.setTicketSkeleton(
                         updateTicketFields(ticketStateMachineContext.getTicketSkeleton(),
-                                fieldData)
+                                           fieldData)
                                 .orElse(null));
             }
         }
     }
 
-    private void addTicketFieldMappingToContext(JsonNode payload,
-                                                TicketStateMachineContext ticketStateMachineContext,
-                                                TriConsumer<JsonNode, List<TicketFieldData>, Schema> mappedFieldDecorator) {
-        val fieldMappingResult = 
+    private void addTicketFieldMappingToContext(
+            JsonNode payload,
+            TicketStateMachineContext ticketStateMachineContext,
+            TriConsumer<JsonNode, List<TicketFieldData>, Schema> mappedFieldDecorator) {
+        val fieldMappingResult =
                 fieldMapper.map(ticketStateMachineContext.getSchema(), payload);
         ConductorServerUtils.ensureCondition(fieldMappingResult.getErrors().isEmpty(),
-                ConductorErrorCode.TICKET_SCHEMA_VALIDATION_FAILURE,
-                Map.of("errors", fieldMappingResult.getErrors()));
+                                             ConductorErrorCode.TICKET_SCHEMA_VALIDATION_FAILURE,
+                                             Map.of("errors", fieldMappingResult.getErrors()));
         mappedFieldDecorator.accept(payload, fieldMappingResult.getData(), ticketStateMachineContext.getSchema());
         ticketStateMachineContext.setFieldMappingResult(fieldMappingResult);
     }
 
-    private void checkDuplicateTicketAndAddToContext(TicketStateMachineContextBuilderStrategy ticketStateMachineContextBuilderStrategy,
-                                                     TicketStateMachineContext ticketStateMachineContext) {
+    private void checkDuplicateTicketAndAddToContext(
+            TicketStateMachineContextBuilderStrategy ticketStateMachineContextBuilderStrategy,
+            TicketStateMachineContext ticketStateMachineContext) {
         if (ticketStateMachineContext.getTicketSkeleton() != null) {
             return;
         }
         switch (ticketStateMachineContextBuilderStrategy.getTicektIdempotencyStrategy()) {
             case CHECK_FOR_SUBJECT -> checkForSubjectTicket(ticketStateMachineContext.getWorkflow(),
                                                             ticketStateMachineContext.getSubject())
-                                                        .ifPresent(ticketStateMachineContext::setTicketSkeleton);
+                    .ifPresent(ticketStateMachineContext::setTicketSkeleton);
             case IGNORE -> log.info("Ignoring duplicate ticket check");
         }
     }
@@ -536,36 +608,38 @@ public class TicketManager {
     private Optional<TicketSkeleton> checkForSubjectTicket(Workflow workflow, SubjectSummary subjectSummary) {
         val terminalStates = findTerminalStates(workflow);
         return ticketStore.list(List.of(new TicketWorkflowEquals(workflow.getId()),
-                                new TicketSubjectEquals(subjectSummary.getGlobalId()),
-                                new TicketStateIn(terminalStates, true)),
-                        List.of(),
-                        null,
-                        1,
-                        Map.of())
+                                        new TicketSubjectEquals(subjectSummary.getGlobalId()),
+                                        new TicketStateIn(terminalStates, true)),
+                                List.of(),
+                                null,
+                                1,
+                                Map.of())
                 .getResults()
                 .stream()
                 .findAny();
     }
 
-    private void createNewTicketAndAddToContext(TicketMetaDataFetchStrategy metaDataFetchStrategy,
-                                                JsonNode payload,
-                                                TicketStateMachineContext ticketStateMachineContext) {
+    private void createNewTicketAndAddToContext(
+            TicketMetaDataFetchStrategy metaDataFetchStrategy,
+            JsonNode payload,
+            TicketStateMachineContext ticketStateMachineContext) {
         ticketStore.create(UUID.randomUUID().toString(),
-                        title(metaDataFetchStrategy, payload, ticketStateMachineContext),
-                        description(metaDataFetchStrategy, payload, ticketStateMachineContext),
-                        ticketStateMachineContext.getWorkflow().getId(),
-                        ticketStateMachineContext.getSubject().getGlobalId(),
-                        ticketStateMachineContext.getWorkflow().getStartStateId(),
-                        TicketPriority.MEDIUM,
-                        Objects.requireNonNullElse(
-                                ticketStateMachineContext.getFieldMappingResult().getData(),
-                                List.of()))
+                           title(metaDataFetchStrategy, payload, ticketStateMachineContext),
+                           description(metaDataFetchStrategy, payload, ticketStateMachineContext),
+                           ticketStateMachineContext.getWorkflow().getId(),
+                           ticketStateMachineContext.getSubject().getGlobalId(),
+                           ticketStateMachineContext.getWorkflow().getStartStateId(),
+                           TicketPriority.MEDIUM,
+                           Objects.requireNonNullElse(
+                                   ticketStateMachineContext.getFieldMappingResult().getData(),
+                                   List.of()))
                 .ifPresent(ticketStateMachineContext::setTicketSkeleton);
     }
 
-    private void addSubjectToContext(TicketStateMachineContextBuilderStrategy ticketStateMachineContextBuilderStrategy,
-                                     JsonNode payload,
-                                     TicketStateMachineContext ticketStateMachineContext) {
+    private void addSubjectToContext(
+            TicketStateMachineContextBuilderStrategy ticketStateMachineContextBuilderStrategy,
+            JsonNode payload,
+            TicketStateMachineContext ticketStateMachineContext) {
         if (ticketStateMachineContext.getSubject() != null) {
             return;
         }
@@ -577,8 +651,9 @@ public class TicketManager {
         ticketStateMachineContext.setSubject(subject);
     }
 
-    private void addSchemaToContext(TicketStateMachineContextBuilderStrategy ticketStateMachineContextBuilderStrategy,
-                                    TicketStateMachineContext ticketStateMachineContext) {
+    private void addSchemaToContext(
+            TicketStateMachineContextBuilderStrategy ticketStateMachineContextBuilderStrategy,
+            TicketStateMachineContext ticketStateMachineContext) {
         if (ticketStateMachineContext.getSchema() != null) {
             return;
         }
@@ -588,9 +663,10 @@ public class TicketManager {
         }
     }
 
-    private void addWorkflowToContext(TicketStateMachineContextBuilderStrategy ticketStateMachineContextBuilderStrategy,
-                                      JsonNode payload,
-                                      TicketStateMachineContext ticketStateMachineContext) {
+    private void addWorkflowToContext(
+            TicketStateMachineContextBuilderStrategy ticketStateMachineContextBuilderStrategy,
+            JsonNode payload,
+            TicketStateMachineContext ticketStateMachineContext) {
         if (ticketStateMachineContext.getWorkflow() != null) {
             return;
         }
@@ -602,65 +678,68 @@ public class TicketManager {
         ticketStateMachineContext.setWorkflow(workflow);
     }
 
-    private void addExistingTicketToContext(TicketStateMachineContextBuilderStrategy ticketStateMachineContextBuilderStrategy,
-                                            JsonNode payload,
-                                            TicketStateMachineContext ticketStateMachineContext) {
+    private void addExistingTicketToContext(
+            TicketStateMachineContextBuilderStrategy ticketStateMachineContextBuilderStrategy,
+            JsonNode payload,
+            TicketStateMachineContext ticketStateMachineContext) {
         if (ticketStateMachineContext.getTicketSkeleton() != null) {
             return;
         }
         switch (ticketStateMachineContextBuilderStrategy.getTicketFetchStrategy()) {
-            case FROM_PROVIDED_ID  -> ticketStateMachineContext.setTicketSkeleton(ticketFromProvidedId(payload));
+            case FROM_PROVIDED_ID -> ticketStateMachineContext.setTicketSkeleton(ticketFromProvidedId(payload));
             case NEW -> log.info("Skipping ticket fetch as flow defines new ticket");
             case FROM_RULE -> log.info("Skipping ticket fetch  as rule defination is missing"); //TODO: change this
         }
     }
 
-    private String title(TicketMetaDataFetchStrategy ticketMetaDataStrategy,
-                         JsonNode payload,
-                         TicketStateMachineContext ticketStateMachineContext) {
+    private String title(
+            TicketMetaDataFetchStrategy ticketMetaDataStrategy,
+            JsonNode payload,
+            TicketStateMachineContext ticketStateMachineContext) {
         return switch (ticketMetaDataStrategy) {
             case FROM_PROVIDED_DATA -> payload.get(INTERNAL_TICKET_TITLE_FIELD).asText();
             case FROM_TEMPLATE -> templateEngine.evaluateToText(
                             ticketStateMachineContext.getWorkflow().getTitleTemplate(),
                             payload)
                     .orElse("Default");
-            case FROM_TICKET -> ticketStateMachineContext.getTicketSkeleton() != null 
-                                ? ticketStateMachineContext.getTicketSkeleton().getTitle():
-                                  "Default";
+            case FROM_TICKET -> ticketStateMachineContext.getTicketSkeleton() != null
+                                ? ticketStateMachineContext.getTicketSkeleton().getTitle() :
+                                "Default";
         };
     }
 
-    private String description(TicketMetaDataFetchStrategy ticketMetaDataFetchStrategy,
-                               JsonNode payload,
-                               TicketStateMachineContext ticketStateMachineContext) {
+    private String description(
+            TicketMetaDataFetchStrategy ticketMetaDataFetchStrategy,
+            JsonNode payload,
+            TicketStateMachineContext ticketStateMachineContext) {
         return switch (ticketMetaDataFetchStrategy) {
             case FROM_PROVIDED_DATA -> payload.get(INTERNAL_TICKET_DESC_FIELD).asText();
             case FROM_TEMPLATE -> templateEngine.evaluateToText(
                     ticketStateMachineContext.getWorkflow().getDescriptionTemplate(),
                     payload).orElse("");
             case FROM_TICKET -> ticketStateMachineContext.getTicketSkeleton() != null
-                            ? ticketStateMachineContext.getTicketSkeleton().getDescription():
-                            "";
+                                ? ticketStateMachineContext.getTicketSkeleton().getDescription() :
+                                "";
         };
     }
 
     private SubjectSummary subjectFromProvidedData(JsonNode payload) {
         val subjectId = mapper.convertValue(payload.get(INTERNAL_SUBJECT_FIELD),
-                SubjectID.class);
+                                            SubjectID.class);
         return Objects.requireNonNull(fetchSubject(subjectId).orElseGet(() -> createEmptySubject(subjectId)));
     }
 
     private SubjectSummary subjectFromRawData(Workflow workflow, JsonNode payload) {
         val subjectId = extractSubjectId(payload, workflow);
-        return  Objects.requireNonNull(fetchSubject(subjectId)
-                .orElseGet(() -> createEmptySubject(subjectId)));
+        return Objects.requireNonNull(fetchSubject(subjectId)
+                                              .orElseGet(() -> createEmptySubject(subjectId)));
     }
 
     private SubjectSummary subjectFromTicket(TicketSkeleton ticket) {
         val subjectId = ticket.getSubjectId();
         val subject = subjectStore.getSubjectSummary(subjectId).orElse(null);
         ConductorServerUtils.ensureNonNull(subject, ConductorErrorCode.TICKET_MGMT_NO_SUBJECT,
-                Map.of(SUBJECT_ID, subjectId));
+                                           Map.of(SUBJECT_ID, subjectId));
         return subject;
     }
 
@@ -670,8 +749,8 @@ public class TicketManager {
         val schemaId = workflow.getSchemaId();
         val schema = schemaStore.get(schemaId).orElse(null);
         ConductorServerUtils.ensureNonNull(schema, ConductorErrorCode.TICKET_MGMT_NO_SCHEMA,
-                Map.of(WORKFLOW_ID, workflowId,
-                        SCHEMA_ID, schemaId));
+                                           Map.of(WORKFLOW_ID, workflowId,
+                                                  SCHEMA_ID, schemaId));
         return schema;
     }
 
@@ -680,7 +759,7 @@ public class TicketManager {
         val workflow = workflowStore.read(workflowId)
                 .orElse(null);
         ConductorServerUtils.ensureNonNull(workflow, ConductorErrorCode.TICKET_MGMT_NO_WORKFLOW,
-                Map.of(WORKFLOW_ID, workflowId));
+                                           Map.of(WORKFLOW_ID, workflowId));
         return workflow;
     }
 
@@ -696,8 +775,8 @@ public class TicketManager {
         val workflowId = ticketSkeleton.getWorkflowId();
         val workflow = workflowStore.read(workflowId).orElse(null);
         ConductorServerUtils.ensureNonNull(workflow, ConductorErrorCode.TICKET_MGMT_NO_WORKFLOW,
-                Map.of(TICKET_ID, ticketId,
-                        WORKFLOW_ID, workflowId));
+                                           Map.of(TICKET_ID, ticketId,
+                                                  WORKFLOW_ID, workflowId));
         return workflow;
     }
 
@@ -706,8 +785,8 @@ public class TicketManager {
         val ticket = ticketStore.read(ticketId, true)
                 .orElse(null);
         ConductorServerUtils.ensureNonNull(ticket,
-                ConductorErrorCode.TICKET_MGMT_NO_TICKET,
-                Map.of(TICKET_ID, ticketId));
+                                           ConductorErrorCode.TICKET_MGMT_NO_TICKET,
+                                           Map.of(TICKET_ID, ticketId));
         return ticket;
     }
 }

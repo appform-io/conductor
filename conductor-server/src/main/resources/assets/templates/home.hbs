@@ -1,3 +1,98 @@
 {{#partial "content"}}
+    <div class="row">
+        <div class="col-12">
+            <section>
+                <div class="row">
+                    <div class="col-12">
+                        <h4>Assignable Tickets</h4>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 table-responsive">
+                        <table class="table table-bordered border-dark ticket-table" id="tickets">
+                            <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Workflow</th>
+                                <th>State</th>
+                                <th>Priority</th>
+                                <th>Created</th>
+                                <th>Last Updated</th>
+                                <td></td>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{#each relevantOpenTickets}}
+                                <tr>
+                                    <td><a href="/tickets/{{ticketId}}/details">{{title}}</a></td>
+                                    <td>{{workflowName}}</td>
+                                    <td>
+                                <span class="badge {{#eq terminated true}}bg-secondary{{else}}bg-info{{/eq}} ms-2">
+                                    {{stateName}}
+                                </span>
+                                    </td>
+                                    <td>{{priority}}</td>
+                                    <td>{{created}}</td>
+                                    <td>{{updated}}</td>
+                                    <td>
+                                        <form method="post" action="/tickets/{{ticketId}}/assign">
+                                            <button type="submit" class="btn btn-outline-success btn-sm">Assign to me</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            <section>
+                <div class="row">
+                    <div class="col-12">
+                        <h4>My Tickets</h4>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 table-responsive">
+                        <table class="table table-bordered border-dark ticket-table" id="tickets">
+                            <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Workflow</th>
+                                <th>State</th>
+                                <th>Priority</th>
+                                <th>Created</th>
+                                <th>Last Updated</th>
+                                <td></td>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{#each myTickets}}
+                                <tr>
+                                    <td><a href="/tickets/{{ticketId}}/details">{{title}}</a></td>
+                                    <td>{{workflowName}}</td>
+                                    <td>
+                                <span class="badge {{#eq terminated true}}bg-secondary{{else}}bg-info{{/eq}} ms-2">
+                                    {{stateName}}
+                                </span>
+                                    </td>
+                                    <td>{{priority}}</td>
+                                    <td>{{created}}</td>
+                                    <td>{{updated}}</td>
+                                    <td>
+                                        <form method="post" action="/tickets/{{ticketId}}/unassign">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">Unassign</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
 {{/partial}}
 {{> common/base}}

@@ -42,6 +42,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -120,7 +121,7 @@ public class Analytics {
             ticketFilters.add(new TicketSubjectEquals(subjectId));
         }
         if (!Strings.isNullOrEmpty(groupId)) {
-            ticketFilters.add(new TicketAssignedToGroup(groupId));
+            ticketFilters.add(new TicketAssignedToGroup(Set.of(groupId)));
         }
         if (!Strings.isNullOrEmpty(createdById)) {
             ticketFilters.add(new TicketCreatedBy(createdById));

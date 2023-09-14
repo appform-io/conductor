@@ -17,9 +17,12 @@
 package io.appform.conductor.server.ui.views;
 
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.ticketmanagement.TicketGist;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
+
+import java.util.List;
 
 /**
  * Renders the homepage
@@ -29,7 +32,12 @@ import lombok.Value;
 @ToString(callSuper = true)
 public class HomeView extends BaseLoggedInView {
 
-    public HomeView(User user) {
+    List<TicketGist> relevantOpenTickets;
+    List<TicketGist> myTickets;
+
+    public HomeView(User user, List<TicketGist> relevantOpenTickets, List<TicketGist> myTickets) {
         super("templates/home.hbs", user);
+        this.relevantOpenTickets = relevantOpenTickets;
+        this.myTickets = myTickets;
     }
 }

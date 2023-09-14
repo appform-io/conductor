@@ -61,21 +61,6 @@
                                     A detailed description of the issue. Max Length: 4096.
                                 </div>
                             </div>
-                            <div class="md-3">
-                                <label for="priority" class="col-form-label fw-bold">Priority</label>
-                                <select id="priority" name="priority"
-                                        class="form-control selectpicker border border-dark"
-                                        aria-describedby="priorityHelp" required>
-                                    {{#each ../priorities}}
-                                        <option value="{{this}}" {{#eq this ../priority}}selected{{/eq}}>{{readable
-                                                this}}</option>
-                                    {{/each}}
-                                </select>
-                                <div id="priorityHelp" class="form-text">
-                                    Priority for this ticket. Handling of priority is dependent on state transition
-                                    rules.
-                                </div>
-                            </div>
                             <div class="md-3 d-flex justify-content-end">
                                 <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Update</button>
                             </div>
@@ -107,36 +92,114 @@
                                         data-bs-toggle="collapse"
                                         data-bs-target="#flush-assignment" aria-expanded="false"
                                         aria-controls="flush-assignment">
-                                    <i class="bi bi-person-people-fill"></i> &nbsp; Assignment
+                                    <i class="bi bi-arrow-down-up"></i> &nbsp; Priority
                                 </button>
                             </h2>
                             <div id="flush-assignment" class="accordion-collapse collapse show"
                                  data-bs-parent="#ticketSections">
                                 <div class="accordion-body">
-                                    <form method="post" action="/tickets/{{summary.id}}/group/update">
+                                    <form method="post" action="/tickets/{{summary.id}}/priority/update">
                                         <div class="row">
                                             <div class="col-sm-4 col-md-2">
-                                                <label for="groupId" class="col-form-label fw-bold">Group</label>
+                                                <label for="priority" class="col-form-label fw-bold">Priority</label>
                                             </div>
                                             <div class="col-sm-8 col-md-8">
-                                                <select id="groupId" name="groupId"
+                                                <select id="priority" name="priority"
                                                         class="form-control selectpicker border border-dark"
-                                                        aria-describedby="groupIdHelp" data-live-search="true">
-                                                    {{#each ../availableGroups}}
-                                                        <option value="{{id}}" {{#eq id
-                                                                                    ../ticket/summary/assignedToGroup/id}}selected{{/eq}}>{{name}}</option>
+                                                        aria-describedby="priorityHelp" required>
+                                                    {{#each ../priorities}}
+                                                        <option value="{{this}}"
+                                                                {{#eq this summary.priority}}selected{{/eq}}>
+                                                            {{readable this}}
+                                                        </option>
                                                     {{/each}}
                                                 </select>
-                                                <div id="groupIdHelp" class="form-text">Group to assign this ticket to
+                                                <div id="priorityHelp" class="form-text">
+                                                    Priority for this ticket.
+                                                    Handling of priority is dependent on state transition rules.
                                                 </div>
                                             </div>
                                             <div class="col justify-content-end text-end">
-                                                <button type="submit" class="btn btn-primary">Assign</button>
+                                                <button type="submit" class="btn btn-primary">Set</button>
                                             </div>
                                         </div>
-
                                     </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#flush-assignment" aria-expanded="false"
+                                        aria-controls="flush-assignment">
+                                    <i class="bi bi-people-fill"></i> &nbsp; Assignment
+                                </button>
+                            </h2>
+                            <div id="flush-assignment" class="accordion-collapse collapse show"
+                                 data-bs-parent="#ticketSections">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <form method="post" action="/tickets/{{summary.id}}/group/update">
+                                                <div class="row">
+                                                    <div class="col-sm-4 col-md-2">
+                                                        <label for="groupId"
+                                                               class="col-form-label fw-bold">Group</label>
+                                                    </div>
+                                                    <div class="col-sm-8 col-md-8">
+                                                        <select id="groupId" name="groupId"
+                                                                class="form-control selectpicker border border-dark"
+                                                                aria-describedby="groupIdHelp" data-live-search="true">
+                                                            {{#each ../availableGroups}}
+                                                                <option value="{{id}}"
+                                                                        {{#eq id
+                                                                              ../ticket/summary/assignedToGroup/id}}selected{{/eq}}>
+                                                                    {{name}}
+                                                                </option>
+                                                            {{/each}}
+                                                        </select>
+                                                        <div id="groupIdHelp" class="form-text">Group to assign this
+                                                            ticket to
+                                                        </div>
+                                                    </div>
+                                                    <div class="col justify-content-end text-end">
+                                                        <button type="submit" class="btn btn-primary">Assign</button>
+                                                    </div>
+                                                </div>
 
+                                            </form>
+
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        {{#eq summary/assignedToUser/id ../currentUser/summary/id}}
+                                            <div class="col-9">
+                                                Ticket is assigned to user: <b>{{summary/assignedToUser/name}}</b>.
+                                            </div>
+                                            <div class="col-3 d-flex justify-content-end">
+                                                <form method="post" action="/tickets/{{summary.id}}/unassign">
+                                                    <div class="col justify-content-end text-end">
+                                                        <button type="submit" class="btn btn-danger btn-sm">Un-Assign
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        {{else}}
+                                            <div class="col-9">
+                                                Ticket is currently not assigned to anyone.
+                                            </div>
+                                            <div class="col-3 d-flex justify-content-end">
+                                                <form method="post" action="/tickets/{{summary.id}}/assign">
+                                                    <div class="col justify-content-end text-end">
+                                                        <button type="submit" class="btn btn-success sm">Assign to me
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        {{/eq}}
+
+                                    </div>
                                 </div>
                             </div>
                         </div>

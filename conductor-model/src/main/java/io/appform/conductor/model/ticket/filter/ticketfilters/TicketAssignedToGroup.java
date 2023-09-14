@@ -19,11 +19,10 @@ package io.appform.conductor.model.ticket.filter.ticketfilters;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilterType;
 import io.appform.conductor.model.ticket.filter.TicketFilterVisitor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import lombok.Value;
+import lombok.*;
 import lombok.extern.jackson.Jacksonized;
+
+import java.util.Set;
 
 /**
  * Filter to match all tickets assigned to given group id
@@ -32,13 +31,13 @@ import lombok.extern.jackson.Jacksonized;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class TicketAssignedToGroup extends TicketFilter {
-    String assignedGroupId;
+    Set<String> assignedGroupIds;
 
     @Builder
     @Jacksonized
-    public TicketAssignedToGroup(String assignedGroupId) {
+    public TicketAssignedToGroup(@Singular Set<String> assignedGroupIds) {
         super(TicketFilterType.ASSIGNED_TO_GROUP);
-        this.assignedGroupId = assignedGroupId;
+        this.assignedGroupIds = assignedGroupIds;
     }
 
     @Override

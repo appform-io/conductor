@@ -141,6 +141,7 @@ public class DBTicketStore implements TicketStore {
                             ticket.setTitle(updated.getTitle())
                                     .setDescription(updated.getDescription())
                                     .setAssignedToGroupId(updated.getAssignedToGroupId())
+                                    .setAssignedToUserId(updated.getAssignedToUserId())
                                     .setSubjectId(updated.getSubjectId())
                                     .setTicketStateId(updated.getTicketStateId())
                                     .setPriority(updated.getPriority());
@@ -404,7 +405,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketAssignedToGroup assignedToGroup) {
                 criteria.add(Property.forName(StoredTicketSkeleton.Fields.assignedToGroupId)
-                                     .eq(assignedToGroup.getAssignedGroupId()));
+                                     .in(assignedToGroup.getAssignedGroupIds()));
                 return null;
             }
 
@@ -416,8 +417,13 @@ public class DBTicketStore implements TicketStore {
 
             @Override
             public Void visit(TicketAssignedToUser assignedToUser) {
-                criteria.add(Property.forName(StoredTicketSkeleton.Fields.assignedToUserId)
-                                     .eq(assignedToUser.getAssignedUserId()));
+                if(Strings.isNullOrEmpty(assignedToUser.getAssignedUserId())) {
+                    criteria.add(Property.forName(StoredTicketSkeleton.Fields.assignedToUserId).isNull());
+                }
+                else {
+                    criteria.add(Property.forName(StoredTicketSkeleton.Fields.assignedToUserId)
+                                         .eq(assignedToUser.getAssignedUserId()));
+                }
                 return null;
             }
 
