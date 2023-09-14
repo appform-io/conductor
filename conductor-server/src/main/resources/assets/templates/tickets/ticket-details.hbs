@@ -177,143 +177,142 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button  bg-dark text-white collapsed" type="button"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target="#flush-ticketFieldsSet" aria-expanded="false"
-                                    aria-controls="flush-ticketFieldsSet">
-                                <i class="bi bi-file-ruled"></i> &nbsp; Fields
-                            </button>
-                        </h2>
-                        <div id="flush-ticketFieldsSet" class="accordion-collapse collapse show"
-                             data-bs-parent="#ticketSections">
-                            <div class="accordion-body">
-                                <form class="p-2" method="post" action="/tickets/{{summary/id}}/fields/update">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button  bg-dark text-white collapsed" type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#flush-ticketFieldsSet" aria-expanded="false"
+                                        aria-controls="flush-ticketFieldsSet">
+                                    <i class="bi bi-file-ruled"></i> &nbsp; Fields
+                                </button>
+                            </h2>
+                            <div id="flush-ticketFieldsSet" class="accordion-collapse collapse show"
+                                 data-bs-parent="#ticketSections">
+                                <div class="accordion-body">
+                                    <form class="p-2" method="post" action="/tickets/{{summary/id}}/fields/update">
 
-                                    {{#each ../fields}}
-                                        <div class="md-3">
-                                            <label for="ticketField-{{schema/name}}"
-                                                   class="col-form-label fw-bold">{{schema/displayName}}</label>
-                                            {{#fieldTypeEquals type "STRING"}}
-                                                <input type="text"
-                                                       class="form-control border border-dark"
-                                                       id="ticketField-{{schema/name}}"
-                                                       name="ticketField-{{schema/name}}"
-                                                       aria-describedby="ticketField-{{schema/name}}-Help"
-                                                    {{#gt schema/maxLength
-                                                          0}}maxlength="{{schema/maxLength}}" {{/gt}}
-                                                    {{#empty
-                                                            schema/matchPattern}}{{else}}pattern="{{schema/matchPattern}}" {{/empty}}
-                                                    {{#empty
-                                                            fieldValue}}{{else}}value="{{fieldValue/value}}" {{/empty}}
-                                                    {{#eq editable true}}
-                                                        {{#eq required true}}required{{/eq}}
-                                                    {{else}}
-                                                       disabled
-                                                    {{/eq}}>
-                                            {{/fieldTypeEquals}}
-                                            {{#fieldTypeEquals type "CHOICE"}}
-                                                <select class="form-control selectpicker border border-dark"
-                                                        data-live-search="true"
-                                                        data-selected-text-format="count > 2"
-                                                        id="ticketField-{{schema/name}}"
-                                                        name="ticketField-{{schema/name}}"
-                                                        aria-describedby="ticketField-{{schema/name}}-Help"
-                                                    {{#eq schema/allowMultiple true}}multiple{{/eq}}
-                                                    {{#eq editable true}}
-                                                        {{#eq required true}}required{{/eq}}
-                                                    {{else}}
-                                                        disabled
-                                                    {{/eq}}>
-                                                    {{#empty value}}
-                                                        <option disabled>Select an option</option>
-                                                    {{/empty}}
-                                                    {{#each schema/choices}}
-                                                        <option value="{{value}}" {{#empty
-                                                                fieldValue}}{{else}}{{#contains
-                                                                ../fieldValue/value
-                                                                value}}selected{{/contains}}{{/empty}}>
-                                                            {{displayText}}
+                                        {{#each ../fields}}
+                                            <div class="md-3">
+                                                <label for="ticketField-{{schema/name}}"
+                                                       class="col-form-label fw-bold">{{schema/displayName}}</label>
+                                                {{#fieldTypeEquals type "STRING"}}
+                                                    <input type="text"
+                                                           class="form-control border border-dark"
+                                                           id="ticketField-{{schema/name}}"
+                                                           name="ticketField-{{schema/name}}"
+                                                           aria-describedby="ticketField-{{schema/name}}-Help"
+                                                        {{#gt schema/maxLength
+                                                              0}}maxlength="{{schema/maxLength}}" {{/gt}}
+                                                        {{#empty
+                                                                schema/matchPattern}}{{else}}pattern="{{schema/matchPattern}}" {{/empty}}
+                                                        {{#empty
+                                                                fieldValue}}{{else}}value="{{fieldValue/value}}" {{/empty}}
+                                                        {{#eq editable true}}
+                                                            {{#eq required true}}required{{/eq}}
+                                                        {{else}}
+                                                           disabled
+                                                        {{/eq}}>
+                                                {{/fieldTypeEquals}}
+                                                {{#fieldTypeEquals type "CHOICE"}}
+                                                    <select class="form-control selectpicker border border-dark"
+                                                            data-live-search="true"
+                                                            data-selected-text-format="count > 2"
+                                                            id="ticketField-{{schema/name}}"
+                                                            name="ticketField-{{schema/name}}"
+                                                            aria-describedby="ticketField-{{schema/name}}-Help"
+                                                        {{#eq schema/allowMultiple true}}multiple{{/eq}}
+                                                        {{#eq editable true}}
+                                                            {{#eq required true}}required{{/eq}}
+                                                        {{else}}
+                                                            disabled
+                                                        {{/eq}}>
+                                                        {{#empty value}}
+                                                            <option disabled>Select an option</option>
+                                                        {{/empty}}
+                                                        {{#each schema/choices}}
+                                                            <option value="{{value}}" {{#empty
+                                                                    fieldValue}}{{else}}{{#contains
+                                                                    ../fieldValue/value
+                                                                    value}}selected{{/contains}}{{/empty}}>
+                                                                {{displayText}}
+                                                            </option>
+                                                        {{/each}}
+                                                    </select>
+
+                                                {{/fieldTypeEquals}}
+                                                {{#fieldTypeEquals type "BOOLEAN"}}
+                                                    <select class="form-control selectpicker border border-dark"
+                                                            data-live-search="true"
+                                                            id="ticketField-{{schema/name}}"
+                                                            name="ticketField-{{schema/name}}"
+                                                            aria-describedby="ticketField-{{schema/name}}-Help"
+                                                        {{#eq editable true}}
+                                                            {{#eq required true}}required{{/eq}}
+                                                        {{else}}
+                                                            disabled
+                                                        {{/eq}}>
+                                                        <option value="" disabled>Select option</option>
+                                                        <option value="true"
+                                                                {{#eq fieldValue/value true}}selected{{/eq}}>Yes
                                                         </option>
-                                                    {{/each}}
-                                                </select>
+                                                        <option value="false"
+                                                                {{#eq fieldValue/value false}}selected{{/eq}}>No
+                                                        </option>
+                                                    </select>
+                                                {{/fieldTypeEquals}}
+                                                {{#fieldTypeEquals type "LOCATION"}}
 
-                                            {{/fieldTypeEquals}}
-                                            {{#fieldTypeEquals type "BOOLEAN"}}
-                                                <select class="form-control selectpicker border border-dark"
-                                                        data-live-search="true"
-                                                        id="ticketField-{{schema/name}}"
-                                                        name="ticketField-{{schema/name}}"
-                                                        aria-describedby="ticketField-{{schema/name}}-Help"
-                                                    {{#eq editable true}}
-                                                        {{#eq required true}}required{{/eq}}
-                                                    {{else}}
-                                                        disabled
-                                                    {{/eq}}>
-                                                    <option value="" disabled>Select option</option>
-                                                    <option value="true"
-                                                            {{#eq fieldValue/value true}}selected{{/eq}}>Yes
-                                                    </option>
-                                                    <option value="false"
-                                                            {{#eq fieldValue/value false}}selected{{/eq}}>No
-                                                    </option>
-                                                </select>
-                                            {{/fieldTypeEquals}}
-                                            {{#fieldTypeEquals type "LOCATION"}}
-
-                                            {{/fieldTypeEquals}}
-                                            {{#fieldTypeEquals type "DATE"}}
-                                                <input type="date"
-                                                       class="form-control border border-dark"
-                                                       id="ticketField-{{schema/name}}"
-                                                       name="ticketField-{{schema/name}}"
-                                                       aria-describedby="ticketField-{{schema/name}}-Help"
-                                                    {{#empty schema/max}}{{else}}max="{{schema/max}}" {{/empty}}
-                                                    {{#empty schema/min}}{{else}}max="{{schema/max}}" {{/empty}}
-                                                    {{#empty fieldValue}}{{else}}value="{{htmlDate fieldValue/value
-                                                                                                   false}}" {{/empty}}
-                                                    {{#eq editable true}}
-                                                        {{#eq required true}}required{{/eq}}
-                                                    {{else}}
-                                                       disabled
-                                                    {{/eq}}>
-                                            {{/fieldTypeEquals}}
-                                            {{#fieldTypeEquals type "NUMBER"}}
-                                                <input type="number"
-                                                       class="form-control border border-dark"
-                                                       id="ticketField-{{schema/name}}"
-                                                       name="ticketField-{{schema/name}}"
-                                                       aria-describedby="ticketField-{{schema/name}}-Help"
-                                                    {{#neq schema/max 0}}max="{{schema/max}}" {{/neq}}
-                                                    {{#neq schema/min 0}}min="{{schema/min}}" {{/neq}}
-                                                    {{#empty
-                                                            fieldValue}}{{else}}value="{{fieldValue/value}}" {{/empty}}
-                                                    {{#eq editable true}}
-                                                        {{#eq required true}}required{{/eq}}
-                                                    {{else}}
-                                                       disabled
-                                                    {{/eq}}>
-                                            {{/fieldTypeEquals}}
-                                            <div id="ticketField-{{schema/name}}-Help" class="form-text">
-                                                {{schema/description}}
+                                                {{/fieldTypeEquals}}
+                                                {{#fieldTypeEquals type "DATE"}}
+                                                    <input type="date"
+                                                           class="form-control border border-dark"
+                                                           id="ticketField-{{schema/name}}"
+                                                           name="ticketField-{{schema/name}}"
+                                                           aria-describedby="ticketField-{{schema/name}}-Help"
+                                                        {{#empty schema/max}}{{else}}max="{{schema/max}}" {{/empty}}
+                                                        {{#empty schema/min}}{{else}}max="{{schema/max}}" {{/empty}}
+                                                        {{#empty fieldValue}}{{else}}value="{{htmlDate fieldValue/value
+                                                                                                       false}}" {{/empty}}
+                                                        {{#eq editable true}}
+                                                            {{#eq required true}}required{{/eq}}
+                                                        {{else}}
+                                                           disabled
+                                                        {{/eq}}>
+                                                {{/fieldTypeEquals}}
+                                                {{#fieldTypeEquals type "NUMBER"}}
+                                                    <input type="number"
+                                                           class="form-control border border-dark"
+                                                           id="ticketField-{{schema/name}}"
+                                                           name="ticketField-{{schema/name}}"
+                                                           aria-describedby="ticketField-{{schema/name}}-Help"
+                                                        {{#neq schema/max 0}}max="{{schema/max}}" {{/neq}}
+                                                        {{#neq schema/min 0}}min="{{schema/min}}" {{/neq}}
+                                                        {{#empty
+                                                                fieldValue}}{{else}}value="{{fieldValue/value}}" {{/empty}}
+                                                        {{#eq editable true}}
+                                                            {{#eq required true}}required{{/eq}}
+                                                        {{else}}
+                                                           disabled
+                                                        {{/eq}}>
+                                                {{/fieldTypeEquals}}
+                                                <div id="ticketField-{{schema/name}}-Help" class="form-text">
+                                                    {{schema/description}}
+                                                </div>
                                             </div>
+                                        {{/each}}
+                                        <div class="md-3 mt-2 d-flex justify-content-center">
+                                            <button type="submit" class="btn btn-info"><i
+                                                    class="bi bi-cloud-plus-fill"></i>
+                                                Submit
+                                            </button>
                                         </div>
-                                    {{/each}}
-                                    <div class="md-3 mt-2 d-flex justify-content-center">
-                                        <button type="submit" class="btn btn-info"><i
-                                                class="bi bi-cloud-plus-fill"></i>
-                                            Submit
-                                        </button>
-                                    </div>
-                                </form>
+                                    </form>
 
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
             </div>
         </section>
     {{/with}}
