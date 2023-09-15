@@ -20,7 +20,9 @@ import com.github.jknack.handlebars.Options;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import io.appform.conductor.model.actions.ActionType;
+import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
+import io.appform.conductor.model.schema.fields.ChoiceFieldSchema;
 import io.appform.conductor.model.utils.Displayable;
 import io.appform.conductor.server.utils.dev.IgnoreGenerated;
 import lombok.SneakyThrows;
@@ -31,6 +33,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -39,7 +42,7 @@ import java.util.Objects;
 @SuppressWarnings("unused")
 public class CustomHelpers {
     public String readable(Object input) {
-        if(Objects.isNull(input)) {
+        if (Objects.isNull(input)) {
             return "";
         }
 
@@ -90,7 +93,7 @@ public class CustomHelpers {
     @SneakyThrows
     public <E extends Enum<E>> CharSequence eqEnum(final E lhs, final Object rhs, Options options) {
         return lhs != null && lhs.name().equals(rhs)
-                ? options.fn()
+               ? options.fn()
                : options.inverse();
     }
 
@@ -105,6 +108,16 @@ public class CustomHelpers {
 
     public Object join(Collection<Object> collection) {
         return null == collection ? "" : Joiner.on(",").join(collection);
+    }
+
+    public CharSequence choiceValues(final FieldSchema choiceFieldSchema) {
+        if(null == choiceFieldSchema || choiceFieldSchema.getType() != FieldType.CHOICE) {
+            return null;
+        }
+        return ((ChoiceFieldSchema)choiceFieldSchema).getChoices()
+                .stream()
+                .map(ChoiceFieldSchema.Option::getValue)
+                .collect(Collectors.joining(","));
     }
 
     public String actionFragment(final ActionType type) {

@@ -16,9 +16,7 @@
 
 package io.appform.conductor.server.resources.ui;
 
-import io.appform.conductor.model.schema.FieldType;
-import io.appform.conductor.model.schema.Schema;
-import io.appform.conductor.model.schema.SchemaState;
+import io.appform.conductor.model.schema.*;
 import io.appform.conductor.model.schema.fields.*;
 import io.appform.conductor.model.usermgmt.GroupType;
 import io.appform.conductor.model.usermgmt.Skill;
@@ -76,7 +74,7 @@ public class Manage {
     @GET
     @Path("/schema/create")
     public Response renderSchemaCreate(@Auth ConductorUser user) {
-        return render(new SchemaView(user.getUserSession().getUser(), null));
+        return render(new SchemaView(user.getUserSession().getUser(), null, null));
     }
 
     @POST
@@ -111,7 +109,25 @@ public class Manage {
             @Auth ConductorUser user,
             @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId) {
         return schemaStore.get(schemaId)
-                .map(schema -> render(new SchemaView(user.getUserSession().getUser(), schema)))
+                .map(schema -> render(new SchemaView(user.getUserSession().getUser(), schema, null)))
+                .orElseThrow(() -> fail("Failed to find schema " + schemaId, "/manage/schema"));
+    }
+
+
+    @GET
+    @Path("/schema/{schemaId}/fields/{fieldId}")
+    public Response renderSchemaFieldDetails(
+            @Auth ConductorUser user,
+            @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId,
+            @PathParam("fieldId") @NotEmpty @Length(max = 91) final String fieldId) {
+        return schemaStore.get(schemaId)
+                .map(schema -> render(new SchemaView(user.getUserSession().getUser(),
+                                                     schema,
+                                                     schema.getFields()
+                                                             .stream()
+                                                             .filter(fieldSchema -> fieldSchema.getId().equals(fieldId))
+                                                             .findFirst()
+                                                             .orElse(null))))
                 .orElseThrow(() -> fail("Failed to find schema " + schemaId, "/manage/schema"));
     }
 
@@ -127,7 +143,7 @@ public class Manage {
             @FormParam("fieldStringMaxLength") @Min(1) @Max(255) final int fieldStringMaxLength,
             @FormParam("fieldStringRegex") final String fieldStringRegex,
             @FormParam("fieldChoiceChoices") final String fieldChoiceChoices,
-            @FormParam("fieldChoiceMulti") @DefaultValue("false") final boolean fieldChoiceMullti,
+            @FormParam("fieldChoiceMulti") @DefaultValue("false") final boolean fieldChoiceMulti,
             @FormParam("fieldNumberMin") final double fieldNumberMin,
             @FormParam("fieldNumberMax") final double fieldNumberMax) {
         val name = CaseUtils.toCamelCase(fieldName.trim(), false, ' ');
@@ -144,7 +160,7 @@ public class Manage {
                     .name(name)
                     .displayName(fieldName)
                     .description(fieldDescription)
-                    .allowMultiple(fieldChoiceMullti)
+                    .allowMultiple(fieldChoiceMulti)
                     .choices(Arrays.stream(fieldChoiceChoices.split(","))
                                      .map(choice -> new ChoiceFieldSchema.Option(upperSnake(choice), choice))
                                      .toList())
@@ -175,6 +191,68 @@ public class Manage {
         return schemaStore.addField(schemaId, schemaId + "-" + name, fs)
                 .map(f -> redirect("/manage/schema/" + schemaId))
                 .orElseThrow(() -> fail("Failed to add field to schema " + schemaId, "/manage/schema"));
+    }
+
+
+    @POST
+    @Path("/schema/{schemaId}/fields/{fieldId}/update")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response addField(
+            @Auth ConductorUser user,
+            @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId,
+            @PathParam("fieldId") @NotEmpty @Length(max = 45) final String fieldId,
+            @FormParam("fieldDescription") @Length(max = 255) final String fieldDescription,
+            @FormParam("fieldStringMaxLength") @Min(1) @Max(255) final int fieldStringMaxLength,
+            @FormParam("fieldStringRegex") final String fieldStringRegex,
+            @FormParam("fieldChoiceChoices") final String fieldChoiceChoices,
+            @FormParam("fieldChoiceMulti") @DefaultValue("false") final boolean fieldChoiceMulti,
+            @FormParam("fieldNumberMin") final double fieldNumberMin,
+            @FormParam("fieldNumberMax") final double fieldNumberMax) {
+        //TODO::DEFAULT VALUE TO BE PREFILLED
+        return schemaStore.getField(schemaId, fieldId)
+                .map(field -> field.setDescription(fieldDescription))
+                .map(field -> field.accept(new FieldSchemaVisitor<FieldSchema>() {
+                    @Override
+                    public FieldSchema visit(StringFieldSchema stringField) {
+                        return stringField
+                                .setMaxLength(fieldStringMaxLength)
+                                .setMatchPattern(fieldStringRegex);
+                    }
+
+                    @Override
+                    public FieldSchema visit(NumberFieldSchema numberField) {
+                        return numberField
+                                .setMin(fieldNumberMin)
+                                .setMax(fieldNumberMax);
+                    }
+
+                    @Override
+                    public FieldSchema visit(BooleanFieldSchema booleanField) {
+                        return booleanField;
+                    }
+
+                    @Override
+                    public FieldSchema visit(LocationFieldSchema locationField) {
+                        return locationField;
+                    }
+
+                    @Override
+                    public FieldSchema visit(DateFieldSchema dateField) {
+                        return dateField;
+                    }
+
+                    @Override
+                    public FieldSchema visit(ChoiceFieldSchema choiceField) {
+                        return choiceField
+                                .setChoices(Arrays.stream(fieldChoiceChoices.split(","))
+                                                    .map(choice -> new ChoiceFieldSchema.Option(upperSnake(choice), choice))
+                                                    .toList())
+                                .setAllowMultiple(fieldChoiceMulti);
+                    }
+                }))
+                .map(field -> schemaStore.updateField(schemaId, fieldId, field))
+                .map(f -> redirect("/manage/schema/" + schemaId))
+                .orElseThrow(() -> fail("Failed to update field " + schemaId + "/" + fieldId, "/manage/schema"));
     }
 
     @POST
@@ -507,7 +585,7 @@ public class Manage {
                                                 type,
                                                 skillValueId)
                 .map(group -> redirect("/manage/groups/" + group.getId()))
-                        .orElseThrow(() -> fail("Could not update group", "/manage/groups"));
+                .orElseThrow(() -> fail("Could not update group", "/manage/groups"));
     }
 
 

@@ -67,6 +67,8 @@ public class HandlebarsViewRenderer implements ViewRenderer {
             compilationCache.get(view.getTemplateName()).apply(view, writer);
         } catch (FileNotFoundException | ExecutionException e) {
             throw new FileNotFoundException("Template " + view.getTemplateName() + " not found.");
+        } catch (Throwable t) {
+            log.error("Error generating view: " + t.getMessage(), t);
         }
     }
 

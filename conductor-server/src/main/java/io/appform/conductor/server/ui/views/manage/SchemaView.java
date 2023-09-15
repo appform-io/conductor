@@ -16,12 +16,17 @@
 
 package io.appform.conductor.server.ui.views.manage;
 
+import io.appform.conductor.model.schema.FieldSchema;
+import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
+
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  *
@@ -31,9 +36,12 @@ import lombok.Value;
 @ToString(callSuper = true)
 public class SchemaView extends BaseLoggedInView {
     Schema schema;
+    FieldSchema field;
+    Set<FieldType> fieldTypes = EnumSet.allOf(FieldType.class);
 
-    public SchemaView(User currentUser, Schema schema) {
+    public SchemaView(User currentUser, Schema schema, FieldSchema field) {
         super("templates/manage/schema-details.hbs", currentUser);
         this.schema = schema;
+        this.field = field;
     }
 }
