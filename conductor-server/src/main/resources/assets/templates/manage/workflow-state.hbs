@@ -8,9 +8,10 @@
     <div class="row">
         <div class="col">
             {{#empty state}}
-                <h4>Create a new state</h4>
+                <h4>Create a new state for workflow: <a href="/manage/workflow/{{workflowId}}">{{workflowId}}</a> </h4>
             {{else}}
-                <h4>Edit state: <b>{{state.displayName}}</b></h4>
+                <h4>Edit state: <b>{{state.displayName}}</b>
+                    for workflow: <a href="/manage/workflow/{{workflowId}}">{{workflowId}}</a> </h4>
             {{/empty}}
         </div>
     </div>
@@ -59,19 +60,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="allowedActions" class="col-form-label fw-bold">Allowed Actions</label>
-                            <select id="allowedActions" name="allowedActions"
-                                    class="form-control selectpicker border border-dark" multiple
-                                    data-live-search="true" data-selected-text-format="count > 2">
-                                {{#each availableActions}}
-                                    <option value="{{id}}"
-                                            {{#contains state.allowedActions id}}selected{{/contains}}>{{name}}</option>
-                                {{/each}}
-                            </select>
-                            <div id="stateDescriptionHelp" class="form-text">
-                                Actions to be executed <b><i>after</i></b> the state is reached. Multiple Actions can be
-                                selected.
-                            </div>
+
                         </div>
                     </div>
                     <div class="col-sm-12 col-md-6">
@@ -80,60 +69,137 @@
                                 What Is A Workflow State?
                             </div>
                             <div class="row note-body">
-                                A workflow state represents the state of a ticket at a given point in time.
-                                <br/>
-                                A ticket moves from state to state based on the data supplied and the data present in it
-                                already, the transitions and the rules defined in those transitions.
-                                For a given state, fields on the UI can be made editable or read only and can be hidden
-                                as well.
+                                <p>
+                                    A workflow state represents the state of a ticket at a given point in time.
+                                </p>
+                                <p>
+                                    A ticket moves from state to state based on the data supplied and the data present in it
+                                    already, the transitions and the rules defined in those transitions.
+                                </p>
+                                <p>
+                                    If a ticket reaches <b>terminal</b> state, no further actions will be taken on the ticket.
+                                </p>
+                                <p>
+                                    <b>Field Management:</b> Control if a field is visible, editable and mandatory in this state
+                                </p>
+                                <p>
+                                    <b>Action Management:</b> Which actions get triggered after this state is reached.
+                                    You can define custom scoped actions or use already defined global actions.
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="row g-3 m2 mt-2">
-                    <div class="col-sm-12 table-responsive">
-                        <table class="table table-bordered border-dark">
-                            <thead>
-                            <tr>
-                                <th class="col-4">Name</th>
-                                <th class="col-6">Description</th>
-                                <th class="col-1 text-center">Visible</th>
-                                <th class="col-1 text-center">Editable</th>
-                                <th class="col-1 text-center">Required</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {{#each availableFields}}
-                                <tr>
-                                    <td>{{name}}</td>
-                                    <td>{{description}}</td>
-                                    <td class="text-center">
-                                        <input class="form-check-input  border border-dark" type="checkbox"
-                                               role="switch"
-                                               id="visibleFields" name="visibleFields" value="{{id}}"
-                                               {{#contains state.visibleFields id}}checked{{/contains}}>
-                                    </td>
-                                    <td class="text-center">
-                                        <input class="form-check-input  border border-dark" type="checkbox"
-                                               role="switch"
-                                               id="editableFields" name="editableFields" value="{{id}}"
-                                               {{#contains state.editableFields id}}checked{{/contains}}>
-                                    </td>
-                                    <td class="text-center">
-                                        <input class="form-check-input  border border-dark" type="checkbox"
-                                               role="switch"
-                                               id="requiredFields" name="requiredFields" value="{{id}}"
-                                               {{#contains state.requiredFields id}}checked{{/contains}}>
-                                    </td>
-                                </tr>
-                            {{/each}}
-                            </tbody>
-                        </table>
+                    <div class="col-12 col-md-6">
+                        <div class="row">
+                            <div class="col-12">
+                                <h5>Field Management</h5>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 table-responsive">
+                                <table class="table table-bordered border-dark">
+                                    <thead>
+                                    <tr>
+                                        <th class="col-4">Name</th>
+                                        <th class="col-6">Description</th>
+                                        <th class="col-1 text-center">Visible</th>
+                                        <th class="col-1 text-center">Editable</th>
+                                        <th class="col-1 text-center">Required</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {{#each availableFields}}
+                                        <tr>
+                                            <td>{{name}}</td>
+                                            <td>{{description}}</td>
+                                            <td class="text-center">
+                                                <input class="form-check-input  border border-dark" type="checkbox"
+                                                       role="switch"
+                                                       id="visibleFields" name="visibleFields" value="{{id}}"
+                                                       {{#contains state.visibleFields id}}checked{{/contains}}>
+                                            </td>
+                                            <td class="text-center">
+                                                <input class="form-check-input  border border-dark" type="checkbox"
+                                                       role="switch"
+                                                       id="editableFields" name="editableFields" value="{{id}}"
+                                                       {{#contains state.editableFields id}}checked{{/contains}}>
+                                            </td>
+                                            <td class="text-center">
+                                                <input class="form-check-input  border border-dark" type="checkbox"
+                                                       role="switch"
+                                                       id="requiredFields" name="requiredFields" value="{{id}}"
+                                                       {{#contains state.requiredFields id}}checked{{/contains}}>
+                                            </td>
+                                        </tr>
+                                    {{/each}}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="row">
+                            <div class="col-12">
+                                <h5>Actions Management</h5>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-8 col-md-10">
+                                <label for="allowedActions" class="col-form-label fw-bold visually-hidden">Allowed Actions</label>
+                                <select id="allowedActions" name="allowedActions"
+                                        class="form-control selectpicker border border-dark" multiple
+                                        data-live-search="true" data-selected-text-format="count > 2">
+                                    {{#each availableActions}}
+                                        <option value="{{id}}"
+                                                {{#contains state.allowedActions id}}selected{{/contains}}>{{name}}</option>
+                                    {{/each}}
+                                </select>
+                                <div id="stateDescriptionHelp" class="form-text">
+                                    Actions to be executed <b><i>after</i></b> the state is reached. Multiple Actions can be
+                                    selected.
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-2 justify-content-center">
+                                <a role="button" href="/actions/STATE/{{state.id}}" class="btn btn-primary btn-sm" target="_blank">
+                                    <i class="bi bi-plus-lg">New Action</i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 table-responsive">
+                                <table class="table table-bordered border-dark">
+                                    <thead>
+                                    <tr>
+                                        <th class="col-4">Name</th>
+                                        <th class="col-4">Description</th>
+                                        <th class="col-2 text-center">Type</th>
+                                        <th class="col-2 text-center">Scope</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {{#each availableActions}}
+                                        {{#contains state.allowedActions id}}
+                                            <tr>
+                                                <td>{{name}}</td>
+                                                <td>{{description}}</td>
+                                                <td class="text-center">{{readable type}}</td>
+                                                <td class="text-center">{{#eqEnum scope.type "GLOBAL"}}Global{{else}}Local{{/eqEnum}}</td>
+                                            </tr>
+                                        {{/contains}}
+                                    {{/each}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="row m-2">
                     <div class="col-12  d-flex justify-content-center">
-                        <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-save"></i> Save
+                        <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-save"></i>
+                            {{#empty state}}Create{{else}}Save All Changes{{/empty}}
                         </button>
                     </div>
                 </div>

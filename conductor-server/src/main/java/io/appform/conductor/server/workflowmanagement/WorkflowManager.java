@@ -22,6 +22,7 @@ import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.workflow.*;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.server.utils.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 
@@ -88,7 +89,7 @@ public class WorkflowManager {
                 .setSubjectIdTemplate(subjectIdTemplate));
     }
 
-    public Optional<Workflow> createState(
+    public Optional<Pair<Workflow, String>> createState(
             final String workflowId,
             final String displayName,
             final String description,
@@ -113,7 +114,7 @@ public class WorkflowManager {
                                                         requiredFields);
         ensure(updated.filter(workflow -> workflow.getStates().containsKey(stateId)).isPresent(),
                ConductorErrorCode.WORKFLOW_ERROR, "State " + stateId + " could not be added");
-        return updated;
+        return updated.map(workflow -> Pair.of(workflow, stateId));
     }
 
     public Optional<Workflow> updateState(

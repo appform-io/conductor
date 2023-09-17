@@ -389,7 +389,7 @@ public class Manage {
                         user.getUserSession().getUser(),
                         workflowId,
                         null,
-                        List.of(),
+                        actionStore.list(List.of(ActionScope.GLOBAL)),
                         fields)))
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
     }
@@ -444,7 +444,7 @@ public class Manage {
                                            editableFields,
                                            visibleFields,
                                            requiredFields)
-                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .map(pair -> redirect("/manage/workflow/" + pair.getFirst().getId() + "/states/" + pair.getSecond()))
                 .orElseThrow(() -> fail("Could not add state " + stateName, "/manage/workflow"));
     }
 
@@ -478,7 +478,7 @@ public class Manage {
                                            editableFields,
                                            visibleFields,
                                            requiredFields)
-                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .map(wf -> redirect("/manage/workflow/" + wf.getId() + "/states/" + stateId))
                 .orElseThrow(() -> fail("Could not setup initial state state " + stateId + " for workflow " + workflowId,
                                         "/manage/workflow"));
     }
