@@ -12,6 +12,7 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ActionScope {
     public static final String GLOBAL_STATE_REF_ID = "__GLOBAL__";
+    public static final ActionScope GLOBAL = new ActionScope(ScopeType.GLOBAL, GLOBAL_STATE_REF_ID);
 
     public enum ScopeType {
 
@@ -27,13 +28,9 @@ public class ActionScope {
     @Nullable
     String referenceId;
 
-    public static ActionScope global() {
-        return new ActionScope(ScopeType.GLOBAL, GLOBAL_STATE_REF_ID);
-    }
-
     public static ActionScope build(@NonNull ScopeType type, String referenceId) {
         return type == ScopeType.GLOBAL
-            ? global()
+            ? GLOBAL
             : new ActionScope(type, referenceId);
     }
 

@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.resources.ui;
 
+import io.appform.conductor.model.actions.ActionScope;
 import io.appform.conductor.model.schema.*;
 import io.appform.conductor.model.schema.fields.*;
 import io.appform.conductor.model.usermgmt.GroupType;
@@ -24,6 +25,7 @@ import io.appform.conductor.model.workflow.Rule;
 import io.appform.conductor.model.workflow.TicketStateTransition;
 import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.model.workflow.WorkflowState;
+import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.ui.views.manage.*;
@@ -64,6 +66,7 @@ public class Manage {
     private final WorkflowStore workflowStore;
     private final WorkflowManager workflowManager;
     private final UserLifecycleManager userLifecycleManager;
+    private final ActionStore actionStore;
 
     @GET
     @Path("/schema")
@@ -245,7 +248,8 @@ public class Manage {
                     public FieldSchema visit(ChoiceFieldSchema choiceField) {
                         return choiceField
                                 .setChoices(Arrays.stream(fieldChoiceChoices.split(","))
-                                                    .map(choice -> new ChoiceFieldSchema.Option(upperSnake(choice), choice))
+                                                    .map(choice -> new ChoiceFieldSchema.Option(upperSnake(choice),
+                                                                                                choice))
                                                     .toList())
                                 .setAllowMultiple(fieldChoiceMulti);
                     }
@@ -413,7 +417,9 @@ public class Manage {
         return render(new WorkflowStateView(user.getUserSession().getUser(),
                                             workflowId,
                                             state,
-                                            List.of(),
+                                            actionStore.list(Set.of(ActionScope.GLOBAL,
+                                                                    ActionScope.build(ActionScope.ScopeType.STATE,
+                                                                                      stateId))),
                                             fields));
     }
 
