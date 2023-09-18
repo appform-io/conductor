@@ -483,7 +483,7 @@ public class DBSchemaStore implements SchemaStore {
 
     private void updateSchema(FieldSchema updated, StoredFieldSchema schema) {
         schema
-                .setDisplayName(schema.getDisplayName())
+                .setDisplayName(updated.getDisplayName())
                 .setDescription(updated.getDescription())
                 .setParent(updated.getParent())
                 .setVisibilityCondition(updated.getVisibilityCondition())

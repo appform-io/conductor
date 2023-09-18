@@ -78,18 +78,30 @@
                               action="/manage/schema/{{schema.id}}/fields/{{field.id}}/update"
                             {{/empty}}>
                             <div class="mb-3">
-                                <label for="fieldName" class="col-form-label fw-bold">Field Display Name</label>
+                                <label for="fieldName" class="col-form-label fw-bold">Field Name</label>
                                 <input type="text" id="fieldName" name="fieldName"
                                        class="form-control border border-dark"
                                        maxlength="45" placeholder="Field Display Label"
-                                       aria-describedby="fieldNameHelp" value="{{field.displayName}}"
+                                       pattern="[a-zA-Z0-9_]+"
+                                       aria-describedby="fieldNameHelp" value="{{field.name}}"
                                     {{#empty field}}
                                        required
                                     {{else}}
                                        disabled
                                     {{/empty}}>
-                                <div id="fieldNameHelp" class="form-text">Field Name to be displayed on the form.
+                                <div id="fieldNameHelp" class="form-text">Field Name to be used internally in rules etc.
                                     This is fixed once saved. Max length: 45.
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="fieldDisplayName" class="col-form-label fw-bold">Field Display Name</label>
+                                <input type="text" id="fieldDisplayName" name="fieldDisplayName"
+                                       class="form-control border border-dark"
+                                       maxlength="45" placeholder="Field Display Label"
+                                       aria-describedby="fieldDisplayNameHelp" value="{{field.displayName}}">
+                                <div id="fieldDisplayNameNameHelp" class="form-text">
+                                    Field Name to be displayed on the form. If not set, this is automatically set to
+                                    the field name. Max length: 45.
                                 </div>
                             </div>
                             <div class="mb-3">

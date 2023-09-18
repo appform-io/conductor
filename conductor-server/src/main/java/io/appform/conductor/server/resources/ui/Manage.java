@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.resources.ui;
 
+import com.google.common.base.Strings;
 import io.appform.conductor.model.actions.ActionScope;
 import io.appform.conductor.model.schema.*;
 import io.appform.conductor.model.schema.fields.*;
@@ -36,7 +37,6 @@ import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
-import org.apache.commons.text.CaseUtils;
 import org.hibernate.validator.constraints.Length;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
@@ -141,6 +141,7 @@ public class Manage {
             @Auth ConductorUser user,
             @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId,
             @FormParam("fieldName") @NotEmpty @Length(max = 45) final String fieldName,
+            @FormParam("fieldDisplayName") @Length(max = 45) final String fieldDisplayName,
             @FormParam("fieldDescription") @Length(max = 255) final String fieldDescription,
             @FormParam("fieldType") @NotNull final FieldType fieldType,
             @FormParam("fieldStringMaxLength") @Min(1) @Max(255) final int fieldStringMaxLength,
@@ -149,19 +150,19 @@ public class Manage {
             @FormParam("fieldChoiceMulti") @DefaultValue("false") final boolean fieldChoiceMulti,
             @FormParam("fieldNumberMin") final double fieldNumberMin,
             @FormParam("fieldNumberMax") final double fieldNumberMax) {
-        val name = CaseUtils.toCamelCase(fieldName.trim(), false, ' ');
         //TODO::DEFAULT VALUE TO BE PREFILLED
+        val displayName = Strings.isNullOrEmpty(fieldDisplayName) ? fieldName : fieldDisplayName;
         val fs = switch (fieldType) {
             case STRING -> StringFieldSchema.builder()
-                    .name(name)
-                    .displayName(fieldName)
+                    .name(fieldName)
+                    .displayName(displayName)
                     .description(fieldDescription)
                     .maxLength(fieldStringMaxLength)
                     .matchPattern(fieldStringRegex)
                     .build();
             case CHOICE -> ChoiceFieldSchema.builder()
-                    .name(name)
-                    .displayName(fieldName)
+                    .name(fieldName)
+                    .displayName(displayName)
                     .description(fieldDescription)
                     .allowMultiple(fieldChoiceMulti)
                     .choices(Arrays.stream(fieldChoiceChoices.split(","))
@@ -169,29 +170,29 @@ public class Manage {
                                      .toList())
                     .build();
             case BOOLEAN -> BooleanFieldSchema.builder()
-                    .name(name)
-                    .displayName(fieldName)
+                    .name(fieldName)
+                    .displayName(displayName)
                     .description(fieldDescription)
                     .build();
             case NUMBER -> NumberFieldSchema.builder()
-                    .name(name)
-                    .displayName(fieldName)
+                    .name(fieldName)
+                    .displayName(displayName)
                     .description(fieldDescription)
                     .min(fieldNumberMin)
                     .max(fieldNumberMax)
                     .build();
             case LOCATION -> LocationFieldSchema.builder()
-                    .name(name)
-                    .displayName(fieldName)
+                    .name(fieldName)
+                    .displayName(displayName)
                     .description(fieldDescription)
                     .build();
             case DATE -> DateFieldSchema.builder()
-                    .name(name)
-                    .displayName(fieldName)
+                    .name(fieldName)
+                    .displayName(displayName)
                     .description(fieldDescription)
                     .build();
         };
-        return schemaStore.addField(schemaId, schemaId + "-" + name, fs)
+        return schemaStore.addField(schemaId, schemaId + "-" + fieldName, fs)
                 .map(f -> redirect("/manage/schema/" + schemaId))
                 .orElseThrow(() -> fail("Failed to add field to schema " + schemaId, "/manage/schema"));
     }
@@ -200,10 +201,11 @@ public class Manage {
     @POST
     @Path("/schema/{schemaId}/fields/{fieldId}/update")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response addField(
+    public Response updateField(
             @Auth ConductorUser user,
             @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId,
             @PathParam("fieldId") @NotEmpty @Length(max = 45) final String fieldId,
+            @FormParam("fieldDisplayName") @Length(max = 45) final String fieldDisplayName,
             @FormParam("fieldDescription") @Length(max = 255) final String fieldDescription,
             @FormParam("fieldStringMaxLength") @Min(1) @Max(255) final int fieldStringMaxLength,
             @FormParam("fieldStringRegex") final String fieldStringRegex,
@@ -213,7 +215,8 @@ public class Manage {
             @FormParam("fieldNumberMax") final double fieldNumberMax) {
         //TODO::DEFAULT VALUE TO BE PREFILLED
         return schemaStore.getField(schemaId, fieldId)
-                .map(field -> field.setDescription(fieldDescription))
+                .map(field -> field.setDisplayName(fieldDisplayName)
+                        .setDescription(fieldDescription))
                 .map(field -> field.accept(new FieldSchemaVisitor<FieldSchema>() {
                     @Override
                     public FieldSchema visit(StringFieldSchema stringField) {
