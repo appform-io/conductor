@@ -254,7 +254,8 @@ public class DBWorkflowStore implements WorkflowStore {
         val updated = wfDao.lockAndGetExecutor(workflowId)
                 .createOrUpdate(tstrnDao,
                                 createCriteria(StoredTicketStateTransition.class, workflowId, false)
-                                        .add(Property.forName(StoredTicketStateTransition.Fields.extId).eq(transitionId)),
+                                        .add(Property.forName(StoredTicketStateTransition.Fields.extId)
+                                                     .eq(transitionId)),
                                 existing -> existing
                                         .setType(type)
                                         .setRule(rule)
@@ -270,6 +271,27 @@ public class DBWorkflowStore implements WorkflowStore {
                                         .setActionIds(actions))
                 .execute() != null;
         log.info("State transition create status for {}/{}: {}", workflowId, transitionId, updated);
+        return read(workflowId);
+    }
+
+    @Override
+    public Optional<Workflow> updateTransition(
+            String workflowId,
+            String transitionId,
+            TicketStateTransition.TicketStateTransitionType type,
+            Rule rule,
+            List<String> actionIds) {
+        val updated = wfDao.lockAndGetExecutor(workflowId)
+                .update(tstrnDao,
+                        DetachedCriteria.forClass(StoredTicketStateTransition.class)
+                                .add(Property.forName(StoredTicketStateTransition.Fields.workflowId).eq(workflowId))
+                                .add(Property.forName(StoredTicketStateTransition.Fields.extId).eq(transitionId)),
+                        existing -> existing.setType(type)
+                                .setRule(rule)
+                                .setActionIds(actionIds),
+                        () -> false)
+                .execute() != null;
+        log.info("State transition update status for {}/{}: {}", workflowId, transitionId, updated);
         return read(workflowId);
     }
 
@@ -361,7 +383,7 @@ public class DBWorkflowStore implements WorkflowStore {
         val criteria = DetachedCriteria.forClass(clazz)
                 .add(Property.forName(StoredWorkflow.Fields.workflowId).eq(workflowId))
                 .addOrder(Order.asc(StoredWorkflow.Fields.created));
-        if(skipDeleted) {
+        if (skipDeleted) {
             criteria.add(Property.forName(StoredWorkflow.Fields.deleted).eq(false));
         }
         return criteria;
@@ -381,15 +403,16 @@ public class DBWorkflowStore implements WorkflowStore {
                 state.getUpdated());
     }
 
-    private static TicketStateTransition toWire(final StoredTicketStateTransition state) {
+    private static TicketStateTransition toWire(final StoredTicketStateTransition transition) {
         return new TicketStateTransition(
-                state.getExtId(),
-                state.getFromState(),
-                state.getToState(),
-                state.getType(),
-                state.getRule(),
-                state.getActionIds(),
-                state.getCreated(),
-                state.getUpdated());
+                transition.getExtId(),
+                transition.getFromState(),
+                transition.getToState(),
+                transition.getType(),
+                transition.getRule(),
+                transition.getActionIds(),
+                transition.getWorkflowId(),
+                transition.getCreated(),
+                transition.getUpdated());
     }
 }

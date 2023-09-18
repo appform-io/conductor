@@ -106,6 +106,19 @@ public class EventGeneratingWorkflowStore implements  WorkflowStore {
     }
 
     @Override
+    public Optional<Workflow> updateTransition(
+            String workflowId,
+            String transitionId,
+            TicketStateTransition.TicketStateTransitionType type,
+            Rule rule,
+            List<String> actionIds) {
+        val res = workflowStore.updateTransition(workflowId, transitionId, type, rule, actionIds);
+        res.flatMap(workflow -> Optional.ofNullable(workflow.getTicketStateTransitions().get(transitionId)))
+                .ifPresent(transition -> eventBus.publish(new WorkflowTransitionChangedEvent(workflowId, transitionId)));
+        return res;
+    }
+
+    @Override
     public Optional<Workflow> deleteTransition(String workflowId, String transitionId) {
         val res = workflowStore.deleteTransition(workflowId, transitionId);
         if(res.flatMap(workflow -> Optional.ofNullable(workflow.getTicketStateTransitions().get(transitionId))).isEmpty()) {

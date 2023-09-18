@@ -74,6 +74,11 @@ public class TicketStateTransition {
     List<String> actionIds;
 
     /**
+     * Parent workflow ID
+     */
+    String workflowId;
+
+    /**
      * Creation date for the transition
      */
     Date created;

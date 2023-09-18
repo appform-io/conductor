@@ -67,6 +67,13 @@ public interface WorkflowStore {
             final Rule rule,
             final List<String> actionIds);
 
+    Optional<Workflow> updateTransition(
+            final String workflowId,
+            final String transitionId,
+            final TicketStateTransition.TicketStateTransitionType type,
+            final Rule rule,
+            final List<String> actionIds);
+
     Optional<Workflow> deleteTransition(
             final String workflowId,
             final String transitionId);

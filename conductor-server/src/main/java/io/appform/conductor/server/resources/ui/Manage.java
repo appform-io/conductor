@@ -318,7 +318,8 @@ public class Manage {
                 .flatMap(workflow -> schemaStore.get(workflow.getSchemaId())
                         .map(schema -> new WorkflowDetailsView(user.getUserSession().getUser(),
                                                                workflow,
-                                                               schema)))
+                                                               schema,
+                                                               null)))
                 .map(ConductorServerUtils::render)
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
     }
@@ -527,6 +528,52 @@ public class Manage {
                                                         transitionType == TicketStateTransition.TicketStateTransitionType.EVALUATED
                                                         ? new Rule(Rule.RuleType.HOPE, rule) : null,
                                                         allowedActions)
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Could not add transition to workflow " + workflowId,
+                                        "/manage/workflow"));
+    }
+
+    @GET
+    @Path("/workflow/{workflowId}/transitions/{stateTransitionId}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response renderTransition(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @PathParam("stateTransitionId") @NotEmpty @Length(max = 255) final String stateTransitionId) {
+        return workflowStore.read(workflowId)
+                .flatMap(workflow -> schemaStore.get(workflow.getSchemaId())
+                        .map(schema -> new WorkflowDetailsView(user.getUserSession().getUser(),
+                                                               workflow,
+                                                               schema,
+                                                               workflow.getTicketStateTransitions()
+                                                                       .values()
+                                                                       .stream()
+                                                                       .flatMap(List::stream)
+                                                                       .filter(ticketStateTransition -> ticketStateTransition.getId()
+                                                                               .equals(stateTransitionId))
+                                                                       .findFirst()
+                                                                       .orElse(null))))
+                .map(ConductorServerUtils::render)
+                .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
+    }
+
+
+    @POST
+    @Path("/workflow/{workflowId}/transitions/{stateTransitionId}/update")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response updateTransition(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @PathParam("stateTransitionId") @NotEmpty @Length(max = 255) final String stateTransitionId,
+            @FormParam("transitionType") final TicketStateTransition.TicketStateTransitionType transitionType,
+            @FormParam("rule") @Length(max = 4096) final String rule,
+            @FormParam("transitionAllowedActions") final List<String> allowedActions) {
+        return workflowManager.updateTransition(workflowId,
+                                                stateTransitionId,
+                                                transitionType,
+                                                transitionType == TicketStateTransition.TicketStateTransitionType.EVALUATED
+                                                ? new Rule(Rule.RuleType.HOPE, rule) : null,
+                                                allowedActions)
                 .map(wf -> redirect("/manage/workflow/" + wf.getId()))
                 .orElseThrow(() -> fail("Could not add transition to workflow " + workflowId,
                                         "/manage/workflow"));

@@ -96,8 +96,8 @@
                             <h5>Manage States</h5>
                         </div>
                         <div class="col-3 d-flex justify-content-end">
-                            <a class="btn btn-primary" href="/manage/workflow/{{id}}/states/add">
-                                <i class="bi bi-plus-lg"></i>Add</a>
+                            <a class="btn btn-primary btn-sm" href="/manage/workflow/{{id}}/states/add">
+                                <i class="bi bi-plus-lg"></i>Create</a>
                         </div>
                     </div>
                     <div class="row mt-2 mb-2">
@@ -163,22 +163,34 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col">
+                        <div class="col-9">
                             <h5>Manage State Transitions</h5>
                         </div>
+                        <div class="col-3  d-flex justify-content-end">
+                            <a class="btn btn-primary btn-sm" href="/manage/workflow/{{id}}">
+                                <i class="bi bi-plus-lg">Create</i>
+                            </a>
+                        </div>
+
                     </div>
                     <div class="row m-4">
                         <div class="col-sm-12 col-md-6">
-                            <form method="post" action="/manage/workflow/{{id}}/transitions/add">
+                            <form method="post"
+                                  {{#empty currentTransition}}
+                                  action="/manage/workflow/{{id}}/transitions/add"
+                                  {{else}}
+                                  action="/manage/workflow/{{id}}/transitions/{{currentTransition.id}}/update"
+                                  {{/empty}}>
                                 <div class="row g-3 m-2">
                                     <div class="col-sm-12 col-md-5">
                                         <select id="fromState" name="fromState"
                                                 class="form-control selectpicker border border-dark"
-                                                data-live-search="true" aria-describedby="fromStateHelp" required>
+                                                data-live-search="true" aria-describedby="fromStateHelp"
+                                                {{#empty currentTransition}}required{{else}}disabled{{/empty}}>
                                             <option value="" disabled selected>Select from state</option>
                                             {{#each states}}
                                                 {{#with this}}
-                                                    <option value="{{id}}">{{displayName}}</option>
+                                                    <option value="{{id}}" {{#eq currentTransition.from id}}selected{{/eq}}>{{displayName}}</option>
                                                 {{/with}}
                                             {{/each}}
                                         </select>
@@ -189,11 +201,12 @@
                                     <div class="col-sm-12 col-md-5">
                                         <select id="toState" name="toState"
                                                 class="form-control selectpicker border border-dark"
-                                                data-live-search="true" aria-describedby="toStateHelp" required>
+                                                data-live-search="true" aria-describedby="toStateHelp"
+                                                {{#empty currentTransition}}required{{else}}disabled{{/empty}}>
                                             <option value="" disabled selected>Select to state</option>
                                             {{#each states}}
                                                 {{#with this}}
-                                                    <option value="{{id}}">{{displayName}}</option>
+                                                    <option value="{{id}}" {{#eq currentTransition.to id}}selected{{/eq}}>{{displayName}}</option>
                                                 {{/with}}
                                             {{/each}}
                                         </select>
@@ -204,11 +217,13 @@
                                                 id="transitionType" name="transitionType"
                                                 aria-describedby="transitionTypeHelp" required>
                                             <option value="" disabled selected>Transition type</option>
-                                            <option value="EVALUATED" title="Transition happens if rule returns true">
+                                            <option value="EVALUATED" title="Transition happens if rule returns true"
+                                                {{#eqEnum currentTransition.type "EVALUATED"}}selected{{/eqEnum}}>
                                                 Rule based
                                             </option>
                                             <option value="DEFAULT"
-                                                    title="Transition happens if no other transitions is selected">
+                                                    title="Transition happens if no other transitions is selected"
+                                                    {{#eqEnum currentTransition.type "DEFAULT"}}selected{{/eqEnum}}>
                                                 Default
                                             </option>
                                         </select>
@@ -219,7 +234,7 @@
                                     <div class="col-12">
                                         <textarea id="rule" name="rule" class="form-control border border-dark"
                                                   maxlength="2048" rows="10" aria-describedby="ruleHelp"
-                                                  placeholder="Rule definition"></textarea>
+                                                  placeholder="Rule definition">{{currentTransition.rule.rule}}</textarea>
                                         <div id="ruleHelp" class="form-text">The rule is executed if Transition Type is
                                             set to <b>Rule Based</b>. If the rule returns true, the transition is
                                             accepted and state movement happens for the ticket. Any further rules from
@@ -298,9 +313,10 @@
                             <table class="table table-bordered border-dark data-table">
                                 <thead>
                                 <tr>
-                                    <th>From</th>
-                                    <th>To</th>
-                                    <th class="text-center">Transition  Type</th>
+                                    <td>Direction</td>
+                                    <td>From</td>
+                                    <td>To</td>
+                                    <th class="text-center">Transition Type</th>
                                     <th>Rule</th>
                                     <th></th>
                                 </tr>
@@ -309,8 +325,19 @@
                                 {{#each ticketStateTransitions}}
                                     {{#each this}}
                                         <tr>
-                                            <td>{{#with (lookup states from)}}{{displayName}}{{/with}}</td>
-                                            <td>{{#with (lookup states to)}}{{displayName}}{{/with}}</td>
+                                            <td>
+                                                <a href="/manage/workflow/{{workflowId}}/transitions/{{id}}">
+                                                {{#with (lookup states from)}}{{displayName}}{{/with}}
+                                                <b>&rarr;</b>
+                                                {{#with (lookup states to)}}{{displayName}}{{/with}}
+                                                </a>
+                                            </td>
+                                            <td>
+                                                {{#with (lookup states from)}}{{displayName}}{{/with}}
+                                            </td>
+                                            <td>
+                                                {{#with (lookup states to)}}{{displayName}}{{/with}}
+                                            </td>
                                             <td  class="text-center">
                                                 {{#eq (readable type) "Evaluated"}}
                                                     <span class="badge bg-info ms-2">Rule Based</span>
@@ -321,7 +348,7 @@
                                             <td><pre><span class="badge  bg-dark me-2">{{readable rule.type}}</span><code>{{rule.rule}}</code></pre></td>
                                             <td>
                                                 <form class="confirmed-form" method="post"
-                                                      action="/manage/workflow/{{../id}}/transitions/{{id}}/delete"
+                                                      action="/manage/workflow/{{workflowId}}/transitions/{{id}}/delete"
                                                       data-cnf-title="Deleting transition"
                                                       data-cnf-text="Are you sure you want to delete this transition? Action will fail if transitions exist.">
                                                     <button type="submit" class="btn btn-link p-0 text-danger">

@@ -251,6 +251,15 @@ public class WorkflowManager {
         return updated;
     }
 
+    public Optional<Workflow> updateTransition(
+            String workflowId,
+            String transitionId,
+            TicketStateTransition.TicketStateTransitionType type,
+            Rule rule,
+            List<String> actionIds) {
+        return workflowStore.updateTransition(workflowId, transitionId, type, rule, actionIds);
+    }
+
     public Optional<Workflow> updateTransitionType(
             String workflowId,
             String transitionId,
