@@ -18,8 +18,9 @@ public class ActionScope {
 
         STATE,
         TRANSITION,
+        WORKFLOW,
         TICKET,
-        GLOBAL
+        GLOBAL,
     }
 
     @NotNull

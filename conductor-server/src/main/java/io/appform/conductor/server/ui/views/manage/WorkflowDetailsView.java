@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.ui.views.manage;
 
+import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.workflow.TicketStateTransition;
@@ -24,6 +25,8 @@ import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
+
+import java.util.Collection;
 
 /**
  *
@@ -35,11 +38,15 @@ public class WorkflowDetailsView extends BaseLoggedInView {
     Workflow workflow;
     Schema schema;
     TicketStateTransition currentTransition;
+    Collection<Action> availableActions;
+
     public WorkflowDetailsView(User currentUser, Workflow workflow, Schema schema,
-                               TicketStateTransition currentTransition) {
+                               TicketStateTransition currentTransition,
+                               Collection<Action> availableActions) {
         super("templates/manage/workflow-details.hbs", currentUser);
         this.workflow = workflow;
         this.schema = schema;
         this.currentTransition = currentTransition;
+        this.availableActions = availableActions;
     }
 }

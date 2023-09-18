@@ -316,10 +316,14 @@ public class Manage {
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
         return workflowStore.read(workflowId)
                 .flatMap(workflow -> schemaStore.get(workflow.getSchemaId())
-                        .map(schema -> new WorkflowDetailsView(user.getUserSession().getUser(),
-                                                               workflow,
-                                                               schema,
-                                                               null)))
+                        .map(schema -> new WorkflowDetailsView(
+                                user.getUserSession().getUser(),
+                                workflow,
+                                schema,
+                                null,
+                                actionStore.list(List.of(ActionScope.GLOBAL,
+                                                         ActionScope.build(ActionScope.ScopeType.WORKFLOW,
+                                                                           workflowId))))))
                 .map(ConductorServerUtils::render)
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
     }
@@ -552,7 +556,12 @@ public class Manage {
                                                                        .filter(ticketStateTransition -> ticketStateTransition.getId()
                                                                                .equals(stateTransitionId))
                                                                        .findFirst()
-                                                                       .orElse(null))))
+                                                                       .orElse(null),
+                                                               actionStore.list(List.of(ActionScope.GLOBAL,
+                                                                                        ActionScope.build(ActionScope.ScopeType.WORKFLOW,
+                                                                                                          workflowId),
+                                                                                        ActionScope.build(ActionScope.ScopeType.TRANSITION,
+                                                                                                          stateTransitionId))))))
                 .map(ConductorServerUtils::render)
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
     }
