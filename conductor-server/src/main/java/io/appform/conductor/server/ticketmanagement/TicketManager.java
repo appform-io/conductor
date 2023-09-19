@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
+import io.appform.conductor.model.actions.ActionExecutionResult;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.FieldSchema;
@@ -96,6 +97,7 @@ public class TicketManager {
     public static final String SCHEMA_ID = "schemaId";
     public static final String SUBJECT_ID = "subjectId";
     public static final String ACTION_ID = "actionId";
+    public static final String STATE_ID = "stateId";
     private final TicketStore ticketStore;
     private final SchemaStore schemaStore;
     private final UserStore userStore;
@@ -360,6 +362,70 @@ public class TicketManager {
                 .filter(ticketSkeleton -> (null == userId && null == ticketSkeleton.getAssignedToUserId())
                         || (userId != null && userId.equals(ticketSkeleton.getAssignedToUserId())))
                 .isPresent();
+    }
+
+    public boolean triggerTicketAction(String ticketId, String actionId) {
+        val ticket = ticketStore.read(ticketId, true)
+                .orElseThrow(() -> ConductorException.builder()
+                        .errorCode(ConductorErrorCode.TICKET_MGMT_NO_TICKET)
+                        .context(Map.of(TICKET_ID, ticketId))
+                        .build());
+
+        val subjectId = ticket.getSubjectId();
+        val subject = subjectStore.getSubject(subjectId)
+                .orElseThrow(() -> ConductorException.builder()
+                .errorCode(ConductorErrorCode.TICKET_MGMT_NO_SUBJECT)
+                .context(Map.of(TICKET_ID, ticketId,
+                        SUBJECT_ID, subjectId))
+                .build());
+
+        val workflowId = ticket.getWorkflowId();
+        val workflow = workflowStore.read(workflowId)
+                .orElseThrow(() -> ConductorException.builder()
+                        .errorCode(ConductorErrorCode.TICKET_MGMT_NO_WORKFLOW)
+                        .context(Map.of(TICKET_ID, ticketId,
+                                WORKFLOW_ID, workflowId))
+                        .build());
+
+        val schemaId = workflow.getSchemaId();
+        val schema = schemaStore.get(schemaId)
+                .orElseThrow(() -> ConductorException.builder()
+                        .errorCode(ConductorErrorCode.TICKET_MGMT_NO_SCHEMA)
+                        .context(Map.of(WORKFLOW_ID, workflowId,
+                                SCHEMA_ID, schemaId))
+                        .build());
+
+        val ticketDetails = ticketDetails(ticket, workflow, subject.getSummary());
+
+        //validate action
+        val ticketState = ticketDetails.getSummary().getTicketState();
+        if(ticketState.getAllowedActions().stream()
+                .noneMatch( eligibleAction -> eligibleAction.equals(actionId))) {
+            throw ConductorException.builder()
+                    .errorCode(ConductorErrorCode.TICKET_MGMT_NO_STATE_ACTION)
+                    .context(Map.of(TICKET_ID, ticketId,
+                            ACTION_ID, actionId,
+                            STATE_ID, ticketState.getId()))
+                    .build();
+        }
+
+        //trigger action
+        val actionExecutionData = new ActionExecutor.ActionEvalData(
+                workflow,
+                schema,
+                ticketDetails,
+                ConductorServerUtils.ticketToJsonNode(mapper, ticketDetails, schema),
+                mapper.createObjectNode());
+
+        val action = actionStore.read(actionId)
+                .orElseThrow(() -> ConductorException.builder()
+                        .errorCode(ConductorErrorCode.TICKET_MGMT_NO_ACTION)
+                        .context(Map.of(TICKET_ID, ticketId,
+                                WORKFLOW_ID, workflow.getId(),
+                                ACTION_ID, actionId))
+                        .build());
+
+        return actionExecutor.execute(action, actionExecutionData) == ActionExecutionResult.SUCCESS;
     }
 
     private TicketSkeleton readDetails(String ticketId) {
