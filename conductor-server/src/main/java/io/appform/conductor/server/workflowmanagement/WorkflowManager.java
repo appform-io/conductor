@@ -202,8 +202,8 @@ public class WorkflowManager {
         ensure(wf.getTicketStateTransitions()
                        .values()
                        .stream()
-                       .noneMatch(transitions -> transitions.stream()
-                               .noneMatch(ticketStateTransition -> ticketStateTransition.getTo().equals(stateId))),
+                       .flatMap(List::stream)
+                       .noneMatch(ticketStateTransition -> ticketStateTransition.getTo().equals(stateId)),
                ConductorErrorCode.WORKFLOW_ERROR,
                "Inbound connections still exist into state: " + stateId);
         val updated = workflowStore.deleteState(workflowId, stateId);

@@ -1,0 +1,73 @@
+{{#partial "page_css_includes"}}
+    <link href="/css/bootstrap-select.min.css" rel="stylesheet">
+{{/partial}}
+{{#partial "page_js_includes"}}
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+{{/partial}}
+{{#partial "content"}}
+    <div class="row">
+        <div class="col-12">
+            {{#empty currentAction}}
+                <h4>Creating Action to add Action Button to Ticket UI</h4>
+            {{else}}
+                <h4>Updating Action to add Action Button to Ticket UI: <b>{{currentAction.name}}</b></h4>
+            {{/empty}}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12 col-md-6">
+            <form method="post"
+                {{#with currentAction}}
+                  action="/actions/{{scope.type}}/{{scope.referenceId}}/{{id}}/ADD_TICKET_ACTION/update"
+                {{else}}
+                  action="/actions/{{scope.type}}/{{scope.referenceId}}/ADD_TICKET_ACTION/create"
+                {{/with}}
+            >
+                <div class="mb-3">
+                    <label for="name" class="col-form-label fw-bold">Name</label>
+                    <input type="text" id="name" name="name" class="form-control border border-dark"
+                           maxlength="45" placeholder="Action Name" aria-describedby="nameHelp"
+                           value="{{currentAction.name}}">
+                    <div id="nameHelp" class="form-text">Name for the action. Max Length: 45</div>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="col-form-label fw-bold">Description</label>
+                    <textarea id="description" name="description"
+                              class="form-control border border-dark" rows="5" maxlength="255"
+                              placeholder="A description for the action" aria-describedby="descriptionHelp"
+                              aria-describedby="descriptionHelp">{{currentAction.description}}</textarea>
+                    <div id="descriptionHelp" class="form-text">Optional. Max Length: 255</div>
+                </div>
+                <div class="mb-3">
+                    <label for="ticketActionId" class="col-form-label fw-bold">Action to be added</label>
+                    <select class="form-control border border-dark"
+                            id="ticketActionId" name="ticketActionId"
+                            aria-describedby="ticketActionIdHelp" required>
+                        {{#each availableActions}}
+                            <option value="{{id}}" title="{{description}}"
+                                    {{#eq ../currentAction/actionId id}}selected{{/eq}}>{{name}}</option>
+                        {{/each}}
+                    </select>
+                    <div id="ticketActionIdHelp" class="form-text">This action will be visible on Ticket UI</div>
+                </div>
+                <div class="mb-3 d-flex justify-content-center">
+                    <button type="submit" class="btn btn-success"><i class="bi bi-save me-2"></i>Save</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-sm-0 col-md-1"></div>
+        <div class="col-sm-0 col-md-4">
+            <div class="alert alert-light note" role="alert">
+                <div class="row note-header">
+                    What is a Route to Group Action?
+                </div>
+                <div class="row note-body">
+                    A route to group action can be used to automatically assign a ticket to a group.
+                    This action can be triggered as part of a transition, or on landing on a state.
+                </div>
+            </div>
+        </div>
+    </div>
+{{/partial}}
+
+{{> common/base}}

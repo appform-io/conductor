@@ -358,7 +358,7 @@ public class TicketManager {
                                   ticketSkeleton -> ticketSkeleton.setAssignedToUserId(userId),
                                   List.of())
                 .filter(ticketSkeleton -> (null == userId && null == ticketSkeleton.getAssignedToUserId())
-                        || userId.equals(ticketSkeleton.getAssignedToUserId()))
+                        || (userId != null && userId.equals(ticketSkeleton.getAssignedToUserId())))
                 .isPresent();
     }
 
@@ -418,6 +418,7 @@ public class TicketManager {
             final TicketSkeleton skeleton,
             final Workflow workflow,
             SubjectSummary subject) {
+        val actionIds = Objects.requireNonNullElse(skeleton.getTicketActionsIds(), List.<String>of());
         return new TicketDetails(new TicketSummary(skeleton.getTicketId(),
                                                    skeleton.getTitle(),
                                                    skeleton.getDescription(),
@@ -431,7 +432,9 @@ public class TicketManager {
                                                    skeleton.getCreated(),
                                                    skeleton.getUpdated()),
                                  skeleton.getFields(),
-                                 List.of()); //TODO::ACTION
+                                 actionIds.isEmpty()
+                                    ? List.of()
+                                    : actionStore.listActionsForIds(actionIds));
     }
 
     private UserSummary userSummary(String userId) {

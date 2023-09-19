@@ -51,6 +51,8 @@ public class TicketSkeleton {
 
     private List<TicketField> fields;
 
+    private List<String> ticketActionsIds;
+
     private boolean deleted;
 
     private Date created;

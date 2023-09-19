@@ -18,6 +18,7 @@ package io.appform.conductor.server.resources.ui;
 
 import io.appform.conductor.model.actions.ActionScope;
 import io.appform.conductor.model.actions.ActionType;
+import io.appform.conductor.model.actions.impl.AddTicketAction;
 import io.appform.conductor.model.actions.impl.ChangePriorityAction;
 import io.appform.conductor.model.actions.impl.RouteToGroupAction;
 import io.appform.conductor.model.actions.impl.WebhookAction;
@@ -25,6 +26,7 @@ import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.ui.views.actions.ActionListView;
+import io.appform.conductor.server.ui.views.actions.fragments.AddTicketActionFragment;
 import io.appform.conductor.server.ui.views.actions.fragments.ChangePriorityActionFragment;
 import io.appform.conductor.server.ui.views.actions.fragments.RouteToGroupActionFragment;
 import io.appform.conductor.server.ui.views.actions.fragments.WebHookActionFragment;
@@ -102,7 +104,9 @@ public class Actions {
             case WEBHOOK -> new WebHookActionFragment(scope, null);
             case ROUTE_TO_GROUP -> new RouteToGroupActionFragment(groupStore.list(), scope, null);
             case ADD_COMMENT -> null;
-            case ADD_TICKET_ACTION -> null;
+            case ADD_TICKET_ACTION -> new AddTicketActionFragment(actionStore.listActionsForScopes(List.of(ActionScope.GLOBAL, scope)),
+                                                                  scope,
+                                                                  null);
             case CHANGE_PRIORITY -> new ChangePriorityActionFragment(scope, null);
             case SET_FIELD -> null;
         };
@@ -125,7 +129,9 @@ public class Actions {
             case WEBHOOK -> new WebHookActionFragment(scope, action);
             case ROUTE_TO_GROUP -> new RouteToGroupActionFragment(groupStore.list(), scope, action);
             case ADD_COMMENT -> null;
-            case ADD_TICKET_ACTION -> null;
+            case ADD_TICKET_ACTION -> new AddTicketActionFragment(actionStore.listActionsForScopes(List.of(ActionScope.GLOBAL, scope)),
+                                                                  scope,
+                                                                  action);
             case CHANGE_PRIORITY -> new ChangePriorityActionFragment(scope, action);
             case SET_FIELD -> null;
         };
@@ -180,6 +186,53 @@ public class Actions {
         throw fail("Could not create action", actionList(scopeType, referenceId));
     }
 
+    @POST
+    @Path("{scopeType}/{referenceId}/ADD_TICKET_ACTION/create")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response createAddTicketAction(
+            @Auth final ConductorUser user,
+            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("referenceId") @Length(max = 45) final String referenceId,
+            @FormParam("name") @Length(min = 1, max = 45) final String name,
+            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("ticketActionId") @NotEmpty @Length(max = 45) final String ticketActionId) {
+        val scope = ActionScope.build(scopeType, referenceId);
+        return actionStore.save(new AddTicketAction(UUID.randomUUID().toString(),
+                                                    name,
+                                                    description,
+                                                    scope,
+                                                    null,
+                                                    null,
+                                                    ticketActionId))
+                .map(a -> redirect(actionList(scopeType, referenceId)))
+                .orElseThrow(() -> fail("Could not create action", actionList(scopeType, referenceId)));
+    }
+
+    @POST
+    @Path("{scopeType}/{referenceId}/{actionId}/ADD_TICKET_ACTION/update")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response updateAddTicketAction(
+            @Auth final ConductorUser user,
+            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("referenceId") @Length(max = 45) final String referenceId,
+            @PathParam("actionId") @Length(max = 45) final String actionId,
+            @FormParam("name") @Length(min = 1, max = 45) final String name,
+            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("ticketActionId") @NotEmpty @Length(max = 45) final String ticketActionId) {
+        val scope = ActionScope.build(scopeType, referenceId);
+        if (actionStore.update(actionId,
+                               action ->
+                                       new AddTicketAction(action.getId(),
+                                                              name,
+                                                              description,
+                                                              scope,
+                                                              action.getCreated(),
+                                                              null,
+                                                              actionId))) {
+            return redirect(actionList(scopeType, referenceId));
+        }
+        throw fail("Could not create action", actionList(scopeType, referenceId));
+    }
 
     @POST
     @Path("{scopeType}/{referenceId}/CHANGE_PRIORITY/create")
@@ -306,7 +359,7 @@ public class Actions {
 
     private Response renderListPage(ConductorUser user, ActionScope.ScopeType scopeType, String referenceId) {
         val scope = ActionScope.build(scopeType, referenceId);
-        return render(new ActionListView(user.getUserSession().getUser(), actionStore.list(List.of(scope)), scope));
+        return render(new ActionListView(user.getUserSession().getUser(), actionStore.listActionsForScopes(List.of(scope)), scope));
     }
 
     private static String actionList(ActionScope.ScopeType scopeType, String referenceId) {

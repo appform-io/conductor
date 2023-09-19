@@ -34,7 +34,9 @@ public interface ActionStore {
 
     boolean update(final String actionId, final UnaryOperator<Action> handler);
 
-    List<Action> list(final Collection<ActionScope> scopes);
+    List<Action> listActionsForScopes(final Collection<ActionScope> scopes);
+
+    List<Action> listActionsForIds(final Collection<String> actionIds);
 
     boolean delete(final String actionId);
 }

@@ -56,7 +56,7 @@ public class DBActionStore implements ActionStore {
     }
 
     @Override
-    public List<Action> list(final Collection<ActionScope> scopes) {
+    public List<Action> listActionsForScopes(final Collection<ActionScope> scopes) {
         val criteria = DetachedCriteria.forClass(StoredAction.class)
                 .add(Property.forName(StoredAction.Fields.deleted).eq(false));
         val scopeChain = Restrictions.or();
@@ -64,6 +64,17 @@ public class DBActionStore implements ActionStore {
                 Property.forName(StoredAction.Fields.scopeType).eq(scope.getType()),
                 Property.forName(StoredAction.Fields.scopeReferenceId).eq(scope.getReferenceId()))));
         return actionDao.scatterGather(criteria.add(scopeChain))
+                .stream()
+                .map(this::toWired)
+                .toList();
+    }
+
+    @Override
+    public List<Action> listActionsForIds(final Collection<String> actionIds) {
+        val criteria = DetachedCriteria.forClass(StoredAction.class)
+                .add(Property.forName(StoredAction.Fields.deleted).eq(false))
+                .add(Property.forName(StoredAction.Fields.actionId).in(actionIds));
+        return actionDao.scatterGather(criteria)
                 .stream()
                 .map(this::toWired)
                 .toList();

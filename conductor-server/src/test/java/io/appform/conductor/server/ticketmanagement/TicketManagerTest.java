@@ -134,6 +134,7 @@ class TicketManagerTest {
                                                            new Rule(Rule.RuleType.HOPE,
                                                                     "pointer.exists('/ticket/fields/firstName') == true"),
                                                            List.of(),
+                                                           "WF1",
                                                            new Date(),
                                                            new Date())),
                 "FIRST_NAME_COLLECTED", List.of(new TicketStateTransition("F_N_F_N_C",
@@ -144,6 +145,7 @@ class TicketManagerTest {
                                                                                    "pointer.exists('/ticket/fields/lastName') == " +
                                                                                            "true"),
                                                                           List.of(),
+                                                                          "WF1",
                                                                           new Date(),
                                                                           new Date()))
                                 );

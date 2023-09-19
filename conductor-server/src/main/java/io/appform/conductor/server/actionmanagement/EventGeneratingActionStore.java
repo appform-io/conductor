@@ -54,8 +54,13 @@ public class EventGeneratingActionStore implements ActionStore {
     }
 
     @Override
-    public List<Action> list(Collection<ActionScope> scopes) {
-        return actionStore.list(scopes);
+    public List<Action> listActionsForScopes(Collection<ActionScope> scopes) {
+        return actionStore.listActionsForScopes(scopes);
+    }
+
+    @Override
+    public List<Action> listActionsForIds(Collection<String> actionIds) {
+        return actionStore.listActionsForIds(actionIds);
     }
 
     @Override

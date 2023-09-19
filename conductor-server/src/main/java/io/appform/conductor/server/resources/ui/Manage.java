@@ -324,8 +324,8 @@ public class Manage {
                                 workflow,
                                 schema,
                                 null,
-                                actionStore.list(List.of(ActionScope.GLOBAL,
-                                                         ActionScope.build(ActionScope.ScopeType.WORKFLOW,
+                                actionStore.listActionsForScopes(List.of(ActionScope.GLOBAL,
+                                                                         ActionScope.build(ActionScope.ScopeType.WORKFLOW,
                                                                            workflowId))))))
                 .map(ConductorServerUtils::render)
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
@@ -397,7 +397,7 @@ public class Manage {
                         user.getUserSession().getUser(),
                         workflowId,
                         null,
-                        actionStore.list(List.of(ActionScope.GLOBAL)),
+                        actionStore.listActionsForScopes(List.of(ActionScope.GLOBAL)),
                         fields)))
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
     }
@@ -425,8 +425,8 @@ public class Manage {
         return render(new WorkflowStateView(user.getUserSession().getUser(),
                                             workflowId,
                                             state,
-                                            actionStore.list(Set.of(ActionScope.GLOBAL,
-                                                                    ActionScope.build(ActionScope.ScopeType.STATE,
+                                            actionStore.listActionsForScopes(Set.of(ActionScope.GLOBAL,
+                                                                                    ActionScope.build(ActionScope.ScopeType.STATE,
                                                                                       stateId))),
                                             fields));
     }
@@ -560,10 +560,10 @@ public class Manage {
                                                                                .equals(stateTransitionId))
                                                                        .findFirst()
                                                                        .orElse(null),
-                                                               actionStore.list(List.of(ActionScope.GLOBAL,
-                                                                                        ActionScope.build(ActionScope.ScopeType.WORKFLOW,
+                                                               actionStore.listActionsForScopes(List.of(ActionScope.GLOBAL,
+                                                                                                        ActionScope.build(ActionScope.ScopeType.WORKFLOW,
                                                                                                           workflowId),
-                                                                                        ActionScope.build(ActionScope.ScopeType.TRANSITION,
+                                                                                                        ActionScope.build(ActionScope.ScopeType.TRANSITION,
                                                                                                           stateTransitionId))))))
                 .map(ConductorServerUtils::render)
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));

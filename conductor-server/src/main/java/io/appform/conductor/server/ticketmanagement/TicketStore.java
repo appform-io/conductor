@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.ticketmanagement;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.net.MediaType;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.TicketState;
@@ -32,6 +33,7 @@ import lombok.NonNull;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
@@ -107,6 +109,30 @@ public interface TicketStore {
                       List.of());
     }
 
+    default Optional<TicketSkeleton> addTicketAction(
+            final String ticketId,
+            @NonNull final String actions) {
+        return update(ticketId,
+                      ticket -> ticket.setTicketActionsIds(
+                              ImmutableList.<String>builder()
+                                      .addAll(Objects.requireNonNullElse(ticket.getTicketActionsIds(), List.of()))
+                                      .add(actions)
+                                      .build()),
+                      List.of());
+    }
+
+    default Optional<TicketSkeleton> removeTicketAction(
+            final String ticketId,
+            @NonNull final String actions) {
+        return update(ticketId,
+                      ticket -> ticket.setTicketActionsIds(
+                              ImmutableList.<String>builder()
+                                      .addAll(Objects.requireNonNullElse(ticket.getTicketActionsIds(), List.of()))
+                                      .add(actions)
+                                      .build()),
+                      List.of());
+    }
+
     Optional<TicketSkeleton> update(
             final String ticketId,
             final String title,
@@ -129,10 +155,11 @@ public interface TicketStore {
             final Map<String, FieldSchema> relevantFieldSchema,
             final String ticketPropertyName);
 
-    TimeSeriesResponse timeSeries(final List<TicketFilter> ticketFilters,
-                                  final List<TicketFieldFilter> fieldFilters,
-                                  final Map<String, FieldSchema> relevantFieldSchema,
-                                  final TimeResolution resolution);
+    TimeSeriesResponse timeSeries(
+            final List<TicketFilter> ticketFilters,
+            final List<TicketFieldFilter> fieldFilters,
+            final Map<String, FieldSchema> relevantFieldSchema,
+            final TimeResolution resolution);
 
     Optional<Comment> addComment(
             final String ticketId,
@@ -158,10 +185,12 @@ public interface TicketStore {
             final long sizeInBytes,
             boolean encrypted);
 
-    List<Attachment> listAttachments(final String ticketId,
-                                     final int from,
-                                     final int size);
+    List<Attachment> listAttachments(
+            final String ticketId,
+            final int from,
+            final int size);
 
-    boolean deleteAttachment(final String ticketId,
-                             final String attachmentId);
+    boolean deleteAttachment(
+            final String ticketId,
+            final String attachmentId);
 }
