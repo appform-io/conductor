@@ -51,9 +51,10 @@ public enum ConductorErrorCode {
     TICKET_SUBJECT_ID_EXTRACTION_FAILURE(4004, "Could not extract subject id from payload."),
     TICKET_NO_TRANSITION(4005, "Could not find any transition for ticket ${ticketId}." +
             " Workflow: ${workflow}. Current state: ${state}"),
-    TICKET_MGMT_NO_ACTION(4006, "No action found for ${ticketId}/$workflowId}/${actionId}"),
+    TICKET_MGMT_NO_ACTION(4006, "No action found for ${ticketId}/${workflowId}/${actionId}"),
     TICKET_MGMT_NO_TICKET(4007, "No ticket found for ${ticketId}"),
     TICKET_MGMT_NO_SUBJECT(4008, "No subject found for ${subjectId}"),
+    TICKET_MGMT_NO_STATE_ACTION(4009, "No action found for ${ticketId}/${stateId}/${actionId}"),
 
 
 

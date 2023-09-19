@@ -17,6 +17,7 @@
 package io.appform.conductor.server.resources.ui;
 
 import com.google.common.base.Strings;
+import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.ticket.TicketPriority;
@@ -270,6 +271,23 @@ public class Tickets {
             return redirect("/tickets/" + ticketId + "/details");
         }
         throw fail("Could not unassign ticket from user", "/tickets/" + ticketId + "/details");
+    }
+
+    @POST
+    @Path("/{ticketId}/actions/{actionId}/execute")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response executeTicketAction(
+            @Auth final ConductorUser user,
+            @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
+            @PathParam("actionId") @NotEmpty @Length(max = 45) final String actionId) {
+        try {
+            if (ticketManager.triggerTicketAction(ticketId, actionId)) {
+                return redirect("/tickets/" + ticketId + "/details");
+            }
+        } catch (ConductorException ce) {
+            throw fail(ce.getMessage(), "/tickets/" + ticketId + "/details");
+        }
+        throw fail("Could not trigger action", "/tickets/" + ticketId + "/details");
     }
 
     @GET
