@@ -39,14 +39,16 @@ public class WorkflowDetailsView extends BaseLoggedInView {
     Schema schema;
     TicketStateTransition currentTransition;
     Collection<Action> availableActions;
+    Collection<Action> workflowActions;
 
     public WorkflowDetailsView(User currentUser, Workflow workflow, Schema schema,
                                TicketStateTransition currentTransition,
-                               Collection<Action> availableActions) {
+                               Collection<Action> availableActions, Collection<Action> workflowActions) {
         super("templates/manage/workflow-details.hbs", currentUser);
         this.workflow = workflow;
         this.schema = schema;
         this.currentTransition = currentTransition;
         this.availableActions = availableActions;
+        this.workflowActions = workflowActions;
     }
 }

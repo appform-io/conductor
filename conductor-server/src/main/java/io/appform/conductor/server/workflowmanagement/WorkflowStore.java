@@ -52,7 +52,9 @@ public interface WorkflowStore {
             final boolean terminal,
             List<String> allowedActions,
             List<String> editableFields,
-            List<String> visibleFields, List<String> requiredFields);
+            List<String> visibleFields,
+            List<String> requiredFields,
+            List<String> visibleActions);
 
     Optional<Workflow> deleteState(
             final String workflowId,

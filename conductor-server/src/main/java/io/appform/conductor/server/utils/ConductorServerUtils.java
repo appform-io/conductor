@@ -330,7 +330,21 @@ public class ConductorServerUtils {
                                    .atStartOfDay(ZoneId.systemDefault())
                                    .toInstant());
     }
-}
+
+    public static <T> List<T> addToList(final List<T> input, final T item) {
+        val list = new ArrayList<>(Objects.requireNonNullElse(input, List.of()));
+        list.add(item);
+        return list;
+    }
+    public static <T> List<T> removeFromList(final List<T> input, final T item) {
+        return Objects.requireNonNullElse(input, List.<T>of())
+                .stream()
+                .filter(t -> !t.equals(item))
+                .toList();
+    }
+
+
+ }
 
 
 

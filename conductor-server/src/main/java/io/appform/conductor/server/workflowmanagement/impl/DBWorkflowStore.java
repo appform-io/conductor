@@ -127,6 +127,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                         wf.getSubjectIdTemplate(),
                                         wf.getStates(),
                                         wf.getTicketStateTransitions(),
+                                        wf.getAvailableActions(),
                                         wf.getStartStateId(),
                                         wf.getRules(),
                                         wf.getState(),
@@ -147,7 +148,8 @@ public class DBWorkflowStore implements WorkflowStore {
                             .setTitleTemplate(updatedObj.getTitleTemplate())
                             .setDescriptionTemplate(updatedObj.getDescriptionTemplate())
                             .setSubjectIdTemplate(updatedObj.getSubjectIdTemplate())
-                            .setState(updatedObj.getState());
+                            .setState(updatedObj.getState())
+                            .setAvailableActions(updatedObj.getAvailableActions());
                 })
                 .orElse(null));
         log.info("Update for workflow {} application status: {}", workflowId, updated);
@@ -192,7 +194,8 @@ public class DBWorkflowStore implements WorkflowStore {
             List<String> allowedActions,
             List<String> editableFields,
             List<String> visibleFields,
-            List<String> requiredFields) {
+            List<String> requiredFields,
+            List<String> visibleActions) {
         val updated = wfDao.lockAndGetExecutor(workflowId)
                 .createOrUpdate(tsDao,
                                 createCriteria(StoredTicketState.class, workflowId, false)
@@ -204,6 +207,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                         .setEditableFields(editableFields)
                                         .setVisibleFields(visibleFields)
                                         .setRequiredFields(requiredFields)
+                                        .setVisibleActions(visibleActions)
                                         .setDeleted(false),
                                 () -> new StoredTicketState()
                                         .setWorkflowId(workflowId)
@@ -214,7 +218,8 @@ public class DBWorkflowStore implements WorkflowStore {
                                         .setAllowedActions(allowedActions)
                                         .setEditableFields(editableFields)
                                         .setVisibleFields(visibleFields)
-                                        .setRequiredFields(requiredFields))
+                                        .setRequiredFields(requiredFields)
+                                        .setVisibleActions(visibleActions))
                 .execute() != null;
         log.info("State create status for {}/{}: {}", workflowId, stateId, updated);
         return read(workflowId);
@@ -368,6 +373,7 @@ public class DBWorkflowStore implements WorkflowStore {
                             wf.getSubjectIdTemplate(),
                             Map.of(),
                             Map.of(),
+                            wf.getAvailableActions(),
                             wf.getStartStateId(),
                             Map.of(),
                             wf.getState(),
@@ -399,6 +405,7 @@ public class DBWorkflowStore implements WorkflowStore {
                 state.getEditableFields(),
                 state.getVisibleFields(),
                 state.getRequiredFields(),
+                state.getVisibleActions(),
                 state.getCreated(),
                 state.getUpdated());
     }

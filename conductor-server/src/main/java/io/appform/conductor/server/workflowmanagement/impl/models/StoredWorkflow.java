@@ -21,6 +21,7 @@ import io.appform.conductor.model.workflow.Rule;
 import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.model.workflow.TicketStateTransition;
 import io.appform.conductor.model.workflow.WorkflowState;
+import io.appform.conductor.server.utils.persistence.StringListConverter;
 import io.appform.conductor.server.utils.persistence.TemplateConverter;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Getter;
@@ -87,6 +88,10 @@ public class StoredWorkflow implements Serializable {
 
     @Column(name = "start_state_id")
     private String startStateId;
+
+    @Column(name = "available_actions")
+    @Convert(converter = StringListConverter.class)
+    private List<String> availableActions;
 
     @Column
     @Enumerated(EnumType.STRING)

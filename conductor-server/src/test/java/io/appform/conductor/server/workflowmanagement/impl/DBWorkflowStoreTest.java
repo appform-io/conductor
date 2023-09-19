@@ -68,7 +68,8 @@ class DBWorkflowStoreTest {
                                                  List.of(),
                                                  List.of(),
                                                  List.of("F1", "F2"),
-                                                 List.of("F1"))
+                                                 List.of("F1"),
+                                                 List.of("A1"))
                     .orElse(null);
             assertNotNull(updated);
             assertEquals(1, updated.getStates().size());
@@ -82,7 +83,8 @@ class DBWorkflowStoreTest {
                                                  List.of("A1", "A2"),
                                                  List.of("F1"),
                                                  List.of("F1", "F2"),
-                                                 List.of("F1"))
+                                                 List.of("F1"),
+                                                 List.of("A1"))
                     .orElse(null);
             assertNotNull(updated);
             assertEquals(2, updated.getStates().size());
@@ -95,7 +97,8 @@ class DBWorkflowStoreTest {
                                                  List.of("A3"),
                                                  List.of("F2"),
                                                  List.of("F1", "F2"),
-                                                 List.of("F1"))
+                                                 List.of("F1"),
+                                                 List.of("A1"))
                     .orElse(null);
             assertNotNull(updated);
             assertEquals(3, updated.getStates().size());
@@ -109,7 +112,8 @@ class DBWorkflowStoreTest {
                                                  List.of(),
                                                  List.of(),
                                                  List.of("F1", "F2"),
-                                                 List.of("F1"))
+                                                 List.of("F1"),
+                                                 List.of("A1"))
                     .orElse(null);
             assertNotNull(updated);
             assertEquals(4, updated.getStates().size());

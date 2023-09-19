@@ -80,7 +80,10 @@
                                     If a ticket reaches <b>terminal</b> state, no further actions will be taken on the ticket.
                                 </p>
                                 <p>
-                                    <b>Field Management:</b> Control if a field is visible, editable and mandatory in this state
+                                    <b>visible Actions:</b> Show or hide action buttons for tickets in this state
+                                </p>
+                                <p>
+                                    <b>Auto Triggered Actions:</b> Control if a field is visible, editable and mandatory in this state
                                 </p>
                                 <p>
                                     <b>Action Management:</b> Which actions get triggered after this state is reached.
@@ -91,7 +94,7 @@
                     </div>
                 </div>
                 <div class="row g-3 m2 mt-2">
-                    <div class="col-12 col-md-6">
+                    <div class="col-12 col-md-4">
                         <div class="row">
                             <div class="col-12">
                                 <h5>Field Management</h5>
@@ -140,10 +143,48 @@
 
                         </div>
                     </div>
-                    <div class="col-12 col-md-6">
+                    <div class="col-12 col-md-4">
                         <div class="row">
                             <div class="col-12">
-                                <h5>Actions Management</h5>
+                                <h5>Visible Actions</h5>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 table-responsive">
+                                <table class="table table-bordered border-dark">
+                                    <thead>
+                                    <tr>
+                                        <th class="col-4">Name</th>
+                                        <th class="col-4">Description</th>
+                                        <th class="col-2 text-center">Type</th>
+                                        <th class="col-2 text-center">Scope</th>
+                                        <th></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {{#each visibleActions}}
+                                        <tr>
+                                            <td>{{name}}</td>
+                                            <td>{{description}}</td>
+                                            <td class="text-center">{{readable type}}</td>
+                                            <td class="text-center">{{readable scope.type}}</td>
+                                            <td class="text-center">
+                                                <input class="form-check-input  border border-dark" type="checkbox"
+                                                       role="switch"
+                                                       id="visibleFields" name="visibleFields" value="{{id}}"
+                                                       {{#contains state.visibleFields id}}checked{{/contains}}>
+                                            </td>
+                                        </tr>
+                                    {{/each}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="row">
+                            <div class="col-12">
+                                <h5>Auto Triggered Actions</h5>
                             </div>
                         </div>
                         <div class="row">

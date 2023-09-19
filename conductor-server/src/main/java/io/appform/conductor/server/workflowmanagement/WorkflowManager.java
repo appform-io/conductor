@@ -31,8 +31,7 @@ import javax.inject.Singleton;
 import java.util.*;
 import java.util.function.BiFunction;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.ensure;
-import static io.appform.conductor.server.utils.ConductorServerUtils.readableId;
+import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 
 /**
  * Manages lifecycle of workflows
@@ -97,7 +96,8 @@ public class WorkflowManager {
             List<String> allowedActions,
             List<String> editableFields,
             List<String> visibleFields,
-            List<String> requiredFields) {
+            List<String> requiredFields,
+            List<String> visibleActions) {
         val stateId = workflowId + "_" + readableId(displayName);
         val wf = workflowStore.read(workflowId).orElse(null);
         ensureNotNull(workflowId, wf);
@@ -111,7 +111,8 @@ public class WorkflowManager {
                                                         allowedActions,
                                                         editableFields,
                                                         visibleFields,
-                                                        requiredFields);
+                                                        requiredFields,
+                                                        visibleActions);
         ensure(updated.filter(workflow -> workflow.getStates().containsKey(stateId)).isPresent(),
                ConductorErrorCode.WORKFLOW_ERROR, "State " + stateId + " could not be added");
         return updated.map(workflow -> Pair.of(workflow, stateId));
@@ -125,7 +126,8 @@ public class WorkflowManager {
             List<String> allowedActions,
             List<String> editableFields,
             List<String> visibleFields,
-            List<String> requiredFields) {
+            List<String> requiredFields,
+            List<String> visibleActions) {
         val wf = workflowStore.read(workflowId).orElse(null);
         ensureNotNull(workflowId, wf);
         ensure(wf.getStates().containsKey(stateId),
@@ -138,7 +140,8 @@ public class WorkflowManager {
                                                         allowedActions,
                                                         editableFields,
                                                         visibleFields,
-                                                        requiredFields);
+                                                        requiredFields,
+                                                        visibleActions);
         ensure(updated.filter(workflow -> workflow.getStates().containsKey(stateId)).isPresent(),
                ConductorErrorCode.WORKFLOW_ERROR, "State " + stateId + " could not be added");
         return updated;
@@ -359,6 +362,30 @@ public class WorkflowManager {
         ensure(updated.filter(workflow -> workflow.getSelectionRules().containsKey(ruleId)).isEmpty(),
                ConductorErrorCode.WORKFLOW_ERROR,
                "Rule could not be deleted");
+        return updated;
+    }
+
+    public Optional<Workflow> addAvailableAction(final String workflowId, final String actionId) {
+        val wf = workflowStore.read(workflowId).orElse(null);
+        ensureNotNull(workflowId, wf);
+        val updated = workflowStore.update(workflowId,
+                             workflow -> workflow.setAvailableActions(
+                                     addToList(workflow.getAvailableActions(), actionId)));
+        ensure(updated.filter(workflow -> workflow.getAvailableActions().contains(actionId)).isPresent(),
+               ConductorErrorCode.WORKFLOW_ERROR,
+               "Action could not be added");
+        return updated;
+    }
+
+    public Optional<Workflow> removeAvailableAction(final String workflowId, final String actionId) {
+        val wf = workflowStore.read(workflowId).orElse(null);
+        ensureNotNull(workflowId, wf);
+        val updated = workflowStore.update(workflowId,
+                             workflow -> workflow.setAvailableActions(
+                                     removeFromList(workflow.getAvailableActions(), actionId)));
+        ensure(updated.filter(workflow -> workflow.getAvailableActions().contains(actionId)).isEmpty(),
+               ConductorErrorCode.WORKFLOW_ERROR,
+               "Action could not be added");
         return updated;
     }
 

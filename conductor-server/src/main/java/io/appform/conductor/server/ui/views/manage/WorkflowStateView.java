@@ -36,16 +36,18 @@ import java.util.List;
 public class WorkflowStateView extends BaseLoggedInView {
     String workflowId;
     TicketState state;
+    List<Action> visibleActions;
     List<Action> availableActions;
     List<FieldSchema> availableFields;
     public WorkflowStateView(
             User currentUser,
             String workflowId, TicketState state,
-            List<Action> availableActions,
+            List<Action> visibleActions, List<Action> availableActions,
             List<FieldSchema> availableFields) {
         super("templates/manage/workflow-state.hbs", currentUser);
         this.workflowId = workflowId;
         this.state = state;
+        this.visibleActions = visibleActions;
         this.availableActions = availableActions;
         this.availableFields = availableFields;
     }

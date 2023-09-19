@@ -46,10 +46,7 @@ import javax.validation.constraints.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 
@@ -326,7 +323,8 @@ public class Manage {
                                 null,
                                 actionStore.listActionsForScopes(List.of(ActionScope.GLOBAL,
                                                                          ActionScope.build(ActionScope.ScopeType.WORKFLOW,
-                                                                           workflowId))))))
+                                                                                           workflowId))),
+                                actionStore.listActionsForIds(workflow.getAvailableActions()))))
                 .map(ConductorServerUtils::render)
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
     }
@@ -389,7 +387,8 @@ public class Manage {
     public Response createState(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
-        return workflowManager.read(workflowId)
+        val workflow = workflowManager.read(workflowId);
+        return workflow
                 .map(Workflow::getSchemaId)
                 .flatMap(schemaStore::get)
                 .map(Schema::getFields)
@@ -397,6 +396,7 @@ public class Manage {
                         user.getUserSession().getUser(),
                         workflowId,
                         null,
+                        actionStore.listActionsForIds(workflow.map(Workflow::getAvailableActions).orElse(List.of())),
                         actionStore.listActionsForScopes(List.of(ActionScope.GLOBAL)),
                         fields)))
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
@@ -425,9 +425,11 @@ public class Manage {
         return render(new WorkflowStateView(user.getUserSession().getUser(),
                                             workflowId,
                                             state,
+                                            actionStore.listActionsForIds(workflow.map(Workflow::getAvailableActions)
+                                                                                  .orElse(List.of())),
                                             actionStore.listActionsForScopes(Set.of(ActionScope.GLOBAL,
                                                                                     ActionScope.build(ActionScope.ScopeType.STATE,
-                                                                                      stateId))),
+                                                                                                      stateId))),
                                             fields));
     }
 
@@ -443,7 +445,8 @@ public class Manage {
             @FormParam("allowedActions") final List<String> allowedActions,
             @FormParam("editableFields") final List<String> editableFields,
             @FormParam("visibleFields") final List<String> visibleFields,
-            @FormParam("requiredFields") final List<String> requiredFields) {
+            @FormParam("requiredFields") final List<String> requiredFields,
+            @FormParam("visibleActions") final List<String> visibleActions) {
         return workflowManager.createState(workflowId,
                                            stateName,
                                            stateDescription,
@@ -451,7 +454,8 @@ public class Manage {
                                            allowedActions,
                                            editableFields,
                                            visibleFields,
-                                           requiredFields)
+                                           requiredFields,
+                                           visibleActions)
                 .map(pair -> redirect("/manage/workflow/" + pair.getFirst().getId() + "/states/" + pair.getSecond()))
                 .orElseThrow(() -> fail("Could not add state " + stateName, "/manage/workflow"));
     }
@@ -468,7 +472,8 @@ public class Manage {
             @FormParam("allowedActions") final List<String> allowedActions,
             @FormParam("editableFields") final List<String> editableFields,
             @FormParam("visibleFields") final List<String> visibleFields,
-            @FormParam("requiredFields") final List<String> requiredFields) {
+            @FormParam("requiredFields") final List<String> requiredFields,
+            @FormParam("visibleActions") final List<String> visibleActions) {
         val workflow = workflowManager.read(workflowId);
         if (workflow.isEmpty()) {
             throw fail("No workflow found for: " + workflowId, "/");
@@ -485,7 +490,8 @@ public class Manage {
                                            allowedActions,
                                            editableFields,
                                            visibleFields,
-                                           requiredFields)
+                                           requiredFields,
+                                           visibleActions)
                 .map(wf -> redirect("/manage/workflow/" + wf.getId() + "/states/" + stateId))
                 .orElseThrow(() -> fail("Could not setup initial state state " + stateId + " for workflow " + workflowId,
                                         "/manage/workflow"));
@@ -549,26 +555,53 @@ public class Manage {
             @PathParam("stateTransitionId") @NotEmpty @Length(max = 255) final String stateTransitionId) {
         return workflowStore.read(workflowId)
                 .flatMap(workflow -> schemaStore.get(workflow.getSchemaId())
-                        .map(schema -> new WorkflowDetailsView(user.getUserSession().getUser(),
-                                                               workflow,
-                                                               schema,
-                                                               workflow.getTicketStateTransitions()
-                                                                       .values()
-                                                                       .stream()
-                                                                       .flatMap(List::stream)
-                                                                       .filter(ticketStateTransition -> ticketStateTransition.getId()
-                                                                               .equals(stateTransitionId))
-                                                                       .findFirst()
-                                                                       .orElse(null),
-                                                               actionStore.listActionsForScopes(List.of(ActionScope.GLOBAL,
-                                                                                                        ActionScope.build(ActionScope.ScopeType.WORKFLOW,
-                                                                                                          workflowId),
-                                                                                                        ActionScope.build(ActionScope.ScopeType.TRANSITION,
-                                                                                                          stateTransitionId))))))
+                        .map(schema -> new WorkflowDetailsView(
+                                user.getUserSession().getUser(),
+                                workflow,
+                                schema,
+                                workflow.getTicketStateTransitions()
+                                        .values()
+                                        .stream()
+                                        .flatMap(List::stream)
+                                        .filter(ticketStateTransition -> ticketStateTransition.getId()
+                                                .equals(stateTransitionId))
+                                        .findFirst()
+                                        .orElse(null),
+                                actionStore.listActionsForScopes(List.of(ActionScope.GLOBAL,
+                                                                         ActionScope.build(ActionScope.ScopeType.WORKFLOW,
+                                                                                           workflowId),
+                                                                         ActionScope.build(ActionScope.ScopeType.TRANSITION,
+                                                                                           stateTransitionId))),
+                                actionStore.listActionsForIds(workflow.getAvailableActions()))))
                 .map(ConductorServerUtils::render)
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
     }
 
+    @POST
+    @Path("/workflow/{workflowId}/actions/add")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response addAvailableAction(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @FormParam("availableAction") @NotEmpty @Length(max = 45) final String availableAction) {
+        return workflowManager.addAvailableAction(workflowId, availableAction)
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Could not add action to workflow " + workflowId,
+                                        "/manage/workflow"));
+    }
+
+    @POST
+    @Path("/workflow/{workflowId}/actions/{actionId}/delete")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response removeAvailableAction(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @PathParam("actionId") @NotEmpty @Length(max = 45) final String actionId) {
+        return workflowManager.removeAvailableAction(workflowId, actionId)
+                .map(wf -> redirect("/manage/workflow/" + wf.getId()))
+                .orElseThrow(() -> fail("Could not add action to workflow " + workflowId,
+                                        "/manage/workflow"));
+    }
 
     @POST
     @Path("/workflow/{workflowId}/transitions/{stateTransitionId}/update")

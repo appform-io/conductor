@@ -480,42 +480,111 @@
         </section>
     {{/with}}
     <section class="mt-3">
-        <div class="row">
-            <div class="col-9">
-                <h5>Workflow Scoped Actions</h5>
-            </div>
-            <div class="col-3  d-flex justify-content-end">
-                <a class="btn btn-primary btn-sm" href="/actions/WORKFLOW/{{workflow.id}}">
-                    <i class="bi bi-plus-lg">Manage</i>
-                </a>
-            </div>
-        </div>
         <div class="row mt-2">
-            <div class="col-12 table-responsive">
-                <table class="table table-bordered border-dark">
-                    <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Type</th>
-                        <th>Created</th>
-                        <th>Updated</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {{#each availableActions}}
-                        {{#eqEnum scope.type "WORKFLOW"}}
+            <div class="col-12 col-md-6">
+                <div class="row">
+                    <div class="col-12">
+                        <h5>Available Actions</h5>
+                    </div>
+                </div>
+                <form method="post" action="/manage/workflow/{{workflow.id}}/actions/add">
+                    <div class="row">
+                        <div class="col-8 col-md-10">
+                            <label for="availableAction" class="col-form-label fw-bold visually-hidden">Available Actions</label>
+                            <select id="availableAction" name="availableAction"
+                                    aria-describedby="availableActionsHelp"
+                                    class="form-control selectpicker border border-dark"
+                                    data-live-search="true">
+                                {{#each availableActions}}
+                                    <option value="{{id}}"
+                                            {{#contains workflow.availableActions id}}selected{{/contains}}>
+                                        {{name}}
+                                    </option>
+                                {{/each}}
+                            </select>
+                            <div id="availableActionsHelp" class="form-text">
+                                Actions available as buttons on a ticket. Visibility can be controlled at state level.
+                            </div>
+                        </div>
+                        <div class="col-4 col-md-2 justify-content-center">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-plus-lg">Add</i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <div class="row mt-2 table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Display Name</th>
+                            <th>Description</th>
+                            <th>Type</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{#each workflowActions}}
+                        <tr>
+                            <td>{{name}}</td>
+                            <td>{{displayName}}</td>
+                            <td>{{description}}</td>
+                            <td>{{readable type}}</td>
+                            <td>
+                                <form method="post" action="/manage/workflow/{{../workflow/id}}/actions/{{id}}/delete"
+                                      class="confirmed-form" data-cnf-title="Remove action {{name}}"
+                                      data-cnf-text="Are you sure you want to remove this action from available actions?">
+                                    <button type="submit" class="btn btn-link p-0 text-danger"><i
+                                            class="bi bi-trash-fill"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="row">
+                    <div class="col-9">
+                        <h5>Workflow Scoped Actions</h5>
+                    </div>
+                    <div class="col-3  d-flex justify-content-end">
+                        <a class="btn btn-primary btn-sm" href="/actions/WORKFLOW/{{workflow.id}}">
+                            <i class="bi bi-plus-lg">Manage</i>
+                        </a>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-12 table-responsive">
+                        <table class="table table-bordered border-dark">
+                            <thead>
                             <tr>
-                                <td title="{{id}}"><a data-action-id="{{id}}" class="action-link" href="/actions/{{scope.type}}/{{scope.referenceId}}/{{id}}">{{name}}</a></td>
-                                <td>{{description}}</td>
-                                <td>{{readable type}}</td>
-                                <td>{{created}}</td>
-                                <td>{{updated}}</td>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Type</th>
+                                <th>Created</th>
+                                <th>Updated</th>
                             </tr>
-                        {{/eqEnum}}
-                    {{/each}}
-                    </tbody>
-                </table>
+                            </thead>
+                            <tbody>
+                            {{#each availableActions}}
+                                {{#eqEnum scope.type "WORKFLOW"}}
+                                    <tr>
+                                        <td title="{{id}}"><a data-action-id="{{id}}" class="action-link" href="/actions/{{scope.type}}/{{scope.referenceId}}/{{id}}">{{name}}</a></td>
+                                        <td>{{description}}</td>
+                                        <td>{{readable type}}</td>
+                                        <td>{{created}}</td>
+                                        <td>{{updated}}</td>
+                                    </tr>
+                                {{/eqEnum}}
+                            {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 

@@ -76,6 +76,11 @@ public class Workflow {
     private final Map<String, List<TicketStateTransition>> ticketStateTransitions;
 
     /**
+     * Actions relevant to this workflow
+     */
+    private List<String> availableActions;
+
+    /**
      * Start state
      */
     private String startStateId;

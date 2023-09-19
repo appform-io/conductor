@@ -73,9 +73,18 @@ public class EventGeneratingWorkflowStore implements  WorkflowStore {
                                                   List<String> allowedActions,
                                                   List<String> editableFields,
                                                   List<String> visibleFields,
-                                                  List<String> requiredFields) {
-        val res = workflowStore.createOrUpdateState(workflowId, stateId, displayName, description,
-                terminal, allowedActions,  editableFields, visibleFields, requiredFields);
+                                                  List<String> requiredFields,
+                                                  List<String> visibleActions) {
+        val res = workflowStore.createOrUpdateState(workflowId,
+                                                    stateId,
+                                                    displayName,
+                                                    description,
+                                                    terminal,
+                                                    allowedActions,
+                                                    editableFields,
+                                                    visibleFields,
+                                                    requiredFields,
+                                                    visibleActions);
         res.flatMap(workflow -> Optional.ofNullable(workflow.getStates().get(stateId)))
                 .ifPresent(ticketState -> eventBus.publish(new WorkflowStateChangedEvent(workflowId, stateId)));
         return res;
