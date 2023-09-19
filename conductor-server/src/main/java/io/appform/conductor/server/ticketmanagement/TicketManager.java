@@ -283,13 +283,8 @@ public class TicketManager {
                                                               List.of()).orElse(null),
                                            ConductorErrorCode.TICKET_MGMT_NO_TICKET,
                                            Map.of(TICKET_ID, ticketId));
-        val payload = mapper.createObjectNode();
-        payload.put(INTERNAL_TICKET_FIELD, ticketId);
-        return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CONSOLE_UPDATE,
-                                         payload, (node, fields, schema) -> {
-                });
+        return triggerTicketStateMachine(ticketId);
     }
-
 
     @SneakyThrows
     public Optional<TicketDetails> processFormTicketPriorityUpdate(
@@ -299,11 +294,7 @@ public class TicketManager {
                                             .orElse(null),
                                            ConductorErrorCode.TICKET_MGMT_NO_TICKET,
                                            Map.of(TICKET_ID, ticketId));
-        val payload = mapper.createObjectNode();
-        payload.put(INTERNAL_TICKET_FIELD, ticketId);
-        return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CONSOLE_UPDATE,
-                                         payload, (node, fields, schema) -> {
-                });
+        return triggerTicketStateMachine(ticketId);
     }
 
     @SneakyThrows
@@ -425,7 +416,16 @@ public class TicketManager {
                                 ACTION_ID, actionId))
                         .build());
 
-        return actionExecutor.execute(action, actionExecutionData) == ActionExecutionResult.SUCCESS;
+        return actionExecutor.execute(action, actionExecutionData) == ActionExecutionResult.SUCCESS
+                && triggerTicketStateMachine(ticketId).isPresent();
+    }
+
+    private Optional<TicketDetails> triggerTicketStateMachine(String ticketId) {
+        val payload = mapper.createObjectNode();
+        payload.put(INTERNAL_TICKET_FIELD, ticketId);
+        return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CONSOLE_UPDATE,
+                payload, (node, fields, schema) -> {
+                });
     }
 
     private TicketSkeleton readDetails(String ticketId) {
