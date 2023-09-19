@@ -399,7 +399,7 @@ public class TicketManager {
 
         //validate action
         val ticketState = ticketDetails.getSummary().getTicketState();
-        if(ticketState.getAllowedActions().stream()
+        if(ticketState.getVisibleActions().stream()
                 .noneMatch( eligibleAction -> eligibleAction.equals(actionId))) {
             throw ConductorException.builder()
                     .errorCode(ConductorErrorCode.TICKET_MGMT_NO_STATE_ACTION)
