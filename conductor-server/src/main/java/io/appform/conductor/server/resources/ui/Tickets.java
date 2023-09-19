@@ -24,6 +24,7 @@ import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import io.appform.conductor.model.workflow.WorkflowState;
+import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
@@ -66,6 +67,7 @@ public class Tickets {
     private final WorkflowStore workflowStore;
     private final SchemaStore schemaStore;
     private final GroupStore groupStore;
+    private final ActionStore actionStore;
     private final TicketManager ticketManager;
 
     @GET
@@ -159,7 +161,8 @@ public class Tickets {
                                             schema.get(),
                                             ticketState,
                                             fields,
-                                            groupStore.list()));
+                                            groupStore.list(),
+                                            actionStore.listActionsForIds(ticketState.getVisibleActions())));
     }
 
     @POST

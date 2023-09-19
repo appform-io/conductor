@@ -66,6 +66,7 @@
                             </div>
                         </form>
                     {{/with}}
+
                 </div>
                 <div class="col-sm-12 col-md-4 mt-2">
                     <div class="row">
@@ -200,6 +201,43 @@
                                         {{/eq}}
 
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button bg-dark text-white collapsed" type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#flush-actions" aria-expanded="false"
+                                        aria-controls="flush-actions">
+                                    <i class="bi bi-braces-asterisk"></i> &nbsp; Available Actions
+                                </button>
+                            </h2>
+                            <div id="flush-actions" class="accordion-collapse collapse show"
+                                 data-bs-parent="#ticketSections">
+                                <div class="accordion-body">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <table class="table table-bordered">
+                                                    <tbody>
+                                                    {{#each ../visibleActions}}
+                                                    <tr>
+                                                        <td title="{{description}}">{{name}}</td>
+                                                        <td class="text-center">
+                                                            <form method="post"
+                                                                  action="/tickets/{{summary.id}}/actions/{{id}}/execute">
+                                                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                                    <i class="bi bi-caret-right-fill"></i>
+                                                                </button>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                    {{/each}}
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
                                 </div>
                             </div>
                         </div>

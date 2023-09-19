@@ -71,6 +71,9 @@ public class DBActionStore implements ActionStore {
 
     @Override
     public List<Action> listActionsForIds(final Collection<String> actionIds) {
+        if(null == actionIds || actionIds.isEmpty()) {
+            return List.of();
+        }
         val criteria = DetachedCriteria.forClass(StoredAction.class)
                 .add(Property.forName(StoredAction.Fields.deleted).eq(false))
                 .add(Property.forName(StoredAction.Fields.actionId).in(actionIds));
