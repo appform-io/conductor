@@ -1,7 +1,7 @@
 package io.appform.conductor.server.actionmanagement;
 
 import io.appform.conductor.model.actions.Action;
-import io.appform.conductor.model.actions.ActionScope;
+import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.events.ActionCreatedEvent;
 import io.appform.conductor.server.eventmanagement.events.ActionDeletedEvent;
@@ -54,7 +54,7 @@ public class EventGeneratingActionStore implements ActionStore {
     }
 
     @Override
-    public List<Action> listActionsForScopes(Collection<ActionScope> scopes) {
+    public List<Action> listActionsForScopes(Collection<Scope> scopes) {
         return actionStore.listActionsForScopes(scopes);
     }
 

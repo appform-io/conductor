@@ -17,7 +17,7 @@
 package io.appform.conductor.server.ui.views.actions;
 
 import io.appform.conductor.model.actions.Action;
-import io.appform.conductor.model.actions.ActionScope;
+import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
@@ -37,10 +37,10 @@ import java.util.Set;
 @ToString(callSuper = true)
 public class ActionListView extends BaseLoggedInView {
     List<Action> actions;
-    ActionScope scope;
+    Scope scope;
     Set<ActionType> availableActionTypes = EnumSet.allOf(ActionType.class);
 
-    public ActionListView(User currentUser, List<Action> actions, ActionScope scope) {
+    public ActionListView(User currentUser, List<Action> actions, Scope scope) {
         super("templates/actions/actions-list.hbs", currentUser);
         this.actions = actions;
         this.scope = scope;

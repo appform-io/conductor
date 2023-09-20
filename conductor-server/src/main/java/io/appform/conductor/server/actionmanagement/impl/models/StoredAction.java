@@ -1,6 +1,6 @@
 package io.appform.conductor.server.actionmanagement.impl.models;
 
-import io.appform.conductor.model.actions.ActionScope;
+import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.*;
@@ -50,7 +50,7 @@ public abstract class StoredAction implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "scope_type", nullable = false, length = 45)
-    private ActionScope.ScopeType scopeType;
+    private Scope.ScopeType scopeType;
 
     @Column(name = "scope_reference_id", length = 45)
     private String scopeReferenceId;

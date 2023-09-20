@@ -120,11 +120,41 @@ class TicketManagerTest {
                                 new Date());
         val states = Map.of(
                 "START",
-                new TicketState("START", "Start", "", false, List.of(), List.of(), List.of(), List.of(), new Date(), new Date()),
+                new TicketState("START",
+                                "Start",
+                                "",
+                                false,
+                                List.of(),
+                                List.of(),
+                                List.of(),
+                                List.of(),
+                                List.of(),
+                                new Date(),
+                                new Date()),
                 "FIRST_NAME_COLLECTED",
-                new TicketState("FIRST_NAME_COLLECTED", "First name collected", "", false, List.of(), List.of(), List.of(), List.of(), new Date(), new Date()),
+                new TicketState("FIRST_NAME_COLLECTED",
+                                "First name collected",
+                                "",
+                                false,
+                                List.of(),
+                                List.of(),
+                                List.of(),
+                                List.of(),
+                                List.of(),
+                                new Date(),
+                                new Date()),
                 "FULL_NAME_COLLECTED",
-                new TicketState("FULL_NAME_COLLECTED", "Full name collected", "", true, List.of(), List.of(), List.of(), List.of(), new Date(), new Date())
+                new TicketState("FULL_NAME_COLLECTED",
+                                "Full name collected",
+                                "",
+                                true,
+                                List.of(),
+                                List.of(),
+                                List.of(),
+                                List.of(),
+                                List.of(),
+                                new Date(),
+                                new Date())
                            );
         val transitions = Map.of(
                 "START", List.of(new TicketStateTransition("S_F_N_C",
@@ -132,7 +162,8 @@ class TicketManagerTest {
                                                            "FIRST_NAME_COLLECTED",
                                                            TicketStateTransition.TicketStateTransitionType.EVALUATED,
                                                            new Rule(Rule.RuleType.HOPE,
-                                                                    "pointer.exists('/ticket/fields/firstName') == true"),
+                                                                    "pointer.exists('/ticket/fields/firstName') == " +
+                                                                            "true"),
                                                            List.of(),
                                                            "WF1",
                                                            new Date(),
@@ -142,7 +173,9 @@ class TicketManagerTest {
                                                                           "FULL_NAME_COLLECTED",
                                                                           TicketStateTransition.TicketStateTransitionType.EVALUATED,
                                                                           new Rule(Rule.RuleType.HOPE,
-                                                                                   "pointer.exists('/ticket/fields/lastName') == " +
+                                                                                   "pointer.exists" +
+                                                                                           "('/ticket/fields/lastName" +
+                                                                                           "') == " +
                                                                                            "true"),
                                                                           List.of(),
                                                                           "WF1",
@@ -162,6 +195,7 @@ class TicketManagerTest {
                                                          "\"SYSTEM_VERIFIED\" }"),
                                     states,
                                     transitions,
+                                    List.of(),
                                     "START",
                                     Map.of("R1", new Rule(Rule.RuleType.HOPE, "pointer.exists('/firstName') == true"),
                                            "R2", new Rule(Rule.RuleType.HOPE, "pointer.exists('/lastName') == true")),
@@ -217,14 +251,16 @@ class TicketManagerTest {
                                                                    }
                                                                    """));
         assertTrue(res.isPresent());
-        System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(ticketToJsonNode(mapper, res.get(), schema)));
+        System.out.println(mapper.writerWithDefaultPrettyPrinter()
+                                   .writeValueAsString(ticketToJsonNode(mapper, res.get(), schema)));
         assertEquals("FIRST_NAME_COLLECTED", res.get().getSummary().getTicketState().getId());
         val res2 = ticketManager.processRaw(mapper.readTree("""
-                                                                    {
-                                                                      "lastName" : "Sinha"
-                                                                   }
-                                                                    """));
-        System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(ticketToJsonNode(mapper, res2.get(), schema)));
+                                                                     {
+                                                                       "lastName" : "Sinha"
+                                                                    }
+                                                                     """));
+        System.out.println(mapper.writerWithDefaultPrettyPrinter()
+                                   .writeValueAsString(ticketToJsonNode(mapper, res2.get(), schema)));
         assertEquals("FULL_NAME_COLLECTED", res2.get().getSummary().getTicketState().getId());
     }
 

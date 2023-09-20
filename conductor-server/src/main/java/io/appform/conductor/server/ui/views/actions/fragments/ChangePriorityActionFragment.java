@@ -17,7 +17,7 @@
 package io.appform.conductor.server.ui.views.actions.fragments;
 
 import io.appform.conductor.model.actions.Action;
-import io.appform.conductor.model.actions.ActionScope;
+import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.ticket.TicketPriority;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -35,11 +35,11 @@ import java.util.Set;
 @ToString(callSuper = true)
 public class ChangePriorityActionFragment extends TemplateView {
     Set<TicketPriority> availablePriorities = EnumSet.allOf(TicketPriority.class);
-    ActionScope scope;
+    Scope scope;
     Action currentAction;
 
     public ChangePriorityActionFragment(
-            ActionScope scope,
+            Scope scope,
             Action currentAction) {
         super("templates/actions/fragments/change-priority.hbs");
 

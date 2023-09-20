@@ -16,7 +16,7 @@
 
 package io.appform.conductor.server.resources.ui;
 
-import io.appform.conductor.model.actions.ActionScope;
+import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.impl.AddTicketAction;
 import io.appform.conductor.model.actions.impl.ChangePriorityAction;
@@ -66,14 +66,14 @@ public class Actions {
 
     @GET
     public Response renderGlobalActions(@Auth final ConductorUser user) {
-        return renderListPage(user, ActionScope.ScopeType.GLOBAL, ActionScope.GLOBAL_STATE_REF_ID);
+        return renderListPage(user, Scope.ScopeType.GLOBAL, Scope.GLOBAL_STATE_REF_ID);
     }
 
     @GET
     @Path("/{scopeType}/{referenceId}")
     public Response renderActionsList(
             @Auth final ConductorUser user,
-            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId) {
         return renderListPage(user, scopeType, referenceId);
     }
@@ -82,7 +82,7 @@ public class Actions {
     @Path("/{scopeType}/{referenceId}/{actionId}/delete")
     public Response deleteAction(
             @Auth final ConductorUser user,
-            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @PathParam("actionId") @Length(max = 45) final String actionId) {
         if (actionStore.delete(actionId)) {
@@ -96,15 +96,15 @@ public class Actions {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response renderFragment(
             @Auth final ConductorUser user,
-            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @FormParam("type") @NotNull final ActionType type) {
-        val scope = ActionScope.build(scopeType, referenceId);
+        val scope = Scope.build(scopeType, referenceId);
         val fragment = switch (type) {
             case WEBHOOK -> new WebHookActionFragment(scope, null);
             case ROUTE_TO_GROUP -> new RouteToGroupActionFragment(groupStore.list(), scope, null);
             case ADD_COMMENT -> null;
-            case ADD_TICKET_ACTION -> new AddTicketActionFragment(actionStore.listActionsForScopes(List.of(ActionScope.GLOBAL, scope)),
+            case ADD_TICKET_ACTION -> new AddTicketActionFragment(actionStore.listActionsForScopes(List.of(Scope.GLOBAL, scope)),
                                                                   scope,
                                                                   null);
             case CHANGE_PRIORITY -> new ChangePriorityActionFragment(scope, null);
@@ -117,19 +117,19 @@ public class Actions {
     @Path("/{scopeType}/{referenceId}/{actionId}")
     public Response renderFragment(
             @Auth final ConductorUser user,
-            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @PathParam("actionId") @Length(max = 45) final String actionId) {
         val action = actionStore.read(actionId).orElse(null);
         if (null == action) {
             return Response.noContent().build();
         }
-        val scope = ActionScope.build(scopeType, referenceId);
+        val scope = Scope.build(scopeType, referenceId);
         val view = switch (action.getType()) {
             case WEBHOOK -> new WebHookActionFragment(scope, action);
             case ROUTE_TO_GROUP -> new RouteToGroupActionFragment(groupStore.list(), scope, action);
             case ADD_COMMENT -> null;
-            case ADD_TICKET_ACTION -> new AddTicketActionFragment(actionStore.listActionsForScopes(List.of(ActionScope.GLOBAL, scope)),
+            case ADD_TICKET_ACTION -> new AddTicketActionFragment(actionStore.listActionsForScopes(List.of(Scope.GLOBAL, scope)),
                                                                   scope,
                                                                   action);
             case CHANGE_PRIORITY -> new ChangePriorityActionFragment(scope, action);
@@ -143,12 +143,12 @@ public class Actions {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response createRouteToGroupAction(
             @Auth final ConductorUser user,
-            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
-        val scope = ActionScope.build(scopeType, referenceId);
+        val scope = Scope.build(scopeType, referenceId);
         return actionStore.save(new RouteToGroupAction(UUID.randomUUID().toString(),
                                                        name,
                                                        description,
@@ -165,13 +165,13 @@ public class Actions {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response updateRouteToGroupAction(
             @Auth final ConductorUser user,
-            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @PathParam("actionId") @Length(max = 45) final String actionId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
-        val scope = ActionScope.build(scopeType, referenceId);
+        val scope = Scope.build(scopeType, referenceId);
         if (actionStore.update(actionId,
                                action ->
                                        new RouteToGroupAction(action.getId(),
@@ -191,12 +191,12 @@ public class Actions {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response createAddTicketAction(
             @Auth final ConductorUser user,
-            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("ticketActionId") @NotEmpty @Length(max = 45) final String ticketActionId) {
-        val scope = ActionScope.build(scopeType, referenceId);
+        val scope = Scope.build(scopeType, referenceId);
         return actionStore.save(new AddTicketAction(UUID.randomUUID().toString(),
                                                     name,
                                                     description,
@@ -213,13 +213,13 @@ public class Actions {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response updateAddTicketAction(
             @Auth final ConductorUser user,
-            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @PathParam("actionId") @Length(max = 45) final String actionId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("ticketActionId") @NotEmpty @Length(max = 45) final String ticketActionId) {
-        val scope = ActionScope.build(scopeType, referenceId);
+        val scope = Scope.build(scopeType, referenceId);
         if (actionStore.update(actionId,
                                action ->
                                        new AddTicketAction(action.getId(),
@@ -239,12 +239,12 @@ public class Actions {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response createChangePriorityAction(
             @Auth final ConductorUser user,
-            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("priority") @NotNull TicketPriority priority) {
-        val scope = ActionScope.build(scopeType, referenceId);
+        val scope = Scope.build(scopeType, referenceId);
         return actionStore.save(new ChangePriorityAction(UUID.randomUUID().toString(),
                                                          name,
                                                          description,
@@ -261,13 +261,13 @@ public class Actions {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response updateChangePriorityAction(
             @Auth final ConductorUser user,
-            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @PathParam("actionId") @Length(max = 45) final String actionId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("priority") @NotNull TicketPriority priority) {
-        val scope = ActionScope.build(scopeType, referenceId);
+        val scope = Scope.build(scopeType, referenceId);
         if (actionStore.update(actionId,
                                action ->
                                        new ChangePriorityAction(action.getId(),
@@ -287,7 +287,7 @@ public class Actions {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response createWebhookAction(
             @Auth final ConductorUser user,
-            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
@@ -297,7 +297,7 @@ public class Actions {
             @FormParam("payloadTemplate") @Length(max = 4096) String payloadTemplate,
             @FormParam("headerTemplates") @Length(max = 4096) String headerTemplates,
             @FormParam("successCodes") @Length(max = 128) String successCodes) {
-        val scope = ActionScope.build(scopeType, referenceId);
+        val scope = Scope.build(scopeType, referenceId);
         return actionStore.save(new WebhookAction(UUID.randomUUID().toString(),
                                                   name,
                                                   description,
@@ -323,7 +323,7 @@ public class Actions {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response updateWebhookAction(
             @Auth final ConductorUser user,
-            @PathParam("scopeType") @NotNull final ActionScope.ScopeType scopeType,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @PathParam("actionId") @Length(max = 45) final String actionId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
@@ -334,7 +334,7 @@ public class Actions {
             @FormParam("payloadTemplate") @Length(max = 4096) String payloadTemplate,
             @FormParam("headerTemplates") @Length(max = 4096) String headerTemplates,
             @FormParam("successCodes") @Length(max = 128) String successCodes) {
-        val scope = ActionScope.build(scopeType, referenceId);
+        val scope = Scope.build(scopeType, referenceId);
         if (actionStore.update(actionId,
                                action -> new WebhookAction(action.getId(),
                                                            name,
@@ -357,12 +357,12 @@ public class Actions {
         throw fail("Could not create action", actionList(scopeType, referenceId));
     }
 
-    private Response renderListPage(ConductorUser user, ActionScope.ScopeType scopeType, String referenceId) {
-        val scope = ActionScope.build(scopeType, referenceId);
+    private Response renderListPage(ConductorUser user, Scope.ScopeType scopeType, String referenceId) {
+        val scope = Scope.build(scopeType, referenceId);
         return render(new ActionListView(user.getUserSession().getUser(), actionStore.listActionsForScopes(List.of(scope)), scope));
     }
 
-    private static String actionList(ActionScope.ScopeType scopeType, String referenceId) {
+    private static String actionList(Scope.ScopeType scopeType, String referenceId) {
         return String.format("/actions/%s/%s", scopeType, referenceId);
     }
 

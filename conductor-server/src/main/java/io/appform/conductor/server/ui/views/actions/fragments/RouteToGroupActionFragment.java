@@ -17,7 +17,7 @@
 package io.appform.conductor.server.ui.views.actions.fragments;
 
 import io.appform.conductor.model.actions.Action;
-import io.appform.conductor.model.actions.ActionScope;
+import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.usermgmt.Group;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -34,10 +34,10 @@ import java.util.List;
 @ToString(callSuper = true)
 public class RouteToGroupActionFragment extends TemplateView {
     List<Group> availableGroups;
-    ActionScope scope;
+    Scope scope;
     Action currentAction;
 
-    public RouteToGroupActionFragment(List<Group> availableGroups, ActionScope scope,
+    public RouteToGroupActionFragment(List<Group> availableGroups, Scope scope,
                                       Action currentAction) {
         super("templates/actions/fragments/route-to-group.hbs");
         this.availableGroups = availableGroups;

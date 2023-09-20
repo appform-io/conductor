@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.actionmanagement;
+package io.appform.conductor.server.taskmanagement;
 
-import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.Scope;
+import io.appform.conductor.server.taskmanagement.model.Task;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
@@ -27,16 +26,10 @@ import java.util.function.UnaryOperator;
 /**
  *
  */
-public interface ActionStore {
-    Optional<Action> read(final String actionId);
-    List<Action> read(final List<String> actionId);
-    Optional<Action> save(final Action action);
-
-    boolean update(final String actionId, final UnaryOperator<Action> handler);
-
-    List<Action> listActionsForScopes(final Collection<Scope> scopes);
-
-    List<Action> listActionsForIds(final Collection<String> actionIds);
-
-    boolean delete(final String actionId);
+public interface TaskStore {
+    Optional<Task> createOrUpdate(String id, final Task task);
+    Optional<Task> update(final String id, final UnaryOperator<Task> updater);
+    boolean delete(final String id);
+    List<Task> listByIds(List<String> ids);
+    List<Task> listByScopes(List<Scope> scopes);
 }

@@ -17,7 +17,7 @@
 package io.appform.conductor.server.ui.views.actions.fragments;
 
 import io.appform.conductor.model.actions.Action;
-import io.appform.conductor.model.actions.ActionScope;
+import io.appform.conductor.model.actions.Scope;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
@@ -33,11 +33,11 @@ import java.util.List;
 @ToString(callSuper = true)
 public class AddTicketActionFragment extends TemplateView {
     List<Action> availableActions;
-    ActionScope scope;
+    Scope scope;
     Action currentAction;
 
     public AddTicketActionFragment(List<Action> availableActions,
-                                   ActionScope scope,
+                                   Scope scope,
                                    Action currentAction) {
         super("templates/actions/fragments/add-ticket-action.hbs");
         this.availableActions = availableActions;

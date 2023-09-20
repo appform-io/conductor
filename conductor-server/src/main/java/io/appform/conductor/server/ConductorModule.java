@@ -56,6 +56,9 @@ import io.appform.conductor.server.subjectmanagement.impl.DBSubjectStore;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredAddress;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectID;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectSummary;
+import io.appform.conductor.server.taskmanagement.TaskStore;
+import io.appform.conductor.server.taskmanagement.impl.DBTaskStore;
+import io.appform.conductor.server.taskmanagement.impl.models.StoredTask;
 import io.appform.conductor.server.ticketmanagement.EventGeneratingTicketStore;
 import io.appform.conductor.server.ticketmanagement.TicketStore;
 import io.appform.conductor.server.ticketmanagement.impl.DBTicketStore;
@@ -141,6 +144,8 @@ public class ConductorModule extends AbstractModule {
 
         bind(TicketStore.class).annotatedWith(Names.named("root")).to(DBTicketStore.class);
         bind(TicketStore.class).to(EventGeneratingTicketStore.class);
+
+        bind(TaskStore.class).to(DBTaskStore.class); //TODO::EVENTS
     }
 
     @Provides
@@ -310,6 +315,12 @@ public class ConductorModule extends AbstractModule {
     @Singleton
     public RelationalDao<StoredUserSkillAssociation> skillAssociationDao() {
         return dbBundle.createRelatedObjectDao(StoredUserSkillAssociation.class);
+    }
+
+    @Provides
+    @Singleton
+    public LookupDao<StoredTask> taskDao() {
+        return dbBundle.createParentObjectDao(StoredTask.class);
     }
 
     @Provides

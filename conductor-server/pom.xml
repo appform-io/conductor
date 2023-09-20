@@ -35,6 +35,7 @@
         <json-smart.version>2.4.11</json-smart.version>
         <guicey-server-pages.version>5.6.1-1</guicey-server-pages.version>
 
+        <kaal.version>1.0.1</kaal.version>
     </properties>
 
     <dependencies>
@@ -166,6 +167,11 @@
             <groupId>io.appform.signals</groupId>
             <artifactId>signals</artifactId>
             <version>${signals.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.appform.kaal</groupId>
+            <artifactId>kaal</artifactId>
+            <version>${kaal.version}</version>
         </dependency>
     </dependencies>
     <build>

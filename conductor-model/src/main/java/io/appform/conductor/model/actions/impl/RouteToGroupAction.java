@@ -17,7 +17,7 @@
 package io.appform.conductor.model.actions.impl;
 
 import io.appform.conductor.model.actions.Action;
-import io.appform.conductor.model.actions.ActionScope;
+import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import lombok.Builder;
@@ -41,7 +41,7 @@ public class RouteToGroupAction extends Action {
             String id,
             String name,
             String description,
-            ActionScope scope,
+            Scope scope,
             Date created,
             Date updated,
             String groupId) {

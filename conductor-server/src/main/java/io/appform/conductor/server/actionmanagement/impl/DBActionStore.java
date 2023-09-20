@@ -3,7 +3,7 @@ package io.appform.conductor.server.actionmanagement.impl;
 import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
 import io.appform.conductor.model.actions.Action;
-import io.appform.conductor.model.actions.ActionScope;
+import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.actions.impl.*;
 import io.appform.conductor.model.error.Throws;
@@ -56,7 +56,7 @@ public class DBActionStore implements ActionStore {
     }
 
     @Override
-    public List<Action> listActionsForScopes(final Collection<ActionScope> scopes) {
+    public List<Action> listActionsForScopes(final Collection<Scope> scopes) {
         val criteria = DetachedCriteria.forClass(StoredAction.class)
                 .add(Property.forName(StoredAction.Fields.deleted).eq(false));
         val scopeChain = Restrictions.or();
@@ -188,8 +188,8 @@ public class DBActionStore implements ActionStore {
         });
         if (null == existing) {
             if (action.getScope() == null) {
-                storedAction.setScopeType(ActionScope.ScopeType.GLOBAL)
-                        .setScopeReferenceId(ActionScope.GLOBAL_STATE_REF_ID);
+                storedAction.setScopeType(Scope.ScopeType.GLOBAL)
+                        .setScopeReferenceId(Scope.GLOBAL_STATE_REF_ID);
             }
             else {
                 storedAction.setScopeType(action.getScope().getType())
@@ -212,8 +212,8 @@ public class DBActionStore implements ActionStore {
                         .id(storedSetFieldAction.getActionId())
                         .name(storedSetFieldAction.getName())
                         .description(storedSetFieldAction.getDescription())
-                        .scope(ActionScope.build(storedSetFieldAction.getScopeType(),
-                                                 storedSetFieldAction.getScopeReferenceId()))
+                        .scope(Scope.build(storedSetFieldAction.getScopeType(),
+                                           storedSetFieldAction.getScopeReferenceId()))
                         .fieldSchemaId(storedSetFieldAction.getFieldSchemaId())
                         .fieldValue(storedSetFieldAction.getStoredFieldValue().toFieldValue())
                         .created(storedSetFieldAction.getCreated())
@@ -227,8 +227,8 @@ public class DBActionStore implements ActionStore {
                         .id(storedAddCommentAction.getActionId())
                         .name(storedAddCommentAction.getName())
                         .description(storedAddCommentAction.getDescription())
-                        .scope(ActionScope.build(storedAddCommentAction.getScopeType(),
-                                                 storedAddCommentAction.getScopeReferenceId()))
+                        .scope(Scope.build(storedAddCommentAction.getScopeType(),
+                                           storedAddCommentAction.getScopeReferenceId()))
                         .contentTemplate(storedAddCommentAction.getContentTemplate())
                         .created(storedAddCommentAction.getCreated())
                         .updated(storedAddCommentAction.getUpdated())
@@ -241,8 +241,8 @@ public class DBActionStore implements ActionStore {
                         .id(storedAddTicketAction.getActionId())
                         .name(storedAddTicketAction.getName())
                         .description(storedAddTicketAction.getDescription())
-                        .scope(ActionScope.build(storedAddTicketAction.getScopeType(),
-                                                 storedAddTicketAction.getScopeReferenceId()))
+                        .scope(Scope.build(storedAddTicketAction.getScopeType(),
+                                           storedAddTicketAction.getScopeReferenceId()))
                         .actionId(storedAddTicketAction.getTicketActionId())
                         .created(storedAddTicketAction.getCreated())
                         .updated(storedAddTicketAction.getUpdated())
@@ -255,8 +255,8 @@ public class DBActionStore implements ActionStore {
                         .id(storedChangePriorityAction.getActionId())
                         .name(storedChangePriorityAction.getName())
                         .description(storedChangePriorityAction.getDescription())
-                        .scope(ActionScope.build(storedChangePriorityAction.getScopeType(),
-                                                 storedChangePriorityAction.getScopeReferenceId()))
+                        .scope(Scope.build(storedChangePriorityAction.getScopeType(),
+                                           storedChangePriorityAction.getScopeReferenceId()))
                         .priority(storedChangePriorityAction.getPriority())
                         .created(storedChangePriorityAction.getCreated())
                         .updated(storedChangePriorityAction.getUpdated())
@@ -269,8 +269,8 @@ public class DBActionStore implements ActionStore {
                         .id(storedRouteToGroupAction.getActionId())
                         .name(storedRouteToGroupAction.getName())
                         .description(storedRouteToGroupAction.getDescription())
-                        .scope(ActionScope.build(storedRouteToGroupAction.getScopeType(),
-                                                 storedRouteToGroupAction.getScopeReferenceId()))
+                        .scope(Scope.build(storedRouteToGroupAction.getScopeType(),
+                                           storedRouteToGroupAction.getScopeReferenceId()))
                         .groupId(storedRouteToGroupAction.getGroupId())
                         .created(storedRouteToGroupAction.getCreated())
                         .updated(storedRouteToGroupAction.getUpdated())
@@ -291,8 +291,8 @@ public class DBActionStore implements ActionStore {
                                                  .filter(StoredWebhookActionHeaderTemplate::isActive)
                                                  .collect(Collectors.toMap(StoredWebhookActionHeaderTemplate::getName,
                                                                            StoredWebhookActionHeaderTemplate::getTemplate)))
-                        .scope(ActionScope.build(storedWebhookAction.getScopeType(),
-                                                 storedWebhookAction.getScopeReferenceId()))
+                        .scope(Scope.build(storedWebhookAction.getScopeType(),
+                                           storedWebhookAction.getScopeReferenceId()))
                         .payloadTemplate(storedWebhookAction.getPayloadTemplate())
                         .successCodes(storedWebhookAction.getSuccessCodes())
                         .mimeType(storedWebhookAction.getMimeType())

@@ -10,9 +10,9 @@ import javax.validation.constraints.NotNull;
 
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class ActionScope {
+public class Scope {
     public static final String GLOBAL_STATE_REF_ID = "__GLOBAL__";
-    public static final ActionScope GLOBAL = new ActionScope(ScopeType.GLOBAL, GLOBAL_STATE_REF_ID);
+    public static final Scope GLOBAL = new Scope(ScopeType.GLOBAL, GLOBAL_STATE_REF_ID);
 
     public enum ScopeType {
 
@@ -29,10 +29,10 @@ public class ActionScope {
     @Nullable
     String referenceId;
 
-    public static ActionScope build(@NonNull ScopeType type, String referenceId) {
+    public static Scope build(@NonNull ScopeType type, String referenceId) {
         return type == ScopeType.GLOBAL
             ? GLOBAL
-            : new ActionScope(type, referenceId);
+            : new Scope(type, referenceId);
     }
 
 }

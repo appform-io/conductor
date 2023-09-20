@@ -17,7 +17,7 @@
 package io.appform.conductor.server.resources.ui;
 
 import com.google.common.base.Strings;
-import io.appform.conductor.model.actions.ActionScope;
+import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.schema.*;
 import io.appform.conductor.model.schema.fields.*;
 import io.appform.conductor.model.usermgmt.GroupType;
@@ -321,9 +321,9 @@ public class Manage {
                                 workflow,
                                 schema,
                                 null,
-                                actionStore.listActionsForScopes(List.of(ActionScope.GLOBAL,
-                                                                         ActionScope.build(ActionScope.ScopeType.WORKFLOW,
-                                                                                           workflowId))),
+                                actionStore.listActionsForScopes(List.of(Scope.GLOBAL,
+                                                                         Scope.build(Scope.ScopeType.WORKFLOW,
+                                                                                     workflowId))),
                                 actionStore.listActionsForIds(workflow.getAvailableActions()))))
                 .map(ConductorServerUtils::render)
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
@@ -397,7 +397,7 @@ public class Manage {
                         workflowId,
                         null,
                         actionStore.listActionsForIds(workflow.map(Workflow::getAvailableActions).orElse(List.of())),
-                        actionStore.listActionsForScopes(List.of(ActionScope.GLOBAL)),
+                        actionStore.listActionsForScopes(List.of(Scope.GLOBAL)),
                         fields)))
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
     }
@@ -427,9 +427,9 @@ public class Manage {
                                             state,
                                             actionStore.listActionsForIds(workflow.map(Workflow::getAvailableActions)
                                                                                   .orElse(List.of())),
-                                            actionStore.listActionsForScopes(Set.of(ActionScope.GLOBAL,
-                                                                                    ActionScope.build(ActionScope.ScopeType.STATE,
-                                                                                                      stateId))),
+                                            actionStore.listActionsForScopes(Set.of(Scope.GLOBAL,
+                                                                                    Scope.build(Scope.ScopeType.STATE,
+                                                                                                stateId))),
                                             fields));
     }
 
@@ -567,11 +567,11 @@ public class Manage {
                                                 .equals(stateTransitionId))
                                         .findFirst()
                                         .orElse(null),
-                                actionStore.listActionsForScopes(List.of(ActionScope.GLOBAL,
-                                                                         ActionScope.build(ActionScope.ScopeType.WORKFLOW,
-                                                                                           workflowId),
-                                                                         ActionScope.build(ActionScope.ScopeType.TRANSITION,
-                                                                                           stateTransitionId))),
+                                actionStore.listActionsForScopes(List.of(Scope.GLOBAL,
+                                                                         Scope.build(Scope.ScopeType.WORKFLOW,
+                                                                                     workflowId),
+                                                                         Scope.build(Scope.ScopeType.TRANSITION,
+                                                                                     stateTransitionId))),
                                 actionStore.listActionsForIds(workflow.getAvailableActions()))))
                 .map(ConductorServerUtils::render)
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
