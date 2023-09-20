@@ -50,6 +50,7 @@ import io.appform.conductor.server.usermanagement.UserStore;
 import io.appform.conductor.server.workflowmanagement.WorkflowSelector;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.junit.jupiter.api.Test;
@@ -118,6 +119,71 @@ class TicketManagerTest {
                                        ),
                                 new Date(),
                                 new Date());
+        final var workflow = createWorkflow(schema);
+        val mapper = new ObjectMapper();
+        val ts = new DBTicketStore(bundle.createParentObjectDao(StoredTicketSkeleton.class),
+                                   bundle.createRelatedObjectDao(StoredFieldValue.class),
+                                   bundle.createRelatedObjectDao(StoredComment.class),
+                                   bundle.createRelatedObjectDao(StoredAttachment.class),
+                                   mapper);
+        val sStore = mock(SchemaStore.class);
+        when(sStore.get(anyString())).thenReturn(Optional.of(schema));
+        val uStore = mock(UserStore.class);
+        when(uStore.getById(anyString())).thenReturn(Optional.of(creator));
+        val gStore = mock(GroupStore.class);
+        when(gStore.read(anyString())).thenReturn(Optional.empty());
+        val aStore = mock(ActionStore.class);
+        when(aStore.read(anyString())).thenReturn(Optional.empty());
+        val wStore = mock(WorkflowStore.class);
+        when(wStore.list(anySet())).thenReturn(List.of(workflow));
+        val suStore = new DBSubjectStore(bundle.createParentObjectDao(StoredSubjectSummary.class),
+                                         bundle.createRelatedObjectDao(StoredSubjectID.class),
+                                         bundle.createRelatedObjectDao(StoredAddress.class));
+
+        val re = new RuleEngine(new HopeRuleEvaluator(), new JsonRuleEvaluator(mapper));
+        val te = new TemplateEngine(new FixedTextTemplateEvaluator(),
+                                    new StringSubstitutionTextTemplateEvaluator(mapper),
+                                    new HandlebarsTextTemplateEvaluator(mapper),
+                                    new FixedObjectTemplateEvaluator(mapper));
+        val workflowSelector = new WorkflowSelector(wStore, re);
+        workflowSelector.start();
+        val actionExecutor = mock(ActionExecutor.class);
+        when(actionExecutor.execute(any(Action.class), any(ActionExecutor.ActionEvalData.class)))
+                .thenReturn(ActionExecutionResult.SUCCESS);
+        val ticketManager = new TicketManager(ts,
+                                              sStore,
+                                              uStore,
+                                              gStore,
+                                              suStore,
+                                              aStore,
+                                              wStore,
+                                              workflowSelector,
+                                              new TicketFieldMapper(),
+                                              re,
+                                              te,
+                                              actionExecutor,
+                                              mapper);
+        val res = ticketManager.processRaw(mapper.readTree("""
+                                                                   {
+                                                                     "firstName" : "Santanu"
+                                                                   }
+                                                                   """));
+        assertTrue(res.isPresent());
+        System.out.println(mapper.writerWithDefaultPrettyPrinter()
+                                   .writeValueAsString(ticketToJsonNode(mapper, res.get(), schema)));
+        assertEquals("FIRST_NAME_COLLECTED", res.get().getSummary().getTicketState().getId());
+        val res2 = ticketManager.processRaw(mapper.readTree("""
+                                                                     {
+                                                                       "lastName" : "Sinha"
+                                                                    }
+                                                                     """));
+        System.out.println(mapper.writerWithDefaultPrettyPrinter()
+                                   .writeValueAsString(ticketToJsonNode(mapper, res2.get(), schema)));
+        assertEquals("FULL_NAME_COLLECTED", res2.get().getSummary().getTicketState().getId());
+    }
+
+    @NonNull
+    private static Workflow createWorkflow(Schema schema) {
         val states = Map.of(
                 "START",
                 new TicketState("START",
@@ -202,66 +268,7 @@ class TicketManagerTest {
                                     WorkflowState.ACTIVE,
                                     new Date(),
                                     new Date());
-        val mapper = new ObjectMapper();
-        val ts = new DBTicketStore(bundle.createParentObjectDao(StoredTicketSkeleton.class),
-                                   bundle.createRelatedObjectDao(StoredFieldValue.class),
-                                   bundle.createRelatedObjectDao(StoredComment.class),
-                                   bundle.createRelatedObjectDao(StoredAttachment.class),
-                                   mapper);
-        val sStore = mock(SchemaStore.class);
-        when(sStore.get(anyString())).thenReturn(Optional.of(schema));
-        val uStore = mock(UserStore.class);
-        when(uStore.getById(anyString())).thenReturn(Optional.of(creator));
-        val gStore = mock(GroupStore.class);
-        when(gStore.read(anyString())).thenReturn(Optional.empty());
-        val aStore = mock(ActionStore.class);
-        when(aStore.read(anyString())).thenReturn(Optional.empty());
-        val wStore = mock(WorkflowStore.class);
-        when(wStore.list(anySet())).thenReturn(List.of(workflow));
-        val suStore = new DBSubjectStore(bundle.createParentObjectDao(StoredSubjectSummary.class),
-                                         bundle.createRelatedObjectDao(StoredSubjectID.class),
-                                         bundle.createRelatedObjectDao(StoredAddress.class));
-
-        val re = new RuleEngine(new HopeRuleEvaluator(), new JsonRuleEvaluator(mapper));
-        val te = new TemplateEngine(new FixedTextTemplateEvaluator(),
-                                    new StringSubstitutionTextTemplateEvaluator(mapper),
-                                    new HandlebarsTextTemplateEvaluator(mapper),
-                                    new FixedObjectTemplateEvaluator(mapper));
-        val workflowSelector = new WorkflowSelector(wStore, re);
-        workflowSelector.start();
-        val actionExecutor = mock(ActionExecutor.class);
-        when(actionExecutor.execute(any(Action.class), any(ActionExecutor.ActionEvalData.class)))
-                .thenReturn(ActionExecutionResult.SUCCESS);
-        val ticketManager = new TicketManager(ts,
-                                              sStore,
-                                              uStore,
-                                              gStore,
-                                              suStore,
-                                              aStore,
-                                              wStore,
-                                              workflowSelector,
-                                              new TicketFieldMapper(),
-                                              re,
-                                              te,
-                                              actionExecutor,
-                                              mapper);
-        val res = ticketManager.processRaw(mapper.readTree("""
-                                                                   {
-                                                                     "firstName" : "Santanu"
-                                                                   }
-                                                                   """));
-        assertTrue(res.isPresent());
-        System.out.println(mapper.writerWithDefaultPrettyPrinter()
-                                   .writeValueAsString(ticketToJsonNode(mapper, res.get(), schema)));
-        assertEquals("FIRST_NAME_COLLECTED", res.get().getSummary().getTicketState().getId());
-        val res2 = ticketManager.processRaw(mapper.readTree("""
-                                                                     {
-                                                                       "lastName" : "Sinha"
-                                                                    }
-                                                                     """));
-        System.out.println(mapper.writerWithDefaultPrettyPrinter()
-                                   .writeValueAsString(ticketToJsonNode(mapper, res2.get(), schema)));
-        assertEquals("FULL_NAME_COLLECTED", res2.get().getSummary().getTicketState().getId());
+        return workflow;
     }
 
 }
