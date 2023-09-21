@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.taskmanagement.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.error.ConductorErrorCode;
@@ -132,6 +133,7 @@ public class DBTaskStore implements TaskStore {
                 .setState(task.getState())
                 .setSpec(mapper.writeValueAsString(task.getSpec()))
                 .setLastExecutionCompletionTime(task.getLastExecutionCompletionTime())
+                .setTaskMeta(mapper.writeValueAsString(task.getTaskMeta()))
                 ;
     }
 
@@ -147,6 +149,7 @@ public class DBTaskStore implements TaskStore {
                 task.getState(),
                 mapper.readValue(task.getSpec(), TaskSpec.class),
                 task.getLastExecutionCompletionTime(),
+                mapper.readValue(task.getTaskMeta(), new TypeReference<>() {}),
                 task.getCreated(),
                 task.getUpdated()
         );

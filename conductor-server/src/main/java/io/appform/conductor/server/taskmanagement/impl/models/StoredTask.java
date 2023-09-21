@@ -79,8 +79,11 @@ public class StoredTask implements Serializable {
     @Column(name = "last_execution_time")
     private Date lastExecutionCompletionTime;
 
-    @Column(name = "task_data", columnDefinition = "blob")
+    @Column(name = "task_data", columnDefinition = "longtext")
     private String spec;
+
+    @Column(name = "task_meta", columnDefinition = "longtext")
+    private String taskMeta;
 
     @Column
     private boolean deleted;

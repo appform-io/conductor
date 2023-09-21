@@ -22,6 +22,7 @@ import lombok.With;
 
 import java.time.Duration;
 import java.util.Date;
+import java.util.Map;
 
 /**
  *
@@ -38,6 +39,7 @@ public class Task {
     TaskState state;
     TaskSpec spec;
     Date lastExecutionCompletionTime;
+    Map<String, Object> taskMeta;
     Date created;
     Date updated;
 }

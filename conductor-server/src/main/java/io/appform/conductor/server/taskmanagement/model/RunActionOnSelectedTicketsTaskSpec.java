@@ -16,13 +16,13 @@
 
 package io.appform.conductor.server.taskmanagement.model;
 
+import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.jackson.Jacksonized;
-import net.minidev.asm.FieldFilter;
 
 import java.util.List;
 
@@ -34,14 +34,14 @@ import java.util.List;
 @ToString(callSuper = true)
 public class RunActionOnSelectedTicketsTaskSpec extends TaskSpec {
     private List<TicketFilter> ticketFilters;
-    private List<FieldFilter> fieldFilters;
+    private List<TicketFieldFilter> fieldFilters;
     private List<String> actionIds;
 
     @Builder
     @Jacksonized
     public RunActionOnSelectedTicketsTaskSpec(
             List<TicketFilter> ticketFilters,
-            List<FieldFilter> fieldFilters,
+            List<TicketFieldFilter> fieldFilters,
             List<String> actionIds) {
         super(TaskType.RUN_ACTION_ON_SELECTED_TICKETS);
         this.ticketFilters = ticketFilters;
