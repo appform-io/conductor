@@ -147,6 +147,16 @@ public class EventGeneratingTicketStore implements TicketStore {
     }
 
     @Override
+    public TicketSkeletonListResult since(
+            List<TicketFilter> ticketFilters,
+            List<TicketFieldFilter> fieldFilters,
+            String start,
+            int size,
+            Map<String, FieldSchema> relevantFieldSchema) {
+        return ticketStore.since(ticketFilters, fieldFilters, start, size, relevantFieldSchema);
+    }
+
+    @Override
     public FlatGroupCountResponse groupCount(List<TicketFilter> ticketFilters,
                                              List<TicketFieldFilter> fieldFilters,
                                              Map<String, FieldSchema> relevantFieldSchema,

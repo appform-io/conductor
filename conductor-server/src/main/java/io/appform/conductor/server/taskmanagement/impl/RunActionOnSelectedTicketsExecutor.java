@@ -45,7 +45,7 @@ public class RunActionOnSelectedTicketsExecutor {
         var nextPtr = (String)task.getTaskMeta().getOrDefault(TASK_META_CURSOR, "");
         var hasMore = true;
         do {
-            val tickets = ticketManager.search(taskSpec.getTicketFilters(),
+            val tickets = ticketManager.since(taskSpec.getTicketFilters(),
                                                taskSpec.getFieldFilters(),
                                                nextPtr,
                                                10);

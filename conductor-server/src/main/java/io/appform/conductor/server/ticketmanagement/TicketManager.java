@@ -147,6 +147,22 @@ public class TicketManager {
         val result = ticketStore.list(
                 ticketFilters,
                 fieldFilters, start, size, Map.of());
+        return toGistList(result);
+    }
+
+    @SneakyThrows
+    public TicketGistListResult since(
+            final List<TicketFilter> ticketFilters,
+            final List<TicketFieldFilter> fieldFilters,
+            final String start,
+            final int size) {
+        val result = ticketStore.since(
+                ticketFilters,
+                fieldFilters, start, size, Map.of());
+        return toGistList(result);
+    }
+
+    private TicketGistListResult toGistList(TicketSkeletonListResult result) {
         return TicketGistListResult.builder()
                 .next(result.getNext())
                 .results(result.getResults()

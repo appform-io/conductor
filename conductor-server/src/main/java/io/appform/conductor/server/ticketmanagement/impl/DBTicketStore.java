@@ -50,6 +50,7 @@ import io.appform.conductor.server.utils.Pair;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.dropwizard.sharding.scroll.ScrollPointer;
+import io.appform.dropwizard.sharding.scroll.ScrollResult;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -66,6 +67,7 @@ import javax.inject.Singleton;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -178,21 +180,46 @@ public class DBTicketStore implements TicketStore {
 
     @Override
     @MonitoredFunction
-    @SneakyThrows
-    @Throws(value = STORE_LIST_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
     public TicketSkeletonListResult list(
             final List<TicketFilter> ticketFilters,
             final List<TicketFieldFilter> fieldFilters,
             final String start,
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema) {
+        return runQuery(ticketFilters, fieldFilters,start, size, relevantFieldSchema,
+                        param -> ticketDao.scrollUp(param.resultCriteria, param.pointer, param.size, "id"));
+    }
+
+    @Override
+    @MonitoredFunction
+    public TicketSkeletonListResult since(
+            final List<TicketFilter> ticketFilters,
+            final List<TicketFieldFilter> fieldFilters,
+            final String start,
+            final int size,
+            final Map<String, FieldSchema> relevantFieldSchema) {
+        return runQuery(ticketFilters, fieldFilters,start, size, relevantFieldSchema,
+                        param -> ticketDao.scrollDown(param.resultCriteria, param.pointer, param.size, "id"));
+    }
+
+    private record QueryParams(int size, DetachedCriteria resultCriteria, ScrollPointer pointer) {}
+
+    @SneakyThrows
+    @Throws(value = STORE_LIST_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
+    public TicketSkeletonListResult runQuery(
+            final List<TicketFilter> ticketFilters,
+            final List<TicketFieldFilter> fieldFilters,
+            final String start,
+            final int size,
+            final Map<String, FieldSchema> relevantFieldSchema,
+            final Function<QueryParams, ScrollResult<StoredTicketSkeleton>> queryFunction) {
         val resultCriteria = createTicketQueryCriteria(ticketFilters, fieldFilters, relevantFieldSchema);
         val pointer = Strings.isNullOrEmpty(start)
                       ? null
                       : mapper.readValue(Base64.getUrlDecoder().decode(start.getBytes(StandardCharsets.UTF_8)),
                                          ScrollPointer.class);
-        val results = ticketDao.scrollUp(resultCriteria, pointer, size, "id");
+        val results = queryFunction.apply(new QueryParams(size, resultCriteria, pointer));
         return new TicketSkeletonListResult(
                 results.getResult()
                         .stream()
@@ -202,7 +229,6 @@ public class DBTicketStore implements TicketStore {
                         mapper.writeValueAsString(results.getPointer())
                                 .getBytes(StandardCharsets.UTF_8))); //Keep charset consistent
     }
-
     private DetachedCriteria createTicketQueryCriteria(
             List<TicketFilter> ticketFilters,
             List<TicketFieldFilter> fieldFilters,

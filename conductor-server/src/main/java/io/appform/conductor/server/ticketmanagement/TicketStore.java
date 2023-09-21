@@ -149,6 +149,13 @@ public interface TicketStore {
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema);
 
+    TicketSkeletonListResult since(
+            final List<TicketFilter> ticketFilters,
+            final List<TicketFieldFilter> fieldFilters,
+            final String start,
+            final int size,
+            final Map<String, FieldSchema> relevantFieldSchema);
+
     FlatGroupCountResponse groupCount(
             final List<TicketFilter> ticketFilters,
             final List<TicketFieldFilter> fieldFilters,

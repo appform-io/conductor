@@ -34,6 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.time.Duration;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -60,6 +61,7 @@ class DBTaskStoreTest {
                                                                                          List.of(),
                                                                                          List.of()),
                                                   new Date(),
+                                                  Map.of(),
                                                   new Date(),
                                                   new Date()));
         assertTrue(saved.isPresent());
