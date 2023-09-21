@@ -42,7 +42,6 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  */
 @RelevantDBEntityPackages("io.appform.conductor.server.taskmanagement.impl.models")
-
 @ExtendWith(DBTestExtension.class)
 class DBTaskStoreTest {
     @Test
