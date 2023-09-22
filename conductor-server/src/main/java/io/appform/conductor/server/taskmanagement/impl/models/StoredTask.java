@@ -17,6 +17,7 @@
 package io.appform.conductor.server.taskmanagement.impl.models;
 
 import io.appform.conductor.model.actions.Scope;
+import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
 import io.appform.conductor.server.taskmanagement.model.TaskState;
 import io.appform.conductor.server.taskmanagement.model.TaskType;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
@@ -66,6 +67,7 @@ public class StoredTask implements Serializable {
     @Column(name = "execution_interval_ms")
     private long interval;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "scope_type")
     private Scope.ScopeType scopeType;
 
@@ -78,6 +80,9 @@ public class StoredTask implements Serializable {
 
     @Column(name = "last_execution_time")
     private Date lastExecutionCompletionTime;
+
+    @Column(name = "last_run_status")
+    private ConductorTaskScheduler.TaskStatus lastRunStatus;
 
     @Column(name = "task_data", columnDefinition = "longtext")
     private String spec;

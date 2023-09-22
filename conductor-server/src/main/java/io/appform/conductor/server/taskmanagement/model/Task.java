@@ -17,8 +17,8 @@
 package io.appform.conductor.server.taskmanagement.model;
 
 import io.appform.conductor.model.actions.Scope;
-import lombok.Value;
-import lombok.With;
+import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
+import lombok.*;
 
 import java.time.Duration;
 import java.util.Date;
@@ -29,6 +29,8 @@ import java.util.Map;
  */
 @Value
 @With
+@Builder
+@AllArgsConstructor(access = AccessLevel.PUBLIC)
 public class Task {
     String id;
     TaskType type;
@@ -39,6 +41,7 @@ public class Task {
     TaskState state;
     TaskSpec spec;
     Date lastExecutionCompletionTime;
+    ConductorTaskScheduler.TaskStatus lastRunStatus;
     Map<String, Object> taskMeta;
     Date created;
     Date updated;

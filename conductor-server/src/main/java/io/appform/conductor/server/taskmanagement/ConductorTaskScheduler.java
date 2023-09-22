@@ -34,6 +34,7 @@ import javax.inject.Singleton;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 /**
@@ -74,15 +75,15 @@ public class ConductorTaskScheduler implements Managed {
         scheduler.stop();
     }
 
-    public boolean scheduleNewTask(final Task task) {
+    public String scheduleNewTask(final Task task) {
         val taskId = ConductorServerUtils.lowerSnake(task.getName());
         return taskStore.createOrUpdate(taskId, task.withId(taskId))
-                .map(savedTask -> {
+                .flatMap(savedTask -> {
                     val status = scheduler.schedule(new RunnableTask(this, task));
                     log.info("Scheduled task: {}", task.getName());
                     return status;
                 })
-                .isPresent();
+                .orElse(null);
     }
 
     public boolean updateTask(final String taskId, UnaryOperator<Task> updater) {
@@ -140,7 +141,9 @@ public class ConductorTaskScheduler implements Managed {
                         @Override
                         public TaskResult visit(RunActionOnSelectedTicketsTaskSpec runActionOnSelectedTicketsTaskSpec) {
                             return scheduler.runActionOnSelectedTicketsExecutor
-                                    .execute(runnable.getTask().task, runActionOnSelectedTicketsTaskSpec);
+                                    .execute(runnable.getTask().task,
+                                             Objects.requireNonNullElse(runnable.getTask().task.getTaskMeta(), Map.of()),
+                                             runActionOnSelectedTicketsTaskSpec);
                         }
                     });
         }
@@ -164,10 +167,10 @@ public class ConductorTaskScheduler implements Managed {
             log.error("Error in task run ", result.getRunId() + ": " + exception.getMessage(), exception);
             //TODO::EVENT
         }
-        val updated = taskStore.createOrUpdate(conductorTask.getId(),
+        taskStore.createOrUpdate(conductorTask.getId(),
                                                conductorTask.withLastExecutionCompletionTime(new Date())
-                                                       .withTaskMeta(result.getResult().taskMeta()))
-                .orElse(null);
+                                                       .withLastRunStatus(result.getResult().status)
+                                                       .withTaskMeta(result.getResult().taskMeta()));
         log.debug("Saved task for: {}", conductorTask.getId());
     }
 }

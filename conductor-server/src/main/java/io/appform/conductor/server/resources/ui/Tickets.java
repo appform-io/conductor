@@ -318,7 +318,7 @@ public class Tickets {
             ticketFilters.add(new TicketWorkflowEquals(workflowId));
         }
         if (null != priority) {
-            ticketFilters.add(new TicketPriorityEquals(priority));
+            ticketFilters.add(new TicketPriorityIn(Set.of(priority)));
         }
         if (!Strings.isNullOrEmpty(stateId)) {
             ticketFilters.add(new TicketStateEquals(stateId));

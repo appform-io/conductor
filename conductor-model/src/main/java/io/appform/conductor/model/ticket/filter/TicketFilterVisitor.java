@@ -40,7 +40,7 @@ public interface TicketFilterVisitor<T> {
 
     T visit(TicketStateIn stateIn);
 
-    T visit(TicketPriorityEquals priorityEquals);
+    T visit(TicketPriorityIn priorityEquals);
 
     T visit(TicketsCreatedTimeWindow createdTimeWindow);
 

@@ -41,8 +41,9 @@ public class RunActionOnSelectedTicketsExecutor {
     @SuppressWarnings("unused")
     public ConductorTaskScheduler.TaskResult execute(
             final Task task,
+            final Map<String, Object> taskMeta,
             final RunActionOnSelectedTicketsTaskSpec taskSpec) {
-        var nextPtr = (String)task.getTaskMeta().getOrDefault(TASK_META_CURSOR, "");
+        var nextPtr = (String)taskMeta.getOrDefault(TASK_META_CURSOR, "");
         var hasMore = true;
         do {
             val tickets = ticketManager.since(taskSpec.getTicketFilters(),

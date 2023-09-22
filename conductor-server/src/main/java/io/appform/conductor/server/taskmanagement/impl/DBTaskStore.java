@@ -133,6 +133,7 @@ public class DBTaskStore implements TaskStore {
                 .setState(task.getState())
                 .setSpec(mapper.writeValueAsString(task.getSpec()))
                 .setLastExecutionCompletionTime(task.getLastExecutionCompletionTime())
+                .setLastRunStatus(task.getLastRunStatus())
                 .setTaskMeta(mapper.writeValueAsString(task.getTaskMeta()))
                 ;
     }
@@ -149,6 +150,7 @@ public class DBTaskStore implements TaskStore {
                 task.getState(),
                 mapper.readValue(task.getSpec(), TaskSpec.class),
                 task.getLastExecutionCompletionTime(),
+                task.getLastRunStatus(),
                 mapper.readValue(task.getTaskMeta(), new TypeReference<>() {}),
                 task.getCreated(),
                 task.getUpdated()

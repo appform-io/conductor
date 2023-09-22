@@ -26,20 +26,22 @@ import lombok.ToString;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
+import java.util.Set;
+
 /**
  * Filter to match all tickets with given priority
  */
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TicketPriorityEquals extends TicketFilter {
-    TicketPriority priority;
+public class TicketPriorityIn extends TicketFilter {
+    Set<TicketPriority> priorities;
 
     @Builder
     @Jacksonized
-    public TicketPriorityEquals(TicketPriority priority) {
-        super(TicketFilterType.PRIORITY_EQUALS);
-        this.priority = priority;
+    public TicketPriorityIn(Set<TicketPriority> priorities) {
+        super(TicketFilterType.PRIORITY_IN);
+        this.priorities = priorities;
     }
 
     @Override

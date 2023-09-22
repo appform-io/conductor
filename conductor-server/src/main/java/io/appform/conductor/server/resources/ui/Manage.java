@@ -64,7 +64,6 @@ public class Manage {
     private final WorkflowManager workflowManager;
     private final UserLifecycleManager userLifecycleManager;
     private final ActionStore actionStore;
-
     @GET
     @Path("/schema")
     public Response renderSchemaList(@Auth ConductorUser user) {

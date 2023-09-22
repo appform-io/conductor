@@ -20,6 +20,7 @@ public class Scope {
         TRANSITION,
         WORKFLOW,
         TICKET,
+        TASK,
         GLOBAL,
     }
 

@@ -16,6 +16,9 @@
 
 package io.appform.conductor.model.ticket.filter;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,21 @@ import lombok.RequiredArgsConstructor;
  */
 @Data
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(name = "WORKFLOW_EQUALS", value = TicketWorkflowEquals.class),
+        @JsonSubTypes.Type(name = "CREATED_BY", value = TicketCreatedBy.class),
+        @JsonSubTypes.Type(name = "ASSIGNED_TO_GROUP", value = TicketAssignedToGroup.class),
+        @JsonSubTypes.Type(name = "UNASSIGNED_TO_GROUP", value = TicketUnAssignedToGroup.class),
+        @JsonSubTypes.Type(name = "ASSIGNED_TO_USER", value = TicketAssignedToUser.class),
+        @JsonSubTypes.Type(name = "UNASSIGNED_TO_USER", value = TicketUnAssignedToUser.class),
+        @JsonSubTypes.Type(name = "SUBJECT_EQUALS", value = TicketSubjectEquals.class),
+        @JsonSubTypes.Type(name = "STATE_EQUALS", value = TicketStateEquals.class),
+        @JsonSubTypes.Type(name = "STATE_IN", value = TicketStateIn.class),
+        @JsonSubTypes.Type(name = "PRIORITY_IN", value = TicketPriorityIn.class),
+        @JsonSubTypes.Type(name = "CREATED_TIME_WINDOW", value = TicketsCreatedTimeWindow.class),
+        @JsonSubTypes.Type(name = "UPDATED_TIME_WINDOW", value = TicketsUpdatedTimeWindow.class),
+})
 public abstract class TicketFilter {
     private final TicketFilterType type;
 

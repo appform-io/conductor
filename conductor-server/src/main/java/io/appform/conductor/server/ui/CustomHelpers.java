@@ -29,6 +29,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.text.WordUtils;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
@@ -129,6 +130,13 @@ public class CustomHelpers {
             case CHANGE_PRIORITY -> "actions/fragments/change-priority.hbs";
             case SET_FIELD -> "actions/fragments/set-field.hbs";
         };
+    }
+
+    public String minutes(final Duration duration) {
+        if(null == duration) {
+            return null;
+        }
+        return Objects.toString(duration.toMinutes());
     }
 
 }

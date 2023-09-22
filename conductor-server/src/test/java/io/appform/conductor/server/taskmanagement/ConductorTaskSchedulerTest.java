@@ -90,7 +90,8 @@ class ConductorTaskSchedulerTest {
                                            TaskState.ACTIVE,
                                            taskSpec,
                                            null,
-                                           Map.of(),
+                                           null,
+                                           null,
                                            null,
                                            null));
         await()

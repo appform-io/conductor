@@ -485,8 +485,8 @@ public class DBTicketStore implements TicketStore {
             }
 
             @Override
-            public Void visit(TicketPriorityEquals priorityEquals) {
-                criteria.add(Property.forName(StoredTicketSkeleton.Fields.priority).eq(priorityEquals.getPriority()));
+            public Void visit(TicketPriorityIn priorityEquals) {
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.priority).in(priorityEquals.getPriorities()));
                 return null;
             }
 
@@ -564,7 +564,7 @@ public class DBTicketStore implements TicketStore {
             final Map<String, FieldSchema> relevantFields,
             DetachedCriteria rootCriteria) {
         var top = rootCriteria.createCriteria(StoredTicketSkeleton.Fields.fields, JoinType.LEFT_OUTER_JOIN);
-        for (val filter : filters) {
+        for (val filter : Objects.requireNonNullElse(filters, List.<TicketFieldFilter>of())) {
             val fieldSchema = relevantFields.get(filter.getFieldSchemaId());
             val finalTop = top;
             augmentFilter(filter, fieldSchema, finalTop);

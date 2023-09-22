@@ -1,0 +1,162 @@
+{{#partial "page_css_includes"}}
+    <link href="/css/bootstrap-select.min.css" rel="stylesheet">
+{{/partial}}
+{{#partial "page_js_includes"}}
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+{{/partial}}
+{{#partial "content"}}
+    <section>
+        <div class="row">
+            <div class="col-12">
+                {{#empty task}}
+                    <h4>Create new task</h4>
+                {{else}}
+                    <h4>Updating Task {{task.name}}</h4>
+                {{/empty}}
+            </div>
+        </div>
+        <form method="post"
+              {{#empty task}}
+              action="/manage/tasks/{{workflowId}}/RUN_ACTION_ON_SELECTED_TICKETS"
+              {{else}}
+              action="/manage/tasks/{{workflowId}}/RUN_ACTION_ON_SELECTED_TICKETS/{{task.id}}/update"
+              {{/empty}}>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="mb-3">
+                        <label for="name" class="col-form-label fw-bold">Name</label>
+                        <input type="text" id="name" name="name"
+                               class="form-control border border-dark"
+                               maxlength="45" placeholder="Task Name" aria-describedby="nameHelp"
+                               value="{{task.name}}" {{#empty task}}required{{else}}disabled{{/empty}}>
+                        <div id="nameHelp" class="form-text">Name <i>can not</i> be changed once created. Max Length: 45
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="col-form-label fw-bold">Description</label>
+                        <textarea id="description" name="description"
+                                  class="form-control border border-dark"
+                                  aria-describedby="descriptionHelp"
+                                  placeholder="A description for the task">{{task.description}}</textarea>
+                        <div id="descriptionHelp" class="form-text">Optional, can be upto 255 characters long</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="interval" class="col-form-label fw-bold">Execution Interval</label>
+                        <input id="interval" name="interval" type="number"
+                                  class="form-control border border-dark"
+                                min="1" max="525600" step="5"
+                                  aria-describedby="intervalHelp"
+                                  placeholder="interval between task runs" value="{{minutes task.interval}}">
+                        <div id="intervalHelp" class="form-text">Minute interval between task runs</div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12 col-md-6">
+                    <div class="mb-3">
+                        <label for="stateIds" class="col-form-label fw-bold">States</label>
+                        <select id="stateIds" name="stateIds"
+                                class="form-control selectpicker border border-dark" multiple
+                                data-live-search="true"  data-selected-text-format="count > 2">
+                            {{#each states}}
+                                <option value="{{id}}"
+                                        {{#contains ../selectedStates id}}selected{{/contains}}>{{displayName}}
+                                </option>
+                            {{/each}}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="groupIds" class="col-form-label fw-bold">Group</label>
+                        <select id="groupId" name="groupIds"
+                                class="form-control selectpicker border border-dark" multiple
+                                data-live-search="true"  data-selected-text-format="count > 2">
+                            {{#each groups}}
+                                <option value="{{id}}"
+                                        {{#contains ../selectedGroups id}}selected{{/contains}}>{{name}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="priorities" class="col-form-label fw-bold">Priorities</label>
+                        <select id="priorities" name="priorities"
+                                class="form-control selectpicker border border-dark" multiple
+                                data-live-search="true"  data-selected-text-format="count > 2">
+                            {{#each priorities}}
+                                <option value="{{id}}"
+                                        {{#contains ../selectedPriorities this}}selected{{/contains}}>{{this}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="row">
+                        <div class="col-8 col-md-10">
+                            <label for="selectedActions" class="col-form-label fw-bold visually-hidden">Allowed
+                                Actions</label>
+                            <select id="selectedActions" name="selectedActions"
+                                    class="form-control selectpicker border border-dark" multiple
+                                    aria-describedby="selectedActionsHelp"
+                                    data-live-search="true" data-selected-text-format="count > 2">
+                                {{#each availableActions}}
+                                    <option value="{{id}}"
+                                            {{#contains ../task/spec/actionIds id}}selected{{/contains}}>{{name}}</option>
+                                {{/each}}
+                            </select>
+                            <div id="selectedActionsHelp" class="form-text">
+                                Actions to be executed on the selected tickets
+                            </div>
+                        </div>
+                        <div class="col-4 col-md-2 justify-content-center">
+                            <a role="button" href="/actions/WORKFLOW/{{workflowId}}" class="btn btn-primary btn-sm"
+                               target="_blank">
+                                <i class="bi bi-plus-lg">New Action</i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 table-responsive">
+                            <table class="table table-bordered border-dark">
+                                <thead>
+                                <tr>
+                                    <th class="col-4">Name</th>
+                                    <th class="col-4">Description</th>
+                                    <th class="col-2 text-center">Type</th>
+                                    <th class="col-2 text-center">Scope</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {{#each availableActions}}
+                                {{#contains task.spec.actionIds id}}
+                                    <tr>
+                                        <td>{{name}}</td>
+                                        <td>{{description}}</td>
+                                        <td class="text-center">{{readable type}}</td>
+                                        <td class="text-center">
+                                            {{#eqEnum scope.type "GLOBAL"}}
+                                                Global
+                                            {{else}}
+                                                Local
+                                            {{/eqEnum}}
+                                        </td>
+                                    </tr>
+                                {{/contains}}
+
+                                {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12 d-flex justify-content-center">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save">Save</i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </section>
+{{/partial}}
+{{> common/base}}
+
