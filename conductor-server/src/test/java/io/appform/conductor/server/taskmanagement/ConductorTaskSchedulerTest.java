@@ -67,13 +67,26 @@ class ConductorTaskSchedulerTest {
         val taskSpec = new RunActionOnSelectedTicketsTaskSpec(List.of(),
                                                               List.of(),
                                                               List.of());
+        val task = new Task("TT",
+                            TaskType.RUN_ACTION_ON_SELECTED_TICKETS,
+                            "Test Task",
+                            "",
+                            Duration.ofSeconds(1),
+                            Scope.GLOBAL,
+                            TaskState.ACTIVE,
+                            taskSpec,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null);
         val callCounter = new AtomicInteger();
 
         val executor = mock(RunActionOnSelectedTicketsExecutor.class);
-        when(executor.execute(any(Task.class), any(RunActionOnSelectedTicketsTaskSpec.class)))
+        when(executor.execute(any(Task.class), anyMap(), any(RunActionOnSelectedTicketsTaskSpec.class)))
                 .thenAnswer(invocationOnMock -> {
                     callCounter.incrementAndGet();
-                    return new ConductorTaskScheduler.TaskResult(ConductorTaskScheduler.TaskStatus.SUCCESS, Map.of());
+                    return new ConductorTaskScheduler.TaskResult(ConductorTaskScheduler.TaskStatus.SUCCESS, task, Map.of());
                 });
         val ticket = new TicketGist("t1", "Test", "TWF", "S1", false, TicketPriority.MEDIUM, new Date(), new Date());
         when(tm.since(anyList(), anyList(), anyString(), anyInt()))
@@ -81,26 +94,14 @@ class ConductorTaskSchedulerTest {
 
         val scheduler = new ConductorTaskScheduler(executor, tstore);
         scheduler.start();
-        scheduler.scheduleNewTask(new Task("TT",
-                                           TaskType.RUN_ACTION_ON_SELECTED_TICKETS,
-                                           "Test Task",
-                                           "",
-                                           Duration.ofSeconds(1),
-                                           Scope.GLOBAL,
-                                           TaskState.ACTIVE,
-                                           taskSpec,
-                                           null,
-                                           null,
-                                           null,
-                                           null,
-                                           null));
+        scheduler.scheduleNewTask(task);
         await()
                 .atMost(Duration.ofSeconds(6))
                 .until(() -> callCounter.get() == 5)
                 ;
         assertEquals(5, callCounter.get());
-        val task = tstore.listByIds(List.of("TT")).stream().findFirst().orElse(null);
-        assertNotNull(task);
-        assertNotNull(task.getLastExecutionCompletionTime());
+        val updated = tstore.listByIds(List.of("TT")).stream().findFirst().orElse(null);
+        assertNotNull(updated);
+        assertNotNull(updated.getLastExecutionCompletionTime());
     }
 }
