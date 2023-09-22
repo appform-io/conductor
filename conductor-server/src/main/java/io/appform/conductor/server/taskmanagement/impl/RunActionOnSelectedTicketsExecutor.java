@@ -43,18 +43,22 @@ public class RunActionOnSelectedTicketsExecutor {
             final Task task,
             final Map<String, Object> taskMeta,
             final RunActionOnSelectedTicketsTaskSpec taskSpec) {
-        var nextPtr = (String)taskMeta.getOrDefault(TASK_META_CURSOR, "");
+        var nextPtr = (String) taskMeta.getOrDefault(TASK_META_CURSOR, "");
         var hasMore = true;
         do {
             val tickets = ticketManager.since(taskSpec.getTicketFilters(),
-                                               taskSpec.getFieldFilters(),
-                                               nextPtr,
-                                               10);
-            hasMore = tickets.getResults().isEmpty();
+                                              taskSpec.getFieldFilters(),
+                                              nextPtr,
+                                              10);
+            hasMore = !tickets.getResults().isEmpty();
             nextPtr = tickets.getNext();
             tickets.getResults()
                     .forEach(gist -> taskSpec.getActionIds()
-                            .forEach(actionId -> ticketManager.triggerTicketAction(gist.getTicketId(), actionId)));
+                            .forEach(actionId -> {
+                                log.info("Applying action {} on ticket {}",
+                                         actionId, gist.getTicketId());
+                                ticketManager.triggerTicketAction(gist.getTicketId(), actionId);
+                            }));
         } while (hasMore);
         return new ConductorTaskScheduler.TaskResult(
                 ConductorTaskScheduler.TaskStatus.SUCCESS,
