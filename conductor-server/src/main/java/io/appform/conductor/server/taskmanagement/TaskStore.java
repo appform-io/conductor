@@ -30,6 +30,9 @@ public interface TaskStore {
     Optional<Task> createOrUpdate(String id, final Task task);
     Optional<Task> update(final String id, final UnaryOperator<Task> updater);
     boolean delete(final String id);
+
+    Optional<Task> read(final String taskId);
+
     List<Task> listByIds(List<String> ids);
     List<Task> listByScopes(List<Scope> scopes);
 }

@@ -82,12 +82,20 @@ public class DBTaskStore implements TaskStore {
     }
 
     @Override
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredTask.TASK_TABLE_NAME))
+    public Optional<Task> read(@Throws.RuntimeParam("id") String taskId) {
+        return taskDao.get(taskId).map(this::toWire);
+    }
+
+    @Override
     @Throws(value = ConductorErrorCode.STORE_LIST_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredTask.TASK_TABLE_NAME))
     public List<Task> listByIds(List<String> ids) {
         val criteria = DetachedCriteria.forClass(StoredTask.class)
                 .add(Property.forName(StoredTask.Fields.deleted).eq(false));
-        if(null != ids && !ids.isEmpty()) {
+        if (null != ids && !ids.isEmpty()) {
             criteria.add(Property.forName(StoredTask.Fields.id).in(ids));
         }
         return list(criteria);
@@ -99,7 +107,7 @@ public class DBTaskStore implements TaskStore {
     public List<Task> listByScopes(List<Scope> scopes) {
         val criteria = DetachedCriteria.forClass(StoredTask.class)
                 .add(Property.forName(StoredTask.Fields.deleted).eq(false));
-        if(null != scopes && !scopes.isEmpty()) {
+        if (null != scopes && !scopes.isEmpty()) {
             val scopeChain = Restrictions.or();
             scopes.forEach(scope -> scopeChain.add(Restrictions.and(
                     Property.forName(StoredTask.Fields.scopeType).eq(scope.getType()),
@@ -151,7 +159,8 @@ public class DBTaskStore implements TaskStore {
                 mapper.readValue(task.getSpec(), TaskSpec.class),
                 task.getLastExecutionCompletionTime(),
                 task.getLastRunStatus(),
-                mapper.readValue(task.getTaskMeta(), new TypeReference<>() {}),
+                mapper.readValue(task.getTaskMeta(), new TypeReference<>() {
+                }),
                 task.getCreated(),
                 task.getUpdated()
         );

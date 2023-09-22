@@ -20,6 +20,7 @@ import io.appform.conductor.server.taskmanagement.impl.RunActionOnSelectedTicket
 import io.appform.conductor.server.taskmanagement.model.RunActionOnSelectedTicketsTaskSpec;
 import io.appform.conductor.server.taskmanagement.model.Task;
 import io.appform.conductor.server.taskmanagement.model.TaskSpecVisitor;
+import io.appform.conductor.server.taskmanagement.model.TaskState;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.kaal.KaalScheduler;
 import io.appform.kaal.KaalTask;
@@ -64,7 +65,7 @@ public class ConductorTaskScheduler implements Managed {
         scheduler.start();
         taskStore.listByIds(List.of())
                 .forEach(task -> {
-                    scheduler.schedule(new RunnableTask(this, task));
+                    scheduler.schedule(new RunnableTask(this, task.getId()));
                     log.info("Scheduled task: {}", task.getName());
                 });
     }
@@ -79,7 +80,7 @@ public class ConductorTaskScheduler implements Managed {
         val taskId = ConductorServerUtils.lowerSnake(task.getName());
         return taskStore.createOrUpdate(taskId, task.withId(taskId))
                 .flatMap(savedTask -> {
-                    val status = scheduler.schedule(new RunnableTask(this, task));
+                    val status = scheduler.schedule(new RunnableTask(this, taskId));
                     log.info("Scheduled task: {}", task.getName());
                     return status;
                 })
@@ -90,7 +91,7 @@ public class ConductorTaskScheduler implements Managed {
         return taskStore.update(taskId, updater)
                 .map(updated -> {
                     scheduler.delete(taskId);
-                    val status = scheduler.schedule(new RunnableTask(this, updated));
+                    val status = scheduler.schedule(new RunnableTask(this, taskId));
                     log.info("Replaced task: {}", status);
                     return status;
                 })
@@ -108,41 +109,49 @@ public class ConductorTaskScheduler implements Managed {
 
     public enum TaskStatus {
         SUCCESS,
+        SKIPPED,
         FAILURE
     }
 
-    public record TaskResult(TaskStatus status, Map<String, Object> taskMeta) {
+    public record TaskResult(TaskStatus status, Task task, Map<String, Object> taskMeta) {
     }
 
     public static final class RunnableTask implements KaalTask<RunnableTask, TaskResult> {
         private final ConductorTaskScheduler scheduler;
-        private final Task task;
+        private final String taskId;
 
-        public RunnableTask(ConductorTaskScheduler scheduler, Task task) {
+        public RunnableTask(ConductorTaskScheduler scheduler, String taskId) {
             this.scheduler = scheduler;
-            this.task = task;
+            this.taskId = taskId;
         }
 
         @Override
         public String id() {
-            return task.getId();
+            return taskId;
         }
 
         @Override
         public long delayToNextRun(Date currentTime) {
-            return task.getInterval().toMillis();
+            return scheduler.taskStore.read(taskId).map(task -> task.getInterval().toMillis()).orElse(-1L);
         }
 
         @Override
         public TaskResult apply(Date date, KaalTaskData<RunnableTask, TaskResult> runnable) {
-            return runnable.getTask()
-                    .task.getSpec()
+            val task = scheduler.taskStore.listByIds(List.of(taskId)).stream().findFirst().orElse(null);
+            if (null == task) {
+                return new TaskResult(TaskStatus.FAILURE, null, Map.of());
+            }
+            if(task.getState().equals(TaskState.PAUSED)) {
+                log.info("Task {} skipped as it is paused", taskId);
+            }
+            log.info("Running task: {}", taskId);
+            return task.getSpec()
                     .accept(new TaskSpecVisitor<TaskResult>() {
                         @Override
                         public TaskResult visit(RunActionOnSelectedTicketsTaskSpec runActionOnSelectedTicketsTaskSpec) {
                             return scheduler.runActionOnSelectedTicketsExecutor
-                                    .execute(runnable.getTask().task,
-                                             Objects.requireNonNullElse(runnable.getTask().task.getTaskMeta(), Map.of()),
+                                    .execute(task,
+                                             Objects.requireNonNullElse(task.getTaskMeta(), Map.of()),
                                              runActionOnSelectedTicketsTaskSpec);
                         }
                     });
@@ -161,16 +170,16 @@ public class ConductorTaskScheduler implements Managed {
 
     private void handleTaskResult(final KaalTaskData<RunnableTask, TaskResult> result) {
         val task = result.getTask();
-        val conductorTask = task.task;
         val exception = result.getException();
         if (exception != null) {
-            log.error("Error in task run ", result.getRunId() + ": " + exception.getMessage(), exception);
+            log.error("Error in task run " + result.getRunId() + ": " + exception.getMessage(), exception);
             //TODO::EVENT
         }
-        taskStore.createOrUpdate(conductorTask.getId(),
-                                               conductorTask.withLastExecutionCompletionTime(new Date())
-                                                       .withLastRunStatus(result.getResult().status)
-                                                       .withTaskMeta(result.getResult().taskMeta()));
+        val conductorTask = result.getResult().task;
+        taskStore.createOrUpdate(task.id(),
+                                 conductorTask.withLastExecutionCompletionTime(new Date())
+                                         .withLastRunStatus(result.getResult().status)
+                                         .withTaskMeta(result.getResult().taskMeta()));
         log.debug("Saved task for: {}", conductorTask.getId());
     }
 }

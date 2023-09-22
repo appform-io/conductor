@@ -47,6 +47,7 @@
                         <th>Last Run Status</th>
                         <th>Last Updated</th>
                         <th></th>
+                        <th></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -58,11 +59,45 @@
                         <td>{{readable scope.type}}</td>
                         <td>{{readable scope.referenceId}}</td>
                         <td>{{interval}}</td>
-                        <td>{{state}}</td>
+                        <td>
+                            {{#eqEnum state "ACTIVE"}}
+                                <span class="badge bg-primary ms-2">Active</span>
+                            {{/eqEnum}}
+                            {{#eqEnum state "PAUSED"}}
+                                <span class="badge bg-secondary ms-2">Paused</span>
+                            {{/eqEnum}}
+                        </td>
                         <td>{{lastExecutionCompletionTime}}</td>
                         <td>{{readable status}}</td>
                         <td>{{updated}}</td>
-                        <td></td>
+                        <td class="text-center">
+                            {{#eqEnum state "ACTIVE"}}
+                                <form class="confirmed-form" method="post"
+                                      action="/manage/tasks/{{workflowId}}/{{id}}/pause"
+                                      data-cnf-title="Pausing task {{name}}"
+                                      data-cnf-text="Are you sure you want to pause this task?">
+                                    <button type="submit" class="btn btn-link p-0 text-primary" title="Pause task"><i
+                                            class="bi bi-pause-circle"></i></button>
+                                </form>
+                            {{/eqEnum}}
+                            {{#eqEnum state "PAUSED"}}
+                                <form class="confirmed-form" method="post"
+                                      action="/manage/tasks/{{workflowId}}/{{id}}/activate"
+                                      data-cnf-title="Activating task {{name}}"
+                                      data-cnf-text="Are you sure you want to activate this task?">
+                                    <button type="submit" class="btn btn-link p-0 text-primary" title="Activate Task"><i
+                                            class="bi bi-play-circle"></i></button>
+                                </form>
+                            {{/eqEnum}}
+                        </td>
+                        <td class="text-center">
+                            <form class="confirmed-form" method="post" action="/manage/tasks/{{workflowId}}/{{id}}/delete"
+                                  data-cnf-title="Deleting task {{name}}"
+                                  data-cnf-text="Are you sure you want to delete this task?">
+                                <button type="submit" class="btn btn-link p-0 text-danger" title="Delete task permanently"><i
+                                        class="bi bi-trash-fill"></i></button>
+                            </form>
+                        </td>
                     </tr>
                     {{/each}}
                     </tbody>

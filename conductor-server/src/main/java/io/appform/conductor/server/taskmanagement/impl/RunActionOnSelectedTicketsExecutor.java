@@ -58,6 +58,7 @@ public class RunActionOnSelectedTicketsExecutor {
         } while (hasMore);
         return new ConductorTaskScheduler.TaskResult(
                 ConductorTaskScheduler.TaskStatus.SUCCESS,
+                task,
                 Map.of(TASK_META_CURSOR, nextPtr));
     }
 }

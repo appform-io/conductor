@@ -72,8 +72,9 @@ public class ManageTasks {
 
     @GET
     @Path("/{workflowId}")
-    public Response renderTaskList(@Auth ConductorUser user,
-                                   @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
+    public Response renderTaskList(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
         val scope = Scope.build(Scope.ScopeType.WORKFLOW, workflowId);
         return render(new TaskListView(user.getUserSession().getUser(),
                                        workflowId, taskStore.listByScopes(List.of(scope)),
@@ -89,15 +90,17 @@ public class ManageTasks {
         return switch (taskType) {
             case RUN_ACTION_ON_SELECTED_TICKETS -> {
                 val workFlow = workflowStore.read(workflowId).orElse(null);
-                if(null == workFlow) {
+                if (null == workFlow) {
                     throw fail("No such workflow found: " + workflowId, "/manage/tasks/" + workflowId);
                 }
                 yield render(new RunActionOnSelectedTicketsView(user.getUserSession().getUser(),
                                                                 workflowId,
                                                                 workFlow.getStates().values(),
                                                                 groupStore.list(),
-                                                                actionStore.listActionsForScopes(List.of(Scope.GLOBAL, Scope.build(
-                                                                         Scope.ScopeType.WORKFLOW, workflowId))),
+                                                                actionStore.listActionsForScopes(List.of(Scope.GLOBAL,
+                                                                                                         Scope.build(
+                                                                                                                 Scope.ScopeType.WORKFLOW,
+                                                                                                                 workflowId))),
                                                                 null,
                                                                 List.of(),
                                                                 List.of(), null));
@@ -114,11 +117,11 @@ public class ManageTasks {
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @PathParam("taskId") @NotEmpty @Length(max = 45) final String taskId) {
         val workFlow = workflowStore.read(workflowId).orElse(null);
-        if(null == workFlow) {
+        if (null == workFlow) {
             throw fail("No such workflow found: " + workflowId, "/manage/tasks/" + workflowId);
         }
         val task = taskStore.listByIds(List.of(taskId)).stream().findFirst().orElse(null);
-        if(null == task) {
+        if (null == task) {
             throw fail("Error getting details for task", "/manage/tasks/" + workflowId);
         }
 
@@ -134,8 +137,10 @@ public class ManageTasks {
                                                                 workflowId,
                                                                 workFlow.getStates().values(),
                                                                 groupStore.list(),
-                                                                actionStore.listActionsForScopes(List.of(Scope.GLOBAL, Scope.build(
-                                                                         Scope.ScopeType.WORKFLOW, workflowId))),
+                                                                actionStore.listActionsForScopes(List.of(Scope.GLOBAL,
+                                                                                                         Scope.build(
+                                                                                                                 Scope.ScopeType.WORKFLOW,
+                                                                                                                 workflowId))),
                                                                 task,
                                                                 spec.getTicketFilters()
                                                                         .stream()
@@ -149,7 +154,8 @@ public class ManageTasks {
                                                                         .filter(tf -> tf.getType().equals(
                                                                                 TicketFilterType.ASSIGNED_TO_GROUP))
                                                                         .map(TicketAssignedToGroup.class::cast)
-                                                                        .flatMap(tag -> tag.getAssignedGroupIds().stream())
+                                                                        .flatMap(tag -> tag.getAssignedGroupIds()
+                                                                                .stream())
                                                                         .toList(),
                                                                 spec.getTicketFilters()
                                                                         .stream()
@@ -164,6 +170,43 @@ public class ManageTasks {
     }
 
     @POST
+    @Path("/{workflowId}/{taskId}/pause")
+    public Response pauseTask(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @PathParam("taskId") @NotEmpty @Length(max = 45) final String taskId) {
+        return taskStore.update(taskId, task -> task.withState(TaskState.PAUSED))
+                .map(task -> redirect("/manage/tasks/" + workflowId))
+                .orElseThrow(() -> fail("Could not update task " + taskId,
+                                        "/manage/tasks/" + workflowId + "/" + taskId));
+    }
+
+    @POST
+    @Path("/{workflowId}/{taskId}/activate")
+    public Response activateTask(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @PathParam("taskId") @NotEmpty @Length(max = 45) final String taskId) {
+        return taskStore.update(taskId, task -> task.withState(TaskState.ACTIVE))
+                .map(task -> redirect("/manage/tasks/" + workflowId))
+                .orElseThrow(() -> fail("Could not update task " + taskId,
+                                        "/manage/tasks/" + workflowId + "/" + taskId));
+    }
+
+    @POST
+    @Path("/{workflowId}/{taskId}/delete")
+    public Response deleteTask(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
+            @PathParam("taskId") @NotEmpty @Length(max = 45) final String taskId) {
+        if (taskStore.delete(taskId)) {
+            return redirect("/manage/tasks/" + workflowId);
+        }
+        throw fail("Could not update task " + taskId, "/manage/tasks/" + workflowId + "/" + taskId);
+    }
+
+
+    @POST
     @Path("/{workflowId}/RUN_ACTION_ON_SELECTED_TICKETS")
     public Response createRunOnSelectedTicketsTask(
             @Auth ConductorUser user,
@@ -176,7 +219,7 @@ public class ManageTasks {
             @FormParam("priorities") Set<TicketPriority> priorities,
             @FormParam("selectedActions") List<String> actionIds) {
         val workFlow = workflowStore.read(workflowId).orElse(null);
-        if(null == workFlow) {
+        if (null == workFlow) {
             throw fail("No such workflow found: " + workflowId, "/manage/tasks/" + workflowId);
         }
         val spec = buildSpec(workflowId, stateIds, groupIds, priorities, actionIds);
@@ -190,7 +233,7 @@ public class ManageTasks {
                 .spec(spec)
                 .build();
         val taskId = scheduler.scheduleNewTask(task);
-        if(Strings.isNullOrEmpty(taskId)) {
+        if (Strings.isNullOrEmpty(taskId)) {
             throw fail("Unable to save task", "/manage/tasks/" + workflowId);
         }
         return redirect("/manage/tasks/" + workflowId + "/" + taskId);
@@ -209,15 +252,15 @@ public class ManageTasks {
             @FormParam("priorities") Set<TicketPriority> priorities,
             @FormParam("selectedActions") List<String> actionIds) {
         val workFlow = workflowStore.read(workflowId).orElse(null);
-        if(null == workFlow) {
+        if (null == workFlow) {
             throw fail("No such workflow found: " + workflowId, "/manage/tasks/" + workflowId);
         }
         val spec = buildSpec(workflowId, stateIds, groupIds, priorities, actionIds);
         val updated = scheduler.updateTask(taskId,
-                                          task -> task.withDescription(description)
-                                                  .withInterval(Duration.ofMinutes(interval))
-                                                  .withSpec(spec));
-        if(!updated) {
+                                           task -> task.withDescription(description)
+                                                   .withInterval(Duration.ofMinutes(interval))
+                                                   .withSpec(spec));
+        if (!updated) {
             throw fail("Unable to save task " + taskId, "/manage/tasks/" + workflowId);
         }
         return redirect("/manage/tasks/" + workflowId + "/" + taskId);
@@ -232,13 +275,13 @@ public class ManageTasks {
         final var specBuilder = RunActionOnSelectedTicketsTaskSpec.builder();
         val tfs = new ArrayList<TicketFilter>();
         tfs.add(new TicketWorkflowEquals(workflowId));
-        if(null != stateIds && !stateIds.isEmpty()) {
+        if (null != stateIds && !stateIds.isEmpty()) {
             tfs.add(new TicketStateIn(stateIds, false));
         }
-        if(null != groupIds && !groupIds.isEmpty()) {
+        if (null != groupIds && !groupIds.isEmpty()) {
             tfs.add(new TicketAssignedToGroup(groupIds));
         }
-        if(null != priorities && !priorities.isEmpty()) {
+        if (null != priorities && !priorities.isEmpty()) {
             tfs.add(new TicketPriorityIn(priorities));
         }
         val spec = specBuilder.ticketFilters(tfs)
