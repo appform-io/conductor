@@ -87,7 +87,6 @@ public class ManageTasks {
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @FormParam("taskType") @NotNull final TaskType taskType) {
         return switch (taskType) {
-            case AGE_BASED_ESCALATION -> redirect("/manage/tasks/" + workflowId);
             case RUN_ACTION_ON_SELECTED_TICKETS -> {
                 val workFlow = workflowStore.read(workflowId).orElse(null);
                 if(null == workFlow) {
@@ -103,6 +102,7 @@ public class ManageTasks {
                                                                 List.of(),
                                                                 List.of(), null));
             }
+            default -> redirect("/manage/tasks/" + workflowId);
         };
     }
 
@@ -123,7 +123,6 @@ public class ManageTasks {
         }
 
         return switch (task.getType()) {
-            case AGE_BASED_ESCALATION -> throw fail("Unsupported", "/manage/tasks/" + workflowId);
             case RUN_ACTION_ON_SELECTED_TICKETS -> {
                 val spec = task.getSpec().accept(new TaskSpecVisitor<RunActionOnSelectedTicketsTaskSpec>() {
                     @Override
@@ -160,6 +159,7 @@ public class ManageTasks {
                                                                         .flatMap(tag -> tag.getPriorities().stream())
                                                                         .toList()));
             }
+            default -> throw fail("Unsupported", "/manage/tasks/" + workflowId);
         };
     }
 
