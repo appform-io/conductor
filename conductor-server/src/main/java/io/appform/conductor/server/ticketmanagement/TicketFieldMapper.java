@@ -29,6 +29,7 @@ import io.appform.conductor.server.schemamanagement.SchemaOpValidationResult;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.utils.Pair;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import javax.inject.Inject;
@@ -41,6 +42,7 @@ import java.util.stream.StreamSupport;
 /**
  *
  */
+@Slf4j
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class TicketFieldMapper {
@@ -57,18 +59,14 @@ public class TicketFieldMapper {
             val field = it.next();
             val fieldData = field.getValue();
             val fieldName = field.getKey();
-            if(fieldName.startsWith("__") && fieldName.endsWith("__")){
-                //skipping internal fields for mapping
-                continue;
-            }
             val fieldId = schemaId + "-" + fieldName;
             val fieldSchema = fieldsMap.get(fieldId);
-            if (null == fieldData) {
-                errors.add("No field found for field: " + field);
+            if(null == fieldSchema) {
+                log.info("Skipping field mapping as no field schema found for field: " + fieldId);
                 continue;
             }
-            if(null == fieldSchema) {
-                errors.add("No field schema found for field: " + fieldId);
+            if (null == fieldData) {
+                errors.add("No field found for field: " + field);
                 continue;
             }
             val results = validateField(fieldSchema, fieldName, fieldData);

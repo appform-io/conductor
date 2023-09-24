@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import io.appform.conductor.model.actions.ActionExecutionResult;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
@@ -36,6 +37,7 @@ import io.appform.conductor.model.ticket.TicketSummary;
 import io.appform.conductor.model.ticket.analytics.FlatGroupCountResponse;
 import io.appform.conductor.model.ticket.analytics.TimeResolution;
 import io.appform.conductor.model.ticket.analytics.TimeSeriesResponse;
+import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilterType;
@@ -576,6 +578,23 @@ public class TicketManager {
         return Optional.of(ConductorServerUtils.ticketDetails(ticketStateMachineContext));
     }
 
+    private void validateTicketFieldUpdate(TicketState ticketState, List<TicketFieldData> editedFields) {
+        val mutatedTicketFields = editedFields.stream().map(TicketFieldData::getSchemaFieldId)
+                .collect(Collectors.toSet());
+        val eligibleEditableTicketFields = new HashSet<>(ticketState.getEditableFields());
+        val additionalMutatedFields = Sets.difference(mutatedTicketFields, eligibleEditableTicketFields);
+        if(!additionalMutatedFields.isEmpty()) {
+            val stateId = ticketState.getId();
+            log.error("Updating non mutable fields:{} were updated in state:{}",
+                    additionalMutatedFields, stateId);
+            throw ConductorException.builder()
+                    .errorCode(ConductorErrorCode.TICKET_MGMT_NON_EDITABLE_FIELDS_UPDATED)
+                    .context(Map.of(STATE_ID, stateId))
+                    .build();
+        }
+
+    }
+
     private TicketStateMachine ticketStateMachine(TicketStateMachineContext ticketStateMachineContext) {
         return new TicketStateMachine(
                 ticketStateMachineContext,
@@ -588,9 +607,25 @@ public class TicketManager {
                             TicketStateTransition transition,
                             TicketStateMachineContext context,
                             TriggerData event) {
-                        log.info("Ticket {} beforeTransition is now in state: {}",
-                                 context.ticketId(),
-                                 context.currentState());
+                        val ticketId = context.ticketId();
+                        val ticketState= context.currentState();
+                        log.info("Ticket {} beforeTransition is now in state: {}", ticketId,
+                                ticketState);
+                        val stateId = ticketState.getId();
+                        val ticketFields = context.getTicketSkeleton().getFields();
+                        val mandatoryFields = new HashSet<>(ticketState.getRequiredFields());
+                        val availableFields = ticketFields.stream().map(TicketField::getFieldSchemaId)
+                                .collect(Collectors.toSet());
+                        val missingMandatoryFields = Sets.difference(mandatoryFields, availableFields);
+                        if(!missingMandatoryFields.isEmpty()) {
+                            log.error("Missing mandatory fields:{} for ticket:{} in state:{}", missingMandatoryFields,
+                                    ticketId, stateId);
+                            throw ConductorException.builder()
+                                    .errorCode(ConductorErrorCode.TICKET_MGMT_MISSING_FIELDS)
+                                    .context(Map.of(TICKET_ID, ticketId,
+                                            STATE_ID, stateId))
+                                    .build();
+                        }
                     }
 
                     @Override
@@ -645,7 +680,8 @@ public class TicketManager {
             TicketStateMachineContextBuilderStrategy ticketStateMachineContextBuilderStrategy,
             JsonNode payload,
             TicketStateMachineContext ticketStateMachineContext) {
-        if (ticketStateMachineContext.getTicketSkeleton() == null) {
+        val ticketSkeleton = ticketStateMachineContext.getTicketSkeleton();
+        if (ticketSkeleton == null) {
             //create new
             createNewTicketAndAddToContext(ticketStateMachineContextBuilderStrategy.getTicketMetaDataFetchStrategy(),
                                            payload,
@@ -653,10 +689,12 @@ public class TicketManager {
         }
         else {
             //update existing
-            List<TicketFieldData> fieldData = ticketStateMachineContext.getFieldMappingResult().getData();
-            if (!fieldData.isEmpty() && !ticketStateMachineContext.currentState().isTerminal()) {
+            val fieldData = ticketStateMachineContext.getFieldMappingResult().getData();
+            val ticketState = ticketStateMachineContext.currentState();
+            if (!fieldData.isEmpty() && !ticketState.isTerminal()) {
+                validateTicketFieldUpdate(ticketState, fieldData);
                 ticketStateMachineContext.setTicketSkeleton(
-                        updateTicketFields(ticketStateMachineContext.getTicketSkeleton(),
+                        updateTicketFields(ticketSkeleton,
                                            fieldData)
                                 .orElse(null));
             }
@@ -708,16 +746,21 @@ public class TicketManager {
             TicketMetaDataFetchStrategy metaDataFetchStrategy,
             JsonNode payload,
             TicketStateMachineContext ticketStateMachineContext) {
+        val workflow = ticketStateMachineContext.getWorkflow();
+        val startStateId = workflow.getStartStateId();
+        val startState = workflow.getStates().get(startStateId);
+        val editedFields = Objects.requireNonNullElse(
+                ticketStateMachineContext.getFieldMappingResult().getData(),
+                List.<TicketFieldData>of());
+        validateTicketFieldUpdate(startState, editedFields);
         ticketStore.create(UUID.randomUUID().toString(),
                            title(metaDataFetchStrategy, payload, ticketStateMachineContext),
                            description(metaDataFetchStrategy, payload, ticketStateMachineContext),
-                           ticketStateMachineContext.getWorkflow().getId(),
+                           workflow.getId(),
                            ticketStateMachineContext.getSubject().getGlobalId(),
-                           ticketStateMachineContext.getWorkflow().getStartStateId(),
+                           startStateId,
                            TicketPriority.MEDIUM,
-                           Objects.requireNonNullElse(
-                                   ticketStateMachineContext.getFieldMappingResult().getData(),
-                                   List.of()))
+                           editedFields)
                 .ifPresent(ticketStateMachineContext::setTicketSkeleton);
     }
 
@@ -773,7 +816,7 @@ public class TicketManager {
         switch (ticketStateMachineContextBuilderStrategy.getTicketFetchStrategy()) {
             case FROM_PROVIDED_ID -> ticketStateMachineContext.setTicketSkeleton(ticketFromProvidedId(payload));
             case NEW -> log.info("Skipping ticket fetch as flow defines new ticket");
-            case FROM_RULE -> log.info("Skipping ticket fetch  as rule defination is missing"); //TODO: change this
+            case FROM_RULE -> log.info("Skipping ticket fetch  as rule definition is missing"); //TODO: change this
         }
     }
 
