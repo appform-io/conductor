@@ -165,7 +165,8 @@ class TicketManagerTest {
                                               mapper);
         val res = ticketManager.processRaw(mapper.readTree("""
                                                                    {
-                                                                     "firstName" : "Santanu"
+                                                                     "firstName" : "Santanu",
+                                                                     "middleName" : "Conductor"
                                                                    }
                                                                    """));
         assertTrue(res.isPresent());
@@ -191,9 +192,9 @@ class TicketManagerTest {
                                 "",
                                 false,
                                 List.of(),
+                                List.of("TS1-firstName"),
                                 List.of(),
-                                List.of(),
-                                List.of(),
+                                List.of("TS1-firstName"),
                                 List.of(),
                                 new Date(),
                                 new Date()),
@@ -203,9 +204,9 @@ class TicketManagerTest {
                                 "",
                                 false,
                                 List.of(),
+                                List.of("TS1-lastName"),
                                 List.of(),
-                                List.of(),
-                                List.of(),
+                                List.of("TS1-lastName"),
                                 List.of(),
                                 new Date(),
                                 new Date()),
