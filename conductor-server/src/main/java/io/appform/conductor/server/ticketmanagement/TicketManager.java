@@ -34,14 +34,7 @@ import io.appform.conductor.model.subject.SubjectSummary;
 import io.appform.conductor.model.ticket.TicketDetails;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.TicketSummary;
-import io.appform.conductor.model.ticket.analytics.FlatGroupCountResponse;
-import io.appform.conductor.model.ticket.analytics.FlatGroupCountResponse;
-import io.appform.conductor.model.ticket.analytics.TicketGist;
-import io.appform.conductor.model.ticket.analytics.TicketListResponse;
-import io.appform.conductor.model.ticket.analytics.TimeResolution;
-import io.appform.conductor.model.ticket.analytics.TimeResolution;
-import io.appform.conductor.model.ticket.analytics.TimeSeriesResponse;
-import io.appform.conductor.model.ticket.analytics.TimeSeriesResponse;
+import io.appform.conductor.model.ticket.analytics.*;
 import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
@@ -899,7 +892,7 @@ public class TicketManager {
     private Map<String, FieldSchema> relevantFieldSchema(List<TicketFilter> ticketFilters) {
         return ticketFilters.stream()
                 .filter(ticketFilter -> ticketFilter.getType().equals(TicketFilterType.WORKFLOW_EQUALS))
-                .map(ticketFilter -> (TicketWorkflowEquals)ticketFilter)
+                .map(TicketWorkflowEquals.class::cast)
                 .map(TicketWorkflowEquals::getWorkflowId)
                 .map(workflowStore::read)
                 .filter(Optional::isPresent)

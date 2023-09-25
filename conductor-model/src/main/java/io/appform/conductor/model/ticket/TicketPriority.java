@@ -21,6 +21,7 @@ import lombok.Getter;
 /**
  * Priority for a ticket.
  */
+@Getter
 public enum TicketPriority {
 
     LOW("Low"),
@@ -28,45 +29,9 @@ public enum TicketPriority {
     HIGH("High"),
     URGENT("Urgent");
 
-    @Getter
     private final String displayName;
 
     TicketPriority(String displayName) {
         this.displayName = displayName;
-    }
-
-    /**
-     * A visitor to be implemented to peorform priority specific operations
-     * @param <T> Return type for operation
-     */
-    public interface TicketPriorityVisitor<T> {
-
-        /**
-         * Perform {@link TicketPriority#LOW} priority specific operation
-         * @param <T> Return type for operation
-         * @return The actual result for operation
-         */
-        <T> T visitLow();
-
-        /**
-         * Perform {@link TicketPriority#MEDIUM} priority specific operation
-         * @param <T> Return type for operation
-         * @return The actual result for operation
-         */
-        <T> T visitMedium();
-
-        /**
-         * Perform {@link TicketPriority#HIGH} priority specific operation
-         * @param <T> Return type for operation
-         * @return The actual result for operation
-         */
-        <T> T visitHigh();
-
-        /**
-         * Perform {@link TicketPriority#URGENT} priority specific operation
-         * @param <T> Return type for operation
-         * @return The actual result for operation
-         */
-        <T> T visitUrgent();
     }
 }

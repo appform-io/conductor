@@ -29,7 +29,8 @@ import lombok.experimental.FieldNameConstants;
 @FieldNameConstants
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = TaskSpec.Fields.type)
 @JsonSubTypes({
-        @JsonSubTypes.Type(name = "RUN_ACTION_ON_SELECTED_TICKETS", value = RunActionOnSelectedTicketsTaskSpec.class)
+        @JsonSubTypes.Type(name = "RUN_ACTION_ON_SELECTED_TICKETS", value = RunActionOnSelectedTicketsTaskSpec.class),
+        @JsonSubTypes.Type(name = "RUN_ACTION_ON_CQL_SELECT", value = RunActionOnCQLSelectTaskSpec.class)
 })
 @RequiredArgsConstructor
 public abstract class TaskSpec {

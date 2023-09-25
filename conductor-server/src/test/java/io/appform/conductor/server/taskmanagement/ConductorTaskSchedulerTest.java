@@ -23,6 +23,7 @@ import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.taskmanagement.impl.DBTaskStore;
+import io.appform.conductor.server.taskmanagement.impl.RunActionOnCQLSelectExecutor;
 import io.appform.conductor.server.taskmanagement.impl.RunActionOnSelectedTicketsExecutor;
 import io.appform.conductor.server.taskmanagement.impl.models.StoredTask;
 import io.appform.conductor.server.taskmanagement.model.RunActionOnSelectedTicketsTaskSpec;
@@ -82,8 +83,9 @@ class ConductorTaskSchedulerTest {
                             null);
         val callCounter = new AtomicInteger();
 
-        val executor = mock(RunActionOnSelectedTicketsExecutor.class);
-        when(executor.execute(any(Task.class), anyMap(), any(RunActionOnSelectedTicketsTaskSpec.class)))
+        val runActionOnSelectedTicketsExecutor = mock(RunActionOnSelectedTicketsExecutor.class);
+        val runActionOnCQLSelectExecutor = mock(RunActionOnCQLSelectExecutor.class);
+        when(runActionOnSelectedTicketsExecutor.execute(any(Task.class), anyMap(), any(RunActionOnSelectedTicketsTaskSpec.class)))
                 .thenAnswer(invocationOnMock -> {
                     callCounter.incrementAndGet();
                     return new ConductorTaskScheduler.TaskResult(ConductorTaskScheduler.TaskStatus.SUCCESS, task, Map.of());
@@ -92,7 +94,7 @@ class ConductorTaskSchedulerTest {
         when(tm.since(anyList(), anyList(), anyString(), anyInt()))
                 .thenReturn(TicketListResponse.builder().results(List.of(ticket)).build());
 
-        val scheduler = new ConductorTaskScheduler(executor, tstore);
+        val scheduler = new ConductorTaskScheduler(runActionOnSelectedTicketsExecutor, runActionOnCQLSelectExecutor, tstore);
         scheduler.start();
         scheduler.scheduleNewTask(task);
         await()

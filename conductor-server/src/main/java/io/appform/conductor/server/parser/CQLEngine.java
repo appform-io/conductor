@@ -63,7 +63,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.lowerSnake;
 public class CQLEngine {
 
     private static final String TICKETS_DB_PREFIX = "tickets.";
-    private static final String TICKETS_FIELDS_PREFIX = "fields..";
+    private static final String TICKETS_FIELDS_PREFIX = "fields.";
 
     private final WorkflowStore workflowStore;
     private final SchemaStore schemaStore;
@@ -87,7 +87,7 @@ public class CQLEngine {
         val fieldSchema = Objects.requireNonNullElse(schema.getFields(), List.<FieldSchema>of())
                 .stream()
                 .collect(Collectors.toMap(FieldSchema::getName, java.util.function.Function.identity()));
-        val selectedFields = selectedFields(select, fieldSchema);
+        val selectedFields = selectedFields(select);
         log.debug("Fields selected: {}", selectedFields);
         return filter(workflowId, select, fieldSchema);
     }
@@ -130,8 +130,7 @@ public class CQLEngine {
     }
 
     private Pair<List<String>, List<String>> selectedFields(
-            final PlainSelect plainSelect,
-            final Map<String, FieldSchema> fieldSchema) {
+            final PlainSelect plainSelect) {
         val ticketAttributes = new ArrayList<String>();
         val ticketFields = new ArrayList<String>();
 
@@ -147,7 +146,7 @@ public class CQLEngine {
 
                     @Override
                     public void visit(Column column) {
-                        val fieldName = fieldName(column, fieldSchema);
+                        val fieldName = fieldName(column);
                         if (fieldName.startsWith(TICKETS_FIELDS_PREFIX)) {
                             ticketFields.add(fieldName);
                         }
@@ -167,7 +166,7 @@ public class CQLEngine {
     }
 */
 
-    private String fieldName(Expression expression, final Map<String, FieldSchema> schema) {
+    private String fieldName(Expression expression) {
         val accessedColName = new AtomicReference<String>();
         expression.accept(new ExpressionVisitorAdapter() {
 
@@ -287,7 +286,7 @@ public class CQLEngine {
 
             @Override
             public void visit(Between expr) {
-                val name = fieldName(expr.getLeftExpression(), schema);
+                val name = fieldName(expr.getLeftExpression());
                 val ticketAttribute = isTicketAttributeQuery(name);
                 val fieldSchema = schema.get(name);
 
@@ -307,7 +306,7 @@ public class CQLEngine {
 
             @Override
             public void visit(EqualsTo expr) {
-                val name = fieldName(expr.getLeftExpression(), schema);
+                val name = fieldName(expr.getLeftExpression());
                 val ticketAttribute = isTicketAttributeQuery(name);
                 val fieldSchema = schema.get(fieldName(name));
 
@@ -339,7 +338,7 @@ public class CQLEngine {
 
             @Override
             public void visit(NotEqualsTo expr) {
-                val name = fieldName(expr.getLeftExpression(), schema);
+                val name = fieldName(expr.getLeftExpression());
                 val ticketAttribute = isTicketAttributeQuery(name);
                 val fieldSchema = schema.get(fieldName(name));
 
@@ -370,7 +369,7 @@ public class CQLEngine {
 
             @Override
             public void visit(GreaterThan expr) {
-                val name = fieldName(expr.getLeftExpression(), schema);
+                val name = fieldName(expr.getLeftExpression());
                 val ticketAttribute = isTicketAttributeQuery(name);
                 val fieldSchema = schema.get(fieldName(name));
 
@@ -384,7 +383,7 @@ public class CQLEngine {
 
             @Override
             public void visit(GreaterThanEquals expr) {
-                val name = fieldName(expr.getLeftExpression(), schema);
+                val name = fieldName(expr.getLeftExpression());
                 val ticketAttribute = isTicketAttributeQuery(name);
                 val fieldSchema = schema.get(fieldName(name));
 
@@ -398,7 +397,7 @@ public class CQLEngine {
 
             @Override
             public void visit(InExpression expr) {
-                val name = fieldName(expr.getLeftExpression(), schema);
+                val name = fieldName(expr.getLeftExpression());
                 val ticketAttribute = isTicketAttributeQuery(name);
                 val fieldSchema = schema.get(fieldName(name));
 
@@ -442,7 +441,7 @@ public class CQLEngine {
 
             @Override
             public void visit(IsNullExpression expr) {
-                val name = fieldName(expr.getLeftExpression(), schema);
+                val name = fieldName(expr.getLeftExpression());
                 val ticketAttribute = isTicketAttributeQuery(name);
                 val fieldSchema = schema.get(fieldName(name));
 
@@ -465,7 +464,7 @@ public class CQLEngine {
 
             @Override
             public void visit(MinorThan expr) {
-                val name = fieldName(expr.getLeftExpression(), schema);
+                val name = fieldName(expr.getLeftExpression());
                 val ticketAttribute = isTicketAttributeQuery(name);
                 val fieldSchema = schema.get(fieldName(name));
 
@@ -479,7 +478,7 @@ public class CQLEngine {
 
             @Override
             public void visit(MinorThanEquals expr) {
-                val name = fieldName(expr.getLeftExpression(), schema);
+                val name = fieldName(expr.getLeftExpression());
                 val ticketAttribute = isTicketAttributeQuery(name);
                 val fieldSchema = schema.get(fieldName(name));
 
@@ -512,7 +511,7 @@ public class CQLEngine {
     }
 
     private static boolean isTicketAttributeQuery(final String name) {
-        return name.startsWith(TICKETS_FIELDS_PREFIX);
+        return !name.startsWith(TICKETS_FIELDS_PREFIX);
     }
 
     private static String fieldName(final String name) {

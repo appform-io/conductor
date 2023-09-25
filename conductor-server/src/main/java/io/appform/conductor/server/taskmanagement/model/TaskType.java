@@ -21,5 +21,6 @@ package io.appform.conductor.server.taskmanagement.model;
  */
 public enum TaskType {
 //    AGE_BASED_ESCALATION, //TODO
-    RUN_ACTION_ON_SELECTED_TICKETS
+    RUN_ACTION_ON_SELECTED_TICKETS,
+    RUN_ACTION_ON_CQL_SELECT
 }

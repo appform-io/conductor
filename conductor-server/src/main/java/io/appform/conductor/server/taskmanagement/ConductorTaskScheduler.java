@@ -16,11 +16,9 @@
 
 package io.appform.conductor.server.taskmanagement;
 
+import io.appform.conductor.server.taskmanagement.impl.RunActionOnCQLSelectExecutor;
 import io.appform.conductor.server.taskmanagement.impl.RunActionOnSelectedTicketsExecutor;
-import io.appform.conductor.server.taskmanagement.model.RunActionOnSelectedTicketsTaskSpec;
-import io.appform.conductor.server.taskmanagement.model.Task;
-import io.appform.conductor.server.taskmanagement.model.TaskSpecVisitor;
-import io.appform.conductor.server.taskmanagement.model.TaskState;
+import io.appform.conductor.server.taskmanagement.model.*;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.kaal.KaalScheduler;
 import io.appform.kaal.KaalTask;
@@ -46,13 +44,16 @@ import java.util.function.UnaryOperator;
 public class ConductorTaskScheduler implements Managed {
 
     private final RunActionOnSelectedTicketsExecutor runActionOnSelectedTicketsExecutor;
+    private final RunActionOnCQLSelectExecutor runActionOnCQLSelectExecutor;
+
     private final TaskStore taskStore;
 
     @Inject
     public ConductorTaskScheduler(
             RunActionOnSelectedTicketsExecutor runActionOnSelectedTicketsExecutor,
-            TaskStore taskStore) {
+            RunActionOnCQLSelectExecutor runActionOnCQLSelectExecutor, TaskStore taskStore) {
         this.runActionOnSelectedTicketsExecutor = runActionOnSelectedTicketsExecutor;
+        this.runActionOnCQLSelectExecutor = runActionOnCQLSelectExecutor;
         this.taskStore = taskStore;
         scheduler = KaalScheduler.<RunnableTask, TaskResult>builder()
                 .withTaskIdGenerator(new IdentityIDGenerator())
@@ -141,7 +142,7 @@ public class ConductorTaskScheduler implements Managed {
             if (null == task) {
                 return new TaskResult(TaskStatus.FAILURE, null, Map.of());
             }
-            if(task.getState().equals(TaskState.PAUSED)) {
+            if (task.getState().equals(TaskState.PAUSED)) {
                 log.info("Task {} skipped as it is paused", taskId);
             }
             log.info("Running task: {}", taskId);
@@ -153,6 +154,14 @@ public class ConductorTaskScheduler implements Managed {
                                     .execute(task,
                                              Objects.requireNonNullElse(task.getTaskMeta(), Map.of()),
                                              runActionOnSelectedTicketsTaskSpec);
+                        }
+
+                        @Override
+                        public TaskResult visit(RunActionOnCQLSelectTaskSpec runActionOnCQLSelectTaskSpec) {
+                            return scheduler.runActionOnCQLSelectExecutor
+                                    .execute(task,
+                                             Objects.requireNonNullElse(task.getTaskMeta(), Map.of()),
+                                             runActionOnCQLSelectTaskSpec);
                         }
                     });
         }

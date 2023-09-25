@@ -16,11 +16,31 @@
 
 package io.appform.conductor.server.taskmanagement.model;
 
+import lombok.*;
+import lombok.extern.jackson.Jacksonized;
+
+import java.util.List;
+
 /**
  *
  */
-public interface TaskSpecVisitor<T> {
-    T visit(RunActionOnSelectedTicketsTaskSpec runActionOnSelectedTicketsTaskSpec);
+@Value
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class RunActionOnCQLSelectTaskSpec extends TaskSpec {
+    String query;
+    List<String> actionIds;
 
-    T visit(RunActionOnCQLSelectTaskSpec runActionOnCQLSelectTaskSpec);
+    @Builder
+    @Jacksonized
+    public RunActionOnCQLSelectTaskSpec(String query, List<String> actionIds) {
+        super(TaskType.RUN_ACTION_ON_CQL_SELECT);
+        this.query = query;
+        this.actionIds = actionIds;
+    }
+
+    @Override
+    public <T> T accept(TaskSpecVisitor<T> task) {
+        return task.visit(this);
+    }
 }
