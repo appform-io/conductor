@@ -27,6 +27,7 @@ import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import io.appform.conductor.model.workflow.WorkflowState;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.auth.ConductorUser;
+import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.appform.conductor.server.ticketmanagement.TicketSkeletonListResult;
@@ -35,6 +36,7 @@ import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.hibernate.validator.constraints.Length;
 import ru.vyarus.guicey.gsp.views.template.Template;
@@ -62,6 +64,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 @Path("/ui/tickets")
 @Template
 @Produces(MediaType.TEXT_HTML)
+@Slf4j
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 @PermitAll
 public class Tickets {
@@ -70,6 +73,7 @@ public class Tickets {
     private final GroupStore groupStore;
     private final ActionStore actionStore;
     private final TicketManager ticketManager;
+    private final CQLEngine cqlEngine;
 
     @GET
     @Path("/create")
@@ -318,22 +322,22 @@ public class Tickets {
             ticketFilters.add(new TicketWorkflowEquals(workflowId));
         }
         if (null != priority) {
-            ticketFilters.add(new TicketPriorityIn(Set.of(priority)));
+            ticketFilters.add(new TicketPriorityIn(Set.of(priority), false));
         }
         if (!Strings.isNullOrEmpty(stateId)) {
-            ticketFilters.add(new TicketStateEquals(stateId));
+            ticketFilters.add(new TicketStateIn(Set.of(stateId), false));
         }
         if (!Strings.isNullOrEmpty(subjectId)) {
             ticketFilters.add(new TicketSubjectEquals(subjectId));
         }
         if (!Strings.isNullOrEmpty(groupId)) {
-            ticketFilters.add(new TicketAssignedToGroup(Set.of(groupId)));
+            ticketFilters.add(new TicketAssignedToGroup(Set.of(groupId), false));
         }
         if (!Strings.isNullOrEmpty(createdById)) {
             ticketFilters.add(new TicketCreatedBy(createdById));
         }
         if (!Strings.isNullOrEmpty(assignedToId)) {
-            ticketFilters.add(new TicketAssignedToUser(assignedToId));
+            ticketFilters.add(new TicketAssignedToUser(assignedToId, false));
         }
         val results = ticketManager.search(ticketFilters, List.of(), next, size);
         return render(TicketSearchView.builder()
@@ -355,4 +359,42 @@ public class Tickets {
                               .build());
     }
 
+    @GET
+    @Path("/query")
+    public Response queryTickets(
+            @Auth ConductorUser user,
+            @QueryParam("query") final String query) {
+        try {
+            val filters = cqlEngine.parse(query);
+            return render(TicketQueryView.builder()
+                                  .query(query)
+                                  .results(ticketManager.search(filters.ticketFilters(), filters.fieldFilters(), null, 10))
+                                  .build());
+        }
+        catch (Exception e) {
+            log.error("error: " + e.getMessage(), e);
+            throw fail(e.getMessage(), "/tickets/query");
+        }
+    }
+
+/*    @POST
+    @Path("/query")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response queryTickets(
+            @Auth ConductorUser user,
+            @FormParam("query") @NotEmpty final String query) {
+        try {
+            val results = cqlEngine.parse(query);
+            return render(TicketSearchView.builder()
+                                  .currentUser(user.getUserSession().getUser())
+                                  .workflows(workflowStore.list(Set.of(WorkflowState.ACTIVE)))
+                                  .states(List.of())
+                                  .groups(groupStore.list())
+                                  .results(results)
+                                  .build());
+        }
+        catch (Exception e) {
+            throw fail(e.getMessage(), "/tickets");
+        }
+    }*/
 }

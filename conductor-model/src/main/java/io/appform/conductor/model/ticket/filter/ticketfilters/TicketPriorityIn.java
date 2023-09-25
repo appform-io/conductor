@@ -36,12 +36,14 @@ import java.util.Set;
 @ToString(callSuper = true)
 public class TicketPriorityIn extends TicketFilter {
     Set<TicketPriority> priorities;
+    boolean negate;
 
     @Builder
     @Jacksonized
-    public TicketPriorityIn(Set<TicketPriority> priorities) {
+    public TicketPriorityIn(Set<TicketPriority> priorities, boolean negate) {
         super(TicketFilterType.PRIORITY_IN);
         this.priorities = priorities;
+        this.negate = negate;
     }
 
     @Override

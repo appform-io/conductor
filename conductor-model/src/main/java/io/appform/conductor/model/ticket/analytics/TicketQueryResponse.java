@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ticketmanagement;
-
-import lombok.Builder;
-import lombok.Value;
-
-import java.util.List;
+package io.appform.conductor.model.ticket.analytics;
 
 /**
- * Result set for a list query. Returns latest results first.
+ *
  */
-@Value
-@Builder
-@SuppressWarnings("javs:S6548")
-public class TicketGistListResult {
-    public static final TicketGistListResult EMPTY = new TicketGistListResult(List.of(), null);
-
-    List<TicketGist> results;
-    String next;
+public abstract class TicketQueryResponse {
 }

@@ -14,35 +14,39 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket.filter.ticketfilters;
+package io.appform.conductor.model.ticket.filter.fieldfilters;
 
-import io.appform.conductor.model.ticket.filter.TicketFilter;
-import io.appform.conductor.model.ticket.filter.TicketFilterType;
-import io.appform.conductor.model.ticket.filter.TicketFilterVisitor;
+import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
+import io.appform.conductor.model.ticket.filter.TicketFieldFilterType;
+import io.appform.conductor.model.ticket.filter.TicketFieldFilterVisitor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
+import java.util.Collection;
+
 /**
- * Filter to match all tickets in given state
+ *
  */
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TicketStateEquals extends TicketFilter {
-    String stateId;
+public class TicketFieldIn extends TicketFieldFilter {
+    Collection<Object> values;
+    boolean negate;
 
-    @Builder
     @Jacksonized
-    public TicketStateEquals(String stateId) {
-        super(TicketFilterType.STATE_EQUALS);
-        this.stateId = stateId;
+    @Builder
+    public TicketFieldIn(String fieldSchemaId, Collection<Object> values, boolean negate) {
+        super(TicketFieldFilterType.IN, fieldSchemaId);
+        this.values = values;
+        this.negate = negate;
     }
 
     @Override
-    public <T> T accept(TicketFilterVisitor<T> visitor) {
+    public <T> T accept(TicketFieldFilterVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

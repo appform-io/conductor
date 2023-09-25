@@ -21,7 +21,7 @@ import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.workflow.Workflow;
-import io.appform.conductor.server.ticketmanagement.TicketGistListResult;
+import io.appform.conductor.model.ticket.analytics.TicketListResponse;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -51,7 +51,7 @@ public class TicketSearchView extends BaseLoggedInView {
     String groupId;
     String createdById;
     String assignedToId;
-    TicketGistListResult results;
+    TicketListResponse results;
 
     @Builder
     public TicketSearchView(
@@ -66,7 +66,7 @@ public class TicketSearchView extends BaseLoggedInView {
             String groupId,
             String createdById,
             String assignedToId,
-            TicketGistListResult results) {
+            TicketListResponse results) {
         super("templates/tickets/tickets-list.hbs", currentUser);
         this.workflows = workflows;
         this.states = states;

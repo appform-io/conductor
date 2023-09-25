@@ -17,7 +17,7 @@
 package io.appform.conductor.server.ui.views;
 
 import io.appform.conductor.model.usermgmt.User;
-import io.appform.conductor.server.ticketmanagement.TicketGist;
+import io.appform.conductor.model.ticket.analytics.TicketGist;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;

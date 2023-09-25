@@ -14,29 +14,22 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket.filter;
+package io.appform.conductor.model.ticket.analytics;
 
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Value;
+
+import java.util.List;
 
 /**
- *
+ * Result set for a list query. Returns latest results first.
  */
-@Getter
-public enum TicketFieldFilterType {
-    EQUALS("Equals"),
-    NOT_EQUALS("Not Equals"),
-    GREATER("Greater Than"),
-    GREATER_EQUALS("Greater Than or Equals"),
-    LESSER("Lesser Than"),
-    LESSER_EQUALS("Lesser Than or Equals"),
-    BETWEEN("Between"),
-    CONTAINS_CHOICES("Contains choices"),
-    DATE_BETWEEN("Date Between"),
-    IN("In");
+@Value
+@Builder
+@SuppressWarnings("javs:S6548")
+public class TicketListResponse extends TicketQueryResponse {
+    public static final TicketListResponse EMPTY = new TicketListResponse(List.of(), null);
 
-    private final String displayName;
-
-    TicketFieldFilterType(String displayName) {
-        this.displayName = displayName;
-    }
+    List<TicketGist> results;
+    String next;
 }

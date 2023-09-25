@@ -14,29 +14,24 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket.filter;
+package io.appform.conductor.model.ticket.analytics;
 
-import lombok.Getter;
+import io.appform.conductor.model.ticket.TicketPriority;
+import lombok.Value;
+
+import java.util.Date;
 
 /**
  *
  */
-@Getter
-public enum TicketFieldFilterType {
-    EQUALS("Equals"),
-    NOT_EQUALS("Not Equals"),
-    GREATER("Greater Than"),
-    GREATER_EQUALS("Greater Than or Equals"),
-    LESSER("Lesser Than"),
-    LESSER_EQUALS("Lesser Than or Equals"),
-    BETWEEN("Between"),
-    CONTAINS_CHOICES("Contains choices"),
-    DATE_BETWEEN("Date Between"),
-    IN("In");
-
-    private final String displayName;
-
-    TicketFieldFilterType(String displayName) {
-        this.displayName = displayName;
-    }
+@Value
+public class TicketGist {
+    String ticketId;
+    String title;
+    String workflowName;
+    String stateName;
+    boolean terminated;
+    TicketPriority priority;
+    Date created;
+    Date updated;
 }

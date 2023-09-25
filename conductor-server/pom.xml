@@ -36,6 +36,7 @@
         <guicey-server-pages.version>5.6.1-1</guicey-server-pages.version>
 
         <kaal.version>1.0.1</kaal.version>
+        <jsqlparser.version>4.7</jsqlparser.version>
     </properties>
 
     <dependencies>
@@ -172,6 +173,11 @@
             <groupId>io.appform.kaal</groupId>
             <artifactId>kaal</artifactId>
             <version>${kaal.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jsqlparser</groupId>
+            <artifactId>jsqlparser</artifactId>
+            <version>${jsqlparser.version}</version>
         </dependency>
     </dependencies>
     <build>

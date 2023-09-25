@@ -32,12 +32,14 @@ import java.util.Set;
 @ToString(callSuper = true)
 public class TicketAssignedToGroup extends TicketFilter {
     Set<String> assignedGroupIds;
+    boolean negate;
 
     @Builder
     @Jacksonized
-    public TicketAssignedToGroup(@Singular Set<String> assignedGroupIds) {
+    public TicketAssignedToGroup(@Singular Set<String> assignedGroupIds, boolean negate) {
         super(TicketFilterType.ASSIGNED_TO_GROUP);
         this.assignedGroupIds = assignedGroupIds;
+        this.negate = negate;
     }
 
     @Override

@@ -186,7 +186,7 @@ public class DBTicketStore implements TicketStore {
             final String start,
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema) {
-        return runQuery(ticketFilters, fieldFilters,start, size, relevantFieldSchema,
+        return runQuery(ticketFilters, fieldFilters, start, size, relevantFieldSchema,
                         param -> ticketDao.scrollUp(param.resultCriteria, param.pointer, param.size, "id"));
     }
 
@@ -198,11 +198,12 @@ public class DBTicketStore implements TicketStore {
             final String start,
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema) {
-        return runQuery(ticketFilters, fieldFilters,start, size, relevantFieldSchema,
+        return runQuery(ticketFilters, fieldFilters, start, size, relevantFieldSchema,
                         param -> ticketDao.scrollDown(param.resultCriteria, param.pointer, param.size, "id"));
     }
 
-    private record QueryParams(int size, DetachedCriteria resultCriteria, ScrollPointer pointer) {}
+    private record QueryParams(int size, DetachedCriteria resultCriteria, ScrollPointer pointer) {
+    }
 
     @SneakyThrows
     @Throws(value = STORE_LIST_ERROR,
@@ -229,6 +230,7 @@ public class DBTicketStore implements TicketStore {
                         mapper.writeValueAsString(results.getPointer())
                                 .getBytes(StandardCharsets.UTF_8))); //Keep charset consistent
     }
+
     private DetachedCriteria createTicketQueryCriteria(
             List<TicketFilter> ticketFilters,
             List<TicketFieldFilter> fieldFilters,
@@ -256,7 +258,7 @@ public class DBTicketStore implements TicketStore {
         @SuppressWarnings("unchecked")
         val counts = queryResults.values()
                 .stream()
-                .map(list -> (List<Object[]>)list)
+                .map(list -> (List<Object[]>) list)
                 .flatMap(groupList -> groupList.stream()
                         .map(element -> new Pair<>((String) element[0], (Long) element[1])))
                 .collect(Collectors.groupingBy(Pair::getFirst, Collectors.summingLong(Pair::getSecond)));
@@ -278,17 +280,19 @@ public class DBTicketStore implements TicketStore {
             case WEEK -> 7 * 864_000;
             case MONTH -> 30 * 864_000;
         };
-        resultCriteria.setProjection(Projections.sqlGroupProjection("floor(unix_timestamp(updated) / " + divisor + ") as timestamp, count(*) as rowcount",
-                                                                                 "timestamp",
-                                                                                 new String[] {"timestamp", "rowcount"},
-                                                                                 new Type[] {LongType.INSTANCE, LongType.INSTANCE}));
+        resultCriteria.setProjection(Projections.sqlGroupProjection("floor(unix_timestamp(updated) / " + divisor + ")" +
+                                                                            " as timestamp, count(*) as rowcount",
+                                                                    "timestamp",
+                                                                    new String[]{"timestamp", "rowcount"},
+                                                                    new Type[]{LongType.INSTANCE, LongType.INSTANCE}));
         val queryResults = ticketDao.run(resultCriteria);
         @SuppressWarnings("unchecked")
         val counts = queryResults.values()
                 .stream()
-                .map(list -> (List<Object[]>)list)
+                .map(list -> (List<Object[]>) list)
                 .flatMap(groupList -> groupList.stream()
-                        .map(element -> new TimeSnapshot(new Date(1000L * divisor * (Long) element[0]), (Long) element[1])))
+                        .map(element -> new TimeSnapshot(new Date(1000L * divisor * (Long) element[0]),
+                                                         (Long) element[1])))
                 .toList();
         return new TimeSeriesResponse(Map.of("data", counts));
     }
@@ -430,8 +434,16 @@ public class DBTicketStore implements TicketStore {
 
             @Override
             public Void visit(TicketAssignedToGroup assignedToGroup) {
-                criteria.add(Property.forName(StoredTicketSkeleton.Fields.assignedToGroupId)
-                                     .in(assignedToGroup.getAssignedGroupIds()));
+                if (assignedToGroup.isNegate()) {
+                    criteria.add(Restrictions.not(
+                            Restrictions.in(StoredTicketSkeleton.Fields.assignedToGroupId,
+                                            assignedToGroup.getAssignedGroupIds())));
+                }
+                else {
+                    criteria.add(
+                            Restrictions.in(StoredTicketSkeleton.Fields.assignedToGroupId,
+                                            assignedToGroup.getAssignedGroupIds()));
+                }
                 return null;
             }
 
@@ -443,12 +455,20 @@ public class DBTicketStore implements TicketStore {
 
             @Override
             public Void visit(TicketAssignedToUser assignedToUser) {
-                if(Strings.isNullOrEmpty(assignedToUser.getAssignedUserId())) {
+                if (Strings.isNullOrEmpty(assignedToUser.getAssignedUserId())) {
                     criteria.add(Property.forName(StoredTicketSkeleton.Fields.assignedToUserId).isNull());
                 }
                 else {
-                    criteria.add(Property.forName(StoredTicketSkeleton.Fields.assignedToUserId)
-                                         .eq(assignedToUser.getAssignedUserId()));
+                    if (assignedToUser.isNegate()) {
+                        criteria.add(Restrictions.not(
+                                Restrictions.eq(StoredTicketSkeleton.Fields.assignedToUserId,
+                                                assignedToUser.getAssignedUserId())));
+                    }
+                    else {
+                        criteria.add(
+                                Restrictions.eq(StoredTicketSkeleton.Fields.assignedToGroupId,
+                                                assignedToUser.getAssignedUserId()));
+                    }
                 }
                 return null;
             }
@@ -466,12 +486,6 @@ public class DBTicketStore implements TicketStore {
             }
 
             @Override
-            public Void visit(TicketStateEquals stateEquals) {
-                criteria.add(Property.forName(StoredTicketSkeleton.Fields.ticketStateId).eq(stateEquals.getStateId()));
-                return null;
-            }
-
-            @Override
             public Void visit(TicketStateIn stateIn) {
                 if (stateIn.isNegate()) {
                     criteria.add(Restrictions.not(Restrictions.in(StoredTicketSkeleton.Fields.ticketStateId,
@@ -485,26 +499,33 @@ public class DBTicketStore implements TicketStore {
             }
 
             @Override
-            public Void visit(TicketPriorityIn priorityEquals) {
-                criteria.add(Property.forName(StoredTicketSkeleton.Fields.priority).in(priorityEquals.getPriorities()));
+            public Void visit(TicketPriorityIn priorityIn) {
+                if (priorityIn.isNegate()) {
+                    criteria.add(Restrictions.not(
+                            Restrictions.in(StoredTicketSkeleton.Fields.priority,
+                                            priorityIn.getPriorities())));
+                }
+                else {
+                    criteria.add(
+                            Restrictions.in(StoredTicketSkeleton.Fields.priority,
+                                            priorityIn.getPriorities()));
+                }
                 return null;
             }
 
             @Override
             public Void visit(TicketsCreatedTimeWindow createdTimeWindow) {
                 criteria.add(Property.forName(StoredTicketSkeleton.Fields.created)
-                                     .gt(new Date(createdTimeWindow.getFrom()
-                                                          .getTime() - createdTimeWindow.getDuration()
-                                             .toMilliseconds())));
+                                     .gt(new Date(createdTimeWindow.getFrom().getTime()
+                                                          - createdTimeWindow.getDuration().toMilliseconds())));
                 return null;
             }
 
             @Override
             public Void visit(TicketsUpdatedTimeWindow updatedTimeWindow) {
                 criteria.add(Property.forName(StoredTicketSkeleton.Fields.updated)
-                                     .gt(new Date(updatedTimeWindow.getFrom()
-                                                          .getTime() - updatedTimeWindow.getDuration()
-                                             .toMilliseconds())));
+                                     .gt(new Date(updatedTimeWindow.getFrom().getTime()
+                                                          - updatedTimeWindow.getDuration().toMilliseconds())));
                 return null;
             }
         }));
@@ -581,7 +602,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldEquals equals) {
                 switch (fieldSchema.getType()) {
-                    case STRING ->
+                    case CHOICE, STRING ->
                             finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.stringValue).eq(equals.getValue()));
                     case BOOLEAN ->
                             finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.booleanValue).eq(equals.getValue()));
@@ -589,7 +610,7 @@ public class DBTicketStore implements TicketStore {
                             finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.numberValue).eq(equals.getValue()));
                     case DATE ->
                             finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.dateValue).eq(equals.getValue()));
-                    case CHOICE, LOCATION -> {
+                    case LOCATION -> {
                         //NO OP
                     }
                 }
@@ -599,7 +620,7 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketFieldNotEquals notEquals) {
                 switch (fieldSchema.getType()) {
-                    case STRING -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.stringValue).ne(
+                    case CHOICE, STRING -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.stringValue).ne(
                             notEquals.getValue()));
                     case BOOLEAN -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.booleanValue).ne(
                             notEquals.getValue()));
@@ -607,7 +628,7 @@ public class DBTicketStore implements TicketStore {
                             notEquals.getValue()));
                     case DATE ->
                             finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.dateValue).ne(notEquals.getValue()));
-                    case CHOICE, LOCATION -> {
+                    case LOCATION -> {
                         //NO OP
                     }
                 }
@@ -656,6 +677,15 @@ public class DBTicketStore implements TicketStore {
             }
 
             @Override
+            public Void visit(TicketFieldDateBetween dateBetween) {
+                if (fieldSchema.getType() == FieldType.DATE) {
+                    finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.dateValue)
+                                         .between(dateBetween.getMin(), dateBetween.getMax()));
+                }
+                return null;
+            }
+
+            @Override
             public Void visit(TicketFieldContainsChoices containsChoices) {
                 if (fieldSchema.getType() == FieldType.CHOICE) {
                     val query = Restrictions.conjunction();
@@ -667,8 +697,48 @@ public class DBTicketStore implements TicketStore {
                 return null;
             }
 
+            @Override
+            public Void visit(TicketFieldIsEmpty isEmpty) {
+                val fieldName = fieldName(fieldSchema.getType());
+                if(isEmpty.isNegate()) {
+                    finalTop.add(fieldConstraint(fieldName).isNotNull());
+                }
+                else {
+                    finalTop.add(fieldConstraint(fieldName).isNull());
+                }
+                return null;
+            }
+
+
+            @Override
+            public Void visit(TicketFieldIn in) {
+                val fieldName = fieldName(fieldSchema.getType());
+                if(in.isNegate()) {
+                    finalTop.add(Restrictions.not(Restrictions.in(fieldName, in.getValues())));
+                }
+                else {
+                    finalTop.add(Restrictions.in(fieldName, in.getValues()));
+                }
+                return null;
+            }
+
             private Property fieldConstraint(String actualName) {
-                return Property.forName(String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, actualName));
+                return Property.forName(fieldName(actualName));
+            }
+
+            private static String fieldName(FieldType fieldType) {
+                return fieldName(switch (fieldType) {
+                    case STRING -> StoredEmbeddedFieldValue.Fields.stringValue;
+                    case CHOICE -> StoredEmbeddedFieldValue.Fields.choiceValue;
+                    case BOOLEAN -> StoredEmbeddedFieldValue.Fields.booleanValue;
+                    case NUMBER -> StoredEmbeddedFieldValue.Fields.numberValue;
+                    case LOCATION -> StoredEmbeddedFieldValue.Fields.locationLatValue;
+                    case DATE -> StoredEmbeddedFieldValue.Fields.dateValue;
+                });
+            }
+
+            private static String fieldName(String actualName) {
+                return String.join(".", StoredFieldValue.Fields.storedEmbeddedFieldValue, actualName);
             }
         });
     }

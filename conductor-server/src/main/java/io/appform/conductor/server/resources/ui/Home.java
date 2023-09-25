@@ -23,7 +23,7 @@ import io.appform.conductor.model.ticket.filter.ticketfilters.TicketStateIn;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.workflow.WorkflowState;
 import io.appform.conductor.server.auth.ConductorUser;
-import io.appform.conductor.server.ticketmanagement.TicketGist;
+import io.appform.conductor.model.ticket.analytics.TicketGist;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.appform.conductor.server.ui.views.HomeView;
 import io.appform.conductor.server.usermanagement.GroupStore;
@@ -78,9 +78,9 @@ public class Home {
                 .collect(Collectors.toUnmodifiableSet());
         val relevantOpenTickets = groups.isEmpty()
                                   ? List.<TicketGist>of()
-                                  : ticketManager.search(List.of(new TicketAssignedToGroup(groups),
+                                  : ticketManager.search(List.of(new TicketAssignedToGroup(groups, false),
                                                                  new TicketStateIn(terminalStates, true),
-                                                                 new TicketAssignedToUser(null)),
+                                                                 new TicketAssignedToUser(null, false)),
                                                          List.of(), null, 10).getResults();
         val myTickets = groups.isEmpty()
                         ? List.<TicketGist>of()
@@ -88,7 +88,7 @@ public class Home {
                                                        new TicketAssignedToUser(user.getUserSession()
                                                                                         .getUser()
                                                                                         .getSummary()
-                                                                                        .getId())),
+                                                                                        .getId(), false)),
                                                List.of(), null, 10).getResults();
         return render(new HomeView(user.getUserSession().getUser(), relevantOpenTickets, myTickets));
     }

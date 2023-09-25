@@ -29,8 +29,8 @@ import io.appform.conductor.server.taskmanagement.model.RunActionOnSelectedTicke
 import io.appform.conductor.server.taskmanagement.model.Task;
 import io.appform.conductor.server.taskmanagement.model.TaskState;
 import io.appform.conductor.server.taskmanagement.model.TaskType;
-import io.appform.conductor.server.ticketmanagement.TicketGist;
-import io.appform.conductor.server.ticketmanagement.TicketGistListResult;
+import io.appform.conductor.model.ticket.analytics.TicketGist;
+import io.appform.conductor.model.ticket.analytics.TicketListResponse;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.SneakyThrows;
@@ -90,7 +90,7 @@ class ConductorTaskSchedulerTest {
                 });
         val ticket = new TicketGist("t1", "Test", "TWF", "S1", false, TicketPriority.MEDIUM, new Date(), new Date());
         when(tm.since(anyList(), anyList(), anyString(), anyInt()))
-                .thenReturn(TicketGistListResult.builder().results(List.of(ticket)).build());
+                .thenReturn(TicketListResponse.builder().results(List.of(ticket)).build());
 
         val scheduler = new ConductorTaskScheduler(executor, tstore);
         scheduler.start();

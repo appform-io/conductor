@@ -14,37 +14,38 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket.filter.ticketfilters;
+package io.appform.conductor.model.ticket.filter.fieldfilters;
 
-import io.appform.conductor.model.ticket.filter.TicketFilter;
-import io.appform.conductor.model.ticket.filter.TicketFilterType;
-import io.appform.conductor.model.ticket.filter.TicketFilterVisitor;
+import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
+import io.appform.conductor.model.ticket.filter.TicketFieldFilterType;
+import io.appform.conductor.model.ticket.filter.TicketFieldFilterVisitor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
+import java.util.Date;
+
 /**
- * Filter to match all tickets assigned to given user id
+ *
  */
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TicketAssignedToUser extends TicketFilter {
-    String assignedUserId;
-    boolean negate;
-
-    @Builder
+public class TicketFieldDateBetween extends TicketFieldFilter {
+    Date min;
+    Date max;
     @Jacksonized
-    public TicketAssignedToUser(String assignedUserId, boolean negate) {
-        super(TicketFilterType.ASSIGNED_TO_USER);
-        this.assignedUserId = assignedUserId;
-        this.negate = negate;
+    @Builder
+    public TicketFieldDateBetween(String fieldSchemaId, Date min, Date max) {
+        super(TicketFieldFilterType.DATE_BETWEEN, fieldSchemaId);
+        this.min = min;
+        this.max = max;
     }
 
     @Override
-    public <T> T accept(TicketFilterVisitor<T> visitor) {
+    public <T> T accept(TicketFieldFilterVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

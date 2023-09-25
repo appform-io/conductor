@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket.filter.ticketfilters;
+package io.appform.conductor.model.ticket.filter.fieldfilters;
 
-import io.appform.conductor.model.ticket.filter.TicketFilter;
-import io.appform.conductor.model.ticket.filter.TicketFilterType;
-import io.appform.conductor.model.ticket.filter.TicketFilterVisitor;
+import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
+import io.appform.conductor.model.ticket.filter.TicketFieldFilterType;
+import io.appform.conductor.model.ticket.filter.TicketFieldFilterVisitor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -26,25 +26,23 @@ import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
 /**
- * Filter to match all tickets assigned to given user id
+ *
  */
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TicketAssignedToUser extends TicketFilter {
-    String assignedUserId;
+public class TicketFieldIsEmpty extends TicketFieldFilter {
     boolean negate;
 
-    @Builder
     @Jacksonized
-    public TicketAssignedToUser(String assignedUserId, boolean negate) {
-        super(TicketFilterType.ASSIGNED_TO_USER);
-        this.assignedUserId = assignedUserId;
+    @Builder
+    public TicketFieldIsEmpty(String fieldSchemaId, boolean negate) {
+        super(TicketFieldFilterType.GREATER, fieldSchemaId);
         this.negate = negate;
     }
 
     @Override
-    public <T> T accept(TicketFilterVisitor<T> visitor) {
+    public <T> T accept(TicketFieldFilterVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

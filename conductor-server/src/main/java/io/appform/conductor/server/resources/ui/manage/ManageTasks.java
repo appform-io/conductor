@@ -279,10 +279,10 @@ public class ManageTasks {
             tfs.add(new TicketStateIn(stateIds, false));
         }
         if (null != groupIds && !groupIds.isEmpty()) {
-            tfs.add(new TicketAssignedToGroup(groupIds));
+            tfs.add(new TicketAssignedToGroup(groupIds, false));
         }
         if (null != priorities && !priorities.isEmpty()) {
-            tfs.add(new TicketPriorityIn(priorities));
+            tfs.add(new TicketPriorityIn(priorities, false));
         }
         val spec = specBuilder.ticketFilters(tfs)
                 .actionIds(actionIds)

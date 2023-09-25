@@ -18,11 +18,13 @@ package io.appform.conductor.server.resources.apis;
 
 import io.appform.conductor.model.apis.ConductorApiResponse;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.analytics.TicketListResponse;
 import io.appform.conductor.server.auth.ConductorUser;
-import io.appform.conductor.server.ticketmanagement.TicketGistListResult;
+import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.hibernate.validator.constraints.Length;
 
@@ -43,12 +45,14 @@ import static io.appform.conductor.server.resources.apis.Analytics.translateToTi
 @Produces(MediaType.APPLICATION_JSON)
 @PermitAll
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
+@Slf4j
 public class Tickets {
 
     private final TicketManager ticketManager;
+    private final CQLEngine cqlEngine;
 
     @GET
-    public ConductorApiResponse<TicketGistListResult> searchTickets(
+    public ConductorApiResponse<TicketListResponse> searchTickets(
             @Auth ConductorUser user,
             @QueryParam("workflowId") @Length(max = 45) String workflowId,
             @QueryParam("priority") final TicketPriority priority,
@@ -67,6 +71,25 @@ public class Tickets {
                                                      createdById,
                                                      assignedToId);
         return ConductorApiResponse.success(ticketManager.search(ticketFilters, List.of(), next, size));
+    }
+
+    @GET
+    @Path("/query")
+    public ConductorApiResponse<TicketListResponse> queryTickets(
+            @Auth ConductorUser user,
+            @QueryParam("query") final String query,
+            @QueryParam("next") @Length(max = 1024) String next,
+            @QueryParam("length") @DefaultValue("100") @Min(5) @Max(200) int size) {
+        try {
+            val results = cqlEngine.parse(query);
+            return ConductorApiResponse.success(ticketManager.search(results.ticketFilters(),
+                                                                     results.fieldFilters(),
+                                                                     next,
+                                                                     size));
+        } catch (Exception e) {
+            log.error("Error: " + e.getMessage(), e);
+            throw e;
+        }
     }
 }
 

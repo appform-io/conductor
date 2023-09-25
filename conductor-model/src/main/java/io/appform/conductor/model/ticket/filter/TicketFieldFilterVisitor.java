@@ -36,5 +36,11 @@ public interface TicketFieldFilterVisitor<T> {
 
     T visit(TicketFieldBetween between);
 
+    T visit(TicketFieldDateBetween dateBetween);
+
     T visit(TicketFieldContainsChoices containsChoices);
+
+    T visit(TicketFieldIsEmpty isEmpty);
+
+    T visit(TicketFieldIn in);
 }

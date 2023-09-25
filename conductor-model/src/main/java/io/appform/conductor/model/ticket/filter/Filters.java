@@ -14,24 +14,13 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ticketmanagement;
+package io.appform.conductor.model.ticket.filter;
 
-import io.appform.conductor.model.ticket.TicketPriority;
-import lombok.Value;
-
-import java.util.Date;
+import java.util.List;
 
 /**
  *
  */
-@Value
-public class TicketGist {
-    String ticketId;
-    String title;
-    String workflowName;
-    String stateName;
-    boolean terminated;
-    TicketPriority priority;
-    Date created;
-    Date updated;
+public record Filters(List<TicketFilter> ticketFilters,
+                      List<TicketFieldFilter> fieldFilters) {
 }

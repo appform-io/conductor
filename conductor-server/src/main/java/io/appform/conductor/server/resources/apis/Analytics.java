@@ -112,22 +112,22 @@ public class Analytics {
             ticketFilters.add(new TicketWorkflowEquals(workflowId));
         }
         if (null != priority) {
-            ticketFilters.add(new TicketPriorityIn(Set.of(priority)));
+            ticketFilters.add(new TicketPriorityIn(Set.of(priority), false));
         }
         if (!Strings.isNullOrEmpty(stateId)) {
-            ticketFilters.add(new TicketStateEquals(stateId));
+            ticketFilters.add(new TicketStateIn(Set.of(stateId), false));
         }
         if (!Strings.isNullOrEmpty(subjectId)) {
             ticketFilters.add(new TicketSubjectEquals(subjectId));
         }
         if (!Strings.isNullOrEmpty(groupId)) {
-            ticketFilters.add(new TicketAssignedToGroup(Set.of(groupId)));
+            ticketFilters.add(new TicketAssignedToGroup(Set.of(groupId), false));
         }
         if (!Strings.isNullOrEmpty(createdById)) {
             ticketFilters.add(new TicketCreatedBy(createdById));
         }
         if (!Strings.isNullOrEmpty(assignedToId)) {
-            ticketFilters.add(new TicketAssignedToUser(assignedToId));
+            ticketFilters.add(new TicketAssignedToUser(assignedToId, false));
         }
         return ticketFilters;
     }

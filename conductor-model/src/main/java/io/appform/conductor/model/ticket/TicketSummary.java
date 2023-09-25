@@ -23,6 +23,7 @@ import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.workflow.Workflow;
 import lombok.Value;
+import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
 
@@ -30,6 +31,7 @@ import java.util.Date;
  * A summary for a ticket
  */
 @Value
+@FieldNameConstants
 public class TicketSummary {
 
     /**

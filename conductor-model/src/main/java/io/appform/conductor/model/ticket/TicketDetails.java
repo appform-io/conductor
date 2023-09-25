@@ -18,6 +18,7 @@ package io.appform.conductor.model.ticket;
 
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.ticket.fields.TicketField;
+import lombok.experimental.FieldNameConstants;
 
 import java.util.List;
 
@@ -25,6 +26,7 @@ import java.util.List;
  * Detailed ticket information
  */
 @lombok.Value
+@FieldNameConstants
 public class TicketDetails {
 
     /**

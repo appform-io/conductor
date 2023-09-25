@@ -19,6 +19,7 @@ package io.appform.conductor.server.ticketmanagement;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.fields.TicketField;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
 import java.util.List;
@@ -28,6 +29,7 @@ import java.util.List;
  * Rest of the data will be augmented by upper layers
  */
 @Data
+@FieldNameConstants
 public class TicketSkeleton {
     private String ticketId;
 

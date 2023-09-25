@@ -20,7 +20,7 @@ import io.appform.conductor.model.subject.Gender;
 import io.appform.conductor.model.subject.Subject;
 import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.usermgmt.User;
-import io.appform.conductor.server.ticketmanagement.TicketGist;
+import io.appform.conductor.model.ticket.analytics.TicketGist;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;

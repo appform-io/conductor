@@ -1,0 +1,128 @@
+{{#partial "page_css_includes"}}
+    <link href="/css/bootstrap-select.min.css" rel="stylesheet">
+{{/partial}}
+{{#partial "page_js_includes"}}
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+{{/partial}}
+{{#partial "content"}}
+    <div class="row">
+        <div class="col-sm-12 col-md-3">
+            <section class="mb-2">
+                <div class="row">
+                    <div class="col-12">
+                        <form action="/tickets/query" method="get">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="query" class="col-form-label fw-bold">Query</label>
+                                        <textarea id="query" name="query"
+                                                  class="form-control border border-dark"
+                                                  aria-describedby="queryHelp"
+                                                  placeholder="A valid CQL query">{{query}}</textarea>
+                                        <div id="queryHelp" class="form-text">A valid CQL query</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-caret-right-fill"></i> Run
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+        <div class="col-sm-12 col-md-9">
+            <section>
+                <div class="row">
+                    <div class="col-12">
+                        <h4>Tickets</h4>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 table-responsive">
+                        <table class="table table-bordered border-dark ticket-table" id="tickets">
+                            <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Workflow</th>
+                                <th>State</th>
+                                <th>Priority</th>
+                                <th>Created</th>
+                                <th>Last Updated</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 d-flex justify-content-center">
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="load-older">Load older</button>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+{{/partial}}
+
+{{#partial "page_js"}}
+    //Sets up data table with external search box
+    const dt = $('#tickets').DataTable({
+            paging: false,
+            info: false,
+            responsive: true,
+            "dom":'t',
+            processing: true,
+            ordering: false,
+            'columnDefs': [
+                {
+                    'className': 'text-center text-wrap',
+                    'targets': '_all'
+                }
+            ],
+            'columns' : [
+                    {
+                        'data' : 'ticketId' ,
+                        'render' : function(data, type, row, meta) {
+                            return '<a href="/tickets/' + data + '/details">' + row['title'] + '</a>';
+                        }
+                },
+                { 'data' : 'workflowName' },
+                {
+                    'data' : 'stateName',
+                    'render' : function(data, type, row, meta) {
+                            return '<span class="badge ' + (row['terminated'] ? 'bg-secondary' : 'bg-info') + ' ms-2">' + data + '</span>';
+                        }
+                },
+                { 'data' : 'priority' },
+                { 'data' : 'created', 'render' : timeSince },
+                { 'data' : 'updated', 'render' : timeSince }
+            ]
+        });
+    const dataSize = 10;
+    $('#load-older').click(function() {
+        const data = $.get("/apis/tickets/v1/query?length=" + dataSize + "&" + window.location.search.substring(1)
+                    + ($('#tickets').attr('nextPage') ? "&next=" + $('#tickets').attr('nextPage') : ""),
+                function(res) {
+                    if(!res || res.status != 'SUCCESS') {
+                        return;
+                    }
+                    if(res.data) {
+                        if(res.data.results.length < dataSize) {
+                            $('#load-older').addClass('d-none');
+                        }
+                        $('#tickets').attr('nextPage', res.data.next);
+                        dt.rows.add(res.data.results).draw();
+                    }
+                });
+        console.log(data);
+    })
+    .click();
+
+{{/partial}}
+{{> common/base}}

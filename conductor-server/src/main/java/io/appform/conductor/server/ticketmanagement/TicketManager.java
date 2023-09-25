@@ -33,9 +33,7 @@ import io.appform.conductor.model.subject.SubjectSummary;
 import io.appform.conductor.model.ticket.TicketDetails;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.TicketSummary;
-import io.appform.conductor.model.ticket.analytics.FlatGroupCountResponse;
-import io.appform.conductor.model.ticket.analytics.TimeResolution;
-import io.appform.conductor.model.ticket.analytics.TimeSeriesResponse;
+import io.appform.conductor.model.ticket.analytics.*;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilterType;
@@ -128,7 +126,7 @@ public class TicketManager {
         return Optional.of(ticketDetails(ticket, workflow, subject.getSummary()));
     }
 
-    public TicketGistListResult ticketsForSubject(final String subjectId, String start, int size) {
+    public TicketListResponse ticketsForSubject(final String subjectId, String start, int size) {
 
         return search(List.of(TicketSubjectEquals.builder()
                                       .subjectId(subjectId)
@@ -139,31 +137,31 @@ public class TicketManager {
     }
 
     @SneakyThrows
-    public TicketGistListResult search(
+    public TicketListResponse search(
             final List<TicketFilter> ticketFilters,
             final List<TicketFieldFilter> fieldFilters,
             final String start,
             final int size) {
         val result = ticketStore.list(
                 ticketFilters,
-                fieldFilters, start, size, Map.of());
+                fieldFilters, start, size, relevantFieldSchema(ticketFilters));
         return toGistList(result);
     }
 
     @SneakyThrows
-    public TicketGistListResult since(
+    public TicketListResponse since(
             final List<TicketFilter> ticketFilters,
             final List<TicketFieldFilter> fieldFilters,
             final String start,
             final int size) {
         val result = ticketStore.since(
                 ticketFilters,
-                fieldFilters, start, size, Map.of());
+                fieldFilters, start, size, relevantFieldSchema(ticketFilters));
         return toGistList(result);
     }
 
-    private TicketGistListResult toGistList(TicketSkeletonListResult result) {
-        return TicketGistListResult.builder()
+    private TicketListResponse toGistList(TicketSkeletonListResult result) {
+        return TicketListResponse.builder()
                 .next(result.getNext())
                 .results(result.getResults()
                                  .stream()
@@ -199,32 +197,6 @@ public class TicketManager {
     }
 
     @SneakyThrows
-    public TicketSkeletonListResult list(
-            final List<TicketFilter> ticketFilters,
-            final List<TicketFieldFilter> fieldFilters,
-            final String start,
-            final int size) {
-        val fields = fieldFilters.isEmpty()
-                     ? Map.<String, FieldSchema>of()
-                     : ticketFilters.stream()
-                             .filter(tf -> tf.getType().equals(TicketFilterType.WORKFLOW_EQUALS))
-                             .map(TicketWorkflowEquals.class::cast)
-                             .map(TicketWorkflowEquals::getWorkflowId)
-                             .findFirst()
-                             .flatMap(workflowStore::read)
-                             .map(Workflow::getSchemaId)
-                             .flatMap(schemaStore::get)
-                             .map(schema -> schema.getFields().stream())
-                             .map(fieldSchemaStream -> fieldSchemaStream.collect(Collectors.toMap(FieldSchema::getId,
-                                                                                                  Function.identity())))
-                             .orElse(Map.of());
-        if (fields.isEmpty()) {
-            return TicketSkeletonListResult.EMPTY;
-        }
-        return ticketStore.list(ticketFilters, fieldFilters, start, size, fields);
-    }
-
-    @SneakyThrows
     public Optional<TicketDetails> createTicket(
             final String title,
             final String description,
@@ -244,8 +216,7 @@ public class TicketManager {
         payload.set(INTERNAL_SUBJECT_FIELD, subjectID);
 
         return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CONSOLE,
-                                         payload, (node, fields, schema) -> {
-                });
+                                         payload, (node, fields, schema) -> {});
     }
 
     @SneakyThrows
@@ -873,5 +844,22 @@ public class TicketManager {
                                            ConductorErrorCode.TICKET_MGMT_NO_TICKET,
                                            Map.of(TICKET_ID, ticketId));
         return ticket;
+    }
+
+    private Map<String, FieldSchema> relevantFieldSchema(List<TicketFilter> ticketFilters) {
+        return ticketFilters.stream()
+                .filter(ticketFilter -> ticketFilter.getType().equals(TicketFilterType.WORKFLOW_EQUALS))
+                .map(ticketFilter -> (TicketWorkflowEquals)ticketFilter)
+                .map(TicketWorkflowEquals::getWorkflowId)
+                .map(workflowStore::read)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(Workflow::getSchemaId)
+                .map(schemaStore::get)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(Schema::getFields)
+                .flatMap(List::stream)
+                .collect(Collectors.toMap(FieldSchema::getId, Function.identity()));
     }
 }

@@ -20,7 +20,7 @@ import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.workflow.Workflow;
-import io.appform.conductor.server.ticketmanagement.TicketGistListResult;
+import io.appform.conductor.model.ticket.analytics.TicketListResponse;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -39,10 +39,10 @@ public class TicketsView extends BaseLoggedInView {
     List<Workflow> workflows;
     Set<SubjectIDType> subIdTypes;
     List<Group> groups;
-    TicketGistListResult results;
+    TicketListResponse results;
     public TicketsView(User currentUser, String workflowId, List<Workflow> workflows,
                        List<Group> groups,
-                       TicketGistListResult results) {
+                       TicketListResponse results) {
         super("templates/tickets/tickets-list.hbs", currentUser);
         this.workflowId = workflowId;
         this.workflows = workflows;

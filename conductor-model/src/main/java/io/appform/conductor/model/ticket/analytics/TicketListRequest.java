@@ -14,29 +14,23 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket.filter;
+package io.appform.conductor.model.ticket.analytics;
 
-import lombok.Getter;
+import io.appform.conductor.model.ticket.filter.Filters;
+import lombok.Value;
+import lombok.With;
+
+import java.util.List;
 
 /**
  *
  */
-@Getter
-public enum TicketFieldFilterType {
-    EQUALS("Equals"),
-    NOT_EQUALS("Not Equals"),
-    GREATER("Greater Than"),
-    GREATER_EQUALS("Greater Than or Equals"),
-    LESSER("Lesser Than"),
-    LESSER_EQUALS("Lesser Than or Equals"),
-    BETWEEN("Between"),
-    CONTAINS_CHOICES("Contains choices"),
-    DATE_BETWEEN("Date Between"),
-    IN("In");
-
-    private final String displayName;
-
-    TicketFieldFilterType(String displayName) {
-        this.displayName = displayName;
-    }
+@Value
+@With
+public class TicketListRequest {
+    String queryId;
+    Filters filters;
+    List<String> ticketCoreFields;
+    List<String> ticketDataFields;
+    List<String> functions;
 }

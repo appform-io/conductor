@@ -37,7 +37,6 @@ import lombok.RequiredArgsConstructor;
         @JsonSubTypes.Type(name = "ASSIGNED_TO_USER", value = TicketAssignedToUser.class),
         @JsonSubTypes.Type(name = "UNASSIGNED_TO_USER", value = TicketUnAssignedToUser.class),
         @JsonSubTypes.Type(name = "SUBJECT_EQUALS", value = TicketSubjectEquals.class),
-        @JsonSubTypes.Type(name = "STATE_EQUALS", value = TicketStateEquals.class),
         @JsonSubTypes.Type(name = "STATE_IN", value = TicketStateIn.class),
         @JsonSubTypes.Type(name = "PRIORITY_IN", value = TicketPriorityIn.class),
         @JsonSubTypes.Type(name = "CREATED_TIME_WINDOW", value = TicketsCreatedTimeWindow.class),

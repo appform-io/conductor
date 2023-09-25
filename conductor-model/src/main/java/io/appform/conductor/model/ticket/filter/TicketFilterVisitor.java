@@ -36,8 +36,6 @@ public interface TicketFilterVisitor<T> {
 
     T visit(TicketSubjectEquals subjectEquals);
 
-    T visit(TicketStateEquals stateEquals);
-
     T visit(TicketStateIn stateIn);
 
     T visit(TicketPriorityIn priorityEquals);

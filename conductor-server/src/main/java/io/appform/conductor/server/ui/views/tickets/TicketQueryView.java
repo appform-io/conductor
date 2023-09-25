@@ -14,37 +14,31 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket.filter.ticketfilters;
+package io.appform.conductor.server.ui.views.tickets;
 
-import io.appform.conductor.model.ticket.filter.TicketFilter;
-import io.appform.conductor.model.ticket.filter.TicketFilterType;
-import io.appform.conductor.model.ticket.filter.TicketFilterVisitor;
+import io.appform.conductor.model.ticket.analytics.TicketListResponse;
+import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
-import lombok.extern.jackson.Jacksonized;
 
 /**
- * Filter to match all tickets assigned to given user id
+ *
  */
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TicketAssignedToUser extends TicketFilter {
-    String assignedUserId;
-    boolean negate;
-
+public class TicketQueryView extends BaseLoggedInView {
+    String query;
+    TicketListResponse results;
     @Builder
-    @Jacksonized
-    public TicketAssignedToUser(String assignedUserId, boolean negate) {
-        super(TicketFilterType.ASSIGNED_TO_USER);
-        this.assignedUserId = assignedUserId;
-        this.negate = negate;
-    }
-
-    @Override
-    public <T> T accept(TicketFilterVisitor<T> visitor) {
-        return visitor.visit(this);
+    public TicketQueryView(
+            User currentUser,
+            String query, TicketListResponse results) {
+        super("templates/tickets/tickets-query.hbs", currentUser);
+        this.query = query;
+        this.results = results;
     }
 }

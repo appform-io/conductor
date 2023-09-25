@@ -17,6 +17,7 @@
 package io.appform.conductor.model.ticket.fields;
 
 import io.appform.conductor.model.schema.FieldType;
+import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
 
@@ -24,6 +25,7 @@ import java.util.Date;
  *
  */
 @lombok.Value
+@FieldNameConstants
 public class TicketField {
 
     /**
