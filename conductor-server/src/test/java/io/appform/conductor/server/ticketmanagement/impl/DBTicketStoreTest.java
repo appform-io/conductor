@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.schema.fields.NumberFieldSchema;
 import io.appform.conductor.model.schema.fields.StringFieldSchema;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.analytics.TicketTimeSeriesResponse;
 import io.appform.conductor.model.ticket.analytics.TimeResolution;
 import io.appform.conductor.model.ticket.fields.impl.BooleanFieldValue;
 import io.appform.conductor.model.ticket.fields.impl.NumberFieldValue;
@@ -90,6 +91,17 @@ class DBTicketStoreTest {
                                            new TicketFieldData("TF003", new NumberFieldValue(23)),
                                            new TicketFieldData("TF004", new StringFieldValue("Random Value"))))
                               .orElse(null));
+        assertNotNull(store.create("T003",
+                                   "Test",
+                                   "This is a test ticket",
+                                   "WF001",
+                                   "S001",
+                                   "TS001",
+                                   TicketPriority.MEDIUM,
+                                   List.of(new TicketFieldData("TF001", new BooleanFieldValue(true)),
+                                           new TicketFieldData("TF003", new NumberFieldValue(23)),
+                                           new TicketFieldData("TF004", new StringFieldValue("Random Value"))))
+                              .orElse(null));
         assertNotNull(created);
         val read = store.read("T001", true).orElse(null);
         assertNotNull(read);
@@ -100,7 +112,7 @@ class DBTicketStoreTest {
                                    "This is a test ticket update",
                                    "S001",
                                    "TS001",
-                                   TicketPriority.MEDIUM,
+                                   TicketPriority.HIGH,
                                    List.of(new TicketFieldData("TF003", new NumberFieldValue(23)),
                                            new TicketFieldData("TF002", new StringFieldValue("Random updated value"))))
                 .orElse(null);
@@ -151,7 +163,13 @@ class DBTicketStoreTest {
                                       new TicketFieldEquals("TF004", "Random Value")
                                      ), null,
                               Integer.MAX_VALUE, relevantFieldSchema);
-        assertEquals(2, list.getResults().size());
+        assertEquals(3, list.getResults().size());
+        try {
+            Thread.sleep(5000);
+        }
+        catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         list = store.list(List.of(),
                           List.of(new TicketFieldEquals("TF003", 23.0),
                                   new TicketFieldEquals("TF002", "Random updated value"),
@@ -159,7 +177,7 @@ class DBTicketStoreTest {
                                  ), null,
                           Integer.MAX_VALUE, relevantFieldSchema);
         assertEquals(1, list.getResults().size());
-        assertNotNull(store.create("T003",
+        assertNotNull(store.create("T004",
                                    "Test",
                                    "This is a test ticket",
                                    "WF001",
@@ -170,11 +188,40 @@ class DBTicketStoreTest {
                                            new TicketFieldData("TF003", new NumberFieldValue(23)),
                                            new TicketFieldData("TF004", new StringFieldValue("Random Value"))))
                               .orElse(null));
-        val groups = store.groupCount(List.of(), List.of(), relevantFieldSchema, StoredTicketSkeleton.Fields.ticketStateId);
-        assertEquals(2, groups.getCounts().get("TS001"));
-        assertEquals(1, groups.getCounts().get("TS002"));
+        val groups = store.groupCount("r1",
+                                      List.of(),
+                                      List.of(new TicketFieldEquals("TF003", 23.0)),
+                                      relevantFieldSchema,
+                                      List.of(StoredTicketSkeleton.Fields.priority,
+                                              StoredTicketSkeleton.Fields.ticketStateId));
+        assertEquals(2, groups.getCounts().getChildren().size());
+        assertEquals(1, groups.getCounts().getChildren().get("HIGH").getCounts().size());
+        assertEquals(1, groups.getCounts().getChildren().get("HIGH").getCounts().get("TS001"));
+        assertEquals(2, groups.getCounts().getChildren().get("MEDIUM").getCounts().size());
+        assertEquals(2, groups.getCounts().getChildren().get("MEDIUM").getCounts().get("TS001"));
+        assertEquals(1, groups.getCounts().getChildren().get("MEDIUM").getCounts().get("TS002"));
 
-        val ts = store.timeSeries(List.of(), List.of(), relevantFieldSchema, TimeResolution.MINUTE);
-        assertNotNull(ts);
+        {
+            val ts = store.timeSeries(null, List.of(), List.of(),
+                                      "ticketStateId",
+                                      TimeResolution.MINUTE,
+                                      relevantFieldSchema
+                                     );
+            assertNotNull(ts);
+            assertEquals(2, ts.getSeries().size());
+            assertEquals(3, ts.getSeries().get("TS001").values().stream().mapToLong(i -> i).sum());
+            assertEquals(1, ts.getSeries().get("TS002").values().stream().mapToLong(i -> i).sum());
+        }
+        {
+            val ts = store.timeSeries(null, List.of(), List.of(),
+                                      null,
+                                      TimeResolution.MINUTE,
+                                      relevantFieldSchema
+                                     );
+            assertNotNull(ts);
+            assertEquals(1, ts.getSeries().size());
+            assertEquals(4, ts.getSeries().get(TicketTimeSeriesResponse.DEFAULT_FIELD).values().stream().mapToLong(i -> i).sum());
+        }
+
     }
 }

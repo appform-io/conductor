@@ -36,6 +36,7 @@ import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.TicketSummary;
 import io.appform.conductor.model.ticket.analytics.*;
 import io.appform.conductor.model.ticket.fields.TicketField;
+import io.appform.conductor.model.ticket.filter.Filters;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilterType;
@@ -144,10 +145,14 @@ public class TicketManager {
             final List<TicketFieldFilter> fieldFilters,
             final String start,
             final int size) {
-        val result = ticketStore.list(
-                ticketFilters,
-                fieldFilters, start, size, relevantFieldSchema(ticketFilters));
-        return toGistList(result);
+        return (TicketListResponse) query(TicketListRequest.builder()
+                                                  .filters(Filters.builder()
+                                                                   .ticketFilters(ticketFilters)
+                                                                   .fieldFilters(fieldFilters)
+                                                                   .build())
+                                                  .next(start)
+                                                  .size(size)
+                                                  .build());
     }
 
     @SneakyThrows
@@ -159,11 +164,54 @@ public class TicketManager {
         val result = ticketStore.since(
                 ticketFilters,
                 fieldFilters, start, size, relevantFieldSchema(ticketFilters));
-        return toGistList(result);
+        return toGistList(null, result);
     }
 
-    private TicketListResponse toGistList(TicketSkeletonListResult result) {
+    public TicketQueryResponse query(TicketQueryOperation operation) {
+        val ticketFilters = null == operation.getFilters() || null == operation.getFilters().ticketFilters()
+                            ? List.<TicketFilter>of()
+                            : operation.getFilters().ticketFilters();
+        val fieldFilters = null == operation.getFilters() || null == operation.getFilters().fieldFilters()
+                           ? List.<TicketFieldFilter>of()
+                           : operation.getFilters().fieldFilters();
+        return operation.accpet(new TicketQueryOperationVisitor<>() {
+            @Override
+            public TicketQueryResponse visit(TicketListRequest listRequest) {
+                return toGistList(listRequest.getQueryId(),
+                                  ticketStore.list(ticketFilters,
+                                                   fieldFilters,
+                                                   listRequest.getNext(),
+                                                   listRequest.getSize(),
+                                                   relevantFieldSchema(ticketFilters)));
+            }
+
+            @Override
+            public TicketQueryResponse visit(TicketGroupRequest groupRequest) {
+                return ticketStore.groupCount(groupRequest.getQueryId(),
+                                              ticketFilters,
+                                              fieldFilters,
+                                              relevantFieldSchema(ticketFilters),
+                                              groupRequest.getGroupingFields());
+            }
+
+            @Override
+            public TicketQueryResponse visit(TicketTimeSeriesRequest timeseriesRequest) {
+                return ticketStore.timeSeries(timeseriesRequest.getQueryId(),
+                                              ticketFilters,
+                                              fieldFilters,
+                                              timeseriesRequest.getGroupingTicketAttribute(),
+                                              timeseriesRequest.getResolution(),
+                                              relevantFieldSchema(ticketFilters)
+                                             );
+            }
+        });
+    }
+
+    private TicketListResponse toGistList(
+            String requestId,
+            TicketSkeletonListResult result) {
         return TicketListResponse.builder()
+                .requestId(requestId)
                 .next(result.getNext())
                 .results(result.getResults()
                                  .stream()
@@ -184,18 +232,31 @@ public class TicketManager {
                 .build();
     }
 
-    public FlatGroupCountResponse groupCount(
+    public TicketGroupResponse groupCount(
             final List<TicketFilter> ticketFilters,
             final List<TicketFieldFilter> fieldFilters,
             final String ticketPropertyName) {
-        return ticketStore.groupCount(ticketFilters, fieldFilters, Map.of(), ticketPropertyName);
+        return (TicketGroupResponse)query(TicketGroupRequest.builder()
+                                                  .filters(Filters.builder()
+                                                                   .ticketFilters(ticketFilters)
+                                                                   .fieldFilters(fieldFilters)
+                                                                   .build())
+                                                  .groupingFields(List.of(ticketPropertyName))
+                                                  .build());
     }
 
-    public TimeSeriesResponse timeSeries(
+    public TicketTimeSeriesResponse timeSeries(
             final List<TicketFilter> ticketFilters,
             final List<TicketFieldFilter> fieldFilters,
             final TimeResolution resolution) {
-        return ticketStore.timeSeries(ticketFilters, fieldFilters, Map.of(), resolution);
+        return (TicketTimeSeriesResponse)query(TicketTimeSeriesRequest
+                                                       .builder()
+                                                       .filters(Filters.builder()
+                                                                        .ticketFilters(ticketFilters)
+                                                                        .fieldFilters(fieldFilters)
+                                                                        .build())
+                                                       .resolution(resolution)
+                                                       .build());
     }
 
     @SneakyThrows
@@ -279,8 +340,8 @@ public class TicketManager {
     public Optional<TicketDetails> processFormTicketPriorityUpdate(
             final String ticketId,
             final TicketPriority priority) {
-        ConductorServerUtils.ensureNonNull(ticketStore.changePriority(ticketId,priority)
-                                            .orElse(null),
+        ConductorServerUtils.ensureNonNull(ticketStore.changePriority(ticketId, priority)
+                                                   .orElse(null),
                                            ConductorErrorCode.TICKET_MGMT_NO_TICKET,
                                            Map.of(TICKET_ID, ticketId));
         return triggerTicketStateMachine(ticketId);
@@ -306,8 +367,8 @@ public class TicketManager {
                         ? existingUserId
                         : null;
         return ticketStore.updateSkeleton(ticketId,
-                                  ticketSkeleton -> ticketSkeleton.setAssignedToGroupId(groupId)
-                                                                .setAssignedToUserId(newUserId))
+                                          ticketSkeleton -> ticketSkeleton.setAssignedToGroupId(groupId)
+                                                  .setAssignedToUserId(newUserId))
                 .filter(ticketSkeleton -> groupId.equals(ticketSkeleton.getAssignedToGroupId()))
                 .isPresent();
     }
@@ -354,17 +415,17 @@ public class TicketManager {
         val subjectId = ticket.getSubjectId();
         val subject = subjectStore.getSubject(subjectId)
                 .orElseThrow(() -> ConductorException.builder()
-                .errorCode(ConductorErrorCode.TICKET_MGMT_NO_SUBJECT)
-                .context(Map.of(TICKET_ID, ticketId,
-                        SUBJECT_ID, subjectId))
-                .build());
+                        .errorCode(ConductorErrorCode.TICKET_MGMT_NO_SUBJECT)
+                        .context(Map.of(TICKET_ID, ticketId,
+                                        SUBJECT_ID, subjectId))
+                        .build());
 
         val workflowId = ticket.getWorkflowId();
         val workflow = workflowStore.read(workflowId)
                 .orElseThrow(() -> ConductorException.builder()
                         .errorCode(ConductorErrorCode.TICKET_MGMT_NO_WORKFLOW)
                         .context(Map.of(TICKET_ID, ticketId,
-                                WORKFLOW_ID, workflowId))
+                                        WORKFLOW_ID, workflowId))
                         .build());
 
         val schemaId = workflow.getSchemaId();
@@ -372,20 +433,20 @@ public class TicketManager {
                 .orElseThrow(() -> ConductorException.builder()
                         .errorCode(ConductorErrorCode.TICKET_MGMT_NO_SCHEMA)
                         .context(Map.of(WORKFLOW_ID, workflowId,
-                                SCHEMA_ID, schemaId))
+                                        SCHEMA_ID, schemaId))
                         .build());
 
         val ticketDetails = ticketDetails(ticket, workflow, subject.getSummary());
 
         //validate action
         val ticketState = ticketDetails.getSummary().getTicketState();
-        if(ticketState.getVisibleActions().stream()
-                .noneMatch( eligibleAction -> eligibleAction.equals(actionId))) {
+        if (ticketState.getVisibleActions().stream()
+                .noneMatch(eligibleAction -> eligibleAction.equals(actionId))) {
             throw ConductorException.builder()
                     .errorCode(ConductorErrorCode.TICKET_MGMT_NO_STATE_ACTION)
                     .context(Map.of(TICKET_ID, ticketId,
-                            ACTION_ID, actionId,
-                            STATE_ID, ticketState.getId()))
+                                    ACTION_ID, actionId,
+                                    STATE_ID, ticketState.getId()))
                     .build();
         }
 
@@ -401,8 +462,8 @@ public class TicketManager {
                 .orElseThrow(() -> ConductorException.builder()
                         .errorCode(ConductorErrorCode.TICKET_MGMT_NO_ACTION)
                         .context(Map.of(TICKET_ID, ticketId,
-                                WORKFLOW_ID, workflow.getId(),
-                                ACTION_ID, actionId))
+                                        WORKFLOW_ID, workflow.getId(),
+                                        ACTION_ID, actionId))
                         .build());
 
         return actionExecutor.execute(action, actionExecutionData) == ActionExecutionResult.SUCCESS
@@ -413,7 +474,7 @@ public class TicketManager {
         val payload = mapper.createObjectNode();
         payload.put(INTERNAL_TICKET_FIELD, ticketId);
         return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CONSOLE_UPDATE,
-                payload, (node, fields, schema) -> {
+                                         payload, (node, fields, schema) -> {
                 });
     }
 
@@ -488,8 +549,8 @@ public class TicketManager {
                                                    skeleton.getUpdated()),
                                  skeleton.getFields(),
                                  actionIds.isEmpty()
-                                    ? List.of()
-                                    : actionStore.listActionsForIds(actionIds));
+                                 ? List.of()
+                                 : actionStore.listActionsForIds(actionIds));
     }
 
     private UserSummary userSummary(String userId) {
@@ -554,10 +615,10 @@ public class TicketManager {
                 .collect(Collectors.toSet());
         val eligibleEditableTicketFields = new HashSet<>(ticketState.getEditableFields());
         val additionalMutatedFields = Sets.difference(mutatedTicketFields, eligibleEditableTicketFields);
-        if(!additionalMutatedFields.isEmpty()) {
+        if (!additionalMutatedFields.isEmpty()) {
             val stateId = ticketState.getId();
             log.error("Updating non mutable fields:{} were updated in state:{}",
-                    additionalMutatedFields, stateId);
+                      additionalMutatedFields, stateId);
             throw ConductorException.builder()
                     .errorCode(ConductorErrorCode.TICKET_MGMT_NON_EDITABLE_FIELDS_UPDATED)
                     .context(Map.of(STATE_ID, stateId))
@@ -579,22 +640,22 @@ public class TicketManager {
                             TicketStateMachineContext context,
                             TriggerData event) {
                         val ticketId = context.ticketId();
-                        val ticketState= context.currentState();
+                        val ticketState = context.currentState();
                         log.info("Ticket {} beforeTransition is now in state: {}", ticketId,
-                                ticketState);
+                                 ticketState);
                         val stateId = ticketState.getId();
                         val ticketFields = context.getTicketSkeleton().getFields();
                         val mandatoryFields = new HashSet<>(ticketState.getRequiredFields());
                         val availableFields = ticketFields.stream().map(TicketField::getFieldSchemaId)
                                 .collect(Collectors.toSet());
                         val missingMandatoryFields = Sets.difference(mandatoryFields, availableFields);
-                        if(!missingMandatoryFields.isEmpty()) {
+                        if (!missingMandatoryFields.isEmpty()) {
                             log.error("Missing mandatory fields:{} for ticket:{} in state:{}", missingMandatoryFields,
-                                    ticketId, stateId);
+                                      ticketId, stateId);
                             throw ConductorException.builder()
                                     .errorCode(ConductorErrorCode.TICKET_MGMT_MISSING_FIELDS)
                                     .context(Map.of(TICKET_ID, ticketId,
-                                            STATE_ID, stateId))
+                                                    STATE_ID, stateId))
                                     .build();
                         }
                     }

@@ -16,14 +16,30 @@
 
 package io.appform.conductor.model.ticket.analytics;
 
+import io.appform.conductor.model.ticket.filter.Filters;
 import lombok.Data;
 
 /**
  *
  */
 @Data
-public abstract class TicketQueryResponse {
-    private final String requestId;
+public abstract class TicketQueryOperation {
 
-    public abstract <T> T accept(final TicketQueryResponseVisitor<T> visitor);
+    private final OpCode operation;
+    private final String queryId;
+    private final Filters filters;
+    private final ResponseEncoding responseEncoding;
+
+    protected TicketQueryOperation(
+            OpCode operation,
+            String queryId,
+            Filters filters,
+            ResponseEncoding responseEncoding) {
+        this.operation = operation;
+        this.queryId = queryId;
+        this.filters = filters;
+        this.responseEncoding = responseEncoding;
+    }
+
+    public abstract <T> T accpet(final TicketQueryOperationVisitor<T> visitor);
 }

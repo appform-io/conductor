@@ -16,14 +16,13 @@
 
 package io.appform.conductor.model.ticket.analytics;
 
-import lombok.Value;
-
-import java.util.Map;
-
 /**
  *
  */
-@Value
-public class FlatGroupCountResponse {
-    Map<String, Long> counts;
+public interface TicketQueryOperationVisitor<T> {
+    T visit(TicketListRequest listRequest);
+
+    T visit(TicketGroupRequest groupRequest);
+
+    T visit(TicketTimeSeriesRequest timeseriesRequest);
 }

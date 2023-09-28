@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket.filter;
-
-import lombok.Builder;
-
-import java.util.List;
+package io.appform.conductor.model.ticket.analytics;
 
 /**
  *
  */
-@Builder
-public record Filters(List<TicketFilter> ticketFilters,
-                      List<TicketFieldFilter> fieldFilters) {
+public enum ResponseEncoding {
+    JSON,
+    TABLE,
+    CSV
 }

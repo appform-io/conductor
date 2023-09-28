@@ -17,20 +17,46 @@
 package io.appform.conductor.model.ticket.analytics;
 
 import io.appform.conductor.model.ticket.filter.Filters;
-import lombok.Value;
-import lombok.With;
+import lombok.*;
+import lombok.extern.jackson.Jacksonized;
 
+import javax.validation.constraints.Max;
 import java.util.List;
 
 /**
  *
  */
 @Value
-@With
-public class TicketListRequest {
-    String queryId;
-    Filters filters;
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class TicketListRequest extends TicketQueryOperation {
     List<String> ticketCoreFields;
     List<String> ticketDataFields;
     List<String> functions;
+    String next;
+    @Max(1024)
+    int size;
+
+    @Builder
+    @Jacksonized
+    public TicketListRequest(
+            String queryId,
+            Filters filters,
+            ResponseEncoding responseEncoding,
+            @Singular List<String> ticketCoreFields,
+            @Singular List<String> ticketDataFields,
+            @Singular List<String> functions,
+            String next, int size) {
+        super(OpCode.LIST, queryId, filters, responseEncoding);
+        this.ticketCoreFields = ticketCoreFields;
+        this.ticketDataFields = ticketDataFields;
+        this.functions = functions;
+        this.next = next;
+        this.size = size;
+    }
+
+    @Override
+    public <T> T accpet(TicketQueryOperationVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }

@@ -4,9 +4,9 @@ import com.google.common.net.MediaType;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.ticket.TicketPriority;
-import io.appform.conductor.model.ticket.analytics.FlatGroupCountResponse;
+import io.appform.conductor.model.ticket.analytics.TicketGroupResponse;
+import io.appform.conductor.model.ticket.analytics.TicketTimeSeriesResponse;
 import io.appform.conductor.model.ticket.analytics.TimeResolution;
-import io.appform.conductor.model.ticket.analytics.TimeSeriesResponse;
 import io.appform.conductor.model.ticket.comments.Attachment;
 import io.appform.conductor.model.ticket.comments.Comment;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
@@ -38,16 +38,17 @@ public class EventGeneratingTicketStore implements TicketStore {
     }
 
     @Override
-    public Optional<TicketSkeleton> create(String ticketId,
-                                           String title,
-                                           String description,
-                                           String workflowId,
-                                           String subjectId,
-                                           String ticketStateId,
-                                           TicketPriority priority,
-                                           List<TicketFieldData> fields) {
+    public Optional<TicketSkeleton> create(
+            String ticketId,
+            String title,
+            String description,
+            String workflowId,
+            String subjectId,
+            String ticketStateId,
+            TicketPriority priority,
+            List<TicketFieldData> fields) {
         val res = ticketStore.create(ticketId, title, description, workflowId,
-                subjectId, ticketStateId, priority, fields);
+                                     subjectId, ticketStateId, priority, fields);
         res.ifPresent(ticketSkeleton -> eventBus.publish(new TicketCreatedEvent(ticketSkeleton.getTicketId())));
         return res;
     }
@@ -58,16 +59,18 @@ public class EventGeneratingTicketStore implements TicketStore {
     }
 
     @Override
-    public Optional<TicketSkeleton> update(String ticketId,
-                                           UnaryOperator<TicketSkeleton> updater,
-                                           List<TicketFieldData> fields) {
+    public Optional<TicketSkeleton> update(
+            String ticketId,
+            UnaryOperator<TicketSkeleton> updater,
+            List<TicketFieldData> fields) {
         //called by other update functions...this will raise duplicate events
         return ticketStore.update(ticketId, updater, fields);
     }
 
     @Override
-    public Optional<TicketSkeleton> updateSkeleton(String ticketId,
-                                           UnaryOperator<TicketSkeleton> updater) {
+    public Optional<TicketSkeleton> updateSkeleton(
+            String ticketId,
+            UnaryOperator<TicketSkeleton> updater) {
         val res = ticketStore.updateSkeleton(ticketId, updater);
         res.ifPresent(ticketSkeleton -> eventBus.publish(new TicketUpdatedEvent(ticketSkeleton.getTicketId())));
         return res;
@@ -78,7 +81,7 @@ public class EventGeneratingTicketStore implements TicketStore {
         val res = ticketStore.updateState(ticketId, newState);
         res.filter(ticketSkeleton -> ticketSkeleton.getTicketStateId().equals(newState.getId()))
                 .ifPresent(ticketSkeleton -> eventBus.publish(new TicketStateUpdatedEvent(ticketSkeleton.getTicketId(),
-                        ticketSkeleton.getTicketStateId())));
+                                                                                          ticketSkeleton.getTicketStateId())));
         return res;
     }
 
@@ -87,7 +90,7 @@ public class EventGeneratingTicketStore implements TicketStore {
         val res = ticketStore.changePriority(ticketId, newPriority);
         res.filter(ticketSkeleton -> ticketSkeleton.getPriority() == newPriority)
                 .ifPresent(ticketSkeleton -> eventBus.publish(new TicketPriorityUpdatedEvent(ticketSkeleton.getTicketId(),
-                        ticketSkeleton.getPriority())));
+                                                                                             ticketSkeleton.getPriority())));
         return res;
     }
 
@@ -110,8 +113,9 @@ public class EventGeneratingTicketStore implements TicketStore {
     public Optional<TicketSkeleton> setFields(String ticketId, @NonNull List<TicketFieldData> fields) {
         val res = ticketStore.setFields(ticketId, fields);
         res.ifPresent(ticketSkeleton -> eventBus.publish(new TicketFieldsUpdatedEvent(ticketSkeleton.getTicketId(),
-                fields.stream().map(TicketFieldData::getSchemaFieldId)
-                        .collect(Collectors.toList()))));
+                                                                                      fields.stream()
+                                                                                              .map(TicketFieldData::getSchemaFieldId)
+                                                                                              .collect(Collectors.toList()))));
         return res;
     }
 
@@ -121,28 +125,31 @@ public class EventGeneratingTicketStore implements TicketStore {
         res.filter(ticketSkeleton -> ticketSkeleton.getAssignedToUserId().equals(userId))
                 .ifPresent(ticketSkeleton -> eventBus.publish(new TicketUserAssignedEvent(
                         ticketSkeleton.getTicketId(), userId)));
-        return res;    }
+        return res;
+    }
 
     @Override
-    public Optional<TicketSkeleton> update(String ticketId,
-                                           String title,
-                                           String description,
-                                           String subjectId,
-                                           String ticketStateId,
-                                           TicketPriority priority,
-                                           List<TicketFieldData> fields) {
+    public Optional<TicketSkeleton> update(
+            String ticketId,
+            String title,
+            String description,
+            String subjectId,
+            String ticketStateId,
+            TicketPriority priority,
+            List<TicketFieldData> fields) {
         val res = ticketStore.update(ticketId, title, description, subjectId,
-                ticketStateId, priority, fields);
+                                     ticketStateId, priority, fields);
         res.ifPresent(ticketSkeleton -> eventBus.publish(new TicketUpdatedEvent(ticketSkeleton.getTicketId())));
         return res;
     }
 
     @Override
-    public TicketSkeletonListResult list(List<TicketFilter> ticketFilters,
-                                         List<TicketFieldFilter> fieldFilters,
-                                         String start,
-                                         int size,
-                                         Map<String, FieldSchema> relevantFieldSchema) {
+    public TicketSkeletonListResult list(
+            List<TicketFilter> ticketFilters,
+            List<TicketFieldFilter> fieldFilters,
+            String start,
+            int size,
+            Map<String, FieldSchema> relevantFieldSchema) {
         return ticketStore.list(ticketFilters, fieldFilters, start, size, relevantFieldSchema);
     }
 
@@ -157,19 +164,30 @@ public class EventGeneratingTicketStore implements TicketStore {
     }
 
     @Override
-    public FlatGroupCountResponse groupCount(List<TicketFilter> ticketFilters,
-                                             List<TicketFieldFilter> fieldFilters,
-                                             Map<String, FieldSchema> relevantFieldSchema,
-                                             String ticketPropertyName) {
-        return ticketStore.groupCount(ticketFilters, fieldFilters, relevantFieldSchema, ticketPropertyName);
+    public TicketGroupResponse groupCount(
+            String requestId,
+            List<TicketFilter> ticketFilters,
+            List<TicketFieldFilter> fieldFilters,
+            Map<String, FieldSchema> relevantFieldSchema,
+            List<String> ticketPropertyNames) {
+        return ticketStore.groupCount(requestId,
+                                      ticketFilters,
+                                      fieldFilters,
+                                      relevantFieldSchema,
+                                      ticketPropertyNames);
     }
 
     @Override
-    public TimeSeriesResponse timeSeries(List<TicketFilter> ticketFilters,
-                                         List<TicketFieldFilter> fieldFilters,
-                                         Map<String, FieldSchema> relevantFieldSchema,
-                                         TimeResolution resolution) {
-        return ticketStore.timeSeries(ticketFilters, fieldFilters, relevantFieldSchema, resolution);
+    public TicketTimeSeriesResponse timeSeries(
+            String requestId, List<TicketFilter> ticketFilters,
+            List<TicketFieldFilter> fieldFilters,
+            String groupingTicketAttribute, TimeResolution resolution, Map<String, FieldSchema> relevantFieldSchema) {
+        return ticketStore.timeSeries(requestId, ticketFilters,
+                                      fieldFilters,
+                                      groupingTicketAttribute,
+                                      resolution,
+                                      relevantFieldSchema
+                                     );
     }
 
     @Override
@@ -190,12 +208,13 @@ public class EventGeneratingTicketStore implements TicketStore {
     }
 
     @Override
-    public Optional<Attachment> registerAttachment(String ticketId,
-                                                   String attachmentId,
-                                                   MediaType type,
-                                                   URL url,
-                                                   long sizeInBytes,
-                                                   boolean encrypted) {
+    public Optional<Attachment> registerAttachment(
+            String ticketId,
+            String attachmentId,
+            MediaType type,
+            URL url,
+            long sizeInBytes,
+            boolean encrypted) {
         val res = ticketStore.registerAttachment(ticketId, attachmentId, type, url, sizeInBytes, encrypted);
         res.ifPresent(attachment -> eventBus.publish(new AttachmentAddedEvent(ticketId, attachment.getId())));
         return res;
@@ -209,7 +228,7 @@ public class EventGeneratingTicketStore implements TicketStore {
     @Override
     public boolean deleteAttachment(String ticketId, String attachmentId) {
         val res = ticketStore.deleteAttachment(ticketId, attachmentId);
-        if(res) {
+        if (res) {
             eventBus.publish(new AttachmentDeletedEvent(ticketId, attachmentId));
         }
         return res;

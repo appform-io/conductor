@@ -19,25 +19,32 @@ package io.appform.conductor.model.ticket.analytics;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
-import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
- * Result set for a list query. Returns latest results first.
+ *
  */
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@SuppressWarnings("javs:S6548")
-public class TicketListResponse extends TicketQueryResponse {
-    List<TicketGist> results;
-    String next;
+public class TicketGroupResponse extends TicketQueryResponse {
+
+    @Value
+    @With
+    public static class GroupResponse {
+        String fieldName;
+        Map<String, Long> counts = new TreeMap<>();
+        Map<String, GroupResponse> children = new TreeMap<>();
+    }
+
+    GroupResponse counts;
 
     @Builder
     @Jacksonized
-    public TicketListResponse(String requestId, List<TicketGist> results, String next) {
+    public TicketGroupResponse(String requestId, GroupResponse counts) {
         super(requestId);
-        this.results = results;
-        this.next = next;
+        this.counts = counts;
     }
 
     @Override

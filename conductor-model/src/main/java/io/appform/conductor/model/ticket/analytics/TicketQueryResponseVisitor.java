@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket.filter;
-
-import lombok.Builder;
-
-import java.util.List;
+package io.appform.conductor.model.ticket.analytics;
 
 /**
  *
  */
-@Builder
-public record Filters(List<TicketFilter> ticketFilters,
-                      List<TicketFieldFilter> fieldFilters) {
+public interface TicketQueryResponseVisitor<T> {
+    T visit(TicketListResponse listResponse);
+
+    T visit(TicketGroupResponse groupResponse);
+
+    T visit(TicketTimeSeriesResponse timeSeriesResponse);
 }

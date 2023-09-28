@@ -16,18 +16,37 @@
 
 package io.appform.conductor.model.ticket.analytics;
 
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
-import java.util.List;
+import java.util.Date;
 import java.util.Map;
 
 /**
  *
  */
 @Value
-public class TimeSeriesResponse {
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class TicketTimeSeriesResponse extends TicketQueryResponse {
+    public static final String DEFAULT_FIELD = "_series_";
     /**
      * Map of time series. Each map key is a dataset to be rendered.
      */
-    Map<String, List<TimeSnapshot>> series;
+    Map<String, Map<Date, Long>> series;
+
+    @Builder
+    @Jacksonized
+    public TicketTimeSeriesResponse(String requestId, Map<String, Map<Date, Long>> series) {
+        super(requestId);
+        this.series = series;
+    }
+
+    @Override
+    public <T> T accept(TicketQueryResponseVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }

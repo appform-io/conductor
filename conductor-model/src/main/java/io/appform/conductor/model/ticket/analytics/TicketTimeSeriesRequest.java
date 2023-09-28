@@ -16,32 +16,40 @@
 
 package io.appform.conductor.model.ticket.analytics;
 
+import io.appform.conductor.model.ticket.filter.Filters;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
-import java.util.List;
+import java.util.Set;
 
 /**
- * Result set for a list query. Returns latest results first.
+ *
  */
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@SuppressWarnings("javs:S6548")
-public class TicketListResponse extends TicketQueryResponse {
-    List<TicketGist> results;
-    String next;
+public class TicketTimeSeriesRequest extends TicketQueryOperation {
+    String groupingTicketAttribute;
+    Set<String> distinctValues;
+    TimeResolution resolution;
 
     @Builder
     @Jacksonized
-    public TicketListResponse(String requestId, List<TicketGist> results, String next) {
-        super(requestId);
-        this.results = results;
-        this.next = next;
+    public TicketTimeSeriesRequest(
+            String queryId,
+            Filters filters,
+            ResponseEncoding responseEncoding,
+            String groupingTicketAttribute,
+            Set<String> distinctValues,
+            TimeResolution resolution) {
+        super(OpCode.TIME_SERIES, queryId, filters, responseEncoding);
+        this.groupingTicketAttribute = groupingTicketAttribute;
+        this.distinctValues = distinctValues;
+        this.resolution = resolution;
     }
 
     @Override
-    public <T> T accept(TicketQueryResponseVisitor<T> visitor) {
+    public <T> T accpet(TicketQueryOperationVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

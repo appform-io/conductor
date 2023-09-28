@@ -19,9 +19,9 @@ package io.appform.conductor.server.resources.apis;
 import com.google.common.base.Strings;
 import io.appform.conductor.model.apis.ConductorApiResponse;
 import io.appform.conductor.model.ticket.TicketPriority;
-import io.appform.conductor.model.ticket.analytics.FlatGroupCountResponse;
+import io.appform.conductor.model.ticket.analytics.TicketGroupResponse;
 import io.appform.conductor.model.ticket.analytics.TimeResolution;
-import io.appform.conductor.model.ticket.analytics.TimeSeriesResponse;
+import io.appform.conductor.model.ticket.analytics.TicketTimeSeriesResponse;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import io.appform.conductor.server.auth.ConductorUser;
@@ -57,7 +57,7 @@ public class Analytics {
 
     @GET
     @Path("/group")
-    public ConductorApiResponse<FlatGroupCountResponse> groupCount(
+    public ConductorApiResponse<TicketGroupResponse> groupCount(
             @Auth ConductorUser user,
             @QueryParam("workflowId") @Length(max = 45) String workflowId,
             @QueryParam("priority") final TicketPriority priority,
@@ -79,7 +79,7 @@ public class Analytics {
 
     @GET
     @Path("/timeseries")
-    public ConductorApiResponse<TimeSeriesResponse> groupCount(
+    public ConductorApiResponse<TicketTimeSeriesResponse> groupCount(
             @Auth ConductorUser user,
             @QueryParam("workflowId") @Length(max = 45) String workflowId,
             @QueryParam("priority") final TicketPriority priority,

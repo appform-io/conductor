@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket.filter;
+package io.appform.conductor.model.ticket.analytics;
 
-import lombok.Builder;
-
-import java.util.List;
+import lombok.Value;
 
 /**
  *
  */
-@Builder
-public record Filters(List<TicketFilter> ticketFilters,
-                      List<TicketFieldFilter> fieldFilters) {
+@Value
+public class GroupFunction {
+    public enum Type {
+        COUNT,
+        SUM,
+        AVERAGE,
+        MAX,
+        MIN
+    }
+    Type type;
+    String field;
+    String alias;
 }
