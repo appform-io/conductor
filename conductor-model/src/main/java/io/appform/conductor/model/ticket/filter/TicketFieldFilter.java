@@ -35,7 +35,6 @@ import lombok.RequiredArgsConstructor;
     @JsonSubTypes.Type(name = "LESSER", value = TicketFieldLesser.class),
     @JsonSubTypes.Type(name = "LESSER_EQUALS", value = TicketFieldLesserEquals.class),
     @JsonSubTypes.Type(name = "BETWEEN", value = TicketFieldBetween.class),
-    @JsonSubTypes.Type(name = "DATE_BETWEEN", value = TicketFieldDateBetween.class),
     @JsonSubTypes.Type(name = "CONTAINS_CHOICES", value = TicketFieldContainsChoices.class),
     @JsonSubTypes.Type(name = "IS_EMPTY", value = TicketFieldIsEmpty.class),
 })

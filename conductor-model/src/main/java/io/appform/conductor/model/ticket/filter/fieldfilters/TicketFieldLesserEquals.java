@@ -32,10 +32,10 @@ import lombok.extern.jackson.Jacksonized;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class TicketFieldLesserEquals extends TicketFieldFilter {
-    double value;
+    Comparable<?> value;
     @Jacksonized
     @Builder
-    public TicketFieldLesserEquals(String fieldSchemaId, double value) {
+    public TicketFieldLesserEquals(String fieldSchemaId, Comparable<?> value) {
         super(TicketFieldFilterType.LESSER_EQUALS, fieldSchemaId);
         this.value = value;
     }

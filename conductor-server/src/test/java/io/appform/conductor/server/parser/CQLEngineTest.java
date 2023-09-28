@@ -22,7 +22,6 @@ import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.schema.fields.StringFieldSchema;
 import io.appform.conductor.model.workflow.*;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
-import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import lombok.val;
 import org.junit.jupiter.api.Disabled;
@@ -85,10 +84,9 @@ class CQLEngineTest {
         val workflow = createWorkflow(schema);
         val workflowStore = mock(WorkflowStore.class);
         val schemaStore = mock(SchemaStore.class);
-        val ticketManager = mock(TicketManager.class);
         when(schemaStore.get(anyString())).thenReturn(Optional.of(schema));
 
-        val parser = new CQLEngine(workflowStore, schemaStore, ticketManager);
+        val parser = new CQLEngine(workflowStore, schemaStore);
         parser.parse("select workflowId, title, age(), ticket.subject.name from tickets.TWF" +
                              " where assignedToGroupId in ('G1', 'G2') and isTerminal(state)" +
                              " and fields.issueState = 'KA'");

@@ -32,11 +32,11 @@ import lombok.extern.jackson.Jacksonized;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class TicketFieldBetween extends TicketFieldFilter {
-    double min;
-    double max;
+    Comparable<?> min;
+    Comparable<?> max;
     @Jacksonized
     @Builder
-    public TicketFieldBetween(String fieldSchemaId, double min, double max) {
+    public TicketFieldBetween(String fieldSchemaId, Comparable<?> min, Comparable<?> max) {
         super(TicketFieldFilterType.BETWEEN, fieldSchemaId);
         this.min = min;
         this.max = max;

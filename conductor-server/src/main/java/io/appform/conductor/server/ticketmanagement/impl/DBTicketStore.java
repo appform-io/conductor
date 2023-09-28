@@ -577,13 +577,11 @@ public class DBTicketStore implements TicketStore {
             public Void visit(TicketPriorityIn priorityIn) {
                 if (priorityIn.isNegate()) {
                     criteria.add(Restrictions.not(
-                            Restrictions.in(StoredTicketSkeleton.Fields.priority,
-                                            priorityIn.getPriorities())));
+                            Restrictions.in(StoredTicketSkeleton.Fields.priority, priorityIn.getPriorities())));
                 }
                 else {
                     criteria.add(
-                            Restrictions.in(StoredTicketSkeleton.Fields.priority,
-                                            priorityIn.getPriorities()));
+                            Restrictions.in(StoredTicketSkeleton.Fields.priority, priorityIn.getPriorities()));
                 }
                 return null;
             }
@@ -746,18 +744,9 @@ public class DBTicketStore implements TicketStore {
 
             @Override
             public Void visit(TicketFieldBetween between) {
-                if (fieldSchema.getType() == FieldType.NUMBER) {
+                if (fieldSchema.getType() == FieldType.NUMBER || fieldSchema.getType() == FieldType.DATE) {
                     finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.numberValue).between(between.getMin(),
                                                                                                       between.getMax()));
-                }
-                return null;
-            }
-
-            @Override
-            public Void visit(TicketFieldDateBetween dateBetween) {
-                if (fieldSchema.getType() == FieldType.DATE) {
-                    finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.dateValue)
-                                         .between(dateBetween.getMin(), dateBetween.getMax()));
                 }
                 return null;
             }

@@ -31,7 +31,6 @@ public enum TicketFieldFilterType {
     LESSER_EQUALS("Lesser Than or Equals"),
     BETWEEN("Between"),
     CONTAINS_CHOICES("Contains choices"),
-    DATE_BETWEEN("Date Between"),
     IN("In");
 
     private final String displayName;
