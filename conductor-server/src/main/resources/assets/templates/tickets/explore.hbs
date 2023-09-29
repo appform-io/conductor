@@ -1,0 +1,175 @@
+{{#partial "content"}}
+    <div class="row sticky-top">
+        <div class="col-12">
+            <form id="query-form">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <label for="query" class="col-form-label fw-bold visually-hidden">Query</label>
+                            <input type="text" id="query" name="query"
+                                      class="form-control border border-dark"
+                                      aria-describedby="queryHelp"
+                                      placeholder="A valid CQL query" value="{{query}}">
+                            <div id="queryHelp" class="form-text">A valid CQL query</div>
+                        </div>
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-sm btn-primary visually-hidden">
+                                <i class="bi bi-caret-right-fill"></i> Run
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    <section class="results">
+
+    </section>
+    <section class="list-prototype visually-hidden">
+        <div class="row mt-3">
+            <div class="col-12 col-md-8">
+                <h5 class="query-title"></h5>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 table-responsive query-output-section">
+                <table class="table table-bordered border-dark ticket-table query-output">
+                </table>
+                <div class="row">
+                    <div class="col-12 d-flex justify-content-center">
+                        <button type="button" class="btn btn-sm btn-outline-primary load-older visually-hidden">Load older</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr>
+    </section>
+{{/partial}}
+
+{{#partial "page_js"}}
+    const dataSize = 5;
+    $("#query-form").submit(e => {
+        e.preventDefault();
+        const query = $("#query").val();
+        $.get("/apis/tickets/v1/query?format=TABLE&length=" + dataSize + "&query=" + encodeURIComponent(query),
+            function(res) {
+                if(!res || res.status != 'SUCCESS') {
+                    return;
+                }
+                if(res.data) {
+                    const rows = Object.values(res.data.results);
+                    if(res.data.metadata.opCode=="LIST") {
+                        const listOutput = $('.list-prototype').clone();
+                        const table = listOutput.find('table');
+                        $('.results').append(listOutput);
+                        listOutput.removeClass('visually-hidden')
+                            .removeClass('list-prototype');
+                        listOutput.find('.query-title').text(query);
+                        const dt = table.DataTable({
+                            paging: false,
+                            info: false,
+                            responsive: true,
+                            "dom":'t',
+                            processing: true,
+                            ordering: false,
+                            'columnDefs': [
+                                {
+                                    'className': 'text-center text-wrap',
+                                    'targets': '_all'
+                                }
+                            ],
+                            'columns' : [
+                                {
+                                    'title': 'Title',
+                                    'data' : 'ticketId' ,
+                                    'render' : function(data, type, row, meta) {
+                                        return '<a href="/tickets/' + data + '/details">' + row['title'] + '</a>';
+                                    }
+                                },
+                                { 'title' : 'Workflow Name', 'data' : 'workflowName' },
+                                {
+                                    'title' : 'State',
+                                    'data' : 'stateName',
+                                    'render' : function(data, type, row, meta) {
+                                        return '<span class="badge ' + (row['terminated'] ? 'bg-secondary' : 'bg-info') + ' ms-2">' + data + '</span>';
+                                    }
+                                },
+                                { 'title': 'Priority', 'data' : 'priority' },
+                                { 'title': 'Created', 'data' : 'created', 'render' : timeSince },
+                                { 'title': 'Updated', 'data' : 'updated', 'render' : timeSince }
+                            ]
+                        });
+                        if(rows.length < dataSize) {
+                            table.closest('.query-output-section').find('.load-older').addClass('visually-hidden');
+                        }
+                        else {
+                            table.closest('.query-output-section').find('.load-older').removeClass('visually-hidden');
+                        }
+                        table.attr('nextPage', res.data.metadata.next);
+                        table.attr('currentQuery', res.data.metadata.query);
+                        dt.clear();
+                        dt.rows.add(rows).draw();
+                    }
+                    else {
+                        console.log(JSON.stringify(res.data.results));
+                        const listOutput = $('.list-prototype').clone();
+                        const table = listOutput.find('table');
+                        $('.results').append(listOutput);
+                        listOutput.removeClass('visually-hidden')
+                        .removeClass('list-prototype');
+                        listOutput.find('.query-title').text(query);
+                        const dt = table.DataTable({
+                            paging: false,
+                            info: false,
+                            responsive: true,
+                            "dom":'t',
+                            processing: true,
+                            ordering: true,
+                            columns: res.data.metadata.colHeaders
+                                        .map(header => {
+                                            return {
+                                                'title' : header,
+                                                'data' : header
+                                            };
+                                        })
+
+                        });
+                        dt.clear();
+                        dt.rows.add(rows).draw();
+                    }
+                }
+            });
+    });
+
+    $(document).on('click', '.load-older', function() {
+        const dt = $(this).closest('.query-output-section').find('.query-output');
+        const loadButton = $(this);
+        const nextPage = dt.attr('nextPage');
+        const query = dt.attr('currentQuery');
+        $.get("/apis/tickets/v1/query?format=TABLE&length=" + dataSize
+                + "&query=" + query + (nextPage ?  "&next=" + nextPage : ""),
+            function(res) {
+                if(!res || res.status != 'SUCCESS') {
+                    return;
+                }
+                if(res.data) {
+                    const rows = Object.values(res.data.results);
+                    if(rows.length < dataSize) {
+                       loadButton.addClass('visually-hidden');
+                    }
+                    else {
+                        loadButton.removeClass('visually-hidden');
+                    }
+                    if(rows.length > 0) {
+                        if(res.data.metadata.opCode=="LIST") {
+                            dt.attr('nextPage', res.data.metadata.next);
+                            dt.attr('currentQuery', res.data.metadata.query);
+                            dt.DataTable().rows.add(rows).draw();
+                        }
+                    }
+                }
+            });
+        });
+
+{{/partial}}
+{{> common/base}}

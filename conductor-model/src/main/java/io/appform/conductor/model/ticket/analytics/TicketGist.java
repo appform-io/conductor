@@ -18,6 +18,7 @@ package io.appform.conductor.model.ticket.analytics;
 
 import io.appform.conductor.model.ticket.TicketPriority;
 import lombok.Value;
+import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
 
@@ -25,6 +26,7 @@ import java.util.Date;
  *
  */
 @Value
+@FieldNameConstants
 public class TicketGist {
     String ticketId;
     String title;

@@ -37,7 +37,7 @@ public class TicketQueryView extends BaseLoggedInView {
     public TicketQueryView(
             User currentUser,
             String query, TicketListResponse results) {
-        super("templates/tickets/tickets-query.hbs", currentUser);
+        super("templates/tickets/explore.hbs", currentUser);
         this.query = query;
         this.results = results;
     }

@@ -106,18 +106,19 @@
         });
     const dataSize = 10;
     $('#load-older').click(function() {
-        const data = $.get("/apis/tickets/v1/query?length=" + dataSize + "&" + window.location.search.substring(1)
+        const data = $.get("/apis/tickets/v1/query?format=TABLE&length=" + dataSize + "&" + window.location.search.substring(1)
                     + ($('#tickets').attr('nextPage') ? "&next=" + $('#tickets').attr('nextPage') : ""),
                 function(res) {
                     if(!res || res.status != 'SUCCESS') {
                         return;
                     }
                     if(res.data) {
-                        if(res.data.results.length < dataSize) {
+                        const rows = Object.values(res.data.results);
+                        if(rows.length < dataSize) {
                             $('#load-older').addClass('d-none');
                         }
-                        $('#tickets').attr('nextPage', res.data.next);
-                        dt.rows.add(res.data.results).draw();
+                        $('#tickets').attr('nextPage', res.data.metadata.next);
+                        dt.rows.add(rows).draw();
                     }
                 });
         console.log(data);

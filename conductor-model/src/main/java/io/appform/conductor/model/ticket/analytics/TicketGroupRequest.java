@@ -29,7 +29,7 @@ import java.util.List;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TicketGroupRequest extends TicketQueryOperation {
+public class TicketGroupRequest extends TicketQueryRequest {
 
 //    List<GroupFunction> functions;
     @NotEmpty
@@ -40,10 +40,9 @@ public class TicketGroupRequest extends TicketQueryOperation {
     public TicketGroupRequest(
             String queryId,
             Filters filters,
-            ResponseEncoding responseEncoding,
 //            List<GroupFunction> functions,
             List<String> groupingFields) {
-        super(OpCode.GROUP, queryId, filters, responseEncoding);
+        super(TicketQueryOpCode.GROUP, queryId, filters);
 //        this.functions = functions;
         this.groupingFields = groupingFields;
     }

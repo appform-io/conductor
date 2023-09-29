@@ -63,6 +63,8 @@ public enum ConductorErrorCode {
     DATA_FORMAT_ERROR(5001, "Error reading data. Format error. Conversion to: ${type}. Content: ${content}"),
     INVALID_RULE_TYPE(5002, "Unsupported rule type ${ruleType}"),
     INVALID_TEMPLATE_TYPE(5003, "Unsupported template type ${templateType}"),
+
+    CQL_PARSING_ERROR(6001, "Error parsing CQL. Errors: ${cqlError}"),
     ;
 
     private final int errorCode;

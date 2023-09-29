@@ -28,7 +28,7 @@ import java.util.Set;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TicketTimeSeriesRequest extends TicketQueryOperation {
+public class TicketTimeSeriesRequest extends TicketQueryRequest {
     String groupingTicketAttribute;
     Set<String> distinctValues;
     TimeResolution resolution;
@@ -38,11 +38,11 @@ public class TicketTimeSeriesRequest extends TicketQueryOperation {
     public TicketTimeSeriesRequest(
             String queryId,
             Filters filters,
-            ResponseEncoding responseEncoding,
+            ResponseFormat responseFormat,
             String groupingTicketAttribute,
             Set<String> distinctValues,
             TimeResolution resolution) {
-        super(OpCode.TIME_SERIES, queryId, filters, responseEncoding);
+        super(TicketQueryOpCode.TIME_SERIES, queryId, filters);
         this.groupingTicketAttribute = groupingTicketAttribute;
         this.distinctValues = distinctValues;
         this.resolution = resolution;

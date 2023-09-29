@@ -41,7 +41,7 @@ public class ConductorException extends RuntimeException {
         this.context = context;
     }
 
-    private static String generateErrorMessage(ConductorErrorCode errorCode, Map<String, Object> context, Throwable cause) {
+    public static String generateErrorMessage(ConductorErrorCode errorCode, Map<String, Object> context, Throwable cause) {
         val coreMessage = StringSubstitutor.replace(errorCode.getMessageFormat(), context);
         return null != cause
                 ? coreMessage + " Root Cause: " + cause.getMessage()

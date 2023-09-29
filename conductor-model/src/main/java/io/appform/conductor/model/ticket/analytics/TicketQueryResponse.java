@@ -23,6 +23,7 @@ import lombok.Data;
  */
 @Data
 public abstract class TicketQueryResponse {
+    private final TicketQueryOpCode opCode;
     private final String requestId;
 
     public abstract <T> T accept(final TicketQueryResponseVisitor<T> visitor);

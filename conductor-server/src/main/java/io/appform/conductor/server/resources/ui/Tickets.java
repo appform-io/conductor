@@ -22,6 +22,7 @@ import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.fields.TicketField;
+import io.appform.conductor.model.ticket.filter.Filters;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import io.appform.conductor.model.workflow.WorkflowState;
@@ -365,7 +366,9 @@ public class Tickets {
             @Auth ConductorUser user,
             @QueryParam("query") final String query) {
         try {
-            val filters = cqlEngine.parse(query);
+            val filters = cqlEngine.parse(query)
+                    .map(CQLEngine.ParserOutput::filters)
+                    .orElse(Filters.EMPTY);
             return render(TicketQueryView.builder()
                                   .query(query)
                                   .results(ticketManager.search(filters.ticketFilters(), filters.fieldFilters(), null, 10))

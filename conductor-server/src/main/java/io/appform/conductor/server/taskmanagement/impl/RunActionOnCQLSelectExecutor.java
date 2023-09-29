@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.taskmanagement.impl;
 
+import io.appform.conductor.model.ticket.filter.Filters;
 import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
 import io.appform.conductor.server.taskmanagement.model.RunActionOnCQLSelectTaskSpec;
@@ -47,7 +48,7 @@ public class RunActionOnCQLSelectExecutor {
             final RunActionOnCQLSelectTaskSpec taskSpec) {
         var nextPtr = (String) taskMeta.getOrDefault(TASK_META_CURSOR, "");
         var hasMore = true;
-        val filers = cqlEngine.parse(taskSpec.getQuery());
+        val filers = cqlEngine.parse(taskSpec.getQuery()).map(CQLEngine.ParserOutput::filters).orElse(Filters.EMPTY);
         do {
             val tickets = ticketManager.since(
                     filers.ticketFilters(),

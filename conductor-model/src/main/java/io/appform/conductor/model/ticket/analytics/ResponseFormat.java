@@ -19,8 +19,7 @@ package io.appform.conductor.model.ticket.analytics;
 /**
  *
  */
-public enum ResponseEncoding {
-    JSON,
-    TABLE,
-    CSV
+public enum ResponseFormat {
+    DEFAULT,
+    TABLE
 }

@@ -29,10 +29,15 @@ import java.util.List;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TicketListRequest extends TicketQueryOperation {
+public class TicketListRequest extends TicketQueryRequest {
+    public enum Direction {
+        FORWARD,
+        REVERSE
+    }
     List<String> ticketCoreFields;
     List<String> ticketDataFields;
     List<String> functions;
+    Direction direction;
     String next;
     @Max(1024)
     int size;
@@ -42,15 +47,18 @@ public class TicketListRequest extends TicketQueryOperation {
     public TicketListRequest(
             String queryId,
             Filters filters,
-            ResponseEncoding responseEncoding,
+            ResponseFormat responseFormat,
             @Singular List<String> ticketCoreFields,
             @Singular List<String> ticketDataFields,
             @Singular List<String> functions,
-            String next, int size) {
-        super(OpCode.LIST, queryId, filters, responseEncoding);
+            Direction direction,
+            String next,
+            int size) {
+        super(TicketQueryOpCode.LIST, queryId, filters);
         this.ticketCoreFields = ticketCoreFields;
         this.ticketDataFields = ticketDataFields;
         this.functions = functions;
+        this.direction = direction;
         this.next = next;
         this.size = size;
     }

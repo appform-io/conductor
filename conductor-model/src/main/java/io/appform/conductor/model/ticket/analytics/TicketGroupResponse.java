@@ -16,6 +16,7 @@
 
 package io.appform.conductor.model.ticket.analytics;
 
+import com.google.common.collect.TreeBasedTable;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
@@ -38,12 +39,12 @@ public class TicketGroupResponse extends TicketQueryResponse {
         Map<String, GroupResponse> children = new TreeMap<>();
     }
 
-    GroupResponse counts;
+    TreeBasedTable<Integer, String, Object> counts;
 
     @Builder
     @Jacksonized
-    public TicketGroupResponse(String requestId, GroupResponse counts) {
-        super(requestId);
+    public TicketGroupResponse(String requestId, TreeBasedTable<Integer, String, Object> counts) {
+        super(TicketQueryOpCode.GROUP, requestId);
         this.counts = counts;
     }
 

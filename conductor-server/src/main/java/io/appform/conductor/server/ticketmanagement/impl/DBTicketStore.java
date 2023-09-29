@@ -18,6 +18,7 @@ package io.appform.conductor.server.ticketmanagement.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+import com.google.common.collect.TreeBasedTable;
 import com.google.common.net.MediaType;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.FieldSchema;
@@ -66,10 +67,10 @@ import javax.inject.Singleton;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.*;
 
@@ -272,10 +273,21 @@ public class DBTicketStore implements TicketStore {
         resultCriteria.setProjection(groupQuery);
         val queryResults = ticketDao.run(resultCriteria);
         var parent = new AtomicReference<TicketGroupResponse.GroupResponse>();
-        queryResults.values()
+        val rows = queryResults.values()
                 .stream()
                 .map(list -> (List<Object[]>) list)
                 .flatMap(List::stream)
+                .toList();
+        val output = new HashMap<List<String>, Long>();
+        for (val row: rows) {
+            val key = new ArrayList<String>(row.length - 1);
+            for(var colId = 0; colId < row.length - 1; colId++) {
+                key.add(Objects.toString(row[colId]));
+            }
+            val oldValue = output.computeIfAbsent(key, k -> 0L);
+            output.put(key, oldValue + (long)row[row.length - 1]);
+        }
+        /*stream
                 .forEach(groupList -> {
                     var currNode = Objects.requireNonNullElse(
                             parent.get(), new TicketGroupResponse.GroupResponse(ticketPropertyNames.get(0)));
@@ -298,9 +310,19 @@ public class DBTicketStore implements TicketStore {
                                              (key, existing) -> (null == existing ? 0L : existing) + count);
                         }
                     }
+                });*/
+        val table = TreeBasedTable.<Integer, String, Object>create();
+        val rowIdx = new AtomicInteger(0);
+        output
+                .forEach((keys, value) -> {
+                    val row = table.row(rowIdx.incrementAndGet());
+                    for (int i = 0; i < keys.size(); i++) {
+                        row.put(ticketPropertyNames.get(i), keys.get(i));
+                    }
+                    row.put("count", value);
                 });
 
-        return new TicketGroupResponse(requestId, parent.get());
+        return new TicketGroupResponse(requestId, table);
     }
 
     @Override
@@ -341,30 +363,23 @@ public class DBTicketStore implements TicketStore {
                                                                         new Type[]{LongType.INSTANCE,
                                                                                 LongType.INSTANCE}));
         }
+        val table = TreeBasedTable.<Integer, String, Object>create();
+        val rowIdx = new AtomicInteger(0);
         val queryResults = ticketDao.run(resultCriteria);
-        if (Strings.isNullOrEmpty(groupingTicketAttribute)) {
-            val counts = queryResults.values()
-                    .stream()
-                    .map(list -> (List<Object[]>) list)
-                    .flatMap(List::stream)
-                    .collect(Collectors.toMap(element -> toDate(element[0], divisor),
-                                              element -> (Long) element[1],
-                                              Long::sum,
-                                              TreeMap::new));
-            return new TicketTimeSeriesResponse(requestId, Map.of(TicketTimeSeriesResponse.DEFAULT_FIELD, counts));
-        }
-        else {
-            val counts = queryResults.values()
-                    .stream()
-                    .map(list -> (List<Object[]>) list)
-                    .flatMap(List::stream)
-                    .collect(Collectors.groupingBy(element -> String.valueOf(element[0]),
-                                                   Collectors.toMap(element -> toDate(element[1], divisor),
-                                                                    element -> (Long) element[2],
-                                                                    Long::sum,
-                                                                    () -> (Map<Date, Long>)new TreeMap<Date, Long>())));
-            return new TicketTimeSeriesResponse(requestId, counts);
-        }
+        queryResults.values()
+                .stream()
+                .map(list -> (List<Object[]>) list)
+                .flatMap(List::stream)
+                .forEach(groupList -> {
+                    val row = table.row(rowIdx.incrementAndGet());
+                    row.put("timestamp", toDate(groupList[0], divisor));
+                    if (Strings.isNullOrEmpty(groupingTicketAttribute)) {
+                        row.put(groupingTicketAttribute, String.valueOf(groupList[1]));
+                    }
+                    row.put("count", groupList[groupList.length - 1]);
+                });
+
+        return new TicketTimeSeriesResponse(requestId, table);
     }
 
     @NonNull

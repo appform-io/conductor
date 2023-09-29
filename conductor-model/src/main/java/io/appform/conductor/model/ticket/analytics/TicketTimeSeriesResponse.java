@@ -16,14 +16,12 @@
 
 package io.appform.conductor.model.ticket.analytics;
 
+import com.google.common.collect.TreeBasedTable;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
-
-import java.util.Date;
-import java.util.Map;
 
 /**
  *
@@ -36,12 +34,12 @@ public class TicketTimeSeriesResponse extends TicketQueryResponse {
     /**
      * Map of time series. Each map key is a dataset to be rendered.
      */
-    Map<String, Map<Date, Long>> series;
+    TreeBasedTable<Integer, String, Object> series;
 
     @Builder
     @Jacksonized
-    public TicketTimeSeriesResponse(String requestId, Map<String, Map<Date, Long>> series) {
-        super(requestId);
+    public TicketTimeSeriesResponse(String requestId, TreeBasedTable<Integer, String, Object> series) {
+        super(TicketQueryOpCode.TIME_SERIES, requestId);
         this.series = series;
     }
 

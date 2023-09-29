@@ -35,7 +35,7 @@ public class TicketListResponse extends TicketQueryResponse {
     @Builder
     @Jacksonized
     public TicketListResponse(String requestId, List<TicketGist> results, String next) {
-        super(requestId);
+        super(TicketQueryOpCode.LIST, requestId);
         this.results = results;
         this.next = next;
     }

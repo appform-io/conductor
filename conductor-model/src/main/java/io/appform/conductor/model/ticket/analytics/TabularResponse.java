@@ -16,11 +16,16 @@
 
 package io.appform.conductor.model.ticket.analytics;
 
+import com.google.common.collect.Table;
+import lombok.Value;
+
+import java.util.Map;
+
 /**
  *
  */
-public enum OpCode {
-    LIST,
-    GROUP,
-    TIME_SERIES
+@Value
+public class TabularResponse {
+    Table<Integer, String, Object> results;
+    Map<String, Object> metadata;
 }

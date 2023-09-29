@@ -23,22 +23,19 @@ import lombok.Data;
  *
  */
 @Data
-public abstract class TicketQueryOperation {
+public abstract class TicketQueryRequest {
 
-    private final OpCode operation;
+    private final TicketQueryOpCode operation;
     private final String queryId;
     private final Filters filters;
-    private final ResponseEncoding responseEncoding;
 
-    protected TicketQueryOperation(
-            OpCode operation,
+    protected TicketQueryRequest(
+            TicketQueryOpCode operation,
             String queryId,
-            Filters filters,
-            ResponseEncoding responseEncoding) {
+            Filters filters) {
         this.operation = operation;
         this.queryId = queryId;
         this.filters = filters;
-        this.responseEncoding = responseEncoding;
     }
 
     public abstract <T> T accpet(final TicketQueryOperationVisitor<T> visitor);

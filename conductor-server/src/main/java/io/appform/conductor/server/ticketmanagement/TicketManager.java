@@ -150,6 +150,7 @@ public class TicketManager {
                                                                    .ticketFilters(ticketFilters)
                                                                    .fieldFilters(fieldFilters)
                                                                    .build())
+                                                  .direction(TicketListRequest.Direction.FORWARD)
                                                   .next(start)
                                                   .size(size)
                                                   .build());
@@ -161,13 +162,18 @@ public class TicketManager {
             final List<TicketFieldFilter> fieldFilters,
             final String start,
             final int size) {
-        val result = ticketStore.since(
-                ticketFilters,
-                fieldFilters, start, size, relevantFieldSchema(ticketFilters));
-        return toGistList(null, result);
+        return (TicketListResponse) query(TicketListRequest.builder()
+                                                  .filters(Filters.builder()
+                                                                   .ticketFilters(ticketFilters)
+                                                                   .fieldFilters(fieldFilters)
+                                                                   .build())
+                                                  .direction(TicketListRequest.Direction.REVERSE)
+                                                  .next(start)
+                                                  .size(size)
+                                                  .build());
     }
 
-    public TicketQueryResponse query(TicketQueryOperation operation) {
+    public TicketQueryResponse query(TicketQueryRequest operation) {
         val ticketFilters = null == operation.getFilters() || null == operation.getFilters().ticketFilters()
                             ? List.<TicketFilter>of()
                             : operation.getFilters().ticketFilters();
@@ -177,12 +183,20 @@ public class TicketManager {
         return operation.accpet(new TicketQueryOperationVisitor<>() {
             @Override
             public TicketQueryResponse visit(TicketListRequest listRequest) {
-                return toGistList(listRequest.getQueryId(),
-                                  ticketStore.list(ticketFilters,
-                                                   fieldFilters,
-                                                   listRequest.getNext(),
-                                                   listRequest.getSize(),
-                                                   relevantFieldSchema(ticketFilters)));
+                return switch (Objects.requireNonNullElse(listRequest.getDirection(), TicketListRequest.Direction.FORWARD)) {
+                    case FORWARD -> toGistList(listRequest.getQueryId(),
+                                               ticketStore.list(ticketFilters,
+                                                                fieldFilters,
+                                                                listRequest.getNext(),
+                                                                listRequest.getSize(),
+                                                                relevantFieldSchema(ticketFilters)));
+                    case REVERSE -> toGistList(listRequest.getQueryId(),
+                                               ticketStore.since(ticketFilters,
+                                                                 fieldFilters,
+                                                                 listRequest.getNext(),
+                                                                 listRequest.getSize(),
+                                                                 relevantFieldSchema(ticketFilters)));
+                };
             }
 
             @Override
