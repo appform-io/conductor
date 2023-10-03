@@ -33,6 +33,7 @@ db:
         hibernate.dialect: org.hibernate.dialect.MariaDBDialect
         hibernate.hbm2ddl.auto: update
         hibernate.show_sql: true
+        hibernate.format_sql: true
       maxWaitForConnection: 1s
       validationQuery: "/* MyApplication Health Check */ SELECT 1"
       minSize: 8
@@ -49,6 +50,7 @@ db:
         hibernate.dialect: org.hibernate.dialect.MariaDBDialect
         hibernate.hbm2ddl.auto: update
         hibernate.show_sql: true
+        hibernate.format_sql: true
       maxWaitForConnection: 1s
       validationQuery: "/* MyApplication Health Check */ SELECT 1"
       minSize: 8

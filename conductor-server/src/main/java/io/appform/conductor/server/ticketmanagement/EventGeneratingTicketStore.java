@@ -149,8 +149,9 @@ public class EventGeneratingTicketStore implements TicketStore {
             List<TicketFieldFilter> fieldFilters,
             String start,
             int size,
-            Map<String, FieldSchema> relevantFieldSchema) {
-        return ticketStore.list(ticketFilters, fieldFilters, start, size, relevantFieldSchema);
+            Map<String, FieldSchema> relevantFieldSchema,
+            boolean readFields, List<String> fieldNames) {
+        return ticketStore.list(ticketFilters, fieldFilters, start, size, relevantFieldSchema, readFields, fieldNames);
     }
 
     @Override
@@ -159,8 +160,11 @@ public class EventGeneratingTicketStore implements TicketStore {
             List<TicketFieldFilter> fieldFilters,
             String start,
             int size,
-            Map<String, FieldSchema> relevantFieldSchema) {
-        return ticketStore.since(ticketFilters, fieldFilters, start, size, relevantFieldSchema);
+            Map<String, FieldSchema> relevantFieldSchema,
+            boolean readFields, List<String> fieldsToBeFetched) {
+        return ticketStore.since(ticketFilters, fieldFilters, start, size, relevantFieldSchema,
+                                 readFields,
+                                 fieldsToBeFetched);
     }
 
     @Override

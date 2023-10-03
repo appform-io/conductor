@@ -47,7 +47,6 @@ public class TicketListRequest extends TicketQueryRequest {
     public TicketListRequest(
             String queryId,
             Filters filters,
-            ResponseFormat responseFormat,
             @Singular List<String> ticketCoreFields,
             @Singular List<String> ticketDataFields,
             @Singular List<String> functions,

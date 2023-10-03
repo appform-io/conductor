@@ -68,11 +68,11 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.*;
+import static org.hibernate.criterion.CriteriaSpecification.DISTINCT_ROOT_ENTITY;
 
 /**
  * An RDBMS based implementation for {@link TicketStore}
@@ -125,7 +125,7 @@ public class DBTicketStore implements TicketStore {
         return ticketDao.get(ticketId,
                              (UnaryOperator<Criteria>) criteria -> criteria.setFetchMode(StoredTicketSkeleton.Fields.fields,
                                                                                          FetchMode.JOIN))
-                .map(ticket -> toSummary(ticket, true));
+                .map(ticket -> toSummary(ticket, true, List.of()));
     }
 
     @Override
@@ -140,7 +140,7 @@ public class DBTicketStore implements TicketStore {
         ticketDao.lockAndGetExecutor(ticketId)
                 .mutate(
                         ticket -> {
-                            val updated = updater.apply(toSummary(ticket, false));
+                            val updated = updater.apply(toSummary(ticket, false, List.of()));
                             ticket.setTitle(updated.getTitle())
                                     .setDescription(updated.getDescription())
                                     .setAssignedToGroupId(updated.getAssignedToGroupId())
@@ -186,9 +186,17 @@ public class DBTicketStore implements TicketStore {
             final List<TicketFieldFilter> fieldFilters,
             final String start,
             final int size,
-            final Map<String, FieldSchema> relevantFieldSchema) {
-        return runQuery(ticketFilters, fieldFilters, start, size, relevantFieldSchema,
-                        param -> ticketDao.scrollUp(param.resultCriteria, param.pointer, param.size, "id"));
+            final Map<String, FieldSchema> relevantFieldSchema,
+            boolean readFields,
+            final List<String> fieldNames) {
+        return runQuery(ticketFilters,
+                        fieldFilters,
+                        start,
+                        size * ((!readFields || relevantFieldSchema.isEmpty()) ? 1 : relevantFieldSchema.size()),
+                        relevantFieldSchema,
+                        param -> ticketDao.scrollUp(param.resultCriteria, param.pointer, param.size, "id"),
+                        readFields,
+                        fieldNames);
     }
 
     @Override
@@ -198,64 +206,17 @@ public class DBTicketStore implements TicketStore {
             final List<TicketFieldFilter> fieldFilters,
             final String start,
             final int size,
-            final Map<String, FieldSchema> relevantFieldSchema) {
-        return runQuery(ticketFilters, fieldFilters, start, size, relevantFieldSchema,
-                        param -> ticketDao.scrollDown(param.resultCriteria, param.pointer, param.size, "id"));
-    }
-
-    private record QueryParams(int size, DetachedCriteria resultCriteria, ScrollPointer pointer) {
-    }
-
-    @SneakyThrows
-    @Throws(value = STORE_LIST_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
-    public TicketSkeletonListResult runQuery(
-            final List<TicketFilter> ticketFilters,
-            final List<TicketFieldFilter> fieldFilters,
-            final String start,
-            final int size,
             final Map<String, FieldSchema> relevantFieldSchema,
-            final Function<QueryParams, ScrollResult<StoredTicketSkeleton>> queryFunction) {
-        val resultCriteria = createTicketQueryCriteria(ticketFilters, fieldFilters, relevantFieldSchema);
-        val pointer = Strings.isNullOrEmpty(start)
-                      ? null
-                      : mapper.readValue(Base64.getUrlDecoder().decode(start.getBytes(StandardCharsets.UTF_8)),
-                                         ScrollPointer.class);
-        val results = queryFunction.apply(new QueryParams(size, resultCriteria, pointer));
-        return new TicketSkeletonListResult(
-                results.getResult()
-                        .stream()
-                        .map(ticket -> toSummary(ticket, false))
-                        .toList(),
-                Base64.getUrlEncoder().encodeToString(
-                        mapper.writeValueAsString(results.getPointer())
-                                .getBytes(StandardCharsets.UTF_8))); //Keep charset consistent
-    }
-
-    private DetachedCriteria createFlatTicketQueryCriteria(
-            List<TicketFilter> ticketFilters,
-            List<TicketFieldFilter> fieldFilters,
-            Map<String, FieldSchema> relevantFieldSchema) {
-        val filterCriteria = DetachedCriteria.forClass(StoredTicketSkeleton.class, StoredFieldValue.Fields.ticket)
-                .add(Property.forName(StoredTicketSkeleton.Fields.deleted).eq(false))
-                .setProjection(Projections.distinct(Projections.property(StoredTicketSkeleton.Fields.ticketId)));
-        applyTicketFilter(ticketFilters, filterCriteria);
-        applyFieldFilters(fieldFilters, relevantFieldSchema, filterCriteria);
-        return DetachedCriteria.forClass(StoredTicketSkeleton.class, StoredTicketSkeleton.Fields.fields)
-                .add(Property.forName(StoredTicketSkeleton.Fields.ticketId).in(filterCriteria));
-    }
-
-    private DetachedCriteria createTicketQueryCriteria(
-            List<TicketFilter> ticketFilters,
-            List<TicketFieldFilter> fieldFilters,
-            Map<String, FieldSchema> relevantFieldSchema) {
-        val filterCriteria = DetachedCriteria.forClass(StoredTicketSkeleton.class, StoredFieldValue.Fields.ticket)
-                .add(Property.forName(StoredTicketSkeleton.Fields.deleted).eq(false))
-                .setProjection(Projections.distinct(Projections.property(StoredTicketSkeleton.Fields.ticketId)));
-        applyTicketFilter(ticketFilters, filterCriteria);
-        applyFieldFilters(fieldFilters, relevantFieldSchema, filterCriteria);
-        return DetachedCriteria.forClass(StoredTicketSkeleton.class)
-                .add(Property.forName(StoredTicketSkeleton.Fields.ticketId).in(filterCriteria));
+            boolean readFields,
+            final List<String> fieldsToBeFetched) {
+        return runQuery(ticketFilters,
+                        fieldFilters,
+                        start,
+                        size,
+                        relevantFieldSchema,
+                        param -> ticketDao.scrollDown(param.resultCriteria, param.pointer, param.size, "id"),
+                        readFields,
+                        fieldsToBeFetched);
     }
 
     @Override
@@ -272,55 +233,12 @@ public class DBTicketStore implements TicketStore {
         groupQuery.add(Projections.rowCount());
         resultCriteria.setProjection(groupQuery);
         val queryResults = ticketDao.run(resultCriteria);
-        var parent = new AtomicReference<TicketGroupResponse.GroupResponse>();
         val rows = queryResults.values()
                 .stream()
                 .map(list -> (List<Object[]>) list)
                 .flatMap(List::stream)
                 .toList();
-        val output = new HashMap<List<String>, Long>();
-        for (val row: rows) {
-            val key = new ArrayList<String>(row.length - 1);
-            for(var colId = 0; colId < row.length - 1; colId++) {
-                key.add(Objects.toString(row[colId]));
-            }
-            val oldValue = output.computeIfAbsent(key, k -> 0L);
-            output.put(key, oldValue + (long)row[row.length - 1]);
-        }
-        /*stream
-                .forEach(groupList -> {
-                    var currNode = Objects.requireNonNullElse(
-                            parent.get(), new TicketGroupResponse.GroupResponse(ticketPropertyNames.get(0)));
-                    for (var i = 0; i < ticketPropertyNames.size(); i++) {
-                        val currValue = Objects.toString(groupList[i]);
-
-                        if (i < ticketPropertyNames.size() - 1) {
-                            val nextProperty = ticketPropertyNames.get(i + 1);
-                            val nextNode =
-                                    currNode.getChildren()
-                                            .computeIfAbsent(currValue,
-                                                             key -> new TicketGroupResponse.GroupResponse(nextProperty));
-                            parent.compareAndSet(null, currNode);
-                            currNode = nextNode;
-                        }
-                        else {
-                            val count = (long) groupList[i + 1];
-                            currNode.getCounts()
-                                    .compute(currValue,
-                                             (key, existing) -> (null == existing ? 0L : existing) + count);
-                        }
-                    }
-                });*/
-        val table = TreeBasedTable.<Integer, String, Object>create();
-        val rowIdx = new AtomicInteger(0);
-        output
-                .forEach((keys, value) -> {
-                    val row = table.row(rowIdx.incrementAndGet());
-                    for (int i = 0; i < keys.size(); i++) {
-                        row.put(ticketPropertyNames.get(i), keys.get(i));
-                    }
-                    row.put("count", value);
-                });
+        final var table = parseGroupResponse(ticketPropertyNames, rows);
 
         return new TicketGroupResponse(requestId, table);
     }
@@ -380,11 +298,6 @@ public class DBTicketStore implements TicketStore {
                 });
 
         return new TicketTimeSeriesResponse(requestId, table);
-    }
-
-    @NonNull
-    private static Date toDate(Object element, int divisor) {
-        return new Date(1000L * divisor * (Long) element);
     }
 
     @Override
@@ -505,6 +418,96 @@ public class DBTicketStore implements TicketStore {
                                     storedAttachment -> storedAttachment.setDeleted(true));
     }
 
+    private record QueryParams(int size, DetachedCriteria resultCriteria, ScrollPointer pointer) {
+    }
+
+    @SneakyThrows
+    @Throws(value = STORE_LIST_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
+    private TicketSkeletonListResult runQuery(
+            final List<TicketFilter> ticketFilters,
+            final List<TicketFieldFilter> fieldFilters,
+            final String start,
+            final int size,
+            final Map<String, FieldSchema> relevantFieldSchema,
+            final Function<QueryParams, ScrollResult<StoredTicketSkeleton>> queryFunction,
+            boolean fieldsToBeRead,
+            final List<String> fieldNames) {
+        val resultCriteria = createTicketQueryCriteria(ticketFilters, fieldFilters, relevantFieldSchema);
+        if (fieldsToBeRead && !fieldNames.isEmpty()) {
+            resultCriteria.setFetchMode(StoredTicketSkeleton.Fields.fields, FetchMode.JOIN)
+                    .setResultTransformer(DISTINCT_ROOT_ENTITY);
+            //TODO::FETCH RELEVANT FIELDS ONLY
+            /*val fc = DetachedCriteria.forClass(StoredFieldValue.class)
+                    .add(Restrictions.in(StoredFieldValue.Fields.schemaFieldId, fieldsToBeFetched));*/
+            /*resultCriteria.createCriteria(StoredTicketSkeleton.Fields.fields,
+                                          "f",
+                                          JoinType.LEFT_OUTER_JOIN,
+                                          Restrictions.in(StoredFieldValue.Fields.schemaFieldId, fieldsToBeFetched));*/
+//            resultCriteria.add(Property.forName(StoredTicketSkeleton.Fields.fields).eq(fc));
+
+//                    ;
+            /*resultCriteria
+                    .setResultTransformer(DISTINCT_ROOT_ENTITY)
+                    .createCriteria(StoredTicketSkeleton.Fields.fields, "f", JoinType.LEFT_OUTER_JOIN, Restrictions
+                    .in(StoredFieldValue.Fields.schemaFieldId, fieldsToBeFetched))
+                    ;
+                    */
+
+
+        }
+        val pointer = Strings.isNullOrEmpty(start)
+                      ? null
+                      : mapper.readValue(Base64.getUrlDecoder().decode(start.getBytes(StandardCharsets.UTF_8)),
+                                         ScrollPointer.class);
+        val results = queryFunction.apply(new QueryParams(size, resultCriteria, pointer));
+        return new TicketSkeletonListResult(
+                results.getResult()
+                        .stream()
+                        .map(ticket -> toSummary(ticket, fieldsToBeRead, fieldNames))
+                        .toList(),
+                Base64.getUrlEncoder().encodeToString(
+                        mapper.writeValueAsString(results.getPointer())
+                                .getBytes(StandardCharsets.UTF_8))); //Keep charset consistent
+    }
+
+    private static TreeBasedTable<Integer, String, Object> parseGroupResponse(
+            List<String> ticketPropertyNames,
+            List<Object[]> rows) {
+        val output = new HashMap<List<String>, Long>();
+        for (val row : rows) {
+            val key = new ArrayList<String>(row.length - 1);
+            for (var colId = 0; colId < row.length - 1; colId++) {
+                key.add(Objects.toString(row[colId]));
+            }
+            val oldValue = output.computeIfAbsent(key, k -> 0L);
+            output.put(key, oldValue + (long) row[row.length - 1]);
+        }
+        val table = TreeBasedTable.<Integer, String, Object>create();
+        val rowIdx = new AtomicInteger(0);
+        output
+                .forEach((keys, value) -> {
+                    val row = table.row(rowIdx.incrementAndGet());
+                    for (int i = 0; i < keys.size(); i++) {
+                        row.put(ticketPropertyNames.get(i), keys.get(i));
+                    }
+                    row.put("count", value);
+                });
+        return table;
+    }
+
+    private DetachedCriteria createTicketQueryCriteria(
+            List<TicketFilter> ticketFilters,
+            List<TicketFieldFilter> fieldFilters,
+            Map<String, FieldSchema> relevantFieldSchema) {
+        val filterCriteria = DetachedCriteria.forClass(StoredTicketSkeleton.class, StoredFieldValue.Fields.ticket)
+                .add(Property.forName(StoredTicketSkeleton.Fields.deleted).eq(false))
+                .setProjection(Projections.distinct(Projections.property(StoredTicketSkeleton.Fields.ticketId)));
+        applyTicketFilter(ticketFilters, filterCriteria);
+        applyFieldFilters(fieldFilters, relevantFieldSchema, filterCriteria);
+        return DetachedCriteria.forClass(StoredTicketSkeleton.class)
+                .add(Property.forName(StoredTicketSkeleton.Fields.ticketId).in(filterCriteria));
+    }
 
     private void applyTicketFilter(List<TicketFilter> ticketFilters, DetachedCriteria criteria) {
         ticketFilters.forEach(filter -> filter.accept(new TicketFilterVisitor<Void>() {
@@ -619,10 +622,23 @@ public class DBTicketStore implements TicketStore {
         }));
     }
 
-    private static TicketSkeleton toSummary(final StoredTicketSkeleton skeleton, boolean readFields) {
+
+    @NonNull
+    private static Date toDate(Object element, int divisor) {
+        return new Date(1000L * divisor * (Long) element);
+    }
+
+    private static TicketSkeleton toSummary(
+            final StoredTicketSkeleton skeleton,
+            boolean readFields,
+            List<String> fieldNames) {
         val fields = new ArrayList<StoredFieldValue>();
         if (readFields) {
-            fields.addAll(Objects.requireNonNullElse(skeleton.getFields(), List.of()));
+            val requiredFields = Set.copyOf(fieldNames);
+            fields.addAll(Objects.requireNonNullElse(skeleton.getFields(), List.<StoredFieldValue>of())
+                                  .stream()
+                                  .filter(field -> fieldNames.isEmpty() || requiredFields.contains(field.getSchemaFieldId()))
+                                  .toList());
         }
         return new TicketSkeleton()
                 .setTicketId(skeleton.getTicketId())
@@ -690,12 +706,16 @@ public class DBTicketStore implements TicketStore {
         filter.accept(new TicketFieldFilterVisitor<Void>() {
 
             @Override
+            @SneakyThrows
             public Void visit(TicketFieldEquals equals) {
+                finalTop.add(Property.forName(StoredFieldValue.Fields.schemaFieldId).eq(equals.getFieldSchemaId()));
                 switch (fieldSchema.getType()) {
-                    case CHOICE, STRING -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.stringValue).eq(
+                    case STRING -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.stringValue).eq(
                             equals.getValue()));
-                    case BOOLEAN ->
-                            finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.booleanValue).eq(equals.getValue()));
+                    case CHOICE -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.choiceValue).eq(
+                            List.of(equals.getValue())));
+                    case BOOLEAN -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.booleanValue).eq(
+                            equals.getValue()));
                     case NUMBER ->
                             finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.numberValue).eq(equals.getValue()));
                     case DATE ->

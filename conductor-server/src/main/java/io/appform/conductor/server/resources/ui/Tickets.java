@@ -22,7 +22,6 @@ import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.fields.TicketField;
-import io.appform.conductor.model.ticket.filter.Filters;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import io.appform.conductor.model.workflow.WorkflowState;
@@ -49,7 +48,9 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -366,13 +367,7 @@ public class Tickets {
             @Auth ConductorUser user,
             @QueryParam("query") final String query) {
         try {
-            val filters = cqlEngine.parse(query)
-                    .map(CQLEngine.ParserOutput::filters)
-                    .orElse(Filters.EMPTY);
-            return render(TicketQueryView.builder()
-                                  .query(query)
-                                  .results(ticketManager.search(filters.ticketFilters(), filters.fieldFilters(), null, 10))
-                                  .build());
+            return render(TicketQueryView.builder().build());
         }
         catch (Exception e) {
             log.error("error: " + e.getMessage(), e);

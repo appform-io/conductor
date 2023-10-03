@@ -65,6 +65,34 @@
                         listOutput.removeClass('visually-hidden')
                             .removeClass('list-prototype');
                         listOutput.find('.query-title').text(query);
+                        var columns = [
+                            {
+                                'title': 'Title',
+                                'data' : 'ticketId' ,
+                                'render' : function(data, type, row, meta) {
+                                    return '<a href="/tickets/' + data + '/details">' + row['title'] + '</a>';
+                                }
+                            },
+                            { 'title' : 'Workflow Name', 'data' : 'workflowName' },
+                            {
+                                'title' : 'State',
+                                'data' : 'stateName',
+                                'render' : function(data, type, row, meta) {
+                                    return '<span class="badge ' + (row['terminated'] ? 'bg-secondary' : 'bg-info') + ' ms-2">' + data + '</span>';
+                                }
+                            },
+                            { 'title': 'Priority', 'data' : 'priority' },
+                            { 'title': 'Created', 'data' : 'created', 'render' : timeSince },
+                            { 'title': 'Updated', 'data' : 'updated', 'render' : timeSince }
+                        ];
+                        columns = columns.concat(res.data.metadata.colHeaders
+                                .filter(header => header.startsWith("fields_"))
+                                .map(header => {
+                                    return {
+                                        'title' : header,
+                                        'data' : header
+                                    };
+                                }));
                         const dt = table.DataTable({
                             paging: false,
                             info: false,
@@ -78,26 +106,7 @@
                                     'targets': '_all'
                                 }
                             ],
-                            'columns' : [
-                                {
-                                    'title': 'Title',
-                                    'data' : 'ticketId' ,
-                                    'render' : function(data, type, row, meta) {
-                                        return '<a href="/tickets/' + data + '/details">' + row['title'] + '</a>';
-                                    }
-                                },
-                                { 'title' : 'Workflow Name', 'data' : 'workflowName' },
-                                {
-                                    'title' : 'State',
-                                    'data' : 'stateName',
-                                    'render' : function(data, type, row, meta) {
-                                        return '<span class="badge ' + (row['terminated'] ? 'bg-secondary' : 'bg-info') + ' ms-2">' + data + '</span>';
-                                    }
-                                },
-                                { 'title': 'Priority', 'data' : 'priority' },
-                                { 'title': 'Created', 'data' : 'created', 'render' : timeSince },
-                                { 'title': 'Updated', 'data' : 'updated', 'render' : timeSince }
-                            ]
+                            'columns' : columns
                         });
                         if(rows.length < dataSize) {
                             table.closest('.query-output-section').find('.load-older').addClass('visually-hidden');
@@ -114,7 +123,7 @@
                         console.log(JSON.stringify(res.data.results));
                         const listOutput = $('.list-prototype').clone();
                         const table = listOutput.find('table');
-                        $('.results').append(listOutput);
+                        $('.results').prepend(listOutput);
                         listOutput.removeClass('visually-hidden')
                         .removeClass('list-prototype');
                         listOutput.find('.query-title').text(query);

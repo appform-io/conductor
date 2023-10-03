@@ -17,10 +17,12 @@
 package io.appform.conductor.model.ticket.analytics;
 
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.fields.TicketField;
 import lombok.Value;
 import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  *
@@ -34,6 +36,7 @@ public class TicketGist {
     String stateName;
     boolean terminated;
     TicketPriority priority;
+    List<TicketField> fields;
     Date created;
     Date updated;
 }

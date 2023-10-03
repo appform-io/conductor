@@ -51,6 +51,7 @@ import javax.inject.Singleton;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -80,10 +81,13 @@ public class CQLEngine {
     private final WorkflowStore workflowStore;
     private final SchemaStore schemaStore;
 
-    public record ParserOutput(Filters filters, List<String> groupingCols, TicketQueryOpCode opCode, long limit) {}
+    public record CQLParserOutput(Filters filters, List<SelectedField> selectedFields, List<String> groupingCols,
+                                  TicketQueryOpCode opCode, long limit) {
+    }
 
     @SneakyThrows
-    public Optional<ParserOutput> parse(final String query) {
+    @SuppressWarnings("unchecked")
+    public Optional<CQLParserOutput> parse(final String query) {
         if (Strings.isNullOrEmpty(query)) {
             return Optional.empty();
         }
@@ -100,28 +104,29 @@ public class CQLEngine {
         val fieldSchema = Objects.requireNonNullElse(schema.getFields(), List.<FieldSchema>of())
                 .stream()
                 .collect(Collectors.toMap(FieldSchema::getName, java.util.function.Function.identity()));
-        val selectedFields = selectedFields(select);
+        val selectedFields = selectedFields(select, fieldSchema);
         log.debug("Fields selected: {}", selectedFields);
         val filters = filter(workflowId, select, fieldSchema);
         val groupByTicketAttributes = new ArrayList<String>();
         val groupByExpr = select.getGroupBy();
-        if(null != groupByExpr) {
+        if (null != groupByExpr) {
             groupByExpr.getGroupByExpressionList()
-                    .forEach(expr -> ((Expression)expr).accept(new ExpressionVisitorAdapter() {
+                    .forEach(expr -> ((Expression) expr).accept(new ExpressionVisitorAdapter() {
                         @Override
                         public void visit(Column column) {
                             val colName = column.getFullyQualifiedName();
-                            val elementType = elementType(colName).orElse(null);
+                            val elementType = elementType(colName, fieldSchema).orElse(null);
                             Preconditions.checkArgument(elementType == ElementType.TICKET_ATTRIBUTE
                                                                 && KNOWN_TICKET_ATTRIBUTES.containsKey(colName),
-                                                        "Only ticket attributes are allowed in group by clause. Expr: " + groupByExpr);
+                                                        "Only ticket attributes are allowed in group by clause. Expr:" +
+                                                                " " + groupByExpr);
                             groupByTicketAttributes.add(colName);
                         }
                     }));
         }
-        val limit = new AtomicReference<Long>(0L);
+        val limit = new AtomicLong(0);
         val limitExpr = select.getLimit();
-        if(null != limitExpr) {
+        if (null != limitExpr) {
             limitExpr.getRowCount().accept(new ExpressionVisitorAdapter() {
                 @Override
                 public void visit(LongValue value) {
@@ -131,30 +136,11 @@ public class CQLEngine {
                 }
             });
         }
-        return Optional.of(new ParserOutput(filters, groupByTicketAttributes, null, limit.get()));
-    }
-
-    @SneakyThrows
-    public Filters parseFilters(String query) {
-        if (Strings.isNullOrEmpty(query)) {
-            return new Filters(List.of(), List.of());
-        }
-        val stmt = CCJSqlParserUtil.parse(query);
-        val select = toPlainSelect(stmt).orElse(null);
-        Preconditions.checkNotNull(select, "Only select statements are supported");
-
-        val workflowId = ticketWorkFlowId(select);
-        val wf = workflowStore.read(workflowId).orElse(null);
-        Preconditions.checkNotNull(wf, "Invalid workflow id");
-        log.debug("Will proceed with workflow: {}", wf.getDisplayName());
-        val schema = schemaStore.get(wf.getSchemaId()).orElse(null);
-        Preconditions.checkNotNull(schema, "Invalid schema for workflow " + workflowId);
-        val fieldSchema = Objects.requireNonNullElse(schema.getFields(), List.<FieldSchema>of())
-                .stream()
-                .collect(Collectors.toMap(FieldSchema::getName, java.util.function.Function.identity()));
-        val selectedFields = selectedFields(select);
-        log.debug("Fields selected: {}", selectedFields);
-        return filter(workflowId, select, fieldSchema);
+        return Optional.of(new CQLParserOutput(filters,
+                                               selectedFields.getSecond(),
+                                               groupByTicketAttributes,
+                                               null,
+                                               limit.get()));
     }
 
     private String ticketWorkFlowId(final PlainSelect select) {
@@ -194,32 +180,46 @@ public class CQLEngine {
         return Optional.ofNullable(retValue.get());
     }
 
-    private Pair<List<String>, List<String>> selectedFields(
-            final PlainSelect plainSelect) {
+    public record SelectedField(String fieldSchemaId, String name) {
+    }
+
+    private Pair<List<String>, List<SelectedField>> selectedFields(
+            final PlainSelect plainSelect, Map<String, FieldSchema> fieldSchema) {
         val ticketAttributes = new ArrayList<String>();
-        val ticketFields = new ArrayList<String>();
+        val ticketFields = new ArrayList<SelectedField>();
 
         plainSelect.accept(new SelectVisitorAdapter() {
 
             @Override
             public void visit(PlainSelect plainSelect) {
-                plainSelect.getSelectItems().forEach(item -> item.accept(new ExpressionVisitorAdapter() {
-                    @Override
-                    public void visit(AllColumns all) {
-                        log.debug("All columns selected");
-                    }
+                plainSelect.getSelectItems().forEach(item -> item.getExpression()
+                        .accept(new ExpressionVisitorAdapter() {
+                            @Override
+                            public void visit(AllColumns allColumns) {
+                                if (allColumns instanceof AllTableColumns allTableColumns
+                                        && allTableColumns.getTable().getFullyQualifiedName().equals("fields")) {
+                                    ticketFields.addAll(
+                                            fieldSchema.values()
+                                                    .stream()
+                                                    .map(field -> new SelectedField(field.getId(), field.getName()))
+                                                    .toList());
+                                }
+                            }
 
-                    @Override
-                    public void visit(Column column) {
-                        val fieldName = fieldName(column);
-                        if (fieldName.startsWith(TICKETS_FIELDS_PREFIX)) {
-                            ticketFields.add(fieldName);
-                        }
-                        else {
-                            ticketAttributes.add(fieldName);
-                        }
-                    }
-                }));
+                            @Override
+                            public void visit(Column column) {
+
+                                val fieldName = fieldName(column);
+                                if (!KNOWN_TICKET_ATTRIBUTES.containsKey(fieldName)) {
+                                    val field = fieldSchema.get(fieldName);
+                                    Preconditions.checkNotNull("Unkown ticket field selected. Field: " + fieldName);
+                                    ticketFields.add(new SelectedField(field.getId(), fieldName));
+                                }
+                                else {
+                                    ticketAttributes.add(fieldName);
+                                }
+                            }
+                        }));
             }
         });
         return Pair.of(ticketAttributes, ticketFields);
@@ -236,16 +236,13 @@ public class CQLEngine {
                     val fieldName = fieldName(colName);
                     Preconditions.checkNotNull(fieldName,
                                                "Unknown ticket field name: " + fieldName);
+                    accessedColName.set(fieldName);
                 }
                 else {
-                    try {
-                        TicketSkeleton.Fields.class.getField(colName);
-                    }
-                    catch (NoSuchFieldException e) {
-                        log.error("Looking for non-existent ticket attribute: {}", colName);
-                    }
+                    Preconditions.checkArgument(KNOWN_TICKET_ATTRIBUTES.containsKey(colName),
+                                                "Unknown ticket attribute selected. Attribute: " + colName);
+                    accessedColName.set(colName);
                 }
-                accessedColName.set(colName);
                 log.debug("Added selection field: {}", colName);
             }
         });
@@ -354,7 +351,7 @@ public class CQLEngine {
             @Override
             public void visit(Between expr) {
                 val name = fieldName(expr.getLeftExpression());
-                val elementType = elementType(name).orElse(null);
+                val elementType = elementType(name, schema).orElse(null);
 
                 ensureTicketAttributeOrTicketField(elementType);
 
@@ -459,7 +456,7 @@ public class CQLEngine {
             @Override
             public void visit(InExpression expr) {
                 val name = fieldName(expr.getLeftExpression());
-                val elementType = elementType(name).orElse(null);
+                val elementType = elementType(name, schema).orElse(null);
 
                 ensureTicketAttributeOrTicketField(elementType);
                 assert null != elementType;
@@ -509,7 +506,7 @@ public class CQLEngine {
             @Override
             public void visit(IsNullExpression expr) {
                 val name = fieldName(expr.getLeftExpression());
-                val elementType = elementType(name).orElse(null);
+                val elementType = elementType(name, schema).orElse(null);
                 ensureTicketAttributeOrTicketField(elementType);
                 assert null != elementType;
 
@@ -532,14 +529,14 @@ public class CQLEngine {
             @Override
             public void visit(IsBooleanExpression expr) {
                 val name = fieldName(expr.getLeftExpression());
-                val elementType = elementType(name).orElse(null);
+                val elementType = elementType(name, schema).orElse(null);
                 ensureTicketField(elementType);
                 assert null != elementType;
                 val fieldSchema = schema.get(name);
                 Preconditions.checkArgument(null != fieldSchema && fieldSchema.getType().equals(FieldType.BOOLEAN),
                                             "Only boolean ticket fields are allowed in is boolean expression. Expr: " + expr);
 
-                ffs.add(new TicketFieldEquals(name, expr.isTrue()));
+                ffs.add(new TicketFieldEquals(fieldSchema.getId(), expr.isTrue()));
                 //TODO HANDLE IS NOT
             }
 
@@ -564,7 +561,7 @@ public class CQLEngine {
                 Preconditions.checkArgument(!Strings.isNullOrEmpty(name),
                                             "ticket attribute or field name is mandatory for comparison operator in " +
                                                     "while clause. Expr: " + expr.getStringExpression());
-                val elementType = elementType(name).orElse(null);
+                val elementType = elementType(name, schema).orElse(null);
                 Preconditions.checkArgument(elementType != null && Set.of(ElementType.TICKET_ATTRIBUTE,
                                                                           ElementType.TICKET_FIELD)
                                                     .contains(elementType),
@@ -640,12 +637,13 @@ public class CQLEngine {
         FUNCTION
     }
 
-    private static Optional<ElementType> elementType(final String name) {
-        if (name.startsWith(TICKETS_FIELDS_PREFIX)) {
-            return Optional.of(ElementType.TICKET_FIELD);
-        }
+    private static Optional<ElementType> elementType(final String name, Map<String, FieldSchema> schema) {
+
         if (KNOWN_TICKET_ATTRIBUTES.containsKey(name)) {
             return Optional.of(ElementType.TICKET_ATTRIBUTE);
+        }
+        if (schema.containsKey(name)) {
+            return Optional.of(ElementType.TICKET_FIELD);
         }
         if (KNOWN_META_FIELDS.contains(name)) {
             return Optional.of(ElementType.META_FIELD);

@@ -63,7 +63,7 @@ class ConductorTaskSchedulerTest {
     @SneakyThrows
     void test(BalancedDBShardingBundle<TestConfig> bundle) {
         val tstore = new DBTaskStore(bundle.createParentObjectDao(StoredTask.class),
-                                    new ObjectMapper());
+                                     new ObjectMapper());
         val tm = mock(TicketManager.class);
         val taskSpec = new RunActionOnSelectedTicketsTaskSpec(List.of(),
                                                               List.of(),
@@ -85,22 +85,36 @@ class ConductorTaskSchedulerTest {
 
         val runActionOnSelectedTicketsExecutor = mock(RunActionOnSelectedTicketsExecutor.class);
         val runActionOnCQLSelectExecutor = mock(RunActionOnCQLSelectExecutor.class);
-        when(runActionOnSelectedTicketsExecutor.execute(any(Task.class), anyMap(), any(RunActionOnSelectedTicketsTaskSpec.class)))
+        when(runActionOnSelectedTicketsExecutor.execute(any(Task.class),
+                                                        anyMap(),
+                                                        any(RunActionOnSelectedTicketsTaskSpec.class)))
                 .thenAnswer(invocationOnMock -> {
                     callCounter.incrementAndGet();
-                    return new ConductorTaskScheduler.TaskResult(ConductorTaskScheduler.TaskStatus.SUCCESS, task, Map.of());
+                    return new ConductorTaskScheduler.TaskResult(ConductorTaskScheduler.TaskStatus.SUCCESS,
+                                                                 task,
+                                                                 Map.of());
                 });
-        val ticket = new TicketGist("t1", "Test", "TWF", "S1", false, TicketPriority.MEDIUM, new Date(), new Date());
+        val ticket = new TicketGist("t1",
+                                    "Test",
+                                    "TWF",
+                                    "S1",
+                                    false,
+                                    TicketPriority.MEDIUM,
+                                    List.of(),
+                                    new Date(),
+                                    new Date());
         when(tm.since(anyList(), anyList(), anyString(), anyInt()))
                 .thenReturn(TicketListResponse.builder().results(List.of(ticket)).build());
 
-        val scheduler = new ConductorTaskScheduler(runActionOnSelectedTicketsExecutor, runActionOnCQLSelectExecutor, tstore);
+        val scheduler = new ConductorTaskScheduler(runActionOnSelectedTicketsExecutor,
+                                                   runActionOnCQLSelectExecutor,
+                                                   tstore);
         scheduler.start();
         scheduler.scheduleNewTask(task);
         await()
                 .atMost(Duration.ofSeconds(6))
                 .until(() -> callCounter.get() == 5)
-                ;
+        ;
         assertEquals(5, callCounter.get());
         val updated = tstore.listByIds(List.of("TT")).stream().findFirst().orElse(null);
         assertNotNull(updated);

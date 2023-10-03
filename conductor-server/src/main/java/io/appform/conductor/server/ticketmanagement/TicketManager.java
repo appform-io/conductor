@@ -183,19 +183,26 @@ public class TicketManager {
         return operation.accpet(new TicketQueryOperationVisitor<>() {
             @Override
             public TicketQueryResponse visit(TicketListRequest listRequest) {
-                return switch (Objects.requireNonNullElse(listRequest.getDirection(), TicketListRequest.Direction.FORWARD)) {
+                val fields = Objects.requireNonNullElse(listRequest.getTicketDataFields(), List.<String>of());
+                val direction = Objects.requireNonNullElse(listRequest.getDirection(),
+                                                                 TicketListRequest.Direction.FORWARD);
+                return switch (direction) {
                     case FORWARD -> toGistList(listRequest.getQueryId(),
                                                ticketStore.list(ticketFilters,
                                                                 fieldFilters,
                                                                 listRequest.getNext(),
                                                                 listRequest.getSize(),
-                                                                relevantFieldSchema(ticketFilters)));
+                                                                relevantFieldSchema(ticketFilters),
+                                                                !fields.isEmpty(),
+                                                                fields));
                     case REVERSE -> toGistList(listRequest.getQueryId(),
                                                ticketStore.since(ticketFilters,
                                                                  fieldFilters,
                                                                  listRequest.getNext(),
                                                                  listRequest.getSize(),
-                                                                 relevantFieldSchema(ticketFilters)));
+                                                                 relevantFieldSchema(ticketFilters),
+                                                                 !fields.isEmpty(),
+                                                                 fields));
                 };
             }
 
@@ -239,6 +246,7 @@ public class TicketManager {
                                                            currState.map(TicketState::getDisplayName).orElse(""),
                                                            currState.map(TicketState::isTerminal).orElse(false),
                                                            skel.getPriority(),
+                                                           skel.getFields(),
                                                            skel.getCreated(),
                                                            skel.getUpdated());
                                  })
@@ -782,7 +790,9 @@ public class TicketManager {
                                 List.of(),
                                 null,
                                 1,
-                                Map.of())
+                                Map.of(),
+                                false,
+                                List.of())
                 .getResults()
                 .stream()
                 .findAny();

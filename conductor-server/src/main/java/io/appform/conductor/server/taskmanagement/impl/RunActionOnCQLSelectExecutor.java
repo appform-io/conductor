@@ -48,7 +48,7 @@ public class RunActionOnCQLSelectExecutor {
             final RunActionOnCQLSelectTaskSpec taskSpec) {
         var nextPtr = (String) taskMeta.getOrDefault(TASK_META_CURSOR, "");
         var hasMore = true;
-        val filers = cqlEngine.parse(taskSpec.getQuery()).map(CQLEngine.ParserOutput::filters).orElse(Filters.EMPTY);
+        val filers = cqlEngine.parse(taskSpec.getQuery()).map(CQLEngine.CQLParserOutput::filters).orElse(Filters.EMPTY);
         do {
             val tickets = ticketManager.since(
                     filers.ticketFilters(),

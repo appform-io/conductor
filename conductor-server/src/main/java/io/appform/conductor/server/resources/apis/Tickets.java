@@ -16,15 +16,15 @@
 
 package io.appform.conductor.server.resources.apis;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Table;
-import com.google.common.collect.TreeBasedTable;
+import com.google.common.collect.*;
 import io.appform.conductor.model.apis.ConductorApiResponse;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.analytics.*;
+import io.appform.conductor.model.ticket.fields.FieldValue;
+import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
+import io.appform.conductor.model.ticket.fields.impl.*;
 import io.appform.conductor.model.ticket.filter.Filters;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.parser.CQLEngine;
@@ -42,6 +42,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -111,6 +112,11 @@ public class Tickets {
                         .queryId(requestId)
                         .filters(Objects.requireNonNullElse(results.filters(), Filters.EMPTY))
                         .direction(TicketListRequest.Direction.FORWARD)
+                        .ticketDataFields(Objects.requireNonNullElse(results.selectedFields(),
+                                                                     List.<CQLEngine.SelectedField>of())
+                                                  .stream()
+                                                  .map(CQLEngine.SelectedField::fieldSchemaId)
+                                                  .toList())
                         .next(next)
                         .size(Math.min(200, Math.max(size, (int) results.limit())))
                         .build();
@@ -120,14 +126,36 @@ public class Tickets {
                     switch (responseFormat) {
                         case DEFAULT -> queryResponse;
                         case TABLE -> {
-                            val table = tabulate(queryResponse);
+                            val table = tabulate(queryResponse, results.selectedFields());
                             val metadata = new HashMap<String, Object>();
                             metadata.put("opCode", queryResponse.getOpCode());
                             metadata.put("requestId", queryResponse.getRequestId());
+                            metadata.put("query", query);
+                            metadata.computeIfAbsent("colHeaders",
+                                                     key -> Lists.reverse(List.copyOf(table.columnKeySet())));
                             metadata.putAll(queryResponse.accept(new TicketQueryResponseVisitor<Map<String, Object>>() {
                                 @Override
                                 public Map<String, Object> visit(TicketListResponse listResponse) {
-                                    return Map.of("next", listResponse.getNext());
+                                    return ImmutableMap.<String, Object>builder()
+                                            .put("colHeaders",
+                                                 ImmutableList.<String>builder()
+                                                         .add(TicketGist.Fields.ticketId)
+                                                         .add(TicketGist.Fields.title)
+                                                         .add(TicketGist.Fields.workflowName)
+                                                         .add(TicketGist.Fields.stateName)
+                                                         .add(TicketGist.Fields.terminated)
+                                                         .add(TicketGist.Fields.priority)
+                                                         .add(TicketGist.Fields.created)
+                                                         .add(TicketGist.Fields.updated)
+                                                         .addAll(results.selectedFields()
+                                                                         .stream()
+                                                                         .map(CQLEngine.SelectedField::name)
+                                                                         .map(name -> "fields_" + name)
+                                                                         .toList())
+                                                         .build()
+                                                )
+                                            .put("next", listResponse.getNext())
+                                            .build();
                                 }
 
                                 @Override
@@ -143,8 +171,7 @@ public class Tickets {
                                     return Map.of();
                                 }
                             }));
-                            metadata.put("query", query);
-                            metadata.computeIfAbsent("colHeaders", key -> Lists.reverse(List.copyOf(table.columnKeySet())));
+
                             yield new TabularResponse(table, metadata);
                         }
                     });
@@ -154,16 +181,19 @@ public class Tickets {
             if (e instanceof JSQLParserException) {
                 //TODO::throw
                 return new ConductorApiResponse<>(ConductorErrorCode.CQL_PARSING_ERROR,
-                                                        null,
-                                                        ConductorException.generateErrorMessage(ConductorErrorCode.CQL_PARSING_ERROR,
-                                                                                                Map.of("cqlError", e.getMessage()),
-                                                                                                null));
+                                                  null,
+                                                  ConductorException.generateErrorMessage(ConductorErrorCode.CQL_PARSING_ERROR,
+                                                                                          Map.of("cqlError",
+                                                                                                 e.getMessage()),
+                                                                                          null));
             }
             throw e;
         }
     }
 
-    private Table<Integer, String, Object> tabulate(TicketQueryResponse response) {
+    private Table<Integer, String, Object> tabulate(
+            TicketQueryResponse response,
+            List<CQLEngine.SelectedField> selectedFields) {
         val output = TreeBasedTable.<Integer, String, Object>create();
         val rowIdx = new AtomicInteger(0);
         response.accept(new TicketQueryResponseVisitor<Void>() {
@@ -180,6 +210,11 @@ public class Tickets {
                             cols.put(TicketGist.Fields.priority, gist.getPriority());
                             cols.put(TicketGist.Fields.created, gist.getCreated());
                             cols.put(TicketGist.Fields.updated, gist.getUpdated());
+                            val fieldsData = new HashMap<String, String>();
+                            gist.getFields().forEach(field -> fieldsData.put(field.getFieldSchemaId(),
+                                                                             Tickets.toString(field.getFieldValue())));
+                            selectedFields.forEach(selectedField -> cols.put(
+                                    "fields_" + selectedField.name(), fieldsData.getOrDefault(selectedField.fieldSchemaId(), "")));
                         });
                 return null;
             }
@@ -197,6 +232,40 @@ public class Tickets {
             }
         });
         return output;
+    }
+
+    private static String toString(final FieldValue fieldValue) {
+        return fieldValue.accept(new FieldValueVisitor<String>() {
+            @Override
+            public String visit(StringFieldValue stringFieldValue) {
+                return stringFieldValue.getValue();
+            }
+
+            @Override
+            public String visit(ChoiceFieldValue choiceFieldValue) {
+                return String.join(",", choiceFieldValue.getValue());
+            }
+
+            @Override
+            public String visit(BooleanFieldValue booleanFieldValue) {
+                return Boolean.toString(booleanFieldValue.isValue());
+            }
+
+            @Override
+            public String visit(NumberFieldValue numberFieldValue) {
+                return Double.toString(numberFieldValue.getValue());
+            }
+
+            @Override
+            public String visit(LocationFieldValue locationFieldValue) {
+                return String.format("{%f,%f}", locationFieldValue.getLat(), locationFieldValue.getLon());
+            }
+
+            @Override
+            public String visit(DateFieldValue dateFieldValue) {
+                return new SimpleDateFormat("dd-MM-yyyy").format(dateFieldValue.getValue());
+            }
+        });
     }
 }
 
