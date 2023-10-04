@@ -183,15 +183,19 @@ public class EventGeneratingTicketStore implements TicketStore {
 
     @Override
     public TicketTimeSeriesResponse timeSeries(
-            String requestId, List<TicketFilter> ticketFilters,
+            String requestId,
+            List<TicketFilter> ticketFilters,
             List<TicketFieldFilter> fieldFilters,
-            String groupingTicketAttribute, TimeResolution resolution, Map<String, FieldSchema> relevantFieldSchema) {
+            String groupingAttribute,
+            String secondaryGroupingTicketAttribute,
+            TimeResolution resolution,
+            Map<String, FieldSchema> relevantFieldSchema) {
         return ticketStore.timeSeries(requestId, ticketFilters,
                                       fieldFilters,
-                                      groupingTicketAttribute,
+                                      groupingAttribute,
+                                      secondaryGroupingTicketAttribute,
                                       resolution,
-                                      relevantFieldSchema
-                                     );
+                                      relevantFieldSchema);
     }
 
     @Override

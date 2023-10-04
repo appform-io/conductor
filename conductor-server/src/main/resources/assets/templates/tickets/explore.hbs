@@ -61,7 +61,7 @@
                     if(res.data.metadata.opCode=="LIST") {
                         const listOutput = $('.list-prototype').clone();
                         const table = listOutput.find('table');
-                        $('.results').append(listOutput);
+                        $('.results').prepend(listOutput);
                         listOutput.removeClass('visually-hidden')
                             .removeClass('list-prototype');
                         listOutput.find('.query-title').text(query);

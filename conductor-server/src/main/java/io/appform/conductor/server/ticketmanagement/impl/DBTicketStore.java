@@ -248,7 +248,8 @@ public class DBTicketStore implements TicketStore {
     public TicketTimeSeriesResponse timeSeries(
             String requestId, List<TicketFilter> ticketFilters,
             List<TicketFieldFilter> fieldFilters,
-            String groupingTicketAttribute, //TODO::VALIDATE NAME AND STRING TYPE
+            String groupingAttribute,
+            String secondaryGroupingTicketAttribute, //TODO::VALIDATE NAME AND STRING TYPE
             TimeResolution resolution,
             Map<String, FieldSchema> relevantFieldSchema) {
         val resultCriteria = createTicketQueryCriteria(ticketFilters, fieldFilters, relevantFieldSchema);
@@ -260,21 +261,21 @@ public class DBTicketStore implements TicketStore {
             case WEEK -> 7 * 864_000;
             case MONTH -> 30 * 864_000;
         };
-        if (!Strings.isNullOrEmpty(groupingTicketAttribute)) {
+        if (!Strings.isNullOrEmpty(secondaryGroupingTicketAttribute)) {
             resultCriteria.setProjection(Projections.projectionList()
-                                                 .add(Projections.groupProperty(groupingTicketAttribute))
                                                  .add(Projections.sqlGroupProjection(
-                                                         "floor(unix_timestamp(updated) / " + divisor + ") as " +
+                                                         "floor(unix_timestamp(" + groupingAttribute + ") / " + divisor + ") as " +
                                                                  "timestamp",
                                                          "timestamp",
                                                          new String[]{"timestamp"},
                                                          new Type[]{
                                                                  LongType.INSTANCE
                                                          }))
+                                                 .add(Projections.groupProperty(secondaryGroupingTicketAttribute))
                                                  .add(Projections.rowCount()));
         }
         else {
-            resultCriteria.setProjection(Projections.sqlGroupProjection("floor(unix_timestamp(updated) / " + divisor + ")" +
+            resultCriteria.setProjection(Projections.sqlGroupProjection("floor(unix_timestamp(" + groupingAttribute + ") / " + divisor + ")" +
                                                                                 " as timestamp, count(*) as rowcount",
                                                                         "timestamp",
                                                                         new String[]{"timestamp", "rowcount"},
@@ -291,8 +292,8 @@ public class DBTicketStore implements TicketStore {
                 .forEach(groupList -> {
                     val row = table.row(rowIdx.incrementAndGet());
                     row.put("timestamp", toDate(groupList[0], divisor));
-                    if (Strings.isNullOrEmpty(groupingTicketAttribute)) {
-                        row.put(groupingTicketAttribute, String.valueOf(groupList[1]));
+                    if (!Strings.isNullOrEmpty(secondaryGroupingTicketAttribute)) {
+                        row.put(secondaryGroupingTicketAttribute, String.valueOf(groupList[groupList.length - 2]));
                     }
                     row.put("count", groupList[groupList.length - 1]);
                 });

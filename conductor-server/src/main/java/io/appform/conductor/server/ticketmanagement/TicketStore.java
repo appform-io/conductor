@@ -161,7 +161,7 @@ public interface TicketStore {
     TicketTimeSeriesResponse timeSeries(
             String requestId, final List<TicketFilter> ticketFilters,
             final List<TicketFieldFilter> fieldFilters,
-            String groupingTicketAttribute,
+            String groupingAttribute, String secondaryGroupingTicketAttribute,
             final TimeResolution resolution,
             final Map<String, FieldSchema> relevantFieldSchema);
 

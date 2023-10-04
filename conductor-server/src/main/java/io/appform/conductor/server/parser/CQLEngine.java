@@ -23,6 +23,7 @@ import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.analytics.TicketQueryOpCode;
+import io.appform.conductor.model.ticket.analytics.TimeResolution;
 import io.appform.conductor.model.ticket.filter.Filters;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
@@ -65,7 +66,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.lowerSnake;
 @Slf4j
 public class CQLEngine {
     private static final Map<String, Class<?>> KNOWN_TICKET_ATTRIBUTES
-            = Arrays.stream(TicketSkeleton.Fields.class.getDeclaredFields())
+            = Arrays.stream(TicketSkeleton.class.getDeclaredFields())
             .collect(Collectors.toMap(Field::getName, Field::getType));
     private static final Map<String, Class<?>> KNOWN_TICKET_DATE_ATTRIBUTES
             = Maps.filterEntries(KNOWN_TICKET_ATTRIBUTES, field -> field.getValue().equals(Date.class));
@@ -81,8 +82,19 @@ public class CQLEngine {
     private final WorkflowStore workflowStore;
     private final SchemaStore schemaStore;
 
-    public record CQLParserOutput(Filters filters, List<SelectedField> selectedFields, List<String> groupingCols,
-                                  TicketQueryOpCode opCode, long limit) {
+    public record TimeSeriesDetails(TimeResolution resolution, String column) {
+        public static final TimeSeriesDetails DEFAULT = new TimeSeriesDetails(TimeResolution.DAY,
+                                                                              TicketSkeleton.Fields.updated);
+    }
+
+    public record CQLParserOutput(
+            Filters filters,
+            List<SelectedField> selectedFields,
+            List<String> groupingCols,
+            TicketQueryOpCode opCode,
+            TimeSeriesDetails timeSeriesDetails,
+            long limit
+    ) {
     }
 
     @SneakyThrows
@@ -109,9 +121,36 @@ public class CQLEngine {
         val filters = filter(workflowId, select, fieldSchema);
         val groupByTicketAttributes = new ArrayList<String>();
         val groupByExpr = select.getGroupBy();
+        val groupOpType = new AtomicReference<>(TicketQueryOpCode.LIST);
+        val timeSeriesDetails = new AtomicReference<TimeSeriesDetails>(null);
         if (null != groupByExpr) {
+            groupOpType.set(TicketQueryOpCode.GROUP);
             groupByExpr.getGroupByExpressionList()
                     .forEach(expr -> ((Expression) expr).accept(new ExpressionVisitorAdapter() {
+                        @Override
+                        public void visit(Function function) {
+                            Preconditions.checkArgument(function.getName().equals("time_bucket"),
+                                                        "Only 'time_bucket' function is allowed in group by");
+                            groupOpType.set(TicketQueryOpCode.TIME_SERIES);
+                            val paramCount = null == function.getParameters()
+                                             ? 0
+                                             : function.getParameters().size();
+                            val colName = switch (paramCount) {
+                                case 1, 2 -> {
+                                    val dateCol = fieldName(((Expression) function.getParameters().get(0)));
+                                    Preconditions.checkArgument(KNOWN_TICKET_DATE_ATTRIBUTES.containsKey(dateCol),
+                                                                "Only date columns are allowed here");
+                                    yield dateCol;
+                                }
+                                default -> TicketSkeleton.Fields.updated;
+                            };
+                            val resolution = (paramCount > 1)
+                                             ? TimeResolution.valueOf(((StringValue) function.getParameters()
+                                    .get(1)).getValue())
+                                             : TimeResolution.DAY;
+                            timeSeriesDetails.set(new TimeSeriesDetails(resolution, colName));
+                        }
+
                         @Override
                         public void visit(Column column) {
                             val colName = column.getFullyQualifiedName();
@@ -139,7 +178,8 @@ public class CQLEngine {
         return Optional.of(new CQLParserOutput(filters,
                                                selectedFields.getSecond(),
                                                groupByTicketAttributes,
-                                               null,
+                                               groupOpType.get(),
+                                               timeSeriesDetails.get(),
                                                limit.get()));
     }
 
@@ -352,7 +392,7 @@ public class CQLEngine {
             public void visit(Between expr) {
                 val name = fieldName(expr.getLeftExpression());
                 val elementType = elementType(name, schema).orElse(null);
-
+                Preconditions.checkNotNull(elementType, "Element type in between expression could not be determined");
                 ensureTicketAttributeOrTicketField(elementType);
 
                 val fieldSchema = schema.get(name);

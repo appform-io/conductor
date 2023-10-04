@@ -20,8 +20,6 @@ import io.appform.conductor.model.ticket.filter.Filters;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
-import java.util.Set;
-
 /**
  *
  */
@@ -30,7 +28,7 @@ import java.util.Set;
 @ToString(callSuper = true)
 public class TicketTimeSeriesRequest extends TicketQueryRequest {
     String groupingTicketAttribute;
-    Set<String> distinctValues;
+    String secondaryGroupingBy;
     TimeResolution resolution;
 
     @Builder
@@ -38,13 +36,12 @@ public class TicketTimeSeriesRequest extends TicketQueryRequest {
     public TicketTimeSeriesRequest(
             String queryId,
             Filters filters,
-            ResponseFormat responseFormat,
             String groupingTicketAttribute,
-            Set<String> distinctValues,
+            String secondaryGroupingBy,
             TimeResolution resolution) {
         super(TicketQueryOpCode.TIME_SERIES, queryId, filters);
         this.groupingTicketAttribute = groupingTicketAttribute;
-        this.distinctValues = distinctValues;
+        this.secondaryGroupingBy = secondaryGroupingBy;
         this.resolution = resolution;
     }
 

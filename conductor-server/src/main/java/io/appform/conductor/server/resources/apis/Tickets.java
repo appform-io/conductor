@@ -43,7 +43,10 @@ import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.appform.conductor.server.resources.apis.Analytics.translateToTicketFilters;
@@ -97,20 +100,12 @@ public class Tickets {
             if (null == results) {
                 return ConductorApiResponse.success(null);
             }
-            var ticketRequest = (TicketQueryRequest) null;
-            val cols = new ArrayList<String>();
-            if (null != results.groupingCols() && !results.groupingCols().isEmpty()) {
-                ticketRequest = TicketGroupRequest.builder()
+            val filters = Objects.requireNonNullElse(results.filters(), Filters.EMPTY);
+            val ticketRequest = switch (results.opCode()) {
+
+                case LIST -> TicketListRequest.builder()
                         .queryId(requestId)
-                        .filters(results.filters())
-                        .groupingFields(results.groupingCols())
-                        .build();
-                cols.addAll(results.groupingCols());
-            }
-            else {
-                ticketRequest = TicketListRequest.builder()
-                        .queryId(requestId)
-                        .filters(Objects.requireNonNullElse(results.filters(), Filters.EMPTY))
+                        .filters(filters)
                         .direction(TicketListRequest.Direction.FORWARD)
                         .ticketDataFields(Objects.requireNonNullElse(results.selectedFields(),
                                                                      List.<CQLEngine.SelectedField>of())
@@ -120,7 +115,27 @@ public class Tickets {
                         .next(next)
                         .size(Math.min(200, Math.max(size, (int) results.limit())))
                         .build();
-            }
+                case GROUP -> TicketGroupRequest.builder()
+                        .queryId(requestId)
+                        .filters(filters)
+                        .groupingFields(results.groupingCols())
+                        .build();
+                case TIME_SERIES -> {
+                    val timeSeriesDetails = Objects.requireNonNullElse(results.timeSeriesDetails(),
+                                                                             CQLEngine.TimeSeriesDetails.DEFAULT);
+                    val secondaryGroupingAttribute = Objects.requireNonNullElse(results.groupingCols(), List.<String>of())
+                            .stream()
+                            .findFirst()
+                            .orElse(null);
+                    yield TicketTimeSeriesRequest.builder()
+                            .queryId(requestId)
+                            .filters(filters)
+                            .resolution(timeSeriesDetails.resolution())
+                            .groupingTicketAttribute(timeSeriesDetails.column())
+                            .secondaryGroupingBy(secondaryGroupingAttribute)
+                            .build();
+                }
+            };
             val queryResponse = ticketManager.query(ticketRequest);
             return ConductorApiResponse.success(
                     switch (responseFormat) {
@@ -227,7 +242,7 @@ public class Tickets {
 
             @Override
             public Void visit(TicketTimeSeriesResponse timeSeriesResponse) {
-
+                output.putAll(timeSeriesResponse.getSeries());
                 return null;
             }
         });

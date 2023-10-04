@@ -221,9 +221,9 @@ public class TicketManager {
                                               ticketFilters,
                                               fieldFilters,
                                               timeseriesRequest.getGroupingTicketAttribute(),
+                                              timeseriesRequest.getSecondaryGroupingBy(),
                                               timeseriesRequest.getResolution(),
-                                              relevantFieldSchema(ticketFilters)
-                                             );
+                                              relevantFieldSchema(ticketFilters));
             }
         });
     }
