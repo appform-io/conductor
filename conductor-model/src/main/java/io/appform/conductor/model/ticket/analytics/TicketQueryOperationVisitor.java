@@ -24,5 +24,4 @@ public interface TicketQueryOperationVisitor<T> {
 
     T visit(TicketGroupRequest groupRequest);
 
-    T visit(TicketTimeSeriesRequest timeseriesRequest);
 }

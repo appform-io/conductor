@@ -30,6 +30,7 @@ import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.ticket.TicketDetails;
 import io.appform.conductor.model.ticket.TicketSummary;
+import io.appform.conductor.model.ticket.analytics.GroupingElement;
 import io.appform.conductor.model.ticket.fields.FieldValue;
 import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
 import io.appform.conductor.model.ticket.fields.TicketField;
@@ -344,7 +345,12 @@ public class ConductorServerUtils {
     }
 
 
- }
+    public static List<String> aliasesForGroupingElements(List<GroupingElement> groupingElements) {
+        return groupingElements.stream()
+                .map(GroupingElement::getAlias)
+                .toList();
+    }
+}
 
 
 

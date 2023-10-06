@@ -24,9 +24,7 @@ import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.ticket.TicketPriority;
-import io.appform.conductor.model.ticket.analytics.TicketGroupResponse;
-import io.appform.conductor.model.ticket.analytics.TicketTimeSeriesResponse;
-import io.appform.conductor.model.ticket.analytics.TimeResolution;
+import io.appform.conductor.model.ticket.analytics.*;
 import io.appform.conductor.model.ticket.comments.Attachment;
 import io.appform.conductor.model.ticket.comments.Comment;
 import io.appform.conductor.model.ticket.fields.TicketField;
@@ -66,10 +64,12 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.*;
 import static org.hibernate.criterion.CriteriaSpecification.DISTINCT_ROOT_ENTITY;
@@ -226,10 +226,54 @@ public class DBTicketStore implements TicketStore {
             List<TicketFilter> ticketFilters,
             List<TicketFieldFilter> fieldFilters,
             Map<String, FieldSchema> relevantFieldSchema,
-            List<String> ticketPropertyNames) {
+            List<GroupingElement> groupingElements) {
         val resultCriteria = createTicketQueryCriteria(ticketFilters, fieldFilters, relevantFieldSchema);
         val groupQuery = Projections.projectionList();
-        ticketPropertyNames.forEach(property -> groupQuery.add(Projections.groupProperty(property)));
+        val aliasedElements = groupingElements.stream()
+                .map(groupingElement -> groupingElement.accept(new GroupingElementVisitor<GroupingElement>() {
+                    @Override
+                    public GroupingElement visit(ColumnGroupingElement columnGroupingElement) {
+                        return new ColumnGroupingElement(columnGroupingElement.getAttribute(),
+                                                         Objects.requireNonNullElse(columnGroupingElement.getAlias(),
+                                                                                    columnGroupingElement.getAttribute()));
+                    }
+
+                    @Override
+                    public GroupingElement visit(TimeBucketGroupingElement timeBucketGroupingElement) {
+                        return new TimeBucketGroupingElement(timeBucketGroupingElement.getDateAttribute(),
+                                                             timeBucketGroupingElement.getResolution(),
+                                                             Objects.requireNonNullElse(timeBucketGroupingElement.getAlias(),
+                                                                                        "timestamp"));
+                    }
+                }))
+                .toList();
+        aliasedElements.forEach(element -> element.accept(new GroupingElementVisitor<Void>() {
+            @Override
+            public Void visit(ColumnGroupingElement columnGroupingElement) {
+                groupQuery.add(Projections.alias(Projections.groupProperty(columnGroupingElement.getAttribute()),
+                                                 columnGroupingElement.getAlias()));
+                return null;
+            }
+
+            @Override
+            public Void visit(TimeBucketGroupingElement timeBucketGroupingElement) {
+                val divisor = switch (timeBucketGroupingElement.getResolution()) {
+                    case MINUTE -> 60;
+                    case HOUR -> 36_00;
+                    case DAY -> 864_000;
+                    case WEEK -> 7 * 864_000;
+                    case MONTH -> 30 * 864_000;
+                };
+                groupQuery.add(Projections.sqlGroupProjection(
+                        "floor(unix_timestamp(" + timeBucketGroupingElement.getDateAttribute() + ") / " + divisor +
+                                ") as " +
+                                timeBucketGroupingElement.getAlias(),
+                        timeBucketGroupingElement.getAlias(),
+                        new String[]{timeBucketGroupingElement.getAlias()},
+                        new Type[]{LongType.INSTANCE}));
+                return null;
+            }
+        }));
         groupQuery.add(Projections.rowCount());
         resultCriteria.setProjection(groupQuery);
         val queryResults = ticketDao.run(resultCriteria);
@@ -238,67 +282,10 @@ public class DBTicketStore implements TicketStore {
                 .map(list -> (List<Object[]>) list)
                 .flatMap(List::stream)
                 .toList();
-        final var table = parseGroupResponse(ticketPropertyNames, rows);
+        val aliases = ConductorServerUtils.aliasesForGroupingElements(aliasedElements);
+        val table = parseGroupResponse(aliasedElements, rows);
 
         return new TicketGroupResponse(requestId, table);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public TicketTimeSeriesResponse timeSeries(
-            String requestId, List<TicketFilter> ticketFilters,
-            List<TicketFieldFilter> fieldFilters,
-            String groupingAttribute,
-            String secondaryGroupingTicketAttribute, //TODO::VALIDATE NAME AND STRING TYPE
-            TimeResolution resolution,
-            Map<String, FieldSchema> relevantFieldSchema) {
-        val resultCriteria = createTicketQueryCriteria(ticketFilters, fieldFilters, relevantFieldSchema);
-        val divisor = switch (resolution) {
-
-            case MINUTE -> 60;
-            case HOUR -> 36_00;
-            case DAY -> 864_000;
-            case WEEK -> 7 * 864_000;
-            case MONTH -> 30 * 864_000;
-        };
-        if (!Strings.isNullOrEmpty(secondaryGroupingTicketAttribute)) {
-            resultCriteria.setProjection(Projections.projectionList()
-                                                 .add(Projections.sqlGroupProjection(
-                                                         "floor(unix_timestamp(" + groupingAttribute + ") / " + divisor + ") as " +
-                                                                 "timestamp",
-                                                         "timestamp",
-                                                         new String[]{"timestamp"},
-                                                         new Type[]{
-                                                                 LongType.INSTANCE
-                                                         }))
-                                                 .add(Projections.groupProperty(secondaryGroupingTicketAttribute))
-                                                 .add(Projections.rowCount()));
-        }
-        else {
-            resultCriteria.setProjection(Projections.sqlGroupProjection("floor(unix_timestamp(" + groupingAttribute + ") / " + divisor + ")" +
-                                                                                " as timestamp, count(*) as rowcount",
-                                                                        "timestamp",
-                                                                        new String[]{"timestamp", "rowcount"},
-                                                                        new Type[]{LongType.INSTANCE,
-                                                                                LongType.INSTANCE}));
-        }
-        val table = TreeBasedTable.<Integer, String, Object>create();
-        val rowIdx = new AtomicInteger(0);
-        val queryResults = ticketDao.run(resultCriteria);
-        queryResults.values()
-                .stream()
-                .map(list -> (List<Object[]>) list)
-                .flatMap(List::stream)
-                .forEach(groupList -> {
-                    val row = table.row(rowIdx.incrementAndGet());
-                    row.put("timestamp", toDate(groupList[0], divisor));
-                    if (!Strings.isNullOrEmpty(secondaryGroupingTicketAttribute)) {
-                        row.put(secondaryGroupingTicketAttribute, String.valueOf(groupList[groupList.length - 2]));
-                    }
-                    row.put("count", groupList[groupList.length - 1]);
-                });
-
-        return new TicketTimeSeriesResponse(requestId, table);
     }
 
     @Override
@@ -473,13 +460,43 @@ public class DBTicketStore implements TicketStore {
     }
 
     private static TreeBasedTable<Integer, String, Object> parseGroupResponse(
-            List<String> ticketPropertyNames,
+            List<GroupingElement> groupingElements,
             List<Object[]> rows) {
         val output = new HashMap<List<String>, Long>();
+        val formats = EnumSet.allOf(TimeResolution.class)
+                .stream()
+                .collect(Collectors.toMap(Function.identity(), resolution -> switch (resolution) {
+                    case MINUTE -> new SimpleDateFormat("yyyy-MM-dd HH:mm");
+                    case HOUR -> new SimpleDateFormat("yyyy-MM-dd HH");
+                    case DAY -> new SimpleDateFormat("yyyy-MM-dd");
+                    case WEEK -> new SimpleDateFormat("yyyy ww");
+                    case MONTH -> new SimpleDateFormat("yyyy-MM");
+                }));
         for (val row : rows) {
             val key = new ArrayList<String>(row.length - 1);
             for (var colId = 0; colId < row.length - 1; colId++) {
-                key.add(Objects.toString(row[colId]));
+                int finalColId = colId;
+                key.add(groupingElements.get(colId)
+                                .accept(new GroupingElementVisitor<String>() {
+                                    @Override
+                                    public String visit(ColumnGroupingElement columnGroupingElement) {
+                                        return Objects.toString(row[finalColId]);
+                                    }
+
+                                    @Override
+                                    public String visit(TimeBucketGroupingElement timeBucketGroupingElement) {
+                                        val divisor = switch (timeBucketGroupingElement.getResolution()) {
+
+                                            case MINUTE -> 60;
+                                            case HOUR -> 36_00;
+                                            case DAY -> 864_000;
+                                            case WEEK -> 7 * 864_000;
+                                            case MONTH -> 30 * 864_000;
+                                        };
+                                        return formats.get(timeBucketGroupingElement.getResolution())
+                                                .format(toDate(row[finalColId], divisor));
+                                    }
+                                }));
             }
             val oldValue = output.computeIfAbsent(key, k -> 0L);
             output.put(key, oldValue + (long) row[row.length - 1]);
@@ -490,7 +507,7 @@ public class DBTicketStore implements TicketStore {
                 .forEach((keys, value) -> {
                     val row = table.row(rowIdx.incrementAndGet());
                     for (int i = 0; i < keys.size(); i++) {
-                        row.put(ticketPropertyNames.get(i), keys.get(i));
+                        row.put(groupingElements.get(i).getAlias(), keys.get(i));
                     }
                     row.put("count", value);
                 });

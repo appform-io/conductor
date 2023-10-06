@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.schema.fields.NumberFieldSchema;
 import io.appform.conductor.model.schema.fields.StringFieldSchema;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.analytics.ColumnGroupingElement;
 import io.appform.conductor.model.ticket.fields.impl.BooleanFieldValue;
 import io.appform.conductor.model.ticket.fields.impl.NumberFieldValue;
 import io.appform.conductor.model.ticket.fields.impl.StringFieldValue;
@@ -203,8 +204,8 @@ class DBTicketStoreTest {
                                       List.of(),
                                       List.of(new TicketFieldEquals("TF003", 23.0)),
                                       relevantFieldSchema,
-                                      List.of(StoredTicketSkeleton.Fields.priority,
-                                              StoredTicketSkeleton.Fields.ticketStateId));
+                                      List.of(new ColumnGroupingElement(StoredTicketSkeleton.Fields.priority,null),
+                                              new ColumnGroupingElement(StoredTicketSkeleton.Fields.ticketStateId, null)));
         /*assertEquals(2, groups.getCounts().rowKeySet().size());
         assertEquals(1, groups.getCounts().columnMap().get("HIGH").getCounts().size());
         assertEquals(1, groups.getCounts().getChildren().get("HIGH").getCounts().get("TS001"));

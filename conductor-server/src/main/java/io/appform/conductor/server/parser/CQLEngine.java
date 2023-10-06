@@ -22,8 +22,7 @@ import com.google.common.collect.Maps;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.ticket.TicketPriority;
-import io.appform.conductor.model.ticket.analytics.TicketQueryOpCode;
-import io.appform.conductor.model.ticket.analytics.TimeResolution;
+import io.appform.conductor.model.ticket.analytics.*;
 import io.appform.conductor.model.ticket.filter.Filters;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
@@ -90,7 +89,7 @@ public class CQLEngine {
     public record CQLParserOutput(
             Filters filters,
             List<SelectedField> selectedFields,
-            List<String> groupingCols,
+            List<GroupingElement> groupingElements,
             TicketQueryOpCode opCode,
             TimeSeriesDetails timeSeriesDetails,
             long limit
@@ -119,7 +118,7 @@ public class CQLEngine {
         val selectedFields = selectedFields(select, fieldSchema);
         log.debug("Fields selected: {}", selectedFields);
         val filters = filter(workflowId, select, fieldSchema);
-        val groupByTicketAttributes = new ArrayList<String>();
+        val groupingElements = new ArrayList<GroupingElement>();
         val groupByExpr = select.getGroupBy();
         val groupOpType = new AtomicReference<>(TicketQueryOpCode.LIST);
         val timeSeriesDetails = new AtomicReference<TimeSeriesDetails>(null);
@@ -131,7 +130,7 @@ public class CQLEngine {
                         public void visit(Function function) {
                             Preconditions.checkArgument(function.getName().equals("time_bucket"),
                                                         "Only 'time_bucket' function is allowed in group by");
-                            groupOpType.set(TicketQueryOpCode.TIME_SERIES);
+//                            groupOpType.set(TicketQueryOpCode.TIME_SERIES);
                             val paramCount = null == function.getParameters()
                                              ? 0
                                              : function.getParameters().size();
@@ -148,7 +147,8 @@ public class CQLEngine {
                                              ? TimeResolution.valueOf(((StringValue) function.getParameters()
                                     .get(1)).getValue())
                                              : TimeResolution.DAY;
-                            timeSeriesDetails.set(new TimeSeriesDetails(resolution, colName));
+//                            timeSeriesDetails.set(new TimeSeriesDetails(resolution, colName));
+                            groupingElements.add(new TimeBucketGroupingElement(colName, resolution, colName));
                         }
 
                         @Override
@@ -159,7 +159,7 @@ public class CQLEngine {
                                                                 && KNOWN_TICKET_ATTRIBUTES.containsKey(colName),
                                                         "Only ticket attributes are allowed in group by clause. Expr:" +
                                                                 " " + groupByExpr);
-                            groupByTicketAttributes.add(colName);
+                            groupingElements.add(new ColumnGroupingElement(colName, colName));
                         }
                     }));
         }
@@ -177,7 +177,7 @@ public class CQLEngine {
         }
         return Optional.of(new CQLParserOutput(filters,
                                                selectedFields.getSecond(),
-                                               groupByTicketAttributes,
+                                               groupingElements,
                                                groupOpType.get(),
                                                timeSeriesDetails.get(),
                                                limit.get()));

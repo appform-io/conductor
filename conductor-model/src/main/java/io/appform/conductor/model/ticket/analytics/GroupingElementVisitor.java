@@ -19,9 +19,9 @@ package io.appform.conductor.model.ticket.analytics;
 /**
  *
  */
-public interface TicketQueryResponseVisitor<T> {
-    T visit(TicketListResponse listResponse);
+public interface GroupingElementVisitor<T> {
 
-    T visit(TicketGroupResponse groupResponse);
+    T visit(ColumnGroupingElement columnGroupingElement);
 
+    T visit(TimeBucketGroupingElement timeBucketGroupingElement);
 }

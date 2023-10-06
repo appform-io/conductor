@@ -4,9 +4,8 @@ import com.google.common.net.MediaType;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.analytics.GroupingElement;
 import io.appform.conductor.model.ticket.analytics.TicketGroupResponse;
-import io.appform.conductor.model.ticket.analytics.TicketTimeSeriesResponse;
-import io.appform.conductor.model.ticket.analytics.TimeResolution;
 import io.appform.conductor.model.ticket.comments.Attachment;
 import io.appform.conductor.model.ticket.comments.Comment;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
@@ -173,29 +172,12 @@ public class EventGeneratingTicketStore implements TicketStore {
             List<TicketFilter> ticketFilters,
             List<TicketFieldFilter> fieldFilters,
             Map<String, FieldSchema> relevantFieldSchema,
-            List<String> ticketPropertyNames) {
+            List<GroupingElement> groupingElements) {
         return ticketStore.groupCount(requestId,
                                       ticketFilters,
                                       fieldFilters,
                                       relevantFieldSchema,
-                                      ticketPropertyNames);
-    }
-
-    @Override
-    public TicketTimeSeriesResponse timeSeries(
-            String requestId,
-            List<TicketFilter> ticketFilters,
-            List<TicketFieldFilter> fieldFilters,
-            String groupingAttribute,
-            String secondaryGroupingTicketAttribute,
-            TimeResolution resolution,
-            Map<String, FieldSchema> relevantFieldSchema) {
-        return ticketStore.timeSeries(requestId, ticketFilters,
-                                      fieldFilters,
-                                      groupingAttribute,
-                                      secondaryGroupingTicketAttribute,
-                                      resolution,
-                                      relevantFieldSchema);
+                                      groupingElements);
     }
 
     @Override

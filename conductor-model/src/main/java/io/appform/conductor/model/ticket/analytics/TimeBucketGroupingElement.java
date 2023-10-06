@@ -16,7 +16,6 @@
 
 package io.appform.conductor.model.ticket.analytics;
 
-import com.google.common.collect.TreeBasedTable;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -29,22 +28,22 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TicketTimeSeriesResponse extends TicketQueryResponse {
-    public static final String DEFAULT_FIELD = "_series_";
-    /**
-     * Map of time series. Each map key is a dataset to be rendered.
-     */
-    TreeBasedTable<Integer, String, Object> series;
+public class TimeBucketGroupingElement extends GroupingElement {
+    String dateAttribute;
+    TimeResolution resolution;
 
     @Builder
     @Jacksonized
-    public TicketTimeSeriesResponse(String requestId, TreeBasedTable<Integer, String, Object> series) {
-        super(TicketQueryOpCode.TIME_SERIES, requestId);
-        this.series = series;
+    public TimeBucketGroupingElement(
+            String dateAttribute,
+            TimeResolution resolution, String alias) {
+        super(Type.COLUMN, alias);
+        this.dateAttribute = dateAttribute;
+        this.resolution = resolution;
     }
 
     @Override
-    public <T> T accept(TicketQueryResponseVisitor<T> visitor) {
+    public <T> T accept(GroupingElementVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

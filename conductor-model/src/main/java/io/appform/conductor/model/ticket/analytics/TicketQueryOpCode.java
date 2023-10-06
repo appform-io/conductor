@@ -21,6 +21,5 @@ package io.appform.conductor.model.ticket.analytics;
  */
 public enum TicketQueryOpCode {
     LIST,
-    GROUP,
-    TIME_SERIES
+    GROUP
 }

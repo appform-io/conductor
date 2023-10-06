@@ -16,12 +16,26 @@
 
 package io.appform.conductor.model.ticket.analytics;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Data;
+
 /**
  *
  */
-public interface TicketQueryResponseVisitor<T> {
-    T visit(TicketListResponse listResponse);
+@Data
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+public abstract class GroupingElement {
+    public enum Type {
+        COLUMN,
+        TIME_BUCKET
+    }
 
-    T visit(TicketGroupResponse groupResponse);
+    private final Type type;
+    private final String alias;
+    protected GroupingElement(Type type, String alias) {
+        this.type = type;
+        this.alias = alias;
+    }
 
+    public abstract <T> T accept(final GroupingElementVisitor<T> visitor);
 }

@@ -29,6 +29,7 @@ import io.appform.conductor.model.ticket.filter.Filters;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -118,23 +119,8 @@ public class Tickets {
                 case GROUP -> TicketGroupRequest.builder()
                         .queryId(requestId)
                         .filters(filters)
-                        .groupingFields(results.groupingCols())
+                        .groupingFields(results.groupingElements())
                         .build();
-                case TIME_SERIES -> {
-                    val timeSeriesDetails = Objects.requireNonNullElse(results.timeSeriesDetails(),
-                                                                             CQLEngine.TimeSeriesDetails.DEFAULT);
-                    val secondaryGroupingAttribute = Objects.requireNonNullElse(results.groupingCols(), List.<String>of())
-                            .stream()
-                            .findFirst()
-                            .orElse(null);
-                    yield TicketTimeSeriesRequest.builder()
-                            .queryId(requestId)
-                            .filters(filters)
-                            .resolution(timeSeriesDetails.resolution())
-                            .groupingTicketAttribute(timeSeriesDetails.column())
-                            .secondaryGroupingBy(secondaryGroupingAttribute)
-                            .build();
-                }
             };
             val queryResponse = ticketManager.query(ticketRequest);
             return ConductorApiResponse.success(
@@ -176,15 +162,11 @@ public class Tickets {
                                 @Override
                                 public Map<String, Object> visit(TicketGroupResponse groupResponse) {
                                     return Map.of("colHeaders", ImmutableList.builder()
-                                            .addAll(results.groupingCols())
+                                            .addAll(ConductorServerUtils.aliasesForGroupingElements(results.groupingElements()))
                                             .add("count")
                                             .build());
                                 }
 
-                                @Override
-                                public Map<String, Object> visit(TicketTimeSeriesResponse timeSeriesResponse) {
-                                    return Map.of();
-                                }
                             }));
 
                             yield new TabularResponse(table, metadata);
@@ -240,11 +222,6 @@ public class Tickets {
                 return null;
             }
 
-            @Override
-            public Void visit(TicketTimeSeriesResponse timeSeriesResponse) {
-                output.putAll(timeSeriesResponse.getSeries());
-                return null;
-            }
         });
         return output;
     }

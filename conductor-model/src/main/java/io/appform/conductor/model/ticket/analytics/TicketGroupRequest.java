@@ -33,7 +33,7 @@ public class TicketGroupRequest extends TicketQueryRequest {
 
 //    List<GroupFunction> functions;
     @NotEmpty
-    List<String> groupingFields;
+    List<GroupingElement> groupingFields;
 
     @Builder
     @Jacksonized
@@ -41,7 +41,7 @@ public class TicketGroupRequest extends TicketQueryRequest {
             String queryId,
             Filters filters,
 //            List<GroupFunction> functions,
-            List<String> groupingFields) {
+            List<GroupingElement> groupingFields) {
         super(TicketQueryOpCode.GROUP, queryId, filters);
 //        this.functions = functions;
         this.groupingFields = groupingFields;

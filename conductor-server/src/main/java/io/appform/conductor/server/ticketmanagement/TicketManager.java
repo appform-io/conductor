@@ -214,17 +214,6 @@ public class TicketManager {
                                               relevantFieldSchema(ticketFilters),
                                               groupRequest.getGroupingFields());
             }
-
-            @Override
-            public TicketQueryResponse visit(TicketTimeSeriesRequest timeseriesRequest) {
-                return ticketStore.timeSeries(timeseriesRequest.getQueryId(),
-                                              ticketFilters,
-                                              fieldFilters,
-                                              timeseriesRequest.getGroupingTicketAttribute(),
-                                              timeseriesRequest.getSecondaryGroupingBy(),
-                                              timeseriesRequest.getResolution(),
-                                              relevantFieldSchema(ticketFilters));
-            }
         });
     }
 
@@ -263,22 +252,8 @@ public class TicketManager {
                                                                    .ticketFilters(ticketFilters)
                                                                    .fieldFilters(fieldFilters)
                                                                    .build())
-                                                  .groupingFields(List.of(ticketPropertyName))
+                                                  .groupingFields(List.of(new ColumnGroupingElement(ticketPropertyName, ticketPropertyName)))
                                                   .build());
-    }
-
-    public TicketTimeSeriesResponse timeSeries(
-            final List<TicketFilter> ticketFilters,
-            final List<TicketFieldFilter> fieldFilters,
-            final TimeResolution resolution) {
-        return (TicketTimeSeriesResponse)query(TicketTimeSeriesRequest
-                                                       .builder()
-                                                       .filters(Filters.builder()
-                                                                        .ticketFilters(ticketFilters)
-                                                                        .fieldFilters(fieldFilters)
-                                                                        .build())
-                                                       .resolution(resolution)
-                                                       .build());
     }
 
     @SneakyThrows

@@ -20,8 +20,6 @@ import com.google.common.base.Strings;
 import io.appform.conductor.model.apis.ConductorApiResponse;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.analytics.TicketGroupResponse;
-import io.appform.conductor.model.ticket.analytics.TimeResolution;
-import io.appform.conductor.model.ticket.analytics.TicketTimeSeriesResponse;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import io.appform.conductor.server.auth.ConductorUser;
@@ -34,7 +32,6 @@ import org.hibernate.validator.constraints.Length;
 import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -75,28 +72,6 @@ public class Analytics {
                                                      createdById,
                                                      assignedToId);
         return ConductorApiResponse.success(ticketManager.groupCount(ticketFilters, List.of(), ticketPropertyName));
-    }
-
-    @GET
-    @Path("/timeseries")
-    public ConductorApiResponse<TicketTimeSeriesResponse> groupCount(
-            @Auth ConductorUser user,
-            @QueryParam("workflowId") @Length(max = 45) String workflowId,
-            @QueryParam("priority") final TicketPriority priority,
-            @QueryParam("stateIds") @Length(max = 45) final String stateId,
-            @QueryParam("subjectId") @Length(max = 45) String subjectId,
-            @QueryParam("groupId") @Length(max = 45) String groupId,
-            @QueryParam("createdById") @Length(max = 45) String createdById,
-            @QueryParam("assignedToId") @Length(max = 45) String assignedToId,
-            @QueryParam("resolution") @NotNull TimeResolution resolution) {
-        val ticketFilters = translateToTicketFilters(workflowId,
-                                                     priority,
-                                                     stateId,
-                                                     subjectId,
-                                                     groupId,
-                                                     createdById,
-                                                     assignedToId);
-        return ConductorApiResponse.success(ticketManager.timeSeries(ticketFilters, List.of(), resolution));
     }
 
     public static List<TicketFilter> translateToTicketFilters(

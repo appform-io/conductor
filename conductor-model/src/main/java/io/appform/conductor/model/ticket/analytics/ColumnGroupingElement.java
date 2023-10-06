@@ -16,8 +16,10 @@
 
 package io.appform.conductor.model.ticket.analytics;
 
-import io.appform.conductor.model.ticket.filter.Filters;
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
 /**
@@ -26,27 +28,18 @@ import lombok.extern.jackson.Jacksonized;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TicketTimeSeriesRequest extends TicketQueryRequest {
-    String groupingTicketAttribute;
-    String secondaryGroupingBy;
-    TimeResolution resolution;
+public class ColumnGroupingElement extends GroupingElement {
+    String attribute;
 
     @Builder
     @Jacksonized
-    public TicketTimeSeriesRequest(
-            String queryId,
-            Filters filters,
-            String groupingTicketAttribute,
-            String secondaryGroupingBy,
-            TimeResolution resolution) {
-        super(TicketQueryOpCode.TIME_SERIES, queryId, filters);
-        this.groupingTicketAttribute = groupingTicketAttribute;
-        this.secondaryGroupingBy = secondaryGroupingBy;
-        this.resolution = resolution;
+    public ColumnGroupingElement(String attribute, String alias) {
+        super(Type.COLUMN, alias);
+        this.attribute = attribute;
     }
 
     @Override
-    public <T> T accpet(TicketQueryOperationVisitor<T> visitor) {
+    public <T> T accept(GroupingElementVisitor<T> visitor) {
         return visitor.visit(this);
     }
 }

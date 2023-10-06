@@ -156,14 +156,7 @@ public interface TicketStore {
             final List<TicketFilter> ticketFilters,
             final List<TicketFieldFilter> fieldFilters,
             final Map<String, FieldSchema> relevantFieldSchema,
-            final List<String> ticketPropertyNames);
-
-    TicketTimeSeriesResponse timeSeries(
-            String requestId, final List<TicketFilter> ticketFilters,
-            final List<TicketFieldFilter> fieldFilters,
-            String groupingAttribute, String secondaryGroupingTicketAttribute,
-            final TimeResolution resolution,
-            final Map<String, FieldSchema> relevantFieldSchema);
+            final List<GroupingElement> groupingElements);
 
     Optional<Comment> addComment(
             final String ticketId,
