@@ -38,6 +38,7 @@ import io.appform.conductor.model.ticket.fields.impl.*;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.ticketmanagement.statemachine.models.TicketStateMachineContext;
 import io.appform.conductor.server.usermanagement.CurrentUserSessionStore;
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.val;
 import org.apache.hc.client5.http.config.ConnectionConfig;
@@ -54,6 +55,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import java.io.*;
 import java.net.URI;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -349,6 +351,19 @@ public class ConductorServerUtils {
         return groupingElements.stream()
                 .map(GroupingElement::getAlias)
                 .toList();
+    }
+
+    @SneakyThrows
+    @SuppressWarnings("unchecked")
+    public static <T extends Serializable> T cloneObject(final T input) {
+        try (val bos = new ByteArrayOutputStream(); val os = new ObjectOutputStream(bos)) {
+            os.writeObject(input);
+            os.flush();
+
+            try(val ois = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()))) {
+                return (T) ois.readObject();
+            }
+        }
     }
 }
 

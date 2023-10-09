@@ -40,7 +40,7 @@ import java.util.Objects;
  * Storage model for {@link io.appform.conductor.server.ticketmanagement.TicketSkeleton}
  */
 @Entity
-@Table(name = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME)
+@Table(name = StoredTicketSkeleton.TICKET_SKELETON_TABLE_NAME)
 @DynamicUpdate
 @Getter
 @Setter
@@ -49,7 +49,7 @@ import java.util.Objects;
 @NoArgsConstructor
 public class StoredTicketSkeleton implements Serializable {
 
-    public static final String TICKET_SUMMARY_TABLE_NAME = "ticket_skeletons";
+    public static final String TICKET_SKELETON_TABLE_NAME = "ticket_skeletons";
     @Serial
     private static final long serialVersionUID = -9138428302273551724L;
 

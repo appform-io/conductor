@@ -188,13 +188,13 @@ public class TicketManager {
                                                                  TicketListRequest.Direction.FORWARD);
                 return switch (direction) {
                     case FORWARD -> toGistList(listRequest.getQueryId(),
-                                               ticketStore.list(ticketFilters,
-                                                                fieldFilters,
-                                                                listRequest.getNext(),
-                                                                listRequest.getSize(),
-                                                                relevantFieldSchema(ticketFilters),
-                                                                !fields.isEmpty(),
-                                                                fields));
+                                               ticketStore.older(ticketFilters,
+                                                                 fieldFilters,
+                                                                 listRequest.getNext(),
+                                                                 listRequest.getSize(),
+                                                                 relevantFieldSchema(ticketFilters),
+                                                                 !fields.isEmpty(),
+                                                                 fields));
                     case REVERSE -> toGistList(listRequest.getQueryId(),
                                                ticketStore.since(ticketFilters,
                                                                  fieldFilters,
@@ -759,15 +759,15 @@ public class TicketManager {
 
     private Optional<TicketSkeleton> checkForSubjectTicket(Workflow workflow, SubjectSummary subjectSummary) {
         val terminalStates = findTerminalStates(workflow);
-        return ticketStore.list(List.of(new TicketWorkflowEquals(workflow.getId()),
-                                        new TicketSubjectEquals(subjectSummary.getGlobalId()),
-                                        new TicketStateIn(terminalStates, true)),
-                                List.of(),
-                                null,
-                                1,
-                                Map.of(),
-                                false,
-                                List.of())
+        return ticketStore.older(List.of(new TicketWorkflowEquals(workflow.getId()),
+                                         new TicketSubjectEquals(subjectSummary.getGlobalId()),
+                                         new TicketStateIn(terminalStates, true)),
+                                 List.of(),
+                                 null,
+                                 1,
+                                 Map.of(),
+                                 false,
+                                 List.of())
                 .getResults()
                 .stream()
                 .findAny();

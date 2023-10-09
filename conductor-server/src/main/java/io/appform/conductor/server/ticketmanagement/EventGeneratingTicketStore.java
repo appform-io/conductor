@@ -143,14 +143,14 @@ public class EventGeneratingTicketStore implements TicketStore {
     }
 
     @Override
-    public TicketSkeletonListResult list(
+    public TicketSkeletonListResult older(
             List<TicketFilter> ticketFilters,
             List<TicketFieldFilter> fieldFilters,
             String start,
             int size,
             Map<String, FieldSchema> relevantFieldSchema,
             boolean readFields, List<String> fieldNames) {
-        return ticketStore.list(ticketFilters, fieldFilters, start, size, relevantFieldSchema, readFields, fieldNames);
+        return ticketStore.older(ticketFilters, fieldFilters, start, size, relevantFieldSchema, readFields, fieldNames);
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.ticketmanagement.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.TreeBasedTable;
@@ -44,10 +45,9 @@ import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredC
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredEmbeddedFieldValue;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
 import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.server.utils.Pair;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
-import io.appform.dropwizard.sharding.scroll.ScrollPointer;
-import io.appform.dropwizard.sharding.scroll.ScrollResult;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -62,11 +62,16 @@ import org.hibernate.type.Type;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.io.IOException;
+import java.io.Serial;
+import java.io.Serializable;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -87,11 +92,38 @@ public class DBTicketStore implements TicketStore {
     private final RelationalDao<StoredAttachment> attachmentDao;
     private final ObjectMapper mapper;
 
+
+    private record TicketScrollPointer(Map<Integer, Integer> pointPerShard) implements Serializable {
+        @Serial
+        private static final long serialVersionUID = 8841802654321192764L;
+
+
+        public void advance(int shard, int advanceBy) {
+            pointPerShard.compute(shard, (key, existing) -> (null == existing ? 0 : existing) + advanceBy);
+        }
+
+        public int getCurrOffset(int shard) {
+            return pointPerShard.computeIfAbsent(shard, key -> 0);
+        }
+
+        public static TicketScrollPointer deserializePointer(String start, ObjectMapper mapper) throws IOException {
+            return Strings.isNullOrEmpty(start)
+                   ? new TicketScrollPointer(new ConcurrentHashMap<>())
+                   : mapper.readValue(Base64.getUrlDecoder().decode(start.getBytes(StandardCharsets.UTF_8)),
+                                      TicketScrollPointer.class);
+        }
+
+        public static String serializePointer(TicketScrollPointer pointer, ObjectMapper mapper) throws JsonProcessingException {
+            return Base64.getUrlEncoder().encodeToString(
+                    mapper.writeValueAsString(pointer).getBytes(StandardCharsets.UTF_8));
+        }
+    }
+
     @Override
     @MonitoredFunction
     @SneakyThrows
     @Throws(value = STORE_WRITE_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
+            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SKELETON_TABLE_NAME))
     public Optional<TicketSkeleton> create(
             @Throws.RuntimeParam("id") final String ticketId,
             final String title,
@@ -120,7 +152,7 @@ public class DBTicketStore implements TicketStore {
     @MonitoredFunction
     @SneakyThrows
     @Throws(value = STORE_READ_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
+            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SKELETON_TABLE_NAME))
     public Optional<TicketSkeleton> read(@Throws.RuntimeParam("id") final String ticketId, boolean readFields) {
         return ticketDao.get(ticketId,
                              (UnaryOperator<Criteria>) criteria -> criteria.setFetchMode(StoredTicketSkeleton.Fields.fields,
@@ -132,7 +164,7 @@ public class DBTicketStore implements TicketStore {
     @MonitoredFunction
     @SneakyThrows
     @Throws(value = STORE_WRITE_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
+            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SKELETON_TABLE_NAME))
     public Optional<TicketSkeleton> update(
             @Throws.RuntimeParam("id") String ticketId,
             UnaryOperator<TicketSkeleton> updater,
@@ -158,7 +190,7 @@ public class DBTicketStore implements TicketStore {
     @MonitoredFunction
     @SneakyThrows
     @Throws(value = STORE_UPDATE_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
+            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SKELETON_TABLE_NAME))
     public Optional<TicketSkeleton> update(
             @Throws.RuntimeParam("id") final String ticketId,
             final String title,
@@ -181,7 +213,8 @@ public class DBTicketStore implements TicketStore {
 
     @Override
     @MonitoredFunction
-    public TicketSkeletonListResult list(
+    @SneakyThrows
+    public TicketSkeletonListResult older(
             final List<TicketFilter> ticketFilters,
             final List<TicketFieldFilter> fieldFilters,
             final String start,
@@ -189,18 +222,28 @@ public class DBTicketStore implements TicketStore {
             final Map<String, FieldSchema> relevantFieldSchema,
             boolean readFields,
             final List<String> fieldNames) {
-        return runQuery(ticketFilters,
-                        fieldFilters,
-                        start,
-                        size * ((!readFields || relevantFieldSchema.isEmpty()) ? 1 : relevantFieldSchema.size()),
-                        relevantFieldSchema,
-                        param -> ticketDao.scrollUp(param.resultCriteria, param.pointer, param.size, "id"),
-                        readFields,
-                        fieldNames);
+
+        val results = runListQuery(
+                ticketFilters,
+                fieldFilters,
+                start,
+                size,
+                     relevantFieldSchema,
+                     readFields,
+                     fieldNames,
+                     criteria -> criteria.addOrder(Order.desc(StoredTicketSkeleton.Fields.id)));
+        return new TicketSkeletonListResult(
+                results.getFirst()
+                        .stream()
+                        .sorted(Comparator.comparing(TicketSkeleton::getUpdated).reversed())
+                        .toList(),
+                results.getSecond()); //Keep charset consistent
     }
+
 
     @Override
     @MonitoredFunction
+    @SneakyThrows
     public TicketSkeletonListResult since(
             final List<TicketFilter> ticketFilters,
             final List<TicketFieldFilter> fieldFilters,
@@ -208,16 +251,25 @@ public class DBTicketStore implements TicketStore {
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema,
             boolean readFields,
-            final List<String> fieldsToBeFetched) {
-        return runQuery(ticketFilters,
-                        fieldFilters,
-                        start,
-                        size,
-                        relevantFieldSchema,
-                        param -> ticketDao.scrollDown(param.resultCriteria, param.pointer, param.size, "id"),
-                        readFields,
-                        fieldsToBeFetched);
+            final List<String> fieldNames) {
+
+        val results = runListQuery(
+                ticketFilters,
+                fieldFilters,
+                start,
+                size,
+                relevantFieldSchema,
+                readFields,
+                fieldNames,
+                criteria -> criteria.addOrder(Order.desc(StoredTicketSkeleton.Fields.id)));
+        return new TicketSkeletonListResult(
+                results.getFirst()
+                        .stream()
+                        .sorted(Comparator.comparing(TicketSkeleton::getUpdated))
+                        .toList(),
+                results.getSecond()); //Keep charset consistent
     }
+
 
     @Override
     @SuppressWarnings("unchecked")
@@ -257,13 +309,7 @@ public class DBTicketStore implements TicketStore {
 
             @Override
             public Void visit(TimeBucketGroupingElement timeBucketGroupingElement) {
-                val divisor = switch (timeBucketGroupingElement.getResolution()) {
-                    case MINUTE -> 60;
-                    case HOUR -> 36_00;
-                    case DAY -> 864_000;
-                    case WEEK -> 7 * 864_000;
-                    case MONTH -> 30 * 864_000;
-                };
+                val divisor = divisorFromResolution(timeBucketGroupingElement);
                 groupQuery.add(Projections.sqlGroupProjection(
                         "floor(unix_timestamp(" + timeBucketGroupingElement.getDateAttribute() + ") / " + divisor +
                                 ") as " +
@@ -282,7 +328,6 @@ public class DBTicketStore implements TicketStore {
                 .map(list -> (List<Object[]>) list)
                 .flatMap(List::stream)
                 .toList();
-        val aliases = ConductorServerUtils.aliasesForGroupingElements(aliasedElements);
         val table = parseGroupResponse(aliasedElements, rows);
 
         return new TicketGroupResponse(requestId, table);
@@ -406,57 +451,67 @@ public class DBTicketStore implements TicketStore {
                                     storedAttachment -> storedAttachment.setDeleted(true));
     }
 
-    private record QueryParams(int size, DetachedCriteria resultCriteria, ScrollPointer pointer) {
-    }
-
     @SneakyThrows
     @Throws(value = STORE_LIST_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SUMMARY_TABLE_NAME))
-    private TicketSkeletonListResult runQuery(
+            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SKELETON_TABLE_NAME))
+    @SuppressWarnings({"unchecked", "java:S107"})
+    private Pair<List<TicketSkeleton>, String> runListQuery(
             final List<TicketFilter> ticketFilters,
             final List<TicketFieldFilter> fieldFilters,
             final String start,
             final int size,
             final Map<String, FieldSchema> relevantFieldSchema,
-            final Function<QueryParams, ScrollResult<StoredTicketSkeleton>> queryFunction,
-            boolean fieldsToBeRead,
-            final List<String> fieldNames) {
-        val resultCriteria = createTicketQueryCriteria(ticketFilters, fieldFilters, relevantFieldSchema);
-        if (fieldsToBeRead && !fieldNames.isEmpty()) {
-            resultCriteria.setFetchMode(StoredTicketSkeleton.Fields.fields, FetchMode.JOIN)
-                    .setResultTransformer(DISTINCT_ROOT_ENTITY);
-            //TODO::FETCH RELEVANT FIELDS ONLY
-            /*val fc = DetachedCriteria.forClass(StoredFieldValue.class)
-                    .add(Restrictions.in(StoredFieldValue.Fields.schemaFieldId, fieldsToBeFetched));*/
-            /*resultCriteria.createCriteria(StoredTicketSkeleton.Fields.fields,
-                                          "f",
-                                          JoinType.LEFT_OUTER_JOIN,
-                                          Restrictions.in(StoredFieldValue.Fields.schemaFieldId, fieldsToBeFetched));*/
-//            resultCriteria.add(Property.forName(StoredTicketSkeleton.Fields.fields).eq(fc));
+            final boolean readFields,
+            final List<String> fieldNames,
+            final Consumer<Criteria> criteriaUpdater) {
+        val ticketIdCriteria = DetachedCriteria.forClass(StoredTicketSkeleton.class, StoredFieldValue.Fields.ticket)
+                .add(Property.forName(StoredTicketSkeleton.Fields.deleted).eq(false));
+        applyTicketFilter(ticketFilters, ticketIdCriteria);
+        applyFieldFilters(fieldFilters, relevantFieldSchema, ticketIdCriteria);
+        ticketIdCriteria
+                .setProjection(Projections.distinct(Projections.property(StoredTicketSkeleton.Fields.ticketId)));
+        val pointer = TicketScrollPointer.deserializePointer(start, mapper);
+        val queryResults = new ArrayList<TicketSkeleton>();
+        ticketDao.runInSession(
+                (shardId, session) -> {
+                    val shardCriteria = ConductorServerUtils.cloneObject(ticketIdCriteria);
+                    val executableCriteria = shardCriteria.getExecutableCriteria(session)
+                            .setFirstResult(pointer.getCurrOffset(shardId))
+                            .setMaxResults(size);
+                    criteriaUpdater.accept(executableCriteria);
+                    val ids = (List<String>) executableCriteria.list();
+                    if(ids.isEmpty()) {
+                        return List.<StoredTicketSkeleton>of();
+                    }
+                    val pointQuery = DetachedCriteria.forClass(StoredTicketSkeleton.class)
+                            .add(Property.forName(StoredTicketSkeleton.Fields.ticketId).in(ids));
+                    //Pagination is done on IDs first and data pulled after that
+                    //This is because hibernate does not allow pagination on the inner query directly
+                    //Both are run in the same session
+                    if (readFields && !fieldNames.isEmpty()) {
+                        pointQuery.setFetchMode(StoredTicketSkeleton.Fields.fields, FetchMode.JOIN)
+                                .setResultTransformer(DISTINCT_ROOT_ENTITY);
+                    }
+                    return (List<StoredTicketSkeleton>) pointQuery.getExecutableCriteria(session).list();
+                },
+                skeletonsPerShard -> {
+                    skeletonsPerShard.forEach((shardIdx, result) -> {
+                        result.forEach(skeleton -> queryResults.add(toSummary(skeleton, readFields, fieldNames)));
+                        pointer.advance(shardIdx, result.size());// will get advanced
+                    });
+                    return null;
+                });
+        return Pair.of(queryResults, TicketScrollPointer.serializePointer(pointer, mapper));
+    }
 
-//                    ;
-            /*resultCriteria
-                    .setResultTransformer(DISTINCT_ROOT_ENTITY)
-                    .createCriteria(StoredTicketSkeleton.Fields.fields, "f", JoinType.LEFT_OUTER_JOIN, Restrictions
-                    .in(StoredFieldValue.Fields.schemaFieldId, fieldsToBeFetched))
-                    ;
-                    */
-
-
-        }
-        val pointer = Strings.isNullOrEmpty(start)
-                      ? null
-                      : mapper.readValue(Base64.getUrlDecoder().decode(start.getBytes(StandardCharsets.UTF_8)),
-                                         ScrollPointer.class);
-        val results = queryFunction.apply(new QueryParams(size, resultCriteria, pointer));
-        return new TicketSkeletonListResult(
-                results.getResult()
-                        .stream()
-                        .map(ticket -> toSummary(ticket, fieldsToBeRead, fieldNames))
-                        .toList(),
-                Base64.getUrlEncoder().encodeToString(
-                        mapper.writeValueAsString(results.getPointer())
-                                .getBytes(StandardCharsets.UTF_8))); //Keep charset consistent
+    private static int divisorFromResolution(TimeBucketGroupingElement timeBucketGroupingElement) {
+        return switch (timeBucketGroupingElement.getResolution()) {
+            case MINUTE -> 60;
+            case HOUR -> 36_00;
+            case DAY -> 864_000;
+            case WEEK -> 7 * 864_000;
+            case MONTH -> 30 * 864_000;
+        };
     }
 
     private static TreeBasedTable<Integer, String, Object> parseGroupResponse(
@@ -477,7 +532,7 @@ public class DBTicketStore implements TicketStore {
             for (var colId = 0; colId < row.length - 1; colId++) {
                 int finalColId = colId;
                 key.add(groupingElements.get(colId)
-                                .accept(new GroupingElementVisitor<String>() {
+                                .accept(new GroupingElementVisitor<>() {
                                     @Override
                                     public String visit(ColumnGroupingElement columnGroupingElement) {
                                         return Objects.toString(row[finalColId]);
@@ -485,14 +540,7 @@ public class DBTicketStore implements TicketStore {
 
                                     @Override
                                     public String visit(TimeBucketGroupingElement timeBucketGroupingElement) {
-                                        val divisor = switch (timeBucketGroupingElement.getResolution()) {
-
-                                            case MINUTE -> 60;
-                                            case HOUR -> 36_00;
-                                            case DAY -> 864_000;
-                                            case WEEK -> 7 * 864_000;
-                                            case MONTH -> 30 * 864_000;
-                                        };
+                                        val divisor = divisorFromResolution(timeBucketGroupingElement);
                                         return formats.get(timeBucketGroupingElement.getResolution())
                                                 .format(toDate(row[finalColId], divisor));
                                     }
@@ -518,13 +566,22 @@ public class DBTicketStore implements TicketStore {
             List<TicketFilter> ticketFilters,
             List<TicketFieldFilter> fieldFilters,
             Map<String, FieldSchema> relevantFieldSchema) {
+        final var filterCriteria = distinctTicketIdCriteria(ticketFilters, fieldFilters, relevantFieldSchema);
+        return DetachedCriteria.forClass(StoredTicketSkeleton.class)
+                .add(Property.forName(StoredTicketSkeleton.Fields.ticketId).in(filterCriteria));
+    }
+
+    @NonNull
+    private DetachedCriteria distinctTicketIdCriteria(
+            List<TicketFilter> ticketFilters,
+            List<TicketFieldFilter> fieldFilters,
+            Map<String, FieldSchema> relevantFieldSchema) {
         val filterCriteria = DetachedCriteria.forClass(StoredTicketSkeleton.class, StoredFieldValue.Fields.ticket)
                 .add(Property.forName(StoredTicketSkeleton.Fields.deleted).eq(false))
                 .setProjection(Projections.distinct(Projections.property(StoredTicketSkeleton.Fields.ticketId)));
         applyTicketFilter(ticketFilters, filterCriteria);
         applyFieldFilters(fieldFilters, relevantFieldSchema, filterCriteria);
-        return DetachedCriteria.forClass(StoredTicketSkeleton.class)
-                .add(Property.forName(StoredTicketSkeleton.Fields.ticketId).in(filterCriteria));
+        return filterCriteria;
     }
 
     private void applyTicketFilter(List<TicketFilter> ticketFilters, DetachedCriteria criteria) {

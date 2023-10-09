@@ -46,6 +46,7 @@
                         <table class="table table-bordered border-dark ticket-table" id="tickets">
                             <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Title</th>
                                 <th>Workflow</th>
                                 <th>State</th>
@@ -86,11 +87,14 @@
                 }
             ],
             'columns' : [
-                    {
-                        'data' : 'ticketId' ,
-                        'render' : function(data, type, row, meta) {
-                            return '<a href="/tickets/' + data + '/details">' + row['title'] + '</a>';
-                        }
+                {
+                    'data' : 'ticketId'
+                },
+                {
+                    'data' : 'ticketId' ,
+                    'render' : function(data, type, row, meta) {
+                        return '<a href="/tickets/' + data + '/details">' + row['title'] + '</a>';
+                    }
                 },
                 { 'data' : 'workflowName' },
                 {

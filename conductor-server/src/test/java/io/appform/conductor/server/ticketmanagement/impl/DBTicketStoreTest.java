@@ -166,15 +166,15 @@ class DBTicketStoreTest {
                                                                         100,
                                                                         null,
                                                                         null));
-        var list = store.list(
+        var list = store.older(
                 List.of(), List.of(), null,
                 Integer.MAX_VALUE, relevantFieldSchema, false, List.of());
         assertEquals(4, list.getResults().size());
-        list = store.list(List.of(),
-                          List.of(new TicketFieldEquals("TF003", 23.0),
+        list = store.older(List.of(),
+                           List.of(new TicketFieldEquals("TF003", 23.0),
                                   new TicketFieldEquals("TF004", "Random Value")
                                  ), null,
-                          Integer.MAX_VALUE, relevantFieldSchema, true, List.of("TF004"));
+                           Integer.MAX_VALUE, relevantFieldSchema, true, List.of("TF004"));
         assertEquals(3, list.getResults().size());
         try {
             Thread.sleep(5000);
@@ -182,12 +182,12 @@ class DBTicketStoreTest {
         catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        list = store.list(List.of(),
-                          List.of(new TicketFieldEquals("TF003", 23.0),
+        list = store.older(List.of(),
+                           List.of(new TicketFieldEquals("TF003", 23.0),
                                   new TicketFieldEquals("TF002", "Random updated value"),
                                   new TicketFieldEquals("TF004", "Random Value")
                                  ), null,
-                          Integer.MAX_VALUE, relevantFieldSchema, false, List.of());
+                           Integer.MAX_VALUE, relevantFieldSchema, false, List.of());
         assertEquals(1, list.getResults().size());
         assertNotNull(store.create("T004",
                                    "Test",
