@@ -24,6 +24,7 @@ import io.appform.conductor.model.usermgmt.*;
 import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserAuthValidator;
 import io.appform.conductor.server.auth.UserRoleMappingStore;
+import io.appform.conductor.server.comms.MailSender;
 import io.appform.conductor.server.internalmodels.auth.PasswordAuthData;
 import io.appform.conductor.server.internalmodels.auth.UserTokenAuthData;
 import io.appform.conductor.server.skillmanagement.SkillStore;
@@ -71,6 +72,7 @@ public class UserLifecycleManager {
     private final UserAuthValidator userAuthValidator;
     private final Provider<GroupStore> groupStore;
     private final Provider<SkillStore> skillStore;
+    private final MailSender mailSender;
 
     public Optional<User> userDetails(@NonNull final String userId) {
         val roleId = roleMappingStore.get().roleForUser(userId).orElse(null);
@@ -99,7 +101,7 @@ public class UserLifecycleManager {
                 .create(lowerSnake(email), name, UserType.HUMAN, email);
         userDetails.ifPresent(user -> {
             passwordAuthStore.get().set(user.getId(), hash(password));
-            createToken(user.getId());
+            createToken(user);
         });
         return userDetails;
     }
@@ -374,16 +376,19 @@ public class UserLifecycleManager {
         return skillStore.get().listSkillsForUser(userId);
     }
 
-    private void createToken(String userId) {
+    private void createToken(UserSummary user) {
         val token = userActivationTokenStore.get()
-                .generate(userId, new Date(new Date().getTime() + DEFAULT_TOKEN_VALIDITY_MS))
+                .generate(user.getId(), new Date(new Date().getTime() + DEFAULT_TOKEN_VALIDITY_MS))
                 .orElse(null);
         if (null == token) {
-            log.error("No token generated for user: {}", userId);
+            log.error("No token generated for user: {}", user);
         }
         else {
-            //TODO::SEND TOKEN OVER EMAIL
-            log.info("Token for user: {} is [{}]", userId, token);
+            mailSender.send(new MailSender.Mail(List.of(user.getEmail()),
+                                                "Activate your Conductor Account",
+                                                "Activation Token: " + token.getToken(),
+                                                List.of()));
+            log.info("Token for user: {} is [{}]", user, token);
         }
         //TODO::SEND EVENT TO BUS
     }

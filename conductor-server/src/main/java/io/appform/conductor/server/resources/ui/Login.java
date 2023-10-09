@@ -65,27 +65,25 @@ public class Login {
         return userLifecycleManager.createHumanUser(newName, newEmail, newPassword)
                 .map(UserSummary::getId)
                 .flatMap(userLifecycleManager::openToken)
-                .map(token -> redirect("/login/activate/" + token.getToken()))
+                .map(token -> redirect("/login/activate"))
                 .orElseThrow(() ->  fail("User registration failed for " + newName, "/"));
     }
 
-    @Path("/activate/{token}")
+    @Path("/activate")
     @GET
-    public Response renderActivationScreen(@PathParam("token") final String token) {
-        return userLifecycleManager.showToken(token)
-                .map(userSummary -> render(new ActivationView(token, userSummary.getName())))
-                .orElseThrow(() -> fail("Could not fetch token: " + token, "/"));
+    public Response renderActivationScreen() {
+        return render(new ActivationView());
     }
 
 
-    @Path("/activate/{token}")
+    @Path("/activate")
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response activateToken(@PathParam("token") final String token,
+    public Response activateToken(@FormParam("token") final String token,
                                   @FormParam("password") final String password) {
         return userLifecycleManager.activateUser(token, password)
                 .map(Login::newSessionResponse)
-                .orElseThrow(() -> fail("Could not activate token: " + token, "/"));
+                .orElseThrow(() -> fail("Could not activate token: " + token, "/login/activate"));
     }
 
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)

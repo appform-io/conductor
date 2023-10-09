@@ -2,14 +2,17 @@
     <section>
         <div class="row justify-content-center">
             <div class="col-sm-12 col-md-4">
-                <form method="post" action="/login/activate/{{token}}">
+                <form method="post" action="/login/activate">
+                    <div class="row g-3 m-2">
+                        <h5>Account Activation</h5>
+                    </div>
                     <div class="row g-3 m-2">
                         <div class="col-3 text-end">
-                            <label for="name" class="col-form-label fw-bold">Name (Please double-check)</label>
+                            <label for="token" class="col-form-label fw-bold">Activation Token</label>
                         </div>
                         <div class="col">
-                            <input type="text" id="name" class="form-control border border-dark" disabled
-                                   value="{{name}}">
+                            <input type="text" id="token" name="token"
+                                   class="form-control  border border-dark" required>
                         </div>
                     </div>
                     <div class="row g-3 m-2">

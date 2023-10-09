@@ -28,11 +28,8 @@ import ru.vyarus.guicey.gsp.views.template.TemplateView;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class ActivationView extends TemplateView {
-    String token;
-    String name;
-    public ActivationView(String token, String name) {
+
+    public ActivationView() {
         super("templates/activate.hbs");
-        this.token = token;
-        this.name = name;
     }
 }
