@@ -35,6 +35,7 @@ import io.appform.conductor.server.auth.impl.models.StoredRole;
 import io.appform.conductor.server.auth.impl.models.StoredUserRoleMapping;
 import io.appform.conductor.server.config.AppConfig;
 import io.appform.conductor.server.config.AuthConfig;
+import io.appform.conductor.server.config.MailConfig;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.EventHandler;
 import io.appform.conductor.server.eventmanagement.EventHandlerImplementation;
@@ -159,6 +160,12 @@ public class ConductorModule extends AbstractModule {
     @Singleton
     public AuthConfig authConfig(final AppConfig appConfig) {
         return appConfig.getAuth();
+    }
+
+    @Provides
+    @Singleton
+    public MailConfig mailConfig(final AppConfig appConfig) {
+        return appConfig.getMailConfig();
     }
 
     @Provides

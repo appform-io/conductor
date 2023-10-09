@@ -1,5 +1,9 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="App" type="Application" factoryName="Application" nameIsGenerated="true">
+    <envs>
+      <env name="EMAIL_USER" value="6976196b796f59" />
+      <env name="EMAIL_PASSWORD" value="717be00cafe5b2" />
+    </envs>
     <option name="MAIN_CLASS_NAME" value="io.appform.conductor.server.App" />
     <module name="conductor-server" />
     <option name="PROGRAM_PARAMETERS" value="server conductor-server/configs/local.yml" />

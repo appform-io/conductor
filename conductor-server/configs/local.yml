@@ -61,3 +61,10 @@ db:
 auth:
   signingSecret: "t1ArsjdSJqWdVSPAW2tMQ4Z1Ck0T9J9j"
   sessionDuration: 30d
+
+mailConfig:
+  smtpServer: sandbox.smtp.mailtrap.io
+  port: 2525
+  from: santanu.sinha@gmail.com
+  username: ${EMAIL_USER}
+  password: ${EMAIL_PASSWORD}

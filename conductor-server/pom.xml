@@ -37,6 +37,8 @@
 
         <kaal.version>1.0.1</kaal.version>
         <jsqlparser.version>4.7</jsqlparser.version>
+        <simple-java-mail.version>8.0.0</simple-java-mail.version>
+
     </properties>
 
     <dependencies>
@@ -71,6 +73,11 @@
             <groupId>io.appform.dropwizard.sharding</groupId>
             <artifactId>db-sharding-bundle</artifactId>
             <version>${dropwizard.sharding.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.simplejavamail</groupId>
+            <artifactId>simple-java-mail</artifactId>
+            <version>${simple-java-mail.version}</version>
         </dependency>
         <dependency>
             <groupId>com.smoketurner</groupId>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 Santanu Sinha
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,34 @@
 
 package io.appform.conductor.server.config;
 
-import io.appform.dropwizard.sharding.config.ShardedHibernateFactory;
-import io.dropwizard.Configuration;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Builder;
+import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
-import javax.validation.Valid;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 /**
- *
+ * Configuration for mail server
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class AppConfig extends Configuration {
+@Value
+@Builder
+@Jacksonized
+public class MailConfig {
+    @NotEmpty
+    String smtpServer;
 
     @NotNull
-    @Valid
-    private ShardedHibernateFactory db;
+    @Email
+    String from;
 
-    @NotNull
-    @Valid
-    private AuthConfig auth;
+    int port;
 
-    @Valid
-    private MailConfig mailConfig;
+    boolean tls;
+
+    String username;
+
+    String password;
 
 }
