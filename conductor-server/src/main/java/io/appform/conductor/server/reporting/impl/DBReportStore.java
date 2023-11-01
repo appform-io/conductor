@@ -19,6 +19,7 @@ package io.appform.conductor.server.reporting.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
@@ -204,15 +205,10 @@ public class DBReportStore implements ReportStore {
                                 .add(Property.forName(StoredReportRun.Fields.runId).eq(runId)),
                         run -> run.setCurrentState(runResult.getRunState())
                                 .setMessage(runResult.getMessage())
-                                .setReportMeta(convertToString(runResult.getReportMeta())),
+                                .setReportMeta(serializeReportMeta(runResult.getReportMeta())),
                         () -> false)
                 .save(reportRunDao, DBReportStore::newRunForReport)
                 .execute();
-    }
-
-    @SneakyThrows
-    private String convertToString(Map<String, Object> reportMeta) {
-        return mapper.writeValueAsString(reportMeta);
     }
 
     private static StoredReportRun newRunForReport(StoredReport report) {
@@ -241,7 +237,6 @@ public class DBReportStore implements ReportStore {
         );
     }
 
-    @SneakyThrows
     private ReportRun toWire(final StoredReportRun reportRun) {
         return new ReportRun(
                 reportRun.getRunId(),
@@ -249,8 +244,21 @@ public class DBReportStore implements ReportStore {
                 reportRun.getRunDate(),
                 reportRun.getCurrentState(),
                 reportRun.getMessage(),
-                mapper.readValue(reportRun.getReportMeta(), new TypeReference<>() {
-                })
+                deserializeReportMeta(reportRun.getReportMeta())
         );
+    }
+
+    @SneakyThrows
+    private Map<String, Object> deserializeReportMeta(String reportMetaString) {
+        return Strings.isNullOrEmpty(reportMetaString)
+               ? Map.of()
+               : mapper.readValue(reportMetaString, new TypeReference<>() {
+               });
+    }
+
+
+    @SneakyThrows
+    private String serializeReportMeta(Map<String, Object> reportMeta) {
+        return mapper.writeValueAsString(reportMeta);
     }
 }
