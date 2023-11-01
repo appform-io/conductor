@@ -2,6 +2,7 @@ package io.appform.conductor.server.usermanagement;
 
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.GroupType;
+import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.events.*;
 import lombok.val;
@@ -20,7 +21,7 @@ public class EventGeneratingGroupStore implements GroupStore {
     private final GroupStore groupStore;
 
     @Inject
-    public EventGeneratingGroupStore(EventBus eventBus, @Named("root") GroupStore groupStore) {
+    public EventGeneratingGroupStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) GroupStore groupStore) {
         this.eventBus = eventBus;
         this.groupStore = groupStore;
     }

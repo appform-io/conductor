@@ -10,6 +10,7 @@ import io.appform.conductor.model.ticket.comments.Attachment;
 import io.appform.conductor.model.ticket.comments.Comment;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
+import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.events.*;
 import lombok.NonNull;
@@ -31,7 +32,7 @@ public class EventGeneratingTicketStore implements TicketStore {
     private final TicketStore ticketStore;
 
     @Inject
-    public EventGeneratingTicketStore(EventBus eventBus, @Named("root") TicketStore ticketStore) {
+    public EventGeneratingTicketStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) TicketStore ticketStore) {
         this.eventBus = eventBus;
         this.ticketStore = ticketStore;
     }

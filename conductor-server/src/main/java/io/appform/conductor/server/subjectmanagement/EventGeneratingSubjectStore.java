@@ -1,6 +1,7 @@
 package io.appform.conductor.server.subjectmanagement;
 
 import io.appform.conductor.model.subject.*;
+import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.events.*;
 import lombok.val;
@@ -19,7 +20,7 @@ public class EventGeneratingSubjectStore implements SubjectStore {
     private final SubjectStore subjectStore;
 
     @Inject
-    public EventGeneratingSubjectStore(EventBus eventBus, @Named("root") SubjectStore subjectStore) {
+    public EventGeneratingSubjectStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) SubjectStore subjectStore) {
         this.eventBus = eventBus;
         this.subjectStore = subjectStore;
     }

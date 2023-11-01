@@ -29,6 +29,7 @@ import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.fieldfilters.*;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
+import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.appform.conductor.server.ticketmanagement.TicketSkeleton;
 import io.appform.conductor.server.utils.Pair;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
@@ -80,6 +81,37 @@ public class CQLEngine {
 
     private final WorkflowStore workflowStore;
     private final SchemaStore schemaStore;
+
+    public static TicketQueryResponse runQuery(
+            String requestId,
+            String next,
+            int size,
+            CQLParserOutput parserOutput,
+            TicketManager ticketManager) {
+        val filters = Objects.requireNonNullElse(parserOutput.filters(), Filters.EMPTY); //TODO::THROW
+        val ticketRequest = switch (parserOutput.opCode()) {
+
+            case LIST -> TicketListRequest.builder()
+                    .queryId(requestId)
+                    .filters(filters)
+                    .direction(TicketListRequest.Direction.FORWARD)
+                    .ticketDataFields(Objects.requireNonNullElse(parserOutput.selectedFields(),
+                                                                 List.<SelectedField>of())
+                                              .stream()
+                                              .map(SelectedField::fieldSchemaId)
+                                              .toList())
+                    .next(next)
+                    .size(Math.min(200, Math.max(size, (int) parserOutput.limit())))
+                    .build();
+            case GROUP -> TicketGroupRequest.builder()
+                    .queryId(requestId)
+                    .filters(filters)
+                    .groupingFields(parserOutput.groupingElements())
+                    .build();
+        };
+        log.info("Running query with request id: {}. Query: {}", requestId, ticketRequest);
+        return ticketManager.query(ticketRequest);
+    }
 
     public record TimeSeriesDetails(TimeResolution resolution, String column) {
         public static final TimeSeriesDetails DEFAULT = new TimeSeriesDetails(TimeResolution.DAY,

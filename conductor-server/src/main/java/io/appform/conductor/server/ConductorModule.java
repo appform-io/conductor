@@ -40,6 +40,10 @@ import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.EventHandler;
 import io.appform.conductor.server.eventmanagement.EventHandlerImplementation;
 import io.appform.conductor.server.eventmanagement.impl.SignalDrivenEventBus;
+import io.appform.conductor.server.reporting.ReportStore;
+import io.appform.conductor.server.reporting.impl.DBReportStore;
+import io.appform.conductor.server.reporting.impl.models.StoredReport;
+import io.appform.conductor.server.reporting.impl.models.StoredReportRun;
 import io.appform.conductor.server.schemamanagement.impl.DBSchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.EventGeneratingSchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
@@ -102,51 +106,56 @@ import static org.reflections.Reflections.log;
 @IgnoreGenerated
 @SuppressWarnings("unused")
 public class ConductorModule extends AbstractModule {
+    public static final String ROOT_IMPLEMENTATION_NAME = "root";
+    public static final String BACKGROUND_JOBS_POOL_NAME = "backgroundJobsPool";
+
     private final BalancedDBShardingBundle<AppConfig> dbBundle;
     private final Reflections reflections = new Reflections("io.appform.conductor");
 
     @Override
     protected void configure() {
-        bind(UserStore.class).annotatedWith(Names.named("root")).to(DBUserStore.class);
+        bind(UserStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBUserStore.class);
         bind(UserStore.class).to(EventGeneratingUserStore.class);
 
-        bind(GroupStore.class).annotatedWith(Names.named("root")).to(DBGroupStore.class);
+        bind(GroupStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBGroupStore.class);
         bind(GroupStore.class).to(EventGeneratingGroupStore.class);
 
-        bind(SessionStore.class).annotatedWith(Names.named("root")).to(DBSessionStore.class);
+        bind(SessionStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBSessionStore.class);
         bind(SessionStore.class).to(EventGeneratingSessionStore.class);
 
-        bind(UserActivationTokenStore.class).annotatedWith(Names.named("root")).to(DBUserActivationTokenStore.class);
+        bind(UserActivationTokenStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBUserActivationTokenStore.class);
         bind(UserActivationTokenStore.class).to(EventGeneratingUserActivationTokenStore.class);
 
-        bind(UserPasswordAuthStore.class).annotatedWith(Names.named("root")).to(DBUserPasswordAuthStore.class);
+        bind(UserPasswordAuthStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBUserPasswordAuthStore.class);
         bind(UserPasswordAuthStore.class).to(EventGeneratingUserPasswordAuthStore.class);
 
-        bind(RoleStore.class).annotatedWith(Names.named("root")).to(DBRoleStore.class);
+        bind(RoleStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBRoleStore.class);
         bind(RoleStore.class).to(EventGeneratingRoleStore.class);
 
-        bind(UserRoleMappingStore.class).annotatedWith(Names.named("root")).to(DBUserRoleMappingStore.class);
+        bind(UserRoleMappingStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBUserRoleMappingStore.class);
         bind(UserRoleMappingStore.class).to(EventGeneratingUserRoleMappingStore.class);
 
-        bind(SkillStore.class).annotatedWith(Names.named("root")).to(DBSkillStore.class);
+        bind(SkillStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBSkillStore.class);
         bind(SkillStore.class).to(EventGeneratingSkillStore.class);
 
-        bind(SubjectStore.class).annotatedWith(Names.named("root")).to(DBSubjectStore.class);
+        bind(SubjectStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBSubjectStore.class);
         bind(SubjectStore.class).to(EventGeneratingSubjectStore.class);
 
-        bind(ActionStore.class).annotatedWith(Names.named("root")).to(DBActionStore.class);
+        bind(ActionStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBActionStore.class);
         bind(ActionStore.class).to(EventGeneratingActionStore.class);
 
-        bind(SchemaStore.class).annotatedWith(Names.named("root")).to(DBSchemaStore.class);
+        bind(SchemaStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBSchemaStore.class);
         bind(SchemaStore.class).to(EventGeneratingSchemaStore.class);
 
-        bind(WorkflowStore.class).annotatedWith(Names.named("root")).to(DBWorkflowStore.class);
+        bind(WorkflowStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBWorkflowStore.class);
         bind(WorkflowStore.class).to(EventGeneratingWorkflowStore.class);
 
-        bind(TicketStore.class).annotatedWith(Names.named("root")).to(DBTicketStore.class);
+        bind(TicketStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBTicketStore.class);
         bind(TicketStore.class).to(EventGeneratingTicketStore.class);
 
         bind(TaskStore.class).to(DBTaskStore.class); //TODO::EVENTS
+        bind(ReportStore.class).to(DBReportStore.class); //TODO::EVENTS
+
     }
 
     @Provides
@@ -154,6 +163,13 @@ public class ConductorModule extends AbstractModule {
     @Named("eventHandlingPool")
     public ExecutorService executorService(final Environment environment) {
         return environment.lifecycle().executorService("event-handler").build();
+    }
+
+    @Provides
+    @Singleton
+    @Named(BACKGROUND_JOBS_POOL_NAME)
+    public ExecutorService backgroundJobsPool(final Environment environment) {
+        return environment.lifecycle().executorService("background-jobs").build();
     }
 
     @Provides
@@ -328,6 +344,18 @@ public class ConductorModule extends AbstractModule {
     @Singleton
     public LookupDao<StoredTask> taskDao() {
         return dbBundle.createParentObjectDao(StoredTask.class);
+    }
+
+    @Provides
+    @Singleton
+    public LookupDao<StoredReport> reportDao() {
+        return dbBundle.createParentObjectDao(StoredReport.class);
+    }
+
+    @Provides
+    @Singleton
+    public RelationalDao<StoredReportRun> reportRunDao() {
+        return dbBundle.createRelatedObjectDao(StoredReportRun.class);
     }
 
     @Provides

@@ -16,6 +16,9 @@
 
 package io.appform.conductor.server.utils;
 
+import com.cronutils.model.definition.CronDefinitionBuilder;
+import com.cronutils.model.time.ExecutionTime;
+import com.cronutils.parser.CronParser;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -24,18 +27,21 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Strings;
+import com.google.common.collect.Table;
+import com.google.common.collect.TreeBasedTable;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.ticket.TicketDetails;
 import io.appform.conductor.model.ticket.TicketSummary;
-import io.appform.conductor.model.ticket.analytics.GroupingElement;
+import io.appform.conductor.model.ticket.analytics.*;
 import io.appform.conductor.model.ticket.fields.FieldValue;
 import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
 import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.fields.impl.*;
 import io.appform.conductor.server.auth.ConductorUser;
+import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.ticketmanagement.statemachine.models.TicketStateMachineContext;
 import io.appform.conductor.server.usermanagement.CurrentUserSessionStore;
 import lombok.SneakyThrows;
@@ -57,12 +63,17 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.io.*;
 import java.net.URI;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.cronutils.model.CronType.QUARTZ;
 
 /**
  *
@@ -364,6 +375,88 @@ public class ConductorServerUtils {
                 return (T) ois.readObject();
             }
         }
+    }
+
+    public static Table<Integer, String, Object> tabulate(
+            TicketQueryResponse response,
+            List<CQLEngine.SelectedField> selectedFields) {
+        val output = TreeBasedTable.<Integer, String, Object>create();
+        val rowIdx = new AtomicInteger(0);
+        response.accept(new TicketQueryResponseVisitor<Void>() {
+            @Override
+            public Void visit(TicketListResponse listResponse) {
+                listResponse.getResults()
+                        .forEach(gist -> {
+                            val cols = output.row(rowIdx.incrementAndGet());
+                            cols.put(TicketGist.Fields.ticketId, gist.getTicketId());
+                            cols.put(TicketGist.Fields.title, gist.getTitle());
+                            cols.put(TicketGist.Fields.workflowName, gist.getWorkflowName());
+                            cols.put(TicketGist.Fields.stateName, gist.getStateName());
+                            cols.put(TicketGist.Fields.terminated, gist.isTerminated());
+                            cols.put(TicketGist.Fields.priority, gist.getPriority());
+                            cols.put(TicketGist.Fields.created, gist.getCreated());
+                            cols.put(TicketGist.Fields.updated, gist.getUpdated());
+                            val fieldsData = new HashMap<String, String>();
+                            gist.getFields().forEach(field -> fieldsData.put(field.getFieldSchemaId(),
+                                                                             ConductorServerUtils.toString(field.getFieldValue())));
+                            selectedFields.forEach(selectedField -> cols.put(
+                                    "fields_" + selectedField.name(), fieldsData.getOrDefault(selectedField.fieldSchemaId(), "")));
+                        });
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketGroupResponse groupResponse) {
+                output.putAll(groupResponse.getCounts());
+                return null;
+            }
+
+        });
+        return output;
+    }
+
+    private static String toString(final FieldValue fieldValue) {
+        return fieldValue.accept(new FieldValueVisitor<String>() {
+            @Override
+            public String visit(StringFieldValue stringFieldValue) {
+                return stringFieldValue.getValue();
+            }
+
+            @Override
+            public String visit(ChoiceFieldValue choiceFieldValue) {
+                return String.join(",", choiceFieldValue.getValue());
+            }
+
+            @Override
+            public String visit(BooleanFieldValue booleanFieldValue) {
+                return Boolean.toString(booleanFieldValue.isValue());
+            }
+
+            @Override
+            public String visit(NumberFieldValue numberFieldValue) {
+                return Double.toString(numberFieldValue.getValue());
+            }
+
+            @Override
+            public String visit(LocationFieldValue locationFieldValue) {
+                return String.format("{%f,%f}", locationFieldValue.getLat(), locationFieldValue.getLon());
+            }
+
+            @Override
+            public String visit(DateFieldValue dateFieldValue) {
+                return new SimpleDateFormat("dd-MM-yyyy").format(dateFieldValue.getValue());
+            }
+        });
+    }
+
+    public static Date nextExecutionTimeForCron(String id, String cronExpression, Date currTime) {
+        val cronDefinition = CronDefinitionBuilder.instanceDefinitionFor(QUARTZ);
+        val parser = new CronParser(cronDefinition);
+        val executionTime = ExecutionTime.forCron(parser.parse(cronExpression));
+        return executionTime.nextExecution(ZonedDateTime.ofInstant(currTime.toInstant(),
+                                                                                    ZoneId.systemDefault()))
+                .map(zonedDateTime -> Date.from(zonedDateTime.toInstant()))
+                .orElseThrow(() -> new IllegalArgumentException("Could not determine next execution time for " + id));
     }
 }
 

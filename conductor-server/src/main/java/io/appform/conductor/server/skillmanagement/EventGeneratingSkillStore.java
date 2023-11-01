@@ -18,6 +18,7 @@ package io.appform.conductor.server.skillmanagement;
 
 import io.appform.conductor.model.skills.SkillDefinition;
 import io.appform.conductor.model.skills.SkillValue;
+import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.events.*;
 import lombok.val;
@@ -37,7 +38,7 @@ public class EventGeneratingSkillStore implements SkillStore {
     private final SkillStore skillStore;
 
     @Inject
-    public EventGeneratingSkillStore(EventBus eventBus, @Named("root") SkillStore skillStore) {
+    public EventGeneratingSkillStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) SkillStore skillStore) {
         this.eventBus = eventBus;
         this.skillStore = skillStore;
     }

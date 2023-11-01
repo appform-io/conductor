@@ -3,6 +3,7 @@ package io.appform.conductor.server.usermanagement;
 import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.usermgmt.UserType;
+import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.events.UserCreatedEvent;
 import io.appform.conductor.server.eventmanagement.events.UserStateChangeEvent;
@@ -22,7 +23,7 @@ public class EventGeneratingUserStore implements UserStore {
     private final UserStore userStore;
 
     @Inject
-    public EventGeneratingUserStore(EventBus eventBus, @Named("root") UserStore userStore) {
+    public EventGeneratingUserStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) UserStore userStore) {
         this.eventBus = eventBus;
         this.userStore = userStore;
     }

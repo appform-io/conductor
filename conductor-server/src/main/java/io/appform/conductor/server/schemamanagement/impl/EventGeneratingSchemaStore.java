@@ -4,6 +4,7 @@ import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.schema.SchemaSummary;
+import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.events.*;
 import lombok.val;
@@ -20,7 +21,7 @@ public class EventGeneratingSchemaStore implements SchemaStore {
     private final SchemaStore schemaStore;
 
     @Inject
-    public EventGeneratingSchemaStore(EventBus eventBus, @Named("root") SchemaStore schemaStore) {
+    public EventGeneratingSchemaStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) SchemaStore schemaStore) {
         this.eventBus = eventBus;
         this.schemaStore = schemaStore;
     }

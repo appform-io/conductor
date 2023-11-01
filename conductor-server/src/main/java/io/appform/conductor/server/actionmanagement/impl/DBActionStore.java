@@ -212,8 +212,8 @@ public class DBActionStore implements ActionStore {
                         .id(storedSetFieldAction.getActionId())
                         .name(storedSetFieldAction.getName())
                         .description(storedSetFieldAction.getDescription())
-                        .scope(Scope.build(storedSetFieldAction.getScopeType(),
-                                           storedSetFieldAction.getScopeReferenceId()))
+                        .scope(Scope.create(storedSetFieldAction.getScopeType(),
+                                            storedSetFieldAction.getScopeReferenceId()))
                         .fieldSchemaId(storedSetFieldAction.getFieldSchemaId())
                         .fieldValue(storedSetFieldAction.getStoredFieldValue().toFieldValue())
                         .created(storedSetFieldAction.getCreated())
@@ -227,8 +227,8 @@ public class DBActionStore implements ActionStore {
                         .id(storedAddCommentAction.getActionId())
                         .name(storedAddCommentAction.getName())
                         .description(storedAddCommentAction.getDescription())
-                        .scope(Scope.build(storedAddCommentAction.getScopeType(),
-                                           storedAddCommentAction.getScopeReferenceId()))
+                        .scope(Scope.create(storedAddCommentAction.getScopeType(),
+                                            storedAddCommentAction.getScopeReferenceId()))
                         .contentTemplate(storedAddCommentAction.getContentTemplate())
                         .created(storedAddCommentAction.getCreated())
                         .updated(storedAddCommentAction.getUpdated())
@@ -241,8 +241,8 @@ public class DBActionStore implements ActionStore {
                         .id(storedAddTicketAction.getActionId())
                         .name(storedAddTicketAction.getName())
                         .description(storedAddTicketAction.getDescription())
-                        .scope(Scope.build(storedAddTicketAction.getScopeType(),
-                                           storedAddTicketAction.getScopeReferenceId()))
+                        .scope(Scope.create(storedAddTicketAction.getScopeType(),
+                                            storedAddTicketAction.getScopeReferenceId()))
                         .actionId(storedAddTicketAction.getTicketActionId())
                         .created(storedAddTicketAction.getCreated())
                         .updated(storedAddTicketAction.getUpdated())
@@ -255,8 +255,8 @@ public class DBActionStore implements ActionStore {
                         .id(storedChangePriorityAction.getActionId())
                         .name(storedChangePriorityAction.getName())
                         .description(storedChangePriorityAction.getDescription())
-                        .scope(Scope.build(storedChangePriorityAction.getScopeType(),
-                                           storedChangePriorityAction.getScopeReferenceId()))
+                        .scope(Scope.create(storedChangePriorityAction.getScopeType(),
+                                            storedChangePriorityAction.getScopeReferenceId()))
                         .priority(storedChangePriorityAction.getPriority())
                         .created(storedChangePriorityAction.getCreated())
                         .updated(storedChangePriorityAction.getUpdated())
@@ -269,8 +269,8 @@ public class DBActionStore implements ActionStore {
                         .id(storedRouteToGroupAction.getActionId())
                         .name(storedRouteToGroupAction.getName())
                         .description(storedRouteToGroupAction.getDescription())
-                        .scope(Scope.build(storedRouteToGroupAction.getScopeType(),
-                                           storedRouteToGroupAction.getScopeReferenceId()))
+                        .scope(Scope.create(storedRouteToGroupAction.getScopeType(),
+                                            storedRouteToGroupAction.getScopeReferenceId()))
                         .groupId(storedRouteToGroupAction.getGroupId())
                         .created(storedRouteToGroupAction.getCreated())
                         .updated(storedRouteToGroupAction.getUpdated())
@@ -291,8 +291,8 @@ public class DBActionStore implements ActionStore {
                                                  .filter(StoredWebhookActionHeaderTemplate::isActive)
                                                  .collect(Collectors.toMap(StoredWebhookActionHeaderTemplate::getName,
                                                                            StoredWebhookActionHeaderTemplate::getTemplate)))
-                        .scope(Scope.build(storedWebhookAction.getScopeType(),
-                                           storedWebhookAction.getScopeReferenceId()))
+                        .scope(Scope.create(storedWebhookAction.getScopeType(),
+                                            storedWebhookAction.getScopeReferenceId()))
                         .payloadTemplate(storedWebhookAction.getPayloadTemplate())
                         .successCodes(storedWebhookAction.getSuccessCodes())
                         .mimeType(storedWebhookAction.getMimeType())

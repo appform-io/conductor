@@ -17,6 +17,7 @@
 package io.appform.conductor.server.comms;
 
 import io.appform.conductor.server.config.MailConfig;
+import jakarta.activation.FileDataSource;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +29,7 @@ import org.simplejavamail.mailer.MailerBuilder;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,7 +40,7 @@ import java.util.Objects;
 @Slf4j
 public class MailSender {
 
-    public record Attachment(String name, String data, String mimeType) {
+    public record Attachment(String name, File datafile) {
     }
 
     public record Mail(List<String> emailIds, String subject, String body, List<Attachment> attachments) {
@@ -75,8 +76,7 @@ public class MailSender {
                 .from(mailConfig.getFrom());
         Objects.requireNonNullElse(mail.attachments, List.<Attachment>of())
                 .forEach(attachment -> mailBuilder.withAttachment(attachment.name(),
-                                                                  attachment.data().getBytes(StandardCharsets.UTF_8),
-                                                                  attachment.mimeType()));
+                                                              new FileDataSource(attachment.datafile())));
         val email = mailBuilder.buildEmail();
         mailer.sendMail(email);
         log.debug("Mail subject: {}, Recipients: {}", mail.subject(), mail.emailIds);

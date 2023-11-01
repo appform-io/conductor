@@ -17,6 +17,7 @@
 package io.appform.conductor.server.eventmanagement;
 
 import io.appform.conductor.server.eventmanagement.events.*;
+import io.appform.conductor.server.eventmanagement.events.reporting.ReportExecutionCompletedEvent;
 
 /**
  *
@@ -144,4 +145,5 @@ public interface EventVisitor<T> {
 
     T visit(TicketStateUpdatedEvent ticketStateUpdatedEvent);
 
+    T visit(ReportExecutionCompletedEvent reportExecutionCompletedEvent);
 }

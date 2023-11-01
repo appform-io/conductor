@@ -2,6 +2,7 @@ package io.appform.conductor.server.usermanagement;
 
 import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.model.usermgmt.UserSessionDetails;
+import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.events.UserSessionCreatedEvent;
 import io.appform.conductor.server.eventmanagement.events.UserSessionUpdatedEvent;
@@ -21,7 +22,7 @@ public class EventGeneratingSessionStore implements SessionStore {
     private final SessionStore sessionStore;
 
     @Inject
-    public EventGeneratingSessionStore(EventBus eventBus, @Named("root") SessionStore sessionStore) {
+    public EventGeneratingSessionStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) SessionStore sessionStore) {
         this.eventBus = eventBus;
         this.sessionStore = sessionStore;
     }

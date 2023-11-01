@@ -99,7 +99,7 @@ public class Actions {
             @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @FormParam("type") @NotNull final ActionType type) {
-        val scope = Scope.build(scopeType, referenceId);
+        val scope = Scope.create(scopeType, referenceId);
         val fragment = switch (type) {
             case WEBHOOK -> new WebHookActionFragment(scope, null);
             case ROUTE_TO_GROUP -> new RouteToGroupActionFragment(groupStore.list(), scope, null);
@@ -124,7 +124,7 @@ public class Actions {
         if (null == action) {
             return Response.noContent().build();
         }
-        val scope = Scope.build(scopeType, referenceId);
+        val scope = Scope.create(scopeType, referenceId);
         val view = switch (action.getType()) {
             case WEBHOOK -> new WebHookActionFragment(scope, action);
             case ROUTE_TO_GROUP -> new RouteToGroupActionFragment(groupStore.list(), scope, action);
@@ -148,7 +148,7 @@ public class Actions {
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
-        val scope = Scope.build(scopeType, referenceId);
+        val scope = Scope.create(scopeType, referenceId);
         return actionStore.save(new RouteToGroupAction(UUID.randomUUID().toString(),
                                                        name,
                                                        description,
@@ -171,7 +171,7 @@ public class Actions {
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
-        val scope = Scope.build(scopeType, referenceId);
+        val scope = Scope.create(scopeType, referenceId);
         if (actionStore.update(actionId,
                                action ->
                                        new RouteToGroupAction(action.getId(),
@@ -196,7 +196,7 @@ public class Actions {
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("ticketActionId") @NotEmpty @Length(max = 45) final String ticketActionId) {
-        val scope = Scope.build(scopeType, referenceId);
+        val scope = Scope.create(scopeType, referenceId);
         return actionStore.save(new AddTicketAction(UUID.randomUUID().toString(),
                                                     name,
                                                     description,
@@ -219,7 +219,7 @@ public class Actions {
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("ticketActionId") @NotEmpty @Length(max = 45) final String ticketActionId) {
-        val scope = Scope.build(scopeType, referenceId);
+        val scope = Scope.create(scopeType, referenceId);
         if (actionStore.update(actionId,
                                action ->
                                        new AddTicketAction(action.getId(),
@@ -244,7 +244,7 @@ public class Actions {
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("priority") @NotNull TicketPriority priority) {
-        val scope = Scope.build(scopeType, referenceId);
+        val scope = Scope.create(scopeType, referenceId);
         return actionStore.save(new ChangePriorityAction(UUID.randomUUID().toString(),
                                                          name,
                                                          description,
@@ -267,7 +267,7 @@ public class Actions {
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("priority") @NotNull TicketPriority priority) {
-        val scope = Scope.build(scopeType, referenceId);
+        val scope = Scope.create(scopeType, referenceId);
         if (actionStore.update(actionId,
                                action ->
                                        new ChangePriorityAction(action.getId(),
@@ -297,7 +297,7 @@ public class Actions {
             @FormParam("payloadTemplate") @Length(max = 4096) String payloadTemplate,
             @FormParam("headerTemplates") @Length(max = 4096) String headerTemplates,
             @FormParam("successCodes") @Length(max = 128) String successCodes) {
-        val scope = Scope.build(scopeType, referenceId);
+        val scope = Scope.create(scopeType, referenceId);
         return actionStore.save(new WebhookAction(UUID.randomUUID().toString(),
                                                   name,
                                                   description,
@@ -334,7 +334,7 @@ public class Actions {
             @FormParam("payloadTemplate") @Length(max = 4096) String payloadTemplate,
             @FormParam("headerTemplates") @Length(max = 4096) String headerTemplates,
             @FormParam("successCodes") @Length(max = 128) String successCodes) {
-        val scope = Scope.build(scopeType, referenceId);
+        val scope = Scope.create(scopeType, referenceId);
         if (actionStore.update(actionId,
                                action -> new WebhookAction(action.getId(),
                                                            name,
@@ -358,7 +358,7 @@ public class Actions {
     }
 
     private Response renderListPage(ConductorUser user, Scope.ScopeType scopeType, String referenceId) {
-        val scope = Scope.build(scopeType, referenceId);
+        val scope = Scope.create(scopeType, referenceId);
         return render(new ActionListView(user.getUserSession().getUser(), actionStore.listActionsForScopes(List.of(scope)), scope));
     }
 

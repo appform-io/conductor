@@ -40,7 +40,7 @@ class DBActionStoreTest {
                         .id("TestAddTicketAction1")
                         .name("TestingNameAddTicketAction")
                         .description("Testing description for AddTicketAction")
-                        .scope(Scope.build(Scope.ScopeType.STATE, "S123"))
+                        .scope(Scope.create(Scope.ScopeType.STATE, "S123"))
                         .build())
                 .orElse(null);
         assertNotNull(createdAction);
@@ -55,7 +55,7 @@ class DBActionStoreTest {
                         .contentTemplate(new Template(Template.Type.HANDLEBARS, "CommentTemplate"))
                         .id("TestAddCommentAction1")
                         .name("TestingNameAddCommentAction")
-                        .scope(Scope.build(Scope.ScopeType.STATE, "S123"))
+                        .scope(Scope.create(Scope.ScopeType.STATE, "S123"))
                         .description("Testing description for AddCommentAction")
                         .build())
                 .orElse(null);
@@ -78,7 +78,7 @@ class DBActionStoreTest {
                         .id("TestWebhookAction")
                         .name("TestingNameWebhookAction")
                         .description("Testing description for WebhookAction")
-                        .scope(Scope.build(Scope.ScopeType.STATE, "S123"))
+                        .scope(Scope.create(Scope.ScopeType.STATE, "S123"))
                         .callMode(WebhookAction.CallMode.SYNC)
                         .callType(WebhookAction.CallType.POST)
                         .urlTemplate(new Template(Template.Type.STRING_SUBSTITUTION,"urlTemplate"))
@@ -117,7 +117,7 @@ class DBActionStoreTest {
                     .id("TestNormalActionId1")
                     .name("TestingName")
                     .description("Testing description")
-                    .scope(Scope.build(Scope.ScopeType.STATE, "S123"))
+                    .scope(Scope.create(Scope.ScopeType.STATE, "S123"))
                     .build());
             fail("Should have thrown exception.");
         } catch (Exception e) {

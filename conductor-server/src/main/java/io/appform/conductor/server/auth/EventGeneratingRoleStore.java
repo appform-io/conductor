@@ -2,6 +2,7 @@ package io.appform.conductor.server.auth;
 
 import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.auth.Role;
+import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.events.RoleCreatedEvent;
 import io.appform.conductor.server.eventmanagement.events.RoleDeletedEvent;
@@ -24,7 +25,7 @@ public class EventGeneratingRoleStore implements RoleStore {
     private final RoleStore roleStore;
 
     @Inject
-    public EventGeneratingRoleStore(EventBus eventBus, @Named("root") RoleStore roleStore) {
+    public EventGeneratingRoleStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) RoleStore roleStore) {
         this.eventBus = eventBus;
         this.roleStore = roleStore;
     }

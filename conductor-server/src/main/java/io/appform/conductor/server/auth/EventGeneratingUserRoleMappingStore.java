@@ -1,5 +1,6 @@
 package io.appform.conductor.server.auth;
 
+import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.events.UserRoleAssignedEvent;
 import io.appform.conductor.server.eventmanagement.events.UserRoleRevokedEvent;
@@ -16,7 +17,7 @@ public class EventGeneratingUserRoleMappingStore implements UserRoleMappingStore
     private final UserRoleMappingStore  userRoleMappingStore;
 
     @Inject
-    public EventGeneratingUserRoleMappingStore(EventBus eventBus, @Named("root") UserRoleMappingStore  userRoleMappingStore) {
+    public EventGeneratingUserRoleMappingStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) UserRoleMappingStore  userRoleMappingStore) {
         this.eventBus = eventBus;
         this.userRoleMappingStore = userRoleMappingStore;
     }

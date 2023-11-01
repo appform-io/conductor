@@ -22,10 +22,6 @@ import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.analytics.*;
-import io.appform.conductor.model.ticket.fields.FieldValue;
-import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
-import io.appform.conductor.model.ticket.fields.impl.*;
-import io.appform.conductor.model.ticket.filter.Filters;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
@@ -43,12 +39,9 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.appform.conductor.server.resources.apis.Analytics.translateToTicketFilters;
 
@@ -101,33 +94,12 @@ public class Tickets {
             if (null == results) {
                 return ConductorApiResponse.success(null);
             }
-            val filters = Objects.requireNonNullElse(results.filters(), Filters.EMPTY);
-            val ticketRequest = switch (results.opCode()) {
-
-                case LIST -> TicketListRequest.builder()
-                        .queryId(requestId)
-                        .filters(filters)
-                        .direction(TicketListRequest.Direction.FORWARD)
-                        .ticketDataFields(Objects.requireNonNullElse(results.selectedFields(),
-                                                                     List.<CQLEngine.SelectedField>of())
-                                                  .stream()
-                                                  .map(CQLEngine.SelectedField::fieldSchemaId)
-                                                  .toList())
-                        .next(next)
-                        .size(Math.min(200, Math.max(size, (int) results.limit())))
-                        .build();
-                case GROUP -> TicketGroupRequest.builder()
-                        .queryId(requestId)
-                        .filters(filters)
-                        .groupingFields(results.groupingElements())
-                        .build();
-            };
-            val queryResponse = ticketManager.query(ticketRequest);
+            val queryResponse = CQLEngine.runQuery(requestId, next, size, results, ticketManager);
             return ConductorApiResponse.success(
                     switch (responseFormat) {
                         case DEFAULT -> queryResponse;
                         case TABLE -> {
-                            val table = tabulate(queryResponse, results.selectedFields());
+                            val table = ConductorServerUtils.tabulate(queryResponse, results.selectedFields());
                             val metadata = new HashMap<String, Object>();
                             metadata.put("opCode", queryResponse.getOpCode());
                             metadata.put("requestId", queryResponse.getRequestId());
@@ -188,76 +160,5 @@ public class Tickets {
         }
     }
 
-    private Table<Integer, String, Object> tabulate(
-            TicketQueryResponse response,
-            List<CQLEngine.SelectedField> selectedFields) {
-        val output = TreeBasedTable.<Integer, String, Object>create();
-        val rowIdx = new AtomicInteger(0);
-        response.accept(new TicketQueryResponseVisitor<Void>() {
-            @Override
-            public Void visit(TicketListResponse listResponse) {
-                listResponse.getResults()
-                        .forEach(gist -> {
-                            val cols = output.row(rowIdx.incrementAndGet());
-                            cols.put(TicketGist.Fields.ticketId, gist.getTicketId());
-                            cols.put(TicketGist.Fields.title, gist.getTitle());
-                            cols.put(TicketGist.Fields.workflowName, gist.getWorkflowName());
-                            cols.put(TicketGist.Fields.stateName, gist.getStateName());
-                            cols.put(TicketGist.Fields.terminated, gist.isTerminated());
-                            cols.put(TicketGist.Fields.priority, gist.getPriority());
-                            cols.put(TicketGist.Fields.created, gist.getCreated());
-                            cols.put(TicketGist.Fields.updated, gist.getUpdated());
-                            val fieldsData = new HashMap<String, String>();
-                            gist.getFields().forEach(field -> fieldsData.put(field.getFieldSchemaId(),
-                                                                             Tickets.toString(field.getFieldValue())));
-                            selectedFields.forEach(selectedField -> cols.put(
-                                    "fields_" + selectedField.name(), fieldsData.getOrDefault(selectedField.fieldSchemaId(), "")));
-                        });
-                return null;
-            }
-
-            @Override
-            public Void visit(TicketGroupResponse groupResponse) {
-                output.putAll(groupResponse.getCounts());
-                return null;
-            }
-
-        });
-        return output;
-    }
-
-    private static String toString(final FieldValue fieldValue) {
-        return fieldValue.accept(new FieldValueVisitor<String>() {
-            @Override
-            public String visit(StringFieldValue stringFieldValue) {
-                return stringFieldValue.getValue();
-            }
-
-            @Override
-            public String visit(ChoiceFieldValue choiceFieldValue) {
-                return String.join(",", choiceFieldValue.getValue());
-            }
-
-            @Override
-            public String visit(BooleanFieldValue booleanFieldValue) {
-                return Boolean.toString(booleanFieldValue.isValue());
-            }
-
-            @Override
-            public String visit(NumberFieldValue numberFieldValue) {
-                return Double.toString(numberFieldValue.getValue());
-            }
-
-            @Override
-            public String visit(LocationFieldValue locationFieldValue) {
-                return String.format("{%f,%f}", locationFieldValue.getLat(), locationFieldValue.getLon());
-            }
-
-            @Override
-            public String visit(DateFieldValue dateFieldValue) {
-                return new SimpleDateFormat("dd-MM-yyyy").format(dateFieldValue.getValue());
-            }
-        });
-    }
 }
 

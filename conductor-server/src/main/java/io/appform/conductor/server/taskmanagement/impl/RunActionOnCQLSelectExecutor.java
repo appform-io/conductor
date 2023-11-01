@@ -16,7 +16,9 @@
 
 package io.appform.conductor.server.taskmanagement.impl;
 
-import io.appform.conductor.model.ticket.filter.Filters;
+import io.appform.conductor.model.ticket.analytics.TicketGroupResponse;
+import io.appform.conductor.model.ticket.analytics.TicketListResponse;
+import io.appform.conductor.model.ticket.analytics.TicketQueryResponseVisitor;
 import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
 import io.appform.conductor.server.taskmanagement.model.RunActionOnCQLSelectTaskSpec;
@@ -29,6 +31,8 @@ import lombok.val;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  *
@@ -46,25 +50,47 @@ public class RunActionOnCQLSelectExecutor {
             final Task task,
             final Map<String, Object> taskMeta,
             final RunActionOnCQLSelectTaskSpec taskSpec) {
-        var nextPtr = (String) taskMeta.getOrDefault(TASK_META_CURSOR, "");
-        var hasMore = true;
-        val filers = cqlEngine.parse(taskSpec.getQuery()).map(CQLEngine.CQLParserOutput::filters).orElse(Filters.EMPTY);
+        val nextPtr = new AtomicReference<>((String) taskMeta.getOrDefault(TASK_META_CURSOR, ""));
+        val hasMore = new AtomicBoolean(true);
+        val parserOutput = cqlEngine.parse(taskSpec.getQuery()).orElse(null);
+        if (null == parserOutput) {
+            log.warn("Error parsing task CQL for task: {}, CQL: {}", task.getId(), taskSpec.getQuery());
+            return new ConductorTaskScheduler.TaskResult(
+                    ConductorTaskScheduler.TaskStatus.FAILURE,
+                    task,
+                    Map.of(TASK_META_CURSOR, nextPtr));
+        }
         do {
-            val tickets = ticketManager.since(
-                    filers.ticketFilters(),
-                    filers.fieldFilters(),
-                    nextPtr,
-                    10);
-            hasMore = !tickets.getResults().isEmpty();
-            nextPtr = tickets.getNext();
-            tickets.getResults()
-                    .forEach(gist -> taskSpec.getActionIds()
-                            .forEach(actionId -> {
-                                log.info("Applying action {} on ticket {}",
-                                         actionId, gist.getTicketId());
-                                ticketManager.triggerTicketAction(gist.getTicketId(), actionId);
-                            }));
-        } while (hasMore);
+            val queryResponse = CQLEngine.runQuery(
+                    task.getId() + "-" + System.currentTimeMillis(),
+                    nextPtr.get(),
+                    10,
+                    parserOutput,
+                    ticketManager);
+            queryResponse.accept(new TicketQueryResponseVisitor<Void>() {
+                @Override
+                public Void visit(TicketListResponse listResponse) {
+                    hasMore.set(!listResponse.getResults().isEmpty());
+                    nextPtr.set(listResponse.getNext());
+                    listResponse.getResults()
+                            .forEach(gist -> taskSpec.getActionIds()
+                                    .forEach(actionId -> {
+                                        log.info("Applying action {} on ticket {}",
+                                                 actionId, gist.getTicketId());
+                                        ticketManager.triggerTicketAction(gist.getTicketId(), actionId);
+                                    }));
+                    return null;
+                }
+
+                @Override
+                public Void visit(TicketGroupResponse groupResponse) {
+                    log.warn("Aggregations are not supported on tasks as of now. Task ID: {}, CQL: {}",
+                             task.getId(),
+                             taskSpec.getQuery());
+                    return null;
+                }
+            });
+        } while (hasMore.get());
         return new ConductorTaskScheduler.TaskResult(
                 ConductorTaskScheduler.TaskStatus.SUCCESS,
                 task,

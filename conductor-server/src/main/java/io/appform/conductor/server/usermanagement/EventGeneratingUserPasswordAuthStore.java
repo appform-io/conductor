@@ -1,5 +1,6 @@
 package io.appform.conductor.server.usermanagement;
 
+import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.events.UserPasswordSetEvent;
 import io.appform.conductor.server.internalmodels.auth.UserPasswordAuthDetails;
@@ -17,7 +18,7 @@ public class EventGeneratingUserPasswordAuthStore implements UserPasswordAuthSto
     private final UserPasswordAuthStore userPasswordAuthStore;
 
     @Inject
-    public EventGeneratingUserPasswordAuthStore(EventBus eventBus, @Named("root") UserPasswordAuthStore userPasswordAuthStore) {
+    public EventGeneratingUserPasswordAuthStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) UserPasswordAuthStore userPasswordAuthStore) {
         this.eventBus = eventBus;
         this.userPasswordAuthStore = userPasswordAuthStore;
     }

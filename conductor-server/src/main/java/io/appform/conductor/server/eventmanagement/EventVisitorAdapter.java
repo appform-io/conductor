@@ -17,6 +17,7 @@
 package io.appform.conductor.server.eventmanagement;
 
 import io.appform.conductor.server.eventmanagement.events.*;
+import io.appform.conductor.server.eventmanagement.events.reporting.ReportExecutionCompletedEvent;
 
 /**
  *
@@ -334,6 +335,11 @@ public abstract class EventVisitorAdapter<T> implements EventVisitor<T> {
 
     @Override
     public T visit(TicketStateUpdatedEvent ticketStateUpdatedEvent) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(ReportExecutionCompletedEvent reportExecutionCompletedEvent) {
         return defaultValue;
     }
 }

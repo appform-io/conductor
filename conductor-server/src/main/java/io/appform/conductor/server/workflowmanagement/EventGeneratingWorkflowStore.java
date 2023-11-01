@@ -1,6 +1,7 @@
 package io.appform.conductor.server.workflowmanagement;
 
 import io.appform.conductor.model.workflow.*;
+import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.events.*;
 import lombok.val;
@@ -19,7 +20,7 @@ public class EventGeneratingWorkflowStore implements  WorkflowStore {
     private final WorkflowStore workflowStore;
 
     @Inject
-    public EventGeneratingWorkflowStore(EventBus eventBus, @Named("root") WorkflowStore workflowStore) {
+    public EventGeneratingWorkflowStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) WorkflowStore workflowStore) {
         this.eventBus = eventBus;
         this.workflowStore = workflowStore;
     }

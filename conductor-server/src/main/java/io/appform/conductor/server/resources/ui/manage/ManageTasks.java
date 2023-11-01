@@ -77,7 +77,7 @@ public class ManageTasks {
     public Response renderTaskList(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
-        val scope = Scope.build(Scope.ScopeType.WORKFLOW, workflowId);
+        val scope = Scope.create(Scope.ScopeType.WORKFLOW, workflowId);
         return render(new TaskListView(user.getUserSession().getUser(),
                                        workflowId, taskStore.listByScopes(List.of(scope)),
                                        scope));
@@ -100,7 +100,7 @@ public class ManageTasks {
                                                                 workFlow.getStates().values(),
                                                                 groupStore.list(),
                                                                 actionStore.listActionsForScopes(List.of(Scope.GLOBAL,
-                                                                                                         Scope.build(
+                                                                                                         Scope.create(
                                                                                                                  Scope.ScopeType.WORKFLOW,
                                                                                                                  workflowId))),
                                                                 null,
@@ -116,7 +116,7 @@ public class ManageTasks {
                                                           workflowId,
                                                           null,
                                                           actionStore.listActionsForScopes(List.of(Scope.GLOBAL,
-                                                                                                   Scope.build(
+                                                                                                   Scope.create(
                                                                                                            Scope.ScopeType.WORKFLOW,
                                                                                                            workflowId))),
                                                           null));
@@ -159,7 +159,7 @@ public class ManageTasks {
                                                                 workFlow.getStates().values(),
                                                                 groupStore.list(),
                                                                 actionStore.listActionsForScopes(List.of(Scope.GLOBAL,
-                                                                                                         Scope.build(
+                                                                                                         Scope.create(
                                                                                                                  Scope.ScopeType.WORKFLOW,
                                                                                                                  workflowId))),
                                                                 task,
@@ -203,7 +203,7 @@ public class ManageTasks {
                                                           workflowId,
                                                           spec.getQuery(),
                                                           actionStore.listActionsForScopes(List.of(Scope.GLOBAL,
-                                                                                                   Scope.build(
+                                                                                                   Scope.create(
                                                                                                            Scope.ScopeType.WORKFLOW,
                                                                                                            workflowId))),
                                                           task));
@@ -270,7 +270,7 @@ public class ManageTasks {
                 .description(description)
                 .interval(Duration.ofMinutes(interval))
                 .type(spec.getType())
-                .scope(Scope.build(Scope.ScopeType.WORKFLOW, workflowId))
+                .scope(Scope.create(Scope.ScopeType.WORKFLOW, workflowId))
                 .state(TaskState.ACTIVE)
                 .spec(spec)
                 .build();
@@ -328,7 +328,7 @@ public class ManageTasks {
                 .description(description)
                 .interval(Duration.ofMinutes(interval))
                 .type(spec.getType())
-                .scope(Scope.build(Scope.ScopeType.WORKFLOW, workflowId))
+                .scope(Scope.create(Scope.ScopeType.WORKFLOW, workflowId))
                 .state(TaskState.ACTIVE)
                 .spec(spec)
                 .build();

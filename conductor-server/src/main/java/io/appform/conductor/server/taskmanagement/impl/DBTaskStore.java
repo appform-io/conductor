@@ -25,7 +25,6 @@ import io.appform.conductor.server.taskmanagement.TaskStore;
 import io.appform.conductor.server.taskmanagement.impl.models.StoredTask;
 import io.appform.conductor.server.taskmanagement.model.Task;
 import io.appform.conductor.server.taskmanagement.model.TaskSpec;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflow;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -52,7 +51,7 @@ public class DBTaskStore implements TaskStore {
 
     @Override
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = StoredWorkflow.WORKFLOW_TABLE_NAME))
+            fixedParams = @Throws.Param(name = "type", value = StoredTask.TASK_TABLE_NAME))
     public Optional<Task> createOrUpdate(String id, @Throws.RuntimeParam("id") Task task) {
         return taskDao.createOrUpdate(
                         task.getId(),
@@ -154,7 +153,7 @@ public class DBTaskStore implements TaskStore {
                 task.getName(),
                 task.getDescription(),
                 Duration.ofMillis(task.getInterval()),
-                Scope.build(task.getScopeType(), task.getScopeReferenceId()),
+                Scope.create(task.getScopeType(), task.getScopeReferenceId()),
                 task.getState(),
                 mapper.readValue(task.getSpec(), TaskSpec.class),
                 task.getLastExecutionCompletionTime(),

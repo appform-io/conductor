@@ -30,7 +30,7 @@ public class Scope {
     @Nullable
     String referenceId;
 
-    public static Scope build(@NonNull ScopeType type, String referenceId) {
+    public static Scope create(@NonNull ScopeType type, String referenceId) {
         return type == ScopeType.GLOBAL
             ? GLOBAL
             : new Scope(type, referenceId);

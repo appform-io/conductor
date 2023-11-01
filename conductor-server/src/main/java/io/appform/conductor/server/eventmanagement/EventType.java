@@ -84,6 +84,8 @@ public enum EventType {
     TICKET_GROUP_ASSIGNED,
     TICKET_FIELDS_UPDATED,
     TICKET_PRIORITY_UPDATED,
-    TICKET_STATE_UPDATED;
+    TICKET_STATE_UPDATED,
+
+    REPORT_EXECUTION_COMPLETED;
     public static final Set<EventType> ALL = EnumSet.allOf(EventType.class);
 }
