@@ -463,26 +463,33 @@ public class DBTicketStore implements TicketStore {
             final Map<String, FieldSchema> relevantFieldSchema,
             final boolean readFields,
             final List<String> fieldNames,
-            final Consumer<Criteria> criteriaUpdater) {
+            final Consumer<DetachedCriteria> criteriaUpdater) {
         val ticketIdCriteria = DetachedCriteria.forClass(StoredTicketSkeleton.class, StoredFieldValue.Fields.ticket)
                 .add(Property.forName(StoredTicketSkeleton.Fields.deleted).eq(false));
         applyTicketFilter(ticketFilters, ticketIdCriteria);
         applyFieldFilters(fieldFilters, relevantFieldSchema, ticketIdCriteria);
         ticketIdCriteria
-                .setProjection(Projections.distinct(Projections.property(StoredTicketSkeleton.Fields.ticketId)));
+                .setProjection(Projections.projectionList()
+                                       .add(Projections.distinct(Projections.property(StoredTicketSkeleton.Fields.ticketId)))
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.id)));
         val pointer = TicketScrollPointer.deserializePointer(start, mapper);
         val queryResults = new ArrayList<TicketSkeleton>();
         ticketDao.runInSession(
                 (shardId, session) -> {
                     val shardCriteria = ConductorServerUtils.cloneObject(ticketIdCriteria);
+                    criteriaUpdater.accept(shardCriteria);
                     val executableCriteria = shardCriteria.getExecutableCriteria(session)
                             .setFirstResult(pointer.getCurrOffset(shardId))
                             .setMaxResults(size);
-                    criteriaUpdater.accept(executableCriteria);
-                    val ids = (List<String>) executableCriteria.list();
-                    if(ids.isEmpty()) {
+                    val results = (List<Object[]>) executableCriteria.list();
+                    if(results.isEmpty()) {
                         return List.<StoredTicketSkeleton>of();
                     }
+                    //The following is again due to a hibernate quirk which necessitates order by field to be present
+                    // as a part of the projected fields for some reason. Works fine in real life, was breaking tests
+                    val ids = results.stream()
+                            .map(r -> (String)r[0])
+                            .toList();
                     val pointQuery = DetachedCriteria.forClass(StoredTicketSkeleton.class)
                             .add(Property.forName(StoredTicketSkeleton.Fields.ticketId).in(ids));
                     //Pagination is done on IDs first and data pulled after that
