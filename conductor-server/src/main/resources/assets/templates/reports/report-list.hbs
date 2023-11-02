@@ -173,16 +173,47 @@
                                     <td><code>{{cqlQuery}}</code></td>
                                     <td><code>{{cron}}</code></td>
                                     <td>{{join recipients}}</td>
-                                    <td>{{readable state}}</td>
+                                    <td>
+                                        {{#eqEnum state "ACTIVE"}}
+                                            <span class="badge bg-success ms-2">{{readable state}}</span>
+                                        {{else}}
+                                        {{#eqEnum state "DISABLED"}}
+                                            <span class="badge bg-secondary ms-2">{{readable state}}</span>
+                                        {{else}}
+                                            <span class="badge bg-primary ms-2">{{readable state}}</span>
+                                        {{/eqEnum}}
+                                        {{/eqEnum}}
+                                    </td>
                                     <td>{{provisionedBy}}</td>
                                     <td>{{created}}</td>
                                     <td>{{updated}}</td>
-                                    <td class="col d-flex justify-content-center">
+<!--                                    <td class="col d-flex justify-content-center">-->
+                                    <td>
                                         <div class="btn-toolbar" role="toolbar">
                                             <div class="btn-group" role="group">
-                                                <form class="confirmed-form" method="post" action="/manage/reports/{{id}}/toggle"
-                                                      data-cnf-title="Toggling activation state for report {{name}}"
-                                                      data-cnf-text="Are you sure you want to toggle state for this report?">
+                                                {{#eqEnum state "ACTIVE"}}
+                                                    <form class="confirmed-form" method="post" action="/manage/reports/{{id}}/deactivate"
+                                                          data-cnf-title="Deactivate report {{name}}"
+                                                          data-cnf-text="Are you sure you want to toggle state for this report?">
+                                                        <button type="submit" class="btn btn-link p-0 text-primary"><i
+                                                                class="bi bi-pause-fill"></i></button>
+                                                    </form>
+                                                {{/eqEnum}}
+                                                {{#eqEnum state "DISABLED"}}
+                                                    <form class="confirmed-form" method="post" action="/manage/reports/{{id}}/activate"
+                                                          data-cnf-title="Activate report {{name}}"
+                                                          data-cnf-text="Are you sure you want to toggle state for this report?">
+                                                        <button type="submit" class="btn btn-link p-0 text-primary"><i
+                                                                class="bi bi-play-fill"></i></button>
+                                                    </form>
+                                                {{/eqEnum}}
+                                            </div>
+                                        </div>
+                                        <div class="btn-toolbar" role="toolbar">
+                                            <div class="btn-group" role="group">
+                                                <form class="confirmed-form" method="post" action="/manage/reports/{{id}}/delete"
+                                                      data-cnf-title="Delete report {{name}}"
+                                                      data-cnf-text="Are you sure you want to delete this report?">
                                                     <button type="submit" class="btn btn-link p-0 text-danger"><i
                                                             class="bi bi-trash-fill"></i></button>
                                                 </form>

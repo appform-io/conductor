@@ -110,6 +110,41 @@ public class DBReportStore implements ReportStore {
     }
 
     @Override
+    public Optional<Report> updateState(String reportId, ReportState state) {
+        if (reportDao.update(reportId,
+                             existingOptional -> existingOptional.map(existing -> existing.setState(state))
+                                     .orElse(null))) {
+            val report = switch (state) {
+                case ACTIVE -> reportDao.lockAndGetExecutor(reportId)
+                        .update(reportRunDao,
+                                DetachedCriteria.forClass(StoredReportRun.class)
+                                        .add(Property.forName(StoredReportRun.Fields.reportId)
+                                                     .eq(reportId))
+                                        .add(Property.forName(StoredReportRun.Fields.currentState)
+                                                     .eq(ReportRun.State.SCHEDULED)),
+                                run -> run.setCurrentState(ReportRun.State.CANCELLED)
+                                        .setMessage("Run cancelled as report was activated."),
+                                () -> true)
+                        .save(reportRunDao, DBReportStore::newRunForReport)
+                        .execute();
+                case DISABLED -> reportDao.lockAndGetExecutor(reportId)
+                        .update(reportRunDao,
+                                DetachedCriteria.forClass(StoredReportRun.class)
+                                        .add(Property.forName(StoredReportRun.Fields.reportId)
+                                                     .eq(reportId))
+                                        .add(Property.forName(StoredReportRun.Fields.currentState)
+                                                     .eq(ReportRun.State.SCHEDULED)),
+                                run -> run.setCurrentState(ReportRun.State.CANCELLED)
+                                        .setMessage("Run cancelled as report was deactivated"),
+                                () -> true)
+                        .execute();
+            };
+            return Optional.of(toWire(report));
+        }
+        return Optional.empty();
+    }
+
+    @Override
     @SneakyThrows
     @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredReport.REPORT_TABLE_NAME))
@@ -123,7 +158,28 @@ public class DBReportStore implements ReportStore {
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredReport.REPORT_TABLE_NAME))
     public boolean delete(@Throws.RuntimeParam("id") String id) {
-        return reportDao.delete(id);
+        val report = reportDao.lockAndGetExecutor(id)
+                .update(reportRunDao,
+                        DetachedCriteria.forClass(StoredReportRun.class)
+                                .add(Property.forName(StoredReportRun.Fields.reportId)
+                                             .eq(id))
+                                .add(Property.forName(StoredReportRun.Fields.currentState)
+                                             .eq(ReportRun.State.SCHEDULED)),
+                        run -> run.setCurrentState(ReportRun.State.CANCELLED)
+                                .setMessage("Run cancelled as report was deleted")
+                                .setDeleted(true),
+                        () -> true)
+                .update(reportContextDao,
+                        DetachedCriteria.forClass(StoredReportContext.class)
+                                .add(Property.forName(StoredReportRun.Fields.reportId)
+                                             .eq(id)),
+                        context -> context.setDeleted(true),
+                        () -> true)
+                .execute();
+        if (null != report) {
+            return reportDao.delete(id);
+        }
+        return false;
     }
 
     @Override
@@ -241,8 +297,8 @@ public class DBReportStore implements ReportStore {
     private static StoredReportRun newRunForReport(StoredReport report) {
         val runDate = nextExecutionTimeForCron(report.getId(), report.getCron(), new Date());
         val nextRunId = "RR-" + UUID.nameUUIDFromBytes((report.getId()
-                                                + "-" + runDate.getTime()
-                                                + "-" + System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8));
+                + "-" + runDate.getTime()
+                + "-" + System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8));
         return new StoredReportRun()
                 .setRunId(nextRunId)
                 .setReportId(report.getId())

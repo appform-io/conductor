@@ -136,6 +136,14 @@ public class ReportManager implements Managed {
         return reportStore.delete(id);
     }
 
+    public Optional<Report> activate(String id) {
+        return reportStore.activate(id);
+    }
+
+    public Optional<Report> deactivate(String id) {
+        return reportStore.deactivate(id);
+    }
+
     public List<Report> listReports() {
         return reportStore.listReports();
     }

@@ -20,6 +20,7 @@ import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.reporting.Report;
 import io.appform.conductor.model.reporting.ReportRun;
 import io.appform.conductor.model.reporting.ReportRunResult;
+import io.appform.conductor.model.reporting.ReportState;
 
 import java.util.*;
 
@@ -35,6 +36,16 @@ public interface ReportStore {
             List<String> emails,
             String cron,
             Scope scope);
+
+    default Optional<Report> activate(final String reportId) {
+        return updateState(reportId, ReportState.ACTIVE);
+    }
+
+    default Optional<Report> deactivate(final String reportId) {
+        return updateState(reportId, ReportState.DISABLED);
+    }
+
+    Optional<Report> updateState(String reportId, ReportState state);
 
     Optional<Report> get(String id);
 

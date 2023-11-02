@@ -21,6 +21,7 @@ import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.SQLDelete;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -44,6 +45,7 @@ import java.util.Objects;
 @FieldNameConstants
 @AllArgsConstructor
 @NoArgsConstructor
+@SQLDelete(sql = "update report_contexts set deleted=true where id=?")
 public class StoredReportContext implements Serializable {
     public static final String REPORT_CONTEXT_TABLE_NAME = "report_contexts";
 

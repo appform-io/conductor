@@ -22,6 +22,7 @@ import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.SQLDelete;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -46,6 +47,7 @@ import java.util.Objects;
 @FieldNameConstants
 @AllArgsConstructor
 @NoArgsConstructor
+@SQLDelete(sql = "update report_runs set deleted=true where id=?")
 public class StoredReportRun implements Serializable {
     public static final String REPORT_RUN_TABLE_NAME = "report_runs";
 
@@ -68,6 +70,9 @@ public class StoredReportRun implements Serializable {
 
     @Column
     private String message;
+
+    @Column
+    private boolean deleted;
 
     @Column(name = "created", columnDefinition = "timestamp default current_timestamp", updatable = false, insertable = false)
     @Generated(value = GenerationTime.INSERT)

@@ -65,12 +65,12 @@ public class ManageReports {
             @FormParam("cron") @NotEmpty @Length(max = 45) final String cron,
             @FormParam("recipients") @NotEmpty @Length(max = 2048) final String recipients) {
         return reportManager.create(ConductorServerUtils.lowerSnake(name),
-                         name,
-                         description,
-                         cqlQuery,
-                         Arrays.asList(recipients.split(",")),
-                         cron,
-                         Scope.GLOBAL)
+                                    name,
+                                    description,
+                                    cqlQuery,
+                                    Arrays.asList(recipients.split(",")),
+                                    cron,
+                                    Scope.GLOBAL)
                 .map(report -> redirect("/manage/reports/" + report.getId()))
                 .orElseThrow(() -> fail("Could not create report", "/manage/reports"));
     }
@@ -83,20 +83,50 @@ public class ManageReports {
             @FormParam("cqlQuery") @NotEmpty @Length(max = 4096) final String cqlQuery,
             @FormParam("cron") @NotEmpty @Length(max = 45) final String cron,
             @FormParam("recipients") @NotEmpty @Length(max = 2048) final String recipients) {
-        return reportManager.update(reportId,
-                         description,
-                         cqlQuery,
-                         Arrays.asList(recipients.split(",")),
-                         cron,
-                         Scope.GLOBAL)
+        return reportManager.update(
+                        reportId,
+                        description,
+                        cqlQuery,
+                        Arrays.asList(recipients.split(",")),
+                        cron,
+                        Scope.GLOBAL)
                 .map(report -> redirect("/manage/reports/" + report.getId()))
-                .orElseThrow(() -> fail("Could not create report", "/manage/reports"));
+                .orElseThrow(() -> fail("Could not update report " + reportId, "/manage/reports"));
+    }
+
+    @POST
+    @Path("{reportId}/activate")
+    public Response activateReport(
+            @PathParam("reportId") @NotEmpty @Length(max = 45) final String reportId) {
+        return reportManager.activate(reportId)
+                .map(report -> redirect("/manage/reports/" + report.getId()))
+                .orElseThrow(() -> fail("Could not update report " + reportId, "/manage/reports"));
+    }
+
+    @POST
+    @Path("{reportId}/deactivate")
+    public Response deactivateReport(
+            @PathParam("reportId") @NotEmpty @Length(max = 45) final String reportId) {
+        return reportManager.deactivate(reportId)
+                .map(report -> redirect("/manage/reports/" + report.getId()))
+                .orElseThrow(() -> fail("Could not update report " + reportId, "/manage/reports"));
+    }
+
+    @POST
+    @Path("{reportId}/delete")
+    public Response deleteReport(
+            @PathParam("reportId") @NotEmpty @Length(max = 45) final String reportId) {
+        if(reportManager.delete(reportId)) {
+            return redirect("/manage/reports/");
+        }
+        throw fail("Could not delete report", "/manage/reports/" + reportId);
     }
 
     @GET
     @Path("{reportId}")
-    public Response renderReportList(@Auth ConductorUser user,
-                                   @PathParam("reportId") @NotEmpty @Length(max = 45) final String reportId) {
+    public Response renderReportList(
+            @Auth ConductorUser user,
+            @PathParam("reportId") @NotEmpty @Length(max = 45) final String reportId) {
         return render(new ReportListView(user.getUserSession().getUser(),
                                          reportManager.listReports(),
                                          reportManager.get(reportId).orElse(null),
