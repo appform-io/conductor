@@ -42,8 +42,6 @@ public interface ReportStore {
 
     List<Report> listReports();
 
-    Optional<ReportRun> scheduleRun(String reportId);
-
     List<ReportRun> runs(String reportId, final Collection<ReportRun.State> states);
 
     default List<ReportRun> runsForReport(

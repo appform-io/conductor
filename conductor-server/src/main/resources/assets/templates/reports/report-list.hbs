@@ -40,14 +40,15 @@
                             <div class="mb-3">
                                 <label for="cqlQuery" class="col-form-label fw-bold">CQL Query</label>
                                 <input type="text" id="cqlQuery" name="cqlQuery" class="form-control border border-dark"
-                                       maxlength="1024" placeholder="CQL Query" aria-describedby="cqlQueryHelp"
+                                       maxlength="4096" placeholder="CQL Query" aria-describedby="cqlQueryHelp"
                                        value="{{currentReport.cqlQuery}}" required>
                                 <div id="cqlQueryHelp" class="form-text">CQL Query that will be run to select records</div>
                             </div>
                             <div class="mb-3">
                                 <label for="cron" class="col-sm-2 col-form-label fw-bold">Cron Pattern</label>
                                 <input type="text" class="form-control  border border-dark" id="cron" name="cron" value="{{currentReport.cron}}"
-                                       placeholder="Quartz Cron Expression" aria-describedby="cronHelp" required>
+                                       placeholder="Quartz Cron Expression" aria-describedby="cronHelp"
+                                       maxlength="45" required>
                                 <div id="cqlQueryHelp" class="form-text">Cron pattern to specify when the report gets triggered.
                                     Follows Quartz cron syntax.
                                 </div>
@@ -55,7 +56,7 @@
                             <div class="mb-3">
                                 <label for="recipients" class="col-sm-2 col-form-label fw-bold">Recipient Emails</label>
                                 <input type="text" class="form-control  border border-dark" id="recipients" name="recipients"
-                                       value="{{join currentReport.recipients}}"
+                                       value="{{join currentReport.recipients}}" maxlength="2048"
                                        placeholder="Comma separated list of recipients" aria-describedby="recipientsHelp"
                                        required>
                                 <div id="recipientsHelp" class="form-text">List of email IDs that the report will be mailed to

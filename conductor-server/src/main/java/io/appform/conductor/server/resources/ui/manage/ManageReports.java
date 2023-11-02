@@ -60,12 +60,30 @@ public class ManageReports {
     @POST
     public Response createReport(
             @FormParam("name") @NotEmpty @Length(max = 45) final String name,
-            @FormParam("description") @NotEmpty @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = 255) final String description,
             @FormParam("cqlQuery") @NotEmpty @Length(max = 4096) final String cqlQuery,
             @FormParam("cron") @NotEmpty @Length(max = 45) final String cron,
             @FormParam("recipients") @NotEmpty @Length(max = 2048) final String recipients) {
         return reportManager.create(ConductorServerUtils.lowerSnake(name),
                          name,
+                         description,
+                         cqlQuery,
+                         Arrays.asList(recipients.split(",")),
+                         cron,
+                         Scope.GLOBAL)
+                .map(report -> redirect("/manage/reports/" + report.getId()))
+                .orElseThrow(() -> fail("Could not create report", "/manage/reports"));
+    }
+
+    @POST
+    @Path("{reportId}/update")
+    public Response updateReport(
+            @PathParam("reportId") @NotEmpty @Length(max = 45) final String reportId,
+            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("cqlQuery") @NotEmpty @Length(max = 4096) final String cqlQuery,
+            @FormParam("cron") @NotEmpty @Length(max = 45) final String cron,
+            @FormParam("recipients") @NotEmpty @Length(max = 2048) final String recipients) {
+        return reportManager.update(reportId,
                          description,
                          cqlQuery,
                          Arrays.asList(recipients.split(",")),

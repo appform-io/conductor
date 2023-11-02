@@ -44,6 +44,7 @@ import org.hibernate.criterion.Property;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_RELATED_ENTITY_LIST_ERROR;
@@ -73,8 +74,7 @@ public class DBReportStore implements ReportStore {
             String cron,
             Scope scope) {
         val report = reportDao.createOrUpdate(id,
-                                              existing -> existing.setName(name)
-                                                      .setDescription(description)
+                                              existing -> existing.setDescription(description)
                                                       .setCqlQuery(cql)
                                                       .setRecipients(emails)
                                                       .setCron(cron)
@@ -91,7 +91,8 @@ public class DBReportStore implements ReportStore {
                                                       .setState(ReportState.ACTIVE)
                                                       .setProvisionedBy(ConductorServerUtils.operatingUserId())
                                                       .setScopeType(scope.getType())
-                                                      .setScopeReferenceId(scope.getReferenceId()));
+                                                      .setScopeReferenceId(scope.getReferenceId()))
+                .orElse(null);
         Preconditions.checkNotNull(report);
         return Optional.ofNullable(reportDao.lockAndGetExecutor(id)
                                            .update(reportRunDao,
@@ -134,28 +135,6 @@ public class DBReportStore implements ReportStore {
                 .stream()
                 .map(DBReportStore::toWire)
                 .toList();
-    }
-
-    @Override
-    @SneakyThrows
-    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = StoredReport.REPORT_TABLE_NAME))
-    public Optional<ReportRun> scheduleRun(@Throws.RuntimeParam("id") String reportId) {
-        val report = get(reportId).orElse(null);
-        if (null == report) {
-            return Optional.empty();
-        }
-        val currTime = new Date();
-        val runId = reportId + "-" + currTime.getTime();
-        return reportRunDao.save(reportId,
-                                 new StoredReportRun()
-                                         .setRunId(runId)
-                                         .setReportId(reportId)
-                                         .setRunDate(nextExecutionTimeForCron(report.getId(),
-                                                                              report.getCron(),
-                                                                              currTime))
-                                         .setCurrentState(ReportRun.State.SCHEDULED))
-                .map(this::toWire);
     }
 
     @Override
@@ -261,7 +240,9 @@ public class DBReportStore implements ReportStore {
 
     private static StoredReportRun newRunForReport(StoredReport report) {
         val runDate = nextExecutionTimeForCron(report.getId(), report.getCron(), new Date());
-        val nextRunId = report.getId() + "-" + runDate.getTime();
+        val nextRunId = "RR-" + UUID.nameUUIDFromBytes((report.getId()
+                                                + "-" + runDate.getTime()
+                                                + "-" + System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8));
         return new StoredReportRun()
                 .setRunId(nextRunId)
                 .setReportId(report.getId())

@@ -114,24 +114,18 @@ public class ReportManager implements Managed {
 
     public Optional<Report> update(
             String id,
-            String name,
             String description,
             String cql,
             List<String> emails,
             String cron,
             Scope scope) {
-        val reportId = Strings.isNullOrEmpty(id)
-                       ? ConductorServerUtils.lowerSnake(name)
-                       : id;
-        val report = reportStore.save(reportId,
-                                      name,
-                                      description,
-                                      cql,
-                                      emails,
-                                      cron,
-                                      scope);
-        report.ifPresent(r -> reportStore.scheduleRun(r.getId()));
-        return report;
+        return reportStore.save(id,
+                                null, //This is not updated
+                                description,
+                                cql,
+                                emails,
+                                cron,
+                                scope);
     }
 
     public Optional<Report> get(String id) {
