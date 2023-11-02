@@ -40,7 +40,7 @@
                             <div class="mb-3">
                                 <label for="cqlQuery" class="col-form-label fw-bold">CQL Query</label>
                                 <input type="text" id="cqlQuery" name="cqlQuery" class="form-control border border-dark"
-                                       maxlength="45" placeholder="CQL Query" aria-describedby="cqlQueryHelp"
+                                       maxlength="1024" placeholder="CQL Query" aria-describedby="cqlQueryHelp"
                                        value="{{currentReport.cqlQuery}}" required>
                                 <div id="cqlQueryHelp" class="form-text">CQL Query that will be run to select records</div>
                             </div>
@@ -68,7 +68,64 @@
                     </div>
                 </form>
             </div>
-            <div class="col-12 col-md-6">
+            <div class="col-0 col-md-6">
+                <div class="row">
+                    {{#empty currentReport}}
+                    <div class="col-12">
+                        <div class="alert alert-light note" role="alert">
+                                <div class="row note-header">
+                                    What Is A Report?
+                                </div>
+                                <div class="row note-body">
+                                    A (scheduled) report can be used to send out snapshots of data to designated recipients
+                                    <br>
+                                    A report consists of
+                                    <ul>
+                                        <li>CQL Query to fetch results
+                                        </li>
+                                        <li>A Quartz cron expression to designate the frequency of execution
+                                        </li>
+                                        <li>List of recipient email ids
+                                        </li>
+                                    </ul>
+                                    If CQL query is of list type, a pointer to end of list is stored.
+                                    The same pointer is used to fetch the next set of results.
+                                    Changing the query once a run has completed, will lead to unpredictable behaviour.
+                                </div>
+                            </div>
+                    </div>
+                    {{else}}
+                    <div class="col-12 table-responsive">
+                        <table class="table table-bordered border-dark ">
+                            <thead>
+                            <tr>
+                                <th>Run ID</th>
+                                <th>Run Date</th>
+                                <th>State</th>
+                                <th>Message</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{#each currentReportRuns}}
+                                <tr>
+                                    <td>{{runId}}</td>
+                                    <td>{{htmlDateTime runDate}}</td>
+                                    <td>{{readable currentState}}</td>
+                                    <td>{{message}}</td>
+                                </tr>
+                            {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                    {{/empty}}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="row">
+            <div class="col-12">
                 <div class="row mb-2">
                     <div class="col-sm-12 col-md-7"><h4>Reports</h4></div>
                     <div class="col-sm-12 col-md-5 d-flex justify-content-end">
@@ -138,15 +195,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <section>
-        <div class="row">
-            <div class="col-12 col-md-6">
-
-            </div>
-            <div class="col-12 col-md-6"></div>
         </div>
     </section>
 {{/partial}}

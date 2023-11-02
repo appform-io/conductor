@@ -17,7 +17,6 @@
 package io.appform.conductor.server.reporting;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.reporting.Report;
 import io.appform.conductor.model.reporting.ReportRun;
@@ -104,15 +103,13 @@ public class ReportManager implements Managed {
         val reportId = Strings.isNullOrEmpty(id)
                        ? ConductorServerUtils.lowerSnake(name)
                        : id;
-        val report = reportStore.save(reportId,
-                                      name,
-                                      description,
-                                      cql,
-                                      emails,
-                                      cron,
-                                      scope);
-        report.ifPresent(r -> reportStore.scheduleRun(r.getId()));
-        return report;
+        return reportStore.save(reportId,
+                                name,
+                                description,
+                                cql,
+                                emails,
+                                cron,
+                                scope);
     }
 
     public Optional<Report> update(
@@ -149,11 +146,9 @@ public class ReportManager implements Managed {
         return reportStore.listReports();
     }
 
-    public List<ReportRun> relevantRuns(
-            final String reportId,
-            final Date maxDate,
-            final Collection<ReportRun.State> states) {
-        return reportStore.relevantRuns(reportId, maxDate, states);
+    public List<ReportRun> runsForReport(
+            final String reportId, int size) {
+        return reportStore.runsForReport(reportId, size);
     }
 
     @Override
@@ -172,6 +167,7 @@ public class ReportManager implements Managed {
     @Override
     public void stop() throws Exception {
         poller.disconnect(HANDLER_NAME);
+        poller.close();
         log.info("Report polling handler disconnected");
     }
 
@@ -218,7 +214,7 @@ public class ReportManager implements Managed {
         @Override
         public void run() {
             try {
-                val run = reportStore.relevantRuns(report.getId(), date, EnumSet.of(ReportRun.State.SCHEDULED))
+                val run = reportStore.relevantRuns(report.getId(), date, EnumSet.of(ReportRun.State.SCHEDULED), 1)
                         .stream()
                         .findFirst()
                         .orElse(null);
@@ -226,7 +222,9 @@ public class ReportManager implements Managed {
                     log.debug("No candidate found for report {} that needs to be run right now", report.getId());
                     return;
                 }
-                checkAndRunReport(run);
+                checkAndRunReport(run,
+                                  reportStore.readContext(report.getId())
+                                          .orElseGet(() -> ReportContext.create(report.getId())));
             }
             catch (Throwable t) {
                 log.error("Error executing report " + report.getId(), t);
@@ -234,19 +232,23 @@ public class ReportManager implements Managed {
 
         }
 
-        private void checkAndRunReport(ReportRun run) {
+        private void checkAndRunReport(ReportRun run, ReportContext context) {
             if (currentlyRunningReports.containsKey(report.getId())) {
                 log.warn("Report run skipped as report processing is currently underway for report {} with runID {}",
-                         report.getId(), currentlyRunningReports.get(report.getId()));
+                         report.getId(), run.getRunId());
                 return;
             }
             currentlyRunningReports.put(run.getReportId(), run.getRunId());
             try {
-                val result = runReport(run);
+                val result = runReport(run, context);
                 reportStore.markCompleted(result.getReportId(),
                                           result.getRunId(),
-                                          result);
+                                          result,
+                                          context);
                 eventBus.publish(new ReportExecutionCompletedEvent(report.getId(), result));
+            }
+            catch (Exception e) {
+                log.error("Error saving status for: " + run.getReportId() + "/" + run.getRunId(), e);
             }
             finally {
                 currentlyRunningReports.remove(run.getReportId());
@@ -254,18 +256,18 @@ public class ReportManager implements Managed {
         }
 
         @SneakyThrows
-        private ReportRunResult runReport(ReportRun run) {
+        private ReportRunResult runReport(ReportRun run, ReportContext context) {
             val reportId = report.getId();
-            val meta = Objects.requireNonNullElse(run.getReportMeta(), Map.<String, Object>of());
+            val meta = context.getData();
             var next = (String) meta.get("NEXT_POINTER");
+            log.debug("Report run {}/{} starting with next pointer: {}", reportId, run.getRunId(), next);
             try {
                 val parserOutput = cqlEngine.parse(report.getCqlQuery()).orElse(null);
                 if (null == parserOutput) {
                     return new ReportRunResult(reportId,
                                                run.getRunId(),
                                                ReportRun.State.FAILED,
-                                               "Parsing error for CQL: " + report.getCqlQuery(),
-                                               run.getReportMeta());
+                                               "Parsing error for CQL: " + report.getCqlQuery());
                 }
                 var responseCount = 0;
                 val file = File.createTempFile("conductor-report-" + run.getRunId(),
@@ -287,23 +289,16 @@ public class ReportManager implements Managed {
                                     .build()
                                     .print(writer);
                         }
-                        printer.printRecords(table.rowMap().entrySet()
+                        printer.printRecords(table.rowMap().values()
                                                      .stream()
-                                                     .map(entry -> ImmutableList.builder()
-                                                             .add(entry.getKey())
-                                                             .addAll(entry.getValue().values())
-                                                             .build())
+                                                     .map(Map::values)
                                                      .toList());
 
 
                     }
                     while (responseCount > 0);
                 }
-                finally {
-                    if (null != printer) {
-                        printer.close(true);
-                    }
-                }
+
 
                 mailSender.send(new MailSender.Mail(report.getRecipients(),
                                                     "[CONDUCTOR REPORT] [" + report.getName()
@@ -317,14 +312,12 @@ public class ReportManager implements Managed {
                 return new ReportRunResult(reportId,
                                            run.getRunId(),
                                            ReportRun.State.FAILED,
-                                           "Error: " + e.getMessage(),
-                                           meta);
+                                           "Error: " + e.getMessage());
             }
             return new ReportRunResult(reportId,
                                        run.getRunId(),
                                        ReportRun.State.FINISHED,
-                                       "Sent Successfully",
-                                       meta);
+                                       "Sent Successfully");
         }
 
         private static Integer getResponseCount(TicketQueryResponse queryResponse) {

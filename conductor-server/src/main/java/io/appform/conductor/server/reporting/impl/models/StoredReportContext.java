@@ -16,7 +16,6 @@
 
 package io.appform.conductor.server.reporting.impl.models;
 
-import io.appform.conductor.model.reporting.ReportRun;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
@@ -33,10 +32,9 @@ import java.util.Objects;
  *
  */
 @Entity
-@Table(name = StoredReportRun.REPORT_RUN_TABLE_NAME,
+@Table(name = StoredReportContext.REPORT_CONTEXT_TABLE_NAME,
         indexes = {
-            @Index(name = "report_run_report_id_idx", columnList = "report_id"),
-            @Index(name = "report_run_run_date_idx", columnList = "run_date")
+            @Index(name = "report_ctx_report_id_idx", columnList = "report_id"),
         }
 
 )
@@ -46,28 +44,21 @@ import java.util.Objects;
 @FieldNameConstants
 @AllArgsConstructor
 @NoArgsConstructor
-public class StoredReportRun implements Serializable {
-    public static final String REPORT_RUN_TABLE_NAME = "report_runs";
+public class StoredReportContext implements Serializable {
+    public static final String REPORT_CONTEXT_TABLE_NAME = "report_contexts";
 
     @Serial
-    private static final long serialVersionUID = 3448236804714127769L;
+    private static final long serialVersionUID = 8272445945763996787L;
 
     @Id
-    @Column(name = "run_id", nullable = false)
-    private String runId;
-
     @Column(name = "report_id")
     private String reportId;
 
-    @Column(name = "run_date")
-    private Date runDate;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "current_state")
-    ReportRun.State currentState;
+    @Column(name = "report_data", columnDefinition = "longtext")
+    private String reportData;
 
     @Column
-    private String message;
+    private boolean deleted;
 
     @Column(name = "created", columnDefinition = "timestamp default current_timestamp", updatable = false, insertable = false)
     @Generated(value = GenerationTime.INSERT)
@@ -86,8 +77,8 @@ public class StoredReportRun implements Serializable {
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
             return false;
         }
-        StoredReportRun that = (StoredReportRun) o;
-        return Objects.equals(getRunId(), that.getRunId());
+        StoredReportContext that = (StoredReportContext) o;
+        return Objects.equals(getReportId(), that.getReportId());
     }
 
     @Override

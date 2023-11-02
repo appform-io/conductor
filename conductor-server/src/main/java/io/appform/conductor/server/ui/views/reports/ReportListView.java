@@ -33,9 +33,9 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class ReportListView extends BaseLoggedInView {
-    private final List<Report> reports;
-    private final Report currentReport;
-    private final List<ReportRun> currentReportRuns;
+    List<Report> reports;
+    Report currentReport;
+    List<ReportRun> currentReportRuns;
 
     public ReportListView(User currentUser, List<Report> reports, Report currentReport, List<ReportRun> currentReportRuns) {
         super("templates/reports/report-list.hbs", currentUser);

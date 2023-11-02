@@ -19,7 +19,6 @@ package io.appform.conductor.model.reporting;
 import lombok.Value;
 
 import java.util.Date;
-import java.util.Map;
 
 /**
  *
@@ -39,5 +38,4 @@ public class ReportRun {
     Date runDate;
     State currentState;
     String message;
-    Map<String, Object> reportMeta;
 }

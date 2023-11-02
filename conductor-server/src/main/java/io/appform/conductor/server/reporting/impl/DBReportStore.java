@@ -27,8 +27,10 @@ import io.appform.conductor.model.reporting.Report;
 import io.appform.conductor.model.reporting.ReportRun;
 import io.appform.conductor.model.reporting.ReportRunResult;
 import io.appform.conductor.model.reporting.ReportState;
+import io.appform.conductor.server.reporting.ReportContext;
 import io.appform.conductor.server.reporting.ReportStore;
 import io.appform.conductor.server.reporting.impl.models.StoredReport;
+import io.appform.conductor.server.reporting.impl.models.StoredReportContext;
 import io.appform.conductor.server.reporting.impl.models.StoredReportRun;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
@@ -37,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Property;
 
 import javax.inject.Inject;
@@ -54,6 +57,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.nextExecuti
 public class DBReportStore implements ReportStore {
 
     private final LookupDao<StoredReport> reportDao;
+    private final RelationalDao<StoredReportContext> reportContextDao;
     private final RelationalDao<StoredReportRun> reportRunDao;
     private final ObjectMapper mapper;
 
@@ -134,7 +138,9 @@ public class DBReportStore implements ReportStore {
 
     @Override
     @SneakyThrows
-    public Optional<ReportRun> scheduleRun(String reportId) {
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredReport.REPORT_TABLE_NAME))
+    public Optional<ReportRun> scheduleRun(@Throws.RuntimeParam("id") String reportId) {
         val report = get(reportId).orElse(null);
         if (null == report) {
             return Optional.empty();
@@ -145,7 +151,9 @@ public class DBReportStore implements ReportStore {
                                  new StoredReportRun()
                                          .setRunId(runId)
                                          .setReportId(reportId)
-                                         .setRunDate(nextExecutionTimeForCron(report.getId(), report.getCron(), currTime))
+                                         .setRunDate(nextExecutionTimeForCron(report.getId(),
+                                                                              report.getCron(),
+                                                                              currTime))
                                          .setCurrentState(ReportRun.State.SCHEDULED))
                 .map(this::toWire);
     }
@@ -172,14 +180,25 @@ public class DBReportStore implements ReportStore {
     public List<ReportRun> relevantRuns(
             @Throws.RuntimeParam("id") String reportId,
             Date maxDate,
-            Collection<ReportRun.State> states) {
-        return reportRunDao.select(reportId, DetachedCriteria.forClass(StoredReportRun.class)
-                                           .add(Property.forName(StoredReportRun.Fields.currentState).in(states))
-                                           .add(Property.forName(StoredReportRun.Fields.runDate).lt(maxDate)),
+            Collection<ReportRun.State> states,
+            int size) {
+        val criteria = DetachedCriteria.forClass(StoredReportRun.class)
+                .add(Property.forName(StoredReportRun.Fields.reportId).eq(reportId));
+        if (null != maxDate) {
+            criteria.add(Property.forName(StoredReportRun.Fields.runDate).lt(maxDate));
+        }
+        if (null != states && !states.isEmpty()) {
+            criteria.add(Property.forName(StoredReportRun.Fields.currentState).in(states));
+        }
+        criteria.addOrder(Order.desc(StoredReportRun.Fields.runDate));
+        return reportRunDao.select(reportId,
+                                   criteria,
                                    0,
                                    Integer.MAX_VALUE)
                 .stream()
                 .map(this::toWire)
+                .sorted(Comparator.comparing(ReportRun::getRunDate).reversed())
+                .limit(size)
                 .toList();
     }
 
@@ -198,17 +217,46 @@ public class DBReportStore implements ReportStore {
     }
 
     @Override
-    public void markCompleted(String reportId, String runId, ReportRunResult runResult) {
+    @Throws(value = STORE_RELATED_ENTITY_LIST_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredReportRun.REPORT_RUN_TABLE_NAME))
+    public void markCompleted(
+            @Throws.RuntimeParam("id") String reportId,
+            @Throws.RuntimeParam("subId") String runId,
+            ReportRunResult runResult,
+            ReportContext updatedContext) {
         reportDao.lockAndGetExecutor(reportId)
                 .update(reportRunDao, DetachedCriteria.forClass(StoredReportRun.class)
                                 .add(Property.forName(StoredReportRun.Fields.reportId).eq(reportId))
                                 .add(Property.forName(StoredReportRun.Fields.runId).eq(runId)),
                         run -> run.setCurrentState(runResult.getRunState())
-                                .setMessage(runResult.getMessage())
-                                .setReportMeta(serializeReportMeta(runResult.getReportMeta())),
+                                .setMessage(runResult.getMessage()),
                         () -> false)
                 .save(reportRunDao, DBReportStore::newRunForReport)
+                .createOrUpdate(reportContextDao,
+                                DetachedCriteria.forClass(StoredReportContext.class)
+                                        .add(Property.forName(StoredReportContext.Fields.reportId).eq(reportId)),
+                                existing -> existing.setReportData(serializeReportMeta(updatedContext.getData()))
+                                        .setDeleted(false),
+                                () -> new StoredReportContext()
+                                        .setReportId(reportId)
+                                        .setReportData(serializeReportMeta(updatedContext.getData())))
                 .execute();
+
+    }
+
+
+    @Override
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredReport.REPORT_TABLE_NAME))
+    public Optional<ReportContext> readContext(@Throws.RuntimeParam("id") String reportId) {
+        return reportContextDao.select(reportId, DetachedCriteria.forClass(StoredReportContext.class)
+                                               .add(Property.forName(StoredReportContext.Fields.reportId).eq(reportId)),
+                                       0,
+                                       1)
+                .stream()
+                .findAny()
+                .map(this::toWire);
     }
 
     private static StoredReportRun newRunForReport(StoredReport report) {
@@ -243,9 +291,12 @@ public class DBReportStore implements ReportStore {
                 reportRun.getReportId(),
                 reportRun.getRunDate(),
                 reportRun.getCurrentState(),
-                reportRun.getMessage(),
-                deserializeReportMeta(reportRun.getReportMeta())
+                reportRun.getMessage()
         );
+    }
+
+    private ReportContext toWire(final StoredReportContext context) {
+        return new ReportContext(context.getReportId(), deserializeReportMeta(context.getReportData()));
     }
 
     @SneakyThrows

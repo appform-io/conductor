@@ -46,15 +46,25 @@ public interface ReportStore {
 
     List<ReportRun> runs(String reportId, final Collection<ReportRun.State> states);
 
+    default List<ReportRun> runsForReport(
+            final String reportId,
+            int size) {
+        return relevantRuns(reportId, null, Set.of(), size);
+    }
+
     List<ReportRun> relevantRuns(
             final String reportId,
             final Date maxDate,
-            final Collection<ReportRun.State> states);
+            final Collection<ReportRun.State> states,
+            int size);
 
     List<ReportRun> runsForStates(ReportRun.State state);
 
     void markCompleted(String reportId,
                        String runId,
-                       ReportRunResult runResult);
+                       ReportRunResult runResult,
+                       ReportContext updatedContext);
+
+    Optional<ReportContext> readContext(final String reportId);
 
 }

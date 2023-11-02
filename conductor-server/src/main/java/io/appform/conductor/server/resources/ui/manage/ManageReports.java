@@ -17,7 +17,6 @@
 package io.appform.conductor.server.resources.ui.manage;
 
 import io.appform.conductor.model.actions.Scope;
-import io.appform.conductor.model.reporting.ReportRun;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.reporting.ReportManager;
 import io.appform.conductor.server.ui.views.reports.ReportListView;
@@ -34,8 +33,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.EnumSet;
 import java.util.List;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
@@ -80,13 +77,11 @@ public class ManageReports {
 
     @GET
     @Path("{reportId}")
-    public Response renderTaskList(@Auth ConductorUser user,
+    public Response renderReportList(@Auth ConductorUser user,
                                    @PathParam("reportId") @NotEmpty @Length(max = 45) final String reportId) {
         return render(new ReportListView(user.getUserSession().getUser(),
                                          reportManager.listReports(),
                                          reportManager.get(reportId).orElse(null),
-                                         reportManager.relevantRuns(reportId,
-                                                                  new Date(Long.MAX_VALUE),
-                                                                  EnumSet.allOf(ReportRun.State.class))));
+                                         reportManager.runsForReport(reportId, 20)));
     }
 }

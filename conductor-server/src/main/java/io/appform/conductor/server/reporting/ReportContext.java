@@ -14,17 +14,23 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.reporting;
+package io.appform.conductor.server.reporting;
 
 import lombok.Value;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
  */
 @Value
-public class ReportRunResult {
+public class ReportContext {
     String reportId;
-    String runId;
-    ReportRun.State runState;
-    String message;
+
+    Map<String, Object> data;
+
+    public static ReportContext create(final String reportId) {
+        return new ReportContext(reportId, new HashMap<>());
+    }
 }

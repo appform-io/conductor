@@ -103,6 +103,11 @@ public class CustomHelpers {
         return null == date ? "1970-01-01" : new SimpleDateFormat("yyyy-MM-dd").format(date);
     }
 
+    @SneakyThrows
+    public CharSequence htmlDateTime(Date date) {
+        return null == date ? "1970-01-01 00:00:00" : new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
+    }
+
     public Object map(Map<String, Object> map, String key) {
         return map.get(key);
     }

@@ -43,6 +43,7 @@ import io.appform.conductor.server.eventmanagement.impl.SignalDrivenEventBus;
 import io.appform.conductor.server.reporting.ReportStore;
 import io.appform.conductor.server.reporting.impl.DBReportStore;
 import io.appform.conductor.server.reporting.impl.models.StoredReport;
+import io.appform.conductor.server.reporting.impl.models.StoredReportContext;
 import io.appform.conductor.server.reporting.impl.models.StoredReportRun;
 import io.appform.conductor.server.schemamanagement.impl.DBSchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.EventGeneratingSchemaStore;
@@ -356,6 +357,12 @@ public class ConductorModule extends AbstractModule {
     @Singleton
     public RelationalDao<StoredReportRun> reportRunDao() {
         return dbBundle.createRelatedObjectDao(StoredReportRun.class);
+    }
+
+    @Provides
+    @Singleton
+    public RelationalDao<StoredReportContext> reportContextDao() {
+        return dbBundle.createRelatedObjectDao(StoredReportContext.class);
     }
 
     @Provides
