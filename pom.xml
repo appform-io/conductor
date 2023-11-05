@@ -34,7 +34,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <lombok.version>1.18.24</lombok.version>
         <dropwizard.version>2.1.4</dropwizard.version>
-        <dropwizard.sharding.version>2.0.28-8-SCROLL-RC1</dropwizard.sharding.version>
+        <dropwizard.sharding.version>2.0.28-8-SCROLL-RC2</dropwizard.sharding.version>
         <dropwizard.swagger.version>2.1.4-1</dropwizard.swagger.version>
         <handlebars.version>4.3.1</handlebars.version>
         <mariadb.driver.version>3.1.2</mariadb.driver.version>
