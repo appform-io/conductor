@@ -324,10 +324,10 @@ public class TicketManager {
             final String ticketId,
             final String title,
             final String description) {
-        ConductorServerUtils.ensureNonNull(ticketStore.update(ticketId,
+        ConductorServerUtils.ensureNonNull(ticketStore.updateSkeleton(ticketId,
                                                               ticketSkeleton -> ticketSkeleton.setTitle(title)
-                                                                      .setDescription(description),
-                                                              List.of()).orElse(null),
+                                                                      .setDescription(description))
+                                                        .orElse(null),
                                            ConductorErrorCode.TICKET_MGMT_NO_TICKET,
                                            Map.of(TICKET_ID, ticketId));
         return triggerTicketStateMachine(ticketId);
@@ -363,9 +363,7 @@ public class TicketManager {
                                 && groupStore.findGroupsForUser(existingUserId).contains(group)
                         ? existingUserId
                         : null;
-        return ticketStore.updateSkeleton(ticketId,
-                                          ticketSkeleton -> ticketSkeleton.setAssignedToGroupId(groupId)
-                                                  .setAssignedToUserId(newUserId))
+        return ticketStore.assignToGroup(ticketId, groupId, newUserId)
                 .filter(ticketSkeleton -> groupId.equals(ticketSkeleton.getAssignedToGroupId()))
                 .isPresent();
     }
@@ -382,9 +380,7 @@ public class TicketManager {
         }
         return userStore.getById(userId)
                 .filter(userSummary -> UserState.ACTIVE.equals(userSummary.getState()))
-                .flatMap(group -> ticketStore.update(ticketId,
-                                                     ticketSkeleton -> ticketSkeleton.setAssignedToUserId(userId),
-                                                     List.of()))
+                .flatMap(group -> ticketStore.assignToUser(ticketId, userId))
                 .filter(ticketSkeleton -> userId.equals(ticketSkeleton.getAssignedToUserId()))
                 .isPresent();
     }
@@ -394,9 +390,7 @@ public class TicketManager {
     }
 
     public boolean unassignTicketFromUser(final String ticketId, final String userId) {
-        return ticketStore.update(ticketId,
-                                  ticketSkeleton -> ticketSkeleton.setAssignedToUserId(userId),
-                                  List.of())
+        return ticketStore.assignToUser(ticketId, userId)
                 .filter(ticketSkeleton -> (null == userId && null == ticketSkeleton.getAssignedToUserId())
                         || (userId != null && userId.equals(ticketSkeleton.getAssignedToUserId())))
                 .isPresent();

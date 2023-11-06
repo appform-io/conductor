@@ -47,7 +47,7 @@ public class RouteToGroupActionExecutor {
                      action.getGroupId());
             return ActionExecutionResult.FAILURE;
         }
-        if(ticketStore.assignToGroup(ticketId, action.getGroupId())
+        if(ticketStore.assignToGroup(ticketId, action.getGroupId(), null)
                 .filter(ticket -> ticket.getAssignedToGroupId().equals(action.getGroupId()))
                 .isPresent()) {
             return ActionExecutionResult.SUCCESS;
