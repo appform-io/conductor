@@ -17,6 +17,7 @@
 package io.appform.conductor.server.resources.ui.manage;
 
 import io.appform.conductor.model.actions.Scope;
+import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.reporting.ReportManager;
 import io.appform.conductor.server.ui.views.reports.ReportListView;
@@ -27,6 +28,7 @@ import org.hibernate.validator.constraints.Length;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.validation.constraints.NotEmpty;
 import javax.ws.rs.*;
@@ -58,6 +60,7 @@ public class ManageReports {
     }
 
     @POST
+    @RolesAllowed(Permission.Values.MANAGE_REPORT)
     public Response createReport(
             @FormParam("name") @NotEmpty @Length(max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
@@ -77,6 +80,7 @@ public class ManageReports {
 
     @POST
     @Path("{reportId}/update")
+    @RolesAllowed(Permission.Values.MANAGE_REPORT)
     public Response updateReport(
             @PathParam("reportId") @NotEmpty @Length(max = 45) final String reportId,
             @FormParam("description") @Length(max = 255) final String description,
@@ -96,6 +100,7 @@ public class ManageReports {
 
     @POST
     @Path("{reportId}/activate")
+    @RolesAllowed(Permission.Values.MANAGE_REPORT)
     public Response activateReport(
             @PathParam("reportId") @NotEmpty @Length(max = 45) final String reportId) {
         return reportManager.activate(reportId)
@@ -105,6 +110,7 @@ public class ManageReports {
 
     @POST
     @Path("{reportId}/deactivate")
+    @RolesAllowed(Permission.Values.MANAGE_REPORT)
     public Response deactivateReport(
             @PathParam("reportId") @NotEmpty @Length(max = 45) final String reportId) {
         return reportManager.deactivate(reportId)
@@ -114,6 +120,7 @@ public class ManageReports {
 
     @POST
     @Path("{reportId}/delete")
+    @RolesAllowed(Permission.Values.MANAGE_REPORT)
     public Response deleteReport(
             @PathParam("reportId") @NotEmpty @Length(max = 45) final String reportId) {
         if(reportManager.delete(reportId)) {

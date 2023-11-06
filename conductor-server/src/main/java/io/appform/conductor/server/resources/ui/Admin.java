@@ -36,6 +36,7 @@ import org.hibernate.validator.constraints.Length;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
@@ -77,6 +78,7 @@ public class Admin {
 
     @GET
     @Path("/roles/create")
+    @RolesAllowed(Permission.Values.ADMIN)
     public Response renderCreateRoleView(@Auth ConductorUser user) {
         return redirect(ROLES_LIST_PATH);
     }
@@ -84,12 +86,13 @@ public class Admin {
     @POST
     @Path("/roles/create")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.ADMIN)
     public Response createRole(
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("permissions") @NotEmpty List<Permission> permissions) {
         return roleStore.create(lowerSnake(name), name, description, Set.copyOf(permissions))
-                .map(role -> redirect("ROLES_LIST_PATH"))
+                .map(role -> redirect(ROLES_LIST_PATH))
                 .orElseThrow(() -> fail("Failed to create role", ROLES_LIST_PATH));
     }
 
@@ -115,6 +118,7 @@ public class Admin {
     @POST
     @Path("/roles/update/{roleId}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.ADMIN)
     public Response updateRole(
             @PathParam("roleId") @Length(min = 1, max = 45) final String roleId,
             @FormParam("description") @Length(max = 255) final String description,
@@ -133,6 +137,7 @@ public class Admin {
     @POST
     @Path("/roles/delete/{roleId}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.ADMIN)
     public Response updateRole(
             @PathParam("roleId") @Length(min = 1, max = 45) final String roleId) {
         if (roleStore.delete(roleId)) {
@@ -186,6 +191,7 @@ public class Admin {
     @POST
     @Path("/users/{userId}/state")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.ADMIN)
     public Response changeUserState(
             @Auth ConductorUser user,
             @PathParam("userId") @NotEmpty final String userId,
@@ -198,6 +204,7 @@ public class Admin {
     @POST
     @Path("/users/{userId}/role")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.ADMIN)
     public Response assignUserRole(
             @Auth ConductorUser user,
             @PathParam("userId") @NotEmpty final String userId,

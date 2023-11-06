@@ -31,4 +31,6 @@ public class AuthConfig {
     private String signingSecret;
 
     private Duration sessionDuration;
+
+    private boolean disableRoleCheck;
 }

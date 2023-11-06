@@ -18,6 +18,7 @@ package io.appform.conductor.server.resources.ui;
 
 import com.google.common.base.Strings;
 import io.appform.conductor.model.actions.Scope;
+import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.schema.*;
 import io.appform.conductor.model.schema.fields.*;
 import io.appform.conductor.model.usermgmt.GroupType;
@@ -41,6 +42,7 @@ import org.hibernate.validator.constraints.Length;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.validation.constraints.*;
 import javax.ws.rs.*;
@@ -72,6 +74,7 @@ public class Manage {
 
     @GET
     @Path("/schema/create")
+    @RolesAllowed(Permission.Values.MANAGE_SCHEMA)
     public Response renderSchemaCreate(@Auth ConductorUser user) {
         return render(new SchemaView(user.getUserSession().getUser(), null, null));
     }
@@ -79,6 +82,7 @@ public class Manage {
     @POST
     @Path("/schema/create")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_SCHEMA)
     public Response createSchema(
             @Auth ConductorUser user,
             @FormParam("name") @NotEmpty @Length(max = 45) final String name,
@@ -93,6 +97,7 @@ public class Manage {
     @POST
     @Path("/schema/update/{schemaId}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_SCHEMA)
     public Response updateSchemaDescription(
             @Auth ConductorUser user,
             @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId,
@@ -133,6 +138,7 @@ public class Manage {
     @POST
     @Path("/schema/{schemaId}/fields/add")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_SCHEMA)
     public Response addField(
             @Auth ConductorUser user,
             @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId,
@@ -197,6 +203,7 @@ public class Manage {
     @POST
     @Path("/schema/{schemaId}/fields/{fieldId}/update")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_SCHEMA)
     public Response updateField(
             @Auth ConductorUser user,
             @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId,
@@ -261,6 +268,7 @@ public class Manage {
     @POST
     @Path("/schema/{schemaId}/fields/{fieldId}/delete")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_SCHEMA)
     public Response deleteField(
             @Auth ConductorUser user,
             @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId,
@@ -280,6 +288,7 @@ public class Manage {
 
     @GET
     @Path("/workflow/create")
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response renderWorkflowCreateScreen(@Auth ConductorUser user) {
         return render(new WorkflowCreateView(user.getUserSession().getUser(),
                                              schemaStore.list()
@@ -292,6 +301,7 @@ public class Manage {
     @POST
     @Path("/workflow/create")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response createWorkflow(
             @Auth ConductorUser user,
             @FormParam("name") @NotEmpty @Length(max = 45) final String name,
@@ -331,6 +341,7 @@ public class Manage {
     @POST
     @Path("/workflow/{workflowId}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response updateWorkflowDescription(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -343,6 +354,7 @@ public class Manage {
     @POST
     @Path("/workflow/{workflowId}/dynamic")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response updateWorkflowDynamicTemplates(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -360,6 +372,7 @@ public class Manage {
     @POST
     @Path("/workflow/{workflowId}/selectionrules/add")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response addWorkflowSelectionRule(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -372,6 +385,7 @@ public class Manage {
     @POST
     @Path("/workflow/{workflowId}/selectionrules/{ruleId}/delete")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response deleteWorkflowSelectionRule(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -383,6 +397,7 @@ public class Manage {
 
     @GET
     @Path("/workflow/{workflowId}/states/add")
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response createState(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
@@ -435,6 +450,7 @@ public class Manage {
     @POST
     @Path("/workflow/{workflowId}/states/add")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response createState(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -462,6 +478,7 @@ public class Manage {
     @POST
     @Path("/workflow/{workflowId}/states/{stateId}/update")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response updateState(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -499,6 +516,7 @@ public class Manage {
     @POST
     @Path("/workflow/{workflowId}/states/{stateId}/initial")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response setupInitialStateForWorkflow(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -512,6 +530,7 @@ public class Manage {
     @POST
     @Path("/workflow/{workflowId}/states/{stateId}/delete")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response deleteState(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -525,6 +544,7 @@ public class Manage {
     @POST
     @Path("/workflow/{workflowId}/transitions/add")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response createTransition(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -579,6 +599,7 @@ public class Manage {
     @POST
     @Path("/workflow/{workflowId}/actions/add")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response addAvailableAction(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -592,6 +613,7 @@ public class Manage {
     @POST
     @Path("/workflow/{workflowId}/actions/{actionId}/delete")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response removeAvailableAction(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -605,6 +627,7 @@ public class Manage {
     @POST
     @Path("/workflow/{workflowId}/transitions/{stateTransitionId}/update")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response updateTransition(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -626,6 +649,7 @@ public class Manage {
     @POST
     @Path("/workflow/{workflowId}/transitions/{transitionId}/delete")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response deleteTransition(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -645,6 +669,7 @@ public class Manage {
 
     @POST
     @Path("/groups")
+    @RolesAllowed(Permission.Values.MANAGE_GROUPS)
     public Response createGroups(
             @Auth ConductorUser user,
             @FormParam("name") @NotEmpty @Length(max = 45) final String name,
@@ -671,6 +696,7 @@ public class Manage {
 
     @POST
     @Path("/groups/{groupId}/update")
+    @RolesAllowed(Permission.Values.MANAGE_GROUPS)
     public Response updateGroup(
             @Auth ConductorUser user,
             @PathParam("groupId") @NotEmpty @Length(max = 45) final String groupId,
@@ -688,6 +714,7 @@ public class Manage {
 
     @POST
     @Path("/groups/{groupId}/delete")
+    @RolesAllowed(Permission.Values.MANAGE_GROUPS)
     public Response deleteGroup(
             @Auth ConductorUser user,
             @PathParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
@@ -699,6 +726,7 @@ public class Manage {
 
     @POST
     @Path("/users/{userId}/groups/add")
+    @RolesAllowed(Permission.Values.MANAGE_GROUPS)
     public Response addUserToGroup(
             @Auth final ConductorUser user,
             @PathParam("userId") @NotEmpty @Length(max = 45) final String userId,
@@ -711,6 +739,7 @@ public class Manage {
 
     @POST
     @Path("/users/{userId}/groups/{groupId}/remove")
+    @RolesAllowed(Permission.Values.MANAGE_GROUPS)
     public Response removeUserFromGroup(
             @Auth final ConductorUser user,
             @PathParam("userId") @NotEmpty @Length(max = 45) final String userId,
@@ -723,6 +752,7 @@ public class Manage {
 
     @POST
     @Path("/users/{userId}/skills/add")
+    @RolesAllowed(Permission.Values.MANAGE_GROUPS)
     public Response addUserSkill(
             @Auth final ConductorUser user,
             @PathParam("userId") @NotEmpty @Length(max = 45) final String userId,
@@ -736,7 +766,8 @@ public class Manage {
 
     @POST
     @Path("/users/{userId}/skills/{skillId}/{skillValueId}/remove")
-    public Response addUserToGroup(
+    @RolesAllowed(Permission.Values.MANAGE_GROUPS)
+    public Response removeUserSkill(
             @Auth final ConductorUser user,
             @PathParam("userId") @NotEmpty @Length(max = 45) final String userId,
             @PathParam("skillId") @NotEmpty @Length(max = 45) final String skillId,
@@ -772,7 +803,8 @@ public class Manage {
 
     @POST
     @Path("/skills")
-    public Response createSkill(
+    @RolesAllowed(Permission.Values.MANAGE_GROUPS)
+    public Response updateSkill(
             @Auth final ConductorUser user,
             @FormParam("name") @NotEmpty @Length(max = 45) final String name) {
         return userLifecycleManager.createSkill(name)
@@ -782,7 +814,8 @@ public class Manage {
 
     @POST
     @Path("/skills/{skillId}")
-    public Response createSkill(
+    @RolesAllowed(Permission.Values.MANAGE_GROUPS)
+    public Response updateSkill(
             @Auth final ConductorUser user,
             @PathParam("skillId") @NotEmpty @Length(max = 45) final String skillId,
             @FormParam("name") @NotEmpty @Length(max = 45) final String name) {
@@ -793,6 +826,7 @@ public class Manage {
 
     @POST
     @Path("/skills/{skillId}/delete")
+    @RolesAllowed(Permission.Values.MANAGE_GROUPS)
     public Response deleteSkill(
             @Auth final ConductorUser user,
             @PathParam("skillId") @NotEmpty @Length(max = 45) final String skillId) {
@@ -804,6 +838,7 @@ public class Manage {
 
     @POST
     @Path("/skills/{skillId}/values")
+    @RolesAllowed(Permission.Values.MANAGE_GROUPS)
     public Response createSkillValue(
             @Auth final ConductorUser user,
             @PathParam("skillId") @NotEmpty @Length(max = 45) final String skillId,
@@ -815,6 +850,7 @@ public class Manage {
 
     @POST
     @Path("/skills/{skillId}/values/{skillValueId}/delete")
+    @RolesAllowed(Permission.Values.MANAGE_GROUPS)
     public Response deleteSkillValue(
             @Auth final ConductorUser user,
             @PathParam("skillId") @NotEmpty @Length(max = 45) final String skillId,
