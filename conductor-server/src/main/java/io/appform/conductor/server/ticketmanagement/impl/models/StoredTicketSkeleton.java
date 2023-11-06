@@ -50,6 +50,7 @@ import java.util.Objects;
 public class StoredTicketSkeleton implements Serializable {
 
     public static final String TICKET_SKELETON_TABLE_NAME = "ticket_skeletons";
+
     @Serial
     private static final long serialVersionUID = -9138428302273551724L;
 

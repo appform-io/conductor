@@ -29,14 +29,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum Permission implements Displayable {
     ADMIN(Values.ADMIN, "Administration tasks"),
-    SCHEMA_READ(Values.SCHEMA_READ, "Read a schema"),
-    SCHEMA_WRITE(Values.SCHEMA_WRITE, "Write a schema"),
-    SCHEMA_APPROVE(Values.SCHEMA_APPROVE, "Approve Schema changes"),
-    WORKFLOW_READ(Values.WORKFLOW_READ, "Read a workflow"),
-    WORKFLOW_WRITE(Values.WORKFLOW_WRITE, "Create/Update workflow"),
-    WORKFLOW_APPROVE(Values.WORKFLOW_APPROVE, "Approve workflow changes"),
-    ACTION_READ(Values.ACTION_READ, "Read action details"),
-    ACTION_WRITE(Values.ACTION_WRITE, "Configure new action"),
+    MANAGE_SCHEMA(Values.MANAGE_SCHEMA, "Manage ticket schema"),
+    MANAGE_WORKFLOW(Values.MANAGE_WORKFLOW, "Manage ticket workflows"),
+    MANAGE_GROUPS(Values.MANAGE_GROUPS, "Manage user groups"),
+//    MANAGE_ACTIONS(Values.MANAGE_ACTIONS, "Manage ticket actions"),
+    MANAGE_REPORT(Values.MANAGE_REPORT, "Manage scheduled reports"),
+//    MANAGE_TASK(Values.MANAGE_TASK, "Manage scheduled tasks"),
     TICKET_READ(Values.TICKET_READ, "See ticket details"),
     TICKET_WRITE(Values.TICKET_WRITE, "Create/Update a ticket")
     ;
@@ -44,14 +42,12 @@ public enum Permission implements Displayable {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static final class Values {
         public static final String ADMIN = "ADMIN";
-        public static final String SCHEMA_READ = "SCHEMA_READ";
-        public static final String SCHEMA_WRITE = "SCHEMA_WRITE";
-        public static final String SCHEMA_APPROVE = "SCHEMA_APPROVE";
-        public static final String WORKFLOW_READ = "WORKFLOW_READ";
-        public static final String WORKFLOW_WRITE = "WORKFLOW_WRITE";
-        public static final String WORKFLOW_APPROVE = "WORKFLOW_APPROVE";
-        public static final String ACTION_READ = "ACTION_READ";
-        public static final String ACTION_WRITE = "ACTION_WRITE";
+        public static final String MANAGE_SCHEMA = "MANAGE_SCHEMA";
+        public static final String MANAGE_WORKFLOW = "MANAGE_WORKFLOW";
+        public static final String MANAGE_GROUPS = "MANAGE_GROUPS";
+        /*public static final String MANAGE_ACTIONS = "MANAGE_ACTIONS";
+        public static final String MANAGE_TASK = "MANAGE_TASK";*/
+        public static final String MANAGE_REPORT = "MANAGE_REPORT";
         public static final String TICKET_READ = "TICKET_READ";
         public static final String TICKET_WRITE = "TICKET_WRITE";
     }

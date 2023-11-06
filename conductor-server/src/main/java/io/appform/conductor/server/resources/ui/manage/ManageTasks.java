@@ -19,6 +19,7 @@ package io.appform.conductor.server.resources.ui.manage;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import io.appform.conductor.model.actions.Scope;
+import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilterType;
@@ -43,6 +44,7 @@ import org.hibernate.validator.constraints.Length;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
@@ -85,6 +87,7 @@ public class ManageTasks {
 
     @POST
     @Path("/{workflowId}")
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response renderTaskCreateScreen(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -213,6 +216,7 @@ public class ManageTasks {
 
     @POST
     @Path("/{workflowId}/{taskId}/pause")
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response pauseTask(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -225,6 +229,7 @@ public class ManageTasks {
 
     @POST
     @Path("/{workflowId}/{taskId}/activate")
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response activateTask(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -237,6 +242,7 @@ public class ManageTasks {
 
     @POST
     @Path("/{workflowId}/{taskId}/delete")
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response deleteTask(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -250,6 +256,7 @@ public class ManageTasks {
 
     @POST
     @Path("/{workflowId}/RUN_ACTION_ON_SELECTED_TICKETS")
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response createRunOnSelectedTicketsTask(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -283,6 +290,7 @@ public class ManageTasks {
 
     @POST
     @Path("/{workflowId}/RUN_ACTION_ON_SELECTED_TICKETS/{taskId}/update")
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response updateRunOnSelectedTicketsTask(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -310,6 +318,7 @@ public class ManageTasks {
 
     @POST
     @Path("/{workflowId}/RUN_ACTION_ON_CQL_SELECT")
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response createRunOnCQLSelectTask(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -341,6 +350,7 @@ public class ManageTasks {
 
     @POST
     @Path("/{workflowId}/RUN_ACTION_ON_CQL_SELECT/{taskId}/update")
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response updateRunOnSelectedTicketsTask(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,

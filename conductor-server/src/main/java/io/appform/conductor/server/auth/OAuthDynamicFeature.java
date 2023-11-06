@@ -53,7 +53,7 @@ public class OAuthDynamicFeature extends AuthDynamicFeature {
                       })
                 .buildAuthFilter());
 
-        environment.jersey().register(RolesAllowedDynamicFeature.class);
         environment.jersey().register(new AuthValueFactoryProvider.Binder<>(ConductorUser.class));
+        environment.jersey().register(RolesAllowedDynamicFeature.class);
     }
 }

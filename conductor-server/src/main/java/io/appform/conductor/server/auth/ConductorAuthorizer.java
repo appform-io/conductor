@@ -17,9 +17,12 @@
 package io.appform.conductor.server.auth;
 
 import io.appform.conductor.model.auth.Permission;
+import io.appform.conductor.server.config.AuthConfig;
 import io.dropwizard.auth.Authorizer;
+import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.container.ContainerRequestContext;
 
@@ -27,7 +30,10 @@ import javax.ws.rs.container.ContainerRequestContext;
  * Authorizes a user based on permissions (s)he has
  */
 @Singleton
+@RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class ConductorAuthorizer implements Authorizer<ConductorUser> {
+    private final AuthConfig authConfig;
+
     @Override
     public boolean authorize(ConductorUser principal, String requiredPermission) {
         return authorize(principal, requiredPermission, null);
@@ -39,7 +45,8 @@ public class ConductorAuthorizer implements Authorizer<ConductorUser> {
             String requiredPermission,
             @Nullable ContainerRequestContext requestContext) {
         //We can do custom checks based on group membership, priority of permissions etc
-        return principal.getUserSession().getUser().getPermissions()
+        return authConfig.isDisableRoleCheck()
+            || principal.getUserSession().getUser().getPermissions()
                 .contains(Permission.valueOf(requiredPermission));
     }
 }

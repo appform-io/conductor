@@ -61,6 +61,8 @@ db:
 auth:
   signingSecret: "t1ArsjdSJqWdVSPAW2tMQ4Z1Ck0T9J9j"
   sessionDuration: 30d
+  # Uncomment the following line for initial setup
+#  disableRoleCheck: true
 
 mailConfig:
   smtpServer: sandbox.smtp.mailtrap.io

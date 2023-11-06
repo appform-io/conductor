@@ -21,6 +21,8 @@ import io.dropwizard.auth.AuthFilter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
+import javax.annotation.Priority;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
@@ -31,6 +33,7 @@ import java.util.Optional;
  *
  */
 @Slf4j
+@Priority(Priorities.AUTHENTICATION)
 public class ConductorAuthFilter extends AuthFilter<String, ConductorUser> {
     public static final String COOKIE_NAME = "conductor-auth";
     public static final String DEFAULT_PREFIX = "Bearer";
