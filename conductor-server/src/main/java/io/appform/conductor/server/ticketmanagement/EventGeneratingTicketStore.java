@@ -95,19 +95,17 @@ public class EventGeneratingTicketStore implements TicketStore {
     }
 
     @Override
-    public Optional<TicketSkeleton> assignToGroup(String ticketId, @NonNull String groupId) {
-        val res = ticketStore.assignToGroup(ticketId, groupId);
+    public Optional<TicketSkeleton> assignToGroup(String ticketId, @NonNull String groupId, String userId) {
+        val res = ticketStore.assignToGroup(ticketId, groupId, userId);
         res.filter(ticketSkeleton -> ticketSkeleton.getAssignedToGroupId().equals(groupId))
                 .ifPresent(ticketSkeleton -> eventBus.publish(new TicketGroupAssignedEvent(
                         ticketSkeleton.getTicketId(), groupId)));
+        res.filter(ticketSkeleton -> ticketSkeleton.getAssignedToUserId().equals(userId))
+                .ifPresent(ticketSkeleton -> eventBus.publish(new TicketUserAssignedEvent(
+                        ticketSkeleton.getTicketId(), userId)));
         return res;
     }
 
-    @Override
-    public Optional<TicketSkeleton> setField(String ticketId, @NonNull TicketFieldData field) {
-        //Uses setFields internally so no need to add event
-        return ticketStore.setField(ticketId, field);
-    }
 
     @Override
     public Optional<TicketSkeleton> setFields(String ticketId, @NonNull List<TicketFieldData> fields) {

@@ -78,9 +78,11 @@ public interface TicketStore {
 
     default Optional<TicketSkeleton> assignToGroup(
             final String ticketId,
-            @NonNull final String groupId) {
+            @NonNull final String groupId,
+            final String userId) {
         return update(ticketId,
-                      ticket -> ticket.setAssignedToGroupId(groupId),
+                      ticket -> ticket.setAssignedToGroupId(groupId)
+                              .setAssignedToUserId(userId),
                       List.of());
     }
 
@@ -100,7 +102,7 @@ public interface TicketStore {
             final String ticketId,
             @NonNull final String userId) {
         return update(ticketId,
-                      ticket -> ticket.setAssignedToGroupId(userId),
+                      ticket -> ticket.setAssignedToUserId(userId),
                       List.of());
     }
 
