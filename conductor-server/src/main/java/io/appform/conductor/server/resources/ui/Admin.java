@@ -23,6 +23,7 @@ import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserRoleMappingStore;
+import io.appform.conductor.server.config.AuthConfig;
 import io.appform.conductor.server.skillmanagement.SkillStore;
 import io.appform.conductor.server.ui.views.admin.RolesListView;
 import io.appform.conductor.server.ui.views.admin.UserAdminView;
@@ -69,6 +70,7 @@ public class Admin {
     private final SkillStore skillStore;
     private final UserRoleMappingStore roleMappingStore;
     private final UserLifecycleManager userLifecycleManager;
+    private final AuthConfig authConfig;
 
     @GET
     @Path("/roles")
@@ -209,6 +211,9 @@ public class Admin {
             @Auth ConductorUser user,
             @PathParam("userId") @NotEmpty final String userId,
             @FormParam("roleId") @NotEmpty String roleId) {
+        if (!authConfig.isDisableRoleCheck() && user.getUserSession().getUser().getSummary().getId().equals(userId)) {
+            throw fail("Cannot assign a role to yourself. Ask an administrator to do this for you. ", USER_SEARCH_PATH);
+        }
         if (roleMappingStore.assignRoleToUser(userId, roleId)) {
             return redirect("/admin/users/" + userId);
         }

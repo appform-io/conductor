@@ -81,7 +81,8 @@ public class DBUserRoleMappingStore implements UserRoleMappingStore {
     public Optional<String> roleForUser(@Throws.RuntimeParam("id") String userId) {
         return userRolesDao.select(userId,
                                    DetachedCriteria.forClass(StoredUserRoleMapping.class)
-                                           .add(Property.forName(StoredUserRoleMapping.Fields.deleted).eq(false)),
+                                           .add(Property.forName(StoredUserRoleMapping.Fields.deleted).eq(false))
+                                           .add(Property.forName(StoredUserRoleMapping.Fields.userId).eq(userId)),
                                    0,
                                    1)
                 .stream()

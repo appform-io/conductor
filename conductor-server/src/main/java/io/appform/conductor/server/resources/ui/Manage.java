@@ -29,6 +29,7 @@ import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.model.workflow.WorkflowState;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.auth.ConductorUser;
+import io.appform.conductor.server.config.AuthConfig;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.ui.views.manage.*;
 import io.appform.conductor.server.usermanagement.UserLifecycleManager;
@@ -66,6 +67,8 @@ public class Manage {
     private final WorkflowManager workflowManager;
     private final UserLifecycleManager userLifecycleManager;
     private final ActionStore actionStore;
+    private final AuthConfig authConfig;
+
     @GET
     @Path("/schema")
     public Response renderSchemaList(@Auth ConductorUser user) {
@@ -731,6 +734,12 @@ public class Manage {
             @Auth final ConductorUser user,
             @PathParam("userId") @NotEmpty @Length(max = 45) final String userId,
             @FormParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
+        if (!authConfig.isDisableRoleCheck() && user.getUserSession().getUser().getSummary().getId().equals(userId)) {
+            throw fail(
+                    "Cannot add yourself to a group. Please ask someone with MANAGE_GROUPS permission to do this for " +
+                            "you.",
+                    "/admin/users/" + userId);
+        }
         if (userLifecycleManager.addUserToGroup(groupId, userId)) {
             return redirect("/admin/users/" + userId);
         }
