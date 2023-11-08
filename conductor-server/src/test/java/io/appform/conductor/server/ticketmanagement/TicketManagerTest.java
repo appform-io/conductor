@@ -45,6 +45,7 @@ import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkel
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredAttachment;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredComment;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
+import io.appform.conductor.server.ticketmanagement.impl.models.references.StoredTicketReferenceID;
 import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.usermanagement.UserStore;
 import io.appform.conductor.server.workflowmanagement.WorkflowSelector;
@@ -123,6 +124,7 @@ class TicketManagerTest {
         val mapper = new ObjectMapper();
         val ts = new DBTicketStore(bundle.createParentObjectDao(StoredTicketSkeleton.class),
                                    bundle.createRelatedObjectDao(StoredFieldValue.class),
+                                   bundle.createRelatedObjectDao(StoredTicketReferenceID.class),
                                    bundle.createRelatedObjectDao(StoredComment.class),
                                    bundle.createRelatedObjectDao(StoredAttachment.class),
                                    mapper);

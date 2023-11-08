@@ -4,6 +4,7 @@ import com.google.common.net.MediaType;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.TicketReferenceID;
 import io.appform.conductor.model.ticket.analytics.GroupingElement;
 import io.appform.conductor.model.ticket.analytics.TicketGroupResponse;
 import io.appform.conductor.model.ticket.comments.Attachment;
@@ -46,9 +47,10 @@ public class EventGeneratingTicketStore implements TicketStore {
             String subjectId,
             String ticketStateId,
             TicketPriority priority,
+            List<TicketReferenceID> references,
             List<TicketFieldData> fields) {
         val res = ticketStore.create(ticketId, title, description, workflowId,
-                                     subjectId, ticketStateId, priority, fields);
+                                     subjectId, ticketStateId, priority, references, fields);
         res.ifPresent(ticketSkeleton -> eventBus.publish(new TicketCreatedEvent(ticketSkeleton.getTicketId())));
         return res;
     }
@@ -62,9 +64,10 @@ public class EventGeneratingTicketStore implements TicketStore {
     public Optional<TicketSkeleton> update(
             String ticketId,
             UnaryOperator<TicketSkeleton> updater,
+            List<TicketReferenceID> references,
             List<TicketFieldData> fields) {
         //called by other update functions...this will raise duplicate events
-        return ticketStore.update(ticketId, updater, fields);
+        return ticketStore.update(ticketId, updater, references, fields);
     }
 
     @Override
@@ -123,21 +126,6 @@ public class EventGeneratingTicketStore implements TicketStore {
         res.filter(ticketSkeleton -> ticketSkeleton.getAssignedToUserId().equals(userId))
                 .ifPresent(ticketSkeleton -> eventBus.publish(new TicketUserAssignedEvent(
                         ticketSkeleton.getTicketId(), userId)));
-        return res;
-    }
-
-    @Override
-    public Optional<TicketSkeleton> update(
-            String ticketId,
-            String title,
-            String description,
-            String subjectId,
-            String ticketStateId,
-            TicketPriority priority,
-            List<TicketFieldData> fields) {
-        val res = ticketStore.update(ticketId, title, description, subjectId,
-                                     ticketStateId, priority, fields);
-        res.ifPresent(ticketSkeleton -> eventBus.publish(new TicketUpdatedEvent(ticketSkeleton.getTicketId())));
         return res;
     }
 

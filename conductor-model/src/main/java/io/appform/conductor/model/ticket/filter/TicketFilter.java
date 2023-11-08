@@ -41,6 +41,7 @@ import lombok.RequiredArgsConstructor;
         @JsonSubTypes.Type(name = "PRIORITY_IN", value = TicketPriorityIn.class),
         @JsonSubTypes.Type(name = "CREATED_TIME_WINDOW", value = TicketsCreatedTimeWindow.class),
         @JsonSubTypes.Type(name = "UPDATED_TIME_WINDOW", value = TicketsUpdatedTimeWindow.class),
+        @JsonSubTypes.Type(name = "REFERENCE_EQUALS", value = TicketReferenceEquals.class),
 })
 public abstract class TicketFilter {
     private final TicketFilterType type;

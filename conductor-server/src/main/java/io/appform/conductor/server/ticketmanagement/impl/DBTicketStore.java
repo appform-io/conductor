@@ -25,6 +25,7 @@ import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.TicketReferenceID;
 import io.appform.conductor.model.ticket.analytics.*;
 import io.appform.conductor.model.ticket.comments.Attachment;
 import io.appform.conductor.model.ticket.comments.Comment;
@@ -44,6 +45,8 @@ import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredA
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredComment;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredEmbeddedFieldValue;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
+import io.appform.conductor.server.ticketmanagement.impl.models.references.StoredTicketReferenceID;
+import io.appform.conductor.server.ticketmanagement.impl.models.references.StoredTicketReferenceIDPk;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.utils.Pair;
 import io.appform.dropwizard.sharding.dao.LookupDao;
@@ -59,6 +62,7 @@ import org.hibernate.criterion.*;
 import org.hibernate.sql.JoinType;
 import org.hibernate.type.LongType;
 import org.hibernate.type.Type;
+import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -88,6 +92,7 @@ public class DBTicketStore implements TicketStore {
 
     private final LookupDao<StoredTicketSkeleton> ticketDao;
     private final RelationalDao<StoredFieldValue> fieldDao;
+    private final RelationalDao<StoredTicketReferenceID> referenceIDDao;
     private final RelationalDao<StoredComment> commentDao;
     private final RelationalDao<StoredAttachment> attachmentDao;
     private final ObjectMapper mapper;
@@ -132,18 +137,21 @@ public class DBTicketStore implements TicketStore {
             final String subjectId,
             final String ticketStateId,
             final TicketPriority priority,
+            final List<TicketReferenceID> references,
             final List<TicketFieldData> fields) {
-        ticketDao.saveAndGetExecutor(new StoredTicketSkeleton()
-                                             .setTicketId(ticketId)
-                                             .setTitle(title)
-                                             .setDescription(description)
-                                             .setWorkflowId(workflowId)
-                                             .setCreatedByUserId(ConductorServerUtils.operatingUserId())
-                                             .setSubjectId(subjectId)
-                                             .setTicketStateId(ticketStateId)
-                                             .setCreatedByUserId(ConductorServerUtils.operatingUserId())
-                                             .setPriority(priority))
+        val skeleton = new StoredTicketSkeleton()
+                .setTicketId(ticketId)
+                .setTitle(title)
+                .setDescription(description)
+                .setWorkflowId(workflowId)
+                .setCreatedByUserId(ConductorServerUtils.operatingUserId())
+                .setSubjectId(subjectId)
+                .setTicketStateId(ticketStateId)
+                .setCreatedByUserId(ConductorServerUtils.operatingUserId())
+                .setPriority(priority);
+        ticketDao.saveAndGetExecutor(skeleton)
                 .saveAll(fieldDao, ticket -> toStoredFields(ticket, fields))
+                .saveAll(referenceIDDao, ticket -> toStoredReferences(ticket, references))
                 .execute();
         return read(ticketId, true);
     }
@@ -168,6 +176,7 @@ public class DBTicketStore implements TicketStore {
     public Optional<TicketSkeleton> update(
             @Throws.RuntimeParam("id") String ticketId,
             UnaryOperator<TicketSkeleton> updater,
+            final List<TicketReferenceID> references,
             final List<TicketFieldData> fields) {
         ticketDao.lockAndGetExecutor(ticketId)
                 .mutate(
@@ -181,31 +190,7 @@ public class DBTicketStore implements TicketStore {
                                     .setTicketStateId(updated.getTicketStateId())
                                     .setPriority(updated.getPriority());
                         })
-                .saveAll(fieldDao, ticket -> toStoredFields(ticket, fields))
-                .execute();
-        return read(ticketId, true);
-    }
-
-    @Override
-    @MonitoredFunction
-    @SneakyThrows
-    @Throws(value = STORE_UPDATE_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SKELETON_TABLE_NAME))
-    public Optional<TicketSkeleton> update(
-            @Throws.RuntimeParam("id") final String ticketId,
-            final String title,
-            final String description,
-            final String subjectId,
-            final String ticketStateId,
-            final TicketPriority priority,
-            final List<TicketFieldData> fields) {
-
-        ticketDao.lockAndGetExecutor(ticketId)
-                .mutate(ticket -> ticket.setTitle(title)
-                        .setDescription(description)
-                        .setSubjectId(subjectId)
-                        .setTicketStateId(ticketStateId)
-                        .setPriority(priority))
+                .saveAll(referenceIDDao, ticket -> toStoredReferences(ticket, references))
                 .saveAll(fieldDao, ticket -> toStoredFields(ticket, fields))
                 .execute();
         return read(ticketId, true);
@@ -701,6 +686,23 @@ public class DBTicketStore implements TicketStore {
                                                           - updatedTimeWindow.getDuration().toMilliseconds())));
                 return null;
             }
+
+            @Override
+            public Void visit(TicketReferenceEquals ticketReferenceEquals) {
+                criteria.createAlias(StoredTicketSkeleton.Fields.references, StoredTicketSkeleton.Fields.references);
+                criteria.add(Restrictions.eq(referenceFieldName(StoredTicketReferenceIDPk.Fields.source),
+                        ticketReferenceEquals.getSource()));
+                criteria.add(Restrictions.eq(referenceFieldName(StoredTicketReferenceIDPk.Fields.refId),
+                        ticketReferenceEquals.getValue()));
+                return null;
+            }
+
+            @NotNull
+            private String referenceFieldName(String actualField) {
+                return String.join(".", List.of(StoredTicketSkeleton.Fields.references,
+                        StoredTicketReferenceID.Fields.storedTicketReferenceIDPk,
+                        actualField));
+            }
         }));
     }
 
@@ -738,7 +740,15 @@ public class DBTicketStore implements TicketStore {
                 .setUpdated(skeleton.getUpdated())
                 .setFields(fields.stream()
                                    .map(DBTicketStore::toWireField)
-                                   .toList());
+                                   .toList())
+                .setReferences(skeleton.getReferences().stream()
+                        .map(DBTicketStore::toWireReferences)
+                        .toList());
+    }
+
+    private static TicketReferenceID toWireReferences(StoredTicketReferenceID storedTicketReferenceID) {
+        return new TicketReferenceID(storedTicketReferenceID.getStoredTicketReferenceIDPk().getSource(),
+                storedTicketReferenceID.getStoredTicketReferenceIDPk().getRefId());
     }
 
     private static List<StoredFieldValue> toStoredFields(StoredTicketSkeleton ticket, List<TicketFieldData> fields) {
@@ -746,6 +756,25 @@ public class DBTicketStore implements TicketStore {
                 .stream()
                 .map(field -> toStoredField(ticket, field))
                 .toList();
+    }
+
+    private static List<StoredTicketReferenceID> toStoredReferences(StoredTicketSkeleton skeleton,
+                                                                    List<TicketReferenceID> references ) {
+        return references == null ? List.of() :
+                references.stream()
+                        .map(reference -> toStoredTicketReferenceID(skeleton, reference))
+                        .toList();
+
+    }
+
+    private static StoredTicketReferenceID toStoredTicketReferenceID(StoredTicketSkeleton skeleton,
+                                                                     TicketReferenceID reference) {
+        return new StoredTicketReferenceID()
+                .setStoredTicketReferenceIDPk(new StoredTicketReferenceIDPk()
+                        .setSource(reference.getSource())
+                        .setRefId(reference.getRefId())
+                        .setTicketId(skeleton.getTicketId()))
+                .setTicket(skeleton);
     }
 
     private static TicketField toWireField(final StoredFieldValue value) {

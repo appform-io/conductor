@@ -26,6 +26,7 @@ import lombok.Value;
 import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * A summary for a ticket
@@ -83,6 +84,11 @@ public class TicketSummary {
      * Priority for the ticket
      */
     TicketPriority priority;
+
+    /**
+     * List of external references for the ticket
+     */
+    List<TicketReferenceID> references;
 
     /**
      * Date when ticket was created

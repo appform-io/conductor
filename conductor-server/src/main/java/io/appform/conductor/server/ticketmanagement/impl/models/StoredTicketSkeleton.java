@@ -18,6 +18,7 @@ package io.appform.conductor.server.ticketmanagement.impl.models;
 
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
+import io.appform.conductor.server.ticketmanagement.impl.models.references.StoredTicketReferenceID;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,11 +26,12 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
@@ -89,6 +91,11 @@ public class StoredTicketSkeleton implements Serializable {
     @Column
     @Enumerated(EnumType.STRING)
     private TicketPriority priority;
+
+    @Fetch(FetchMode.SUBSELECT)
+    @OneToMany(mappedBy = "ticket", fetch = FetchType.EAGER)
+    @ToString.Exclude
+    private List<StoredTicketReferenceID> references;
 
     @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
     @ToString.Exclude

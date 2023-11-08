@@ -33,6 +33,7 @@ import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkel
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredAttachment;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredComment;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
+import io.appform.conductor.server.ticketmanagement.impl.models.references.StoredTicketReferenceID;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.val;
 import org.junit.jupiter.api.BeforeAll;
@@ -64,6 +65,7 @@ class DBTicketStoreTest {
     void testCRUD(final BalancedDBShardingBundle<TestConfig> bundle) {
         val store = new DBTicketStore(bundle.createParentObjectDao(StoredTicketSkeleton.class),
                                       bundle.createRelatedObjectDao(StoredFieldValue.class),
+                                      bundle.createRelatedObjectDao(StoredTicketReferenceID.class),
                                       bundle.createRelatedObjectDao(StoredComment.class),
                                       bundle.createRelatedObjectDao(StoredAttachment.class),
                                       MAPPER);
@@ -74,6 +76,7 @@ class DBTicketStoreTest {
                                    "S001",
                                    "TS001",
                                    TicketPriority.MEDIUM,
+                                   null,
                                    List.of(new TicketFieldData("TF001", new BooleanFieldValue(true)),
                                            new TicketFieldData("TF002", new StringFieldValue("Random")),
                                            new TicketFieldData("TF004", new StringFieldValue("Random Value"))))
@@ -86,7 +89,8 @@ class DBTicketStoreTest {
                                    "S001",
                                    "TS001",
                                    TicketPriority.MEDIUM,
-                                   List.of(new TicketFieldData("TF001", new BooleanFieldValue(true)),
+                                    null,
+                                    List.of(new TicketFieldData("TF001", new BooleanFieldValue(true)),
                                            new TicketFieldData("TF003", new NumberFieldValue(23)),
                                            new TicketFieldData("TF004", new StringFieldValue("Random Value"))))
                               .orElse(null));
@@ -97,7 +101,8 @@ class DBTicketStoreTest {
                                    "S001",
                                    "TS001",
                                    TicketPriority.MEDIUM,
-                                   List.of(new TicketFieldData("TF001", new BooleanFieldValue(true)),
+                                    null,
+                                    List.of(new TicketFieldData("TF001", new BooleanFieldValue(true)),
                                            new TicketFieldData("TF003", new NumberFieldValue(23)),
                                            new TicketFieldData("TF004", new StringFieldValue("Random Value"))))
                               .orElse(null));
@@ -108,6 +113,7 @@ class DBTicketStoreTest {
                                    "S001",
                                    "TS001",
                                    TicketPriority.MEDIUM,
+                                    null,
                                    List.of())
                               .orElse(null));
         assertNotNull(created);
@@ -116,11 +122,13 @@ class DBTicketStoreTest {
         assertEquals(3, read.getFields().size());
 
         val updated = store.update("T001",
-                                   "Test Updated",
-                                   "This is a test ticket update",
-                                   "S001",
-                                   "TS001",
-                                   TicketPriority.HIGH,
+                                   ticketSkeleton ->
+                                           ticketSkeleton.setTitle("Test Updated")
+                                                   .setDescription("This is a test ticket update")
+                                                   .setSubjectId("S001")
+                                                   .setTicketStateId("TS001")
+                                                   .setPriority(TicketPriority.HIGH),
+                                   List.of(),
                                    List.of(new TicketFieldData("TF003", new NumberFieldValue(23)),
                                            new TicketFieldData("TF002", new StringFieldValue("Random updated value"))))
                 .orElse(null);
@@ -196,6 +204,7 @@ class DBTicketStoreTest {
                                    "S001",
                                    "TS002",
                                    TicketPriority.MEDIUM,
+                                   null,
                                    List.of(new TicketFieldData("TF001", new BooleanFieldValue(true)),
                                            new TicketFieldData("TF003", new NumberFieldValue(23)),
                                            new TicketFieldData("TF004", new StringFieldValue("Random Value"))))
