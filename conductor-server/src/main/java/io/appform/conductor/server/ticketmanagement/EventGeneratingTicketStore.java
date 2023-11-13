@@ -1,5 +1,6 @@
 package io.appform.conductor.server.ticketmanagement;
 
+import com.google.common.base.Strings;
 import com.google.common.net.MediaType;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.TicketState;
@@ -32,7 +33,9 @@ public class EventGeneratingTicketStore implements TicketStore {
     private final TicketStore ticketStore;
 
     @Inject
-    public EventGeneratingTicketStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) TicketStore ticketStore) {
+    public EventGeneratingTicketStore(
+            EventBus eventBus,
+            @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) TicketStore ticketStore) {
         this.eventBus = eventBus;
         this.ticketStore = ticketStore;
     }
@@ -97,10 +100,12 @@ public class EventGeneratingTicketStore implements TicketStore {
     @Override
     public Optional<TicketSkeleton> assignToGroup(String ticketId, @NonNull String groupId, String userId) {
         val res = ticketStore.assignToGroup(ticketId, groupId, userId);
-        res.filter(ticketSkeleton -> ticketSkeleton.getAssignedToGroupId().equals(groupId))
+        res.filter(ticketSkeleton -> !Strings.isNullOrEmpty(ticketSkeleton.getAssignedToGroupId()))
+                .filter(ticketSkeleton -> ticketSkeleton.getAssignedToGroupId().equals(groupId))
                 .ifPresent(ticketSkeleton -> eventBus.publish(new TicketGroupAssignedEvent(
                         ticketSkeleton.getTicketId(), groupId)));
-        res.filter(ticketSkeleton -> ticketSkeleton.getAssignedToUserId().equals(userId))
+        res.filter(ticketSkeleton -> !Strings.isNullOrEmpty(ticketSkeleton.getAssignedToUserId()))
+                .filter(ticketSkeleton -> ticketSkeleton.getAssignedToUserId().equals(userId))
                 .ifPresent(ticketSkeleton -> eventBus.publish(new TicketUserAssignedEvent(
                         ticketSkeleton.getTicketId(), userId)));
         return res;

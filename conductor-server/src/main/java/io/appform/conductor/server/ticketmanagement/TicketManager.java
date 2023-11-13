@@ -430,7 +430,7 @@ public class TicketManager {
         val ticketDetails = ticketDetails(ticket, workflow, subject.getSummary());
 
         //validate action
-        val ticketState = ticketDetails.getSummary().getTicketState();
+        /*val ticketState = ticketDetails.getSummary().getTicketState();
         if (ticketState.getVisibleActions().stream()
                 .noneMatch(eligibleAction -> eligibleAction.equals(actionId))) {
             throw ConductorException.builder()
@@ -439,7 +439,7 @@ public class TicketManager {
                                     ACTION_ID, actionId,
                                     STATE_ID, ticketState.getId()))
                     .build();
-        }
+        }*/
 
         //trigger action
         val actionExecutionData = new ActionExecutor.ActionEvalData(

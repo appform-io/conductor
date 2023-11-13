@@ -252,8 +252,8 @@
                                                 multiple aria-describedby="transitionAllowedActionsHelp"
                                                 data-live-search="true" data-selected-text-format="count > 2">
                                             <option value="" disabled>Actions to be triggered</option>
-                                            {{#each availableActions}}
-                                                <option value="{{id}}" {{#contains currentTransition.actionIds id}}selected{{/contains}}>
+                                            {{#each ../availableActions}}
+                                                <option value="{{id}}" {{#contains ../currentTransition.actionIds id}}selected{{/contains}}>
                                                     {{name}}
                                                 </option>
                                             {{/each}}
@@ -484,7 +484,7 @@
             <div class="col-12 col-md-6">
                 <div class="row">
                     <div class="col-12">
-                        <h5>Available Actions</h5>
+                        <h5>Action Buttons</h5>
                     </div>
                 </div>
                 <form method="post" action="/manage/workflow/{{workflow.id}}/actions/add">
