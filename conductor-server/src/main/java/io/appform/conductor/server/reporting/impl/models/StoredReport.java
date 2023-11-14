@@ -44,7 +44,7 @@ import java.util.Objects;
 @FieldNameConstants
 @AllArgsConstructor
 @NoArgsConstructor
-@SQLDelete(sql = "update reports set deleted=true where id=?")
+@SQLDelete(sql = "update reports set deleted=true where report_id=?")
 public class StoredReport implements Serializable {
     public static final String REPORT_TABLE_NAME = "reports";
 
@@ -52,9 +52,9 @@ public class StoredReport implements Serializable {
     private static final long serialVersionUID = -1739422964464502132L;
 
     @Id
-    @Column(nullable = false)
+    @Column(nullable = false, name =  "report_id")
     @LookupKey
-    private String id;
+    private String reportId;
 
     @Column
     private String name;
@@ -108,7 +108,7 @@ public class StoredReport implements Serializable {
             return false;
         }
         StoredReport that = (StoredReport) o;
-        return Objects.equals(getId(), that.getId());
+        return Objects.equals(getReportId(), that.getReportId());
     }
 
     @Override

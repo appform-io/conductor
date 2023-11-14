@@ -30,14 +30,11 @@ public abstract class StoredAction implements Serializable {
     @Serial
     private static final long serialVersionUID = -6346454270217160408L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, insertable=false, updatable = false, length = 45)
     private final ActionType type;
 
+    @Id
     @LookupKey
     @Column(name = "action_id", nullable = false, length = 45)
     private String actionId;

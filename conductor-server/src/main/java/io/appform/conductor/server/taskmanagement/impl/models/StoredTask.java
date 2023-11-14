@@ -51,9 +51,9 @@ public class StoredTask implements Serializable {
     private static final long serialVersionUID = -6360713282136062573L;
 
     @Id
-    @Column(nullable = false)
     @LookupKey
-    private String id;
+    @Column(nullable = false, name = "task_id")
+    private String taskId;
 
     @Enumerated(EnumType.STRING)
     private TaskType type;
@@ -111,7 +111,7 @@ public class StoredTask implements Serializable {
             return false;
         }
         val that = (StoredTask) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(taskId, that.taskId);
     }
 
     @Override

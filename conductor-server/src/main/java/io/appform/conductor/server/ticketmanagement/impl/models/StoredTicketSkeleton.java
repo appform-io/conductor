@@ -54,10 +54,8 @@ public class StoredTicketSkeleton implements Serializable {
     @Serial
     private static final long serialVersionUID = -9138428302273551724L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
 
+    @Id
     @LookupKey
     @Column(name = "ticket_id", unique = true, length = 45)
     private String ticketId;
@@ -115,7 +113,7 @@ public class StoredTicketSkeleton implements Serializable {
             return false;
         }
         StoredTicketSkeleton that = (StoredTicketSkeleton) o;
-        return Objects.equals(getId(), that.getId());
+        return Objects.equals(getTicketId(), that.getTicketId());
     }
 
     @Override

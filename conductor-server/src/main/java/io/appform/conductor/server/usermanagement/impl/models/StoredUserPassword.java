@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.usermanagement.impl.models;
 
+import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
@@ -40,9 +41,7 @@ public class StoredUserPassword {
     public static final String USER_PASSWORD_TABLE_NAME = "user_passwords";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
+    @LookupKey
     @Column(name = "user_id", unique = true, nullable = false, length = 45)
     private String userId;
 
@@ -76,7 +75,7 @@ public class StoredUserPassword {
             return false;
         }
         StoredUserPassword that = (StoredUserPassword) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(getUserId(), that.getUserId()) && Objects.equals(getPassword(), that.getPassword()) ;
     }
 
     @Override

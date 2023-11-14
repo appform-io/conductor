@@ -43,9 +43,6 @@ import java.util.Objects;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLDelete(sql = "update field_schemas set deleted=true where field_id=?")
 public abstract class StoredFieldSchema {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
@@ -54,6 +51,7 @@ public abstract class StoredFieldSchema {
     @Column(name = "schema_id", nullable = false)
     private String schemaId;
 
+    @Id
     @Column(name = "field_id", unique = true, nullable = false)
     private String fieldId;
 
@@ -125,7 +123,7 @@ public abstract class StoredFieldSchema {
             return false;
         }
         val that = (StoredFieldSchema) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(getFieldId(), that.getFieldId());
     }
 
     @Override

@@ -78,7 +78,7 @@ public class StoredWebhookAction  extends StoredAction {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
         StoredWebhookAction that = (StoredWebhookAction) o;
-        return Objects.equals(getId(), that.getId())  && Objects.equals(getActionId(), that.getActionId());
+        return Objects.equals(getActionId(), that.getActionId());
     }
 
     @Override

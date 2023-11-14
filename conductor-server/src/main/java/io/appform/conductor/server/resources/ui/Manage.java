@@ -198,6 +198,7 @@ public class Manage {
                     .description(fieldDescription)
                     .build();
         };
+        //TODO: move field Id to ConductorServerUtils.readableId  ?
         return schemaStore.addField(schemaId, schemaId + "-" + fieldName, fs)
                 .map(f -> redirect("/manage/schema/" + schemaId))
                 .orElseThrow(() -> fail("Failed to add field to schema " + schemaId, "/manage/schema"));

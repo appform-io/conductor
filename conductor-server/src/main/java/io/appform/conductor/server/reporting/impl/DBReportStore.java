@@ -82,7 +82,7 @@ public class DBReportStore implements ReportStore {
                                                       .setScopeReferenceId(scope.getReferenceId())
                                                       .setDeleted(false),
                                               () -> new StoredReport()
-                                                      .setId(id)
+                                                      .setReportId(id)
                                                       .setName(name)
                                                       .setDescription(description)
                                                       .setCqlQuery(cql)
@@ -295,20 +295,20 @@ public class DBReportStore implements ReportStore {
     }
 
     private static StoredReportRun newRunForReport(StoredReport report) {
-        val runDate = nextExecutionTimeForCron(report.getId(), report.getCron(), new Date());
-        val nextRunId = "RR-" + UUID.nameUUIDFromBytes((report.getId()
+        val runDate = nextExecutionTimeForCron(report.getReportId(), report.getCron(), new Date());
+        val nextRunId = "RR-" + UUID.nameUUIDFromBytes((report.getReportId()
                 + "-" + runDate.getTime()
                 + "-" + System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8));
         return new StoredReportRun()
                 .setRunId(nextRunId)
-                .setReportId(report.getId())
+                .setReportId(report.getReportId())
                 .setRunDate(runDate)
                 .setCurrentState(ReportRun.State.SCHEDULED);
     }
 
     private static Report toWire(final StoredReport report) {
         return new Report(
-                report.getId(),
+                report.getReportId(),
                 report.getName(),
                 report.getDescription(),
                 report.getCqlQuery(),

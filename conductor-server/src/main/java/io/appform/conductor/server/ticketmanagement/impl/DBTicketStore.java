@@ -231,7 +231,7 @@ public class DBTicketStore implements TicketStore {
                      relevantFieldSchema,
                      readFields,
                      fieldNames,
-                     criteria -> criteria.addOrder(Order.desc(StoredTicketSkeleton.Fields.id)));
+                criteria -> criteria.addOrder(Order.desc(StoredTicketSkeleton.Fields.ticketId))); //TODO:generate ticketId  increasing seq
         return new TicketSkeletonListResult(
                 results.getFirst()
                         .stream()
@@ -261,7 +261,7 @@ public class DBTicketStore implements TicketStore {
                 relevantFieldSchema,
                 readFields,
                 fieldNames,
-                criteria -> criteria.addOrder(Order.desc(StoredTicketSkeleton.Fields.id)));
+                criteria -> criteria.addOrder(Order.desc(StoredTicketSkeleton.Fields.ticketId))); //TODO:generate ticketId  increasing seq
         return new TicketSkeletonListResult(
                 results.getFirst()
                         .stream()
@@ -404,7 +404,7 @@ public class DBTicketStore implements TicketStore {
             boolean encrypted) {
         return attachmentDao.save(ticketId,
                                   new StoredAttachment()
-                                          .setAttachmentId(attachmentId)
+                                          .setAttachmentId(attachmentId) //TODO: Generate attachmentId in same shard as of ticketId
                                           .setTicketId(ticketId)
                                           .setCreator(ConductorServerUtils.operatingUserId())
                                           .setMediaType(type)
@@ -471,7 +471,7 @@ public class DBTicketStore implements TicketStore {
         ticketIdCriteria
                 .setProjection(Projections.projectionList()
                                        .add(Projections.distinct(Projections.property(StoredTicketSkeleton.Fields.ticketId)))
-                                       .add(Projections.property(StoredTicketSkeleton.Fields.id)));
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.ticketId)));
         val pointer = TicketScrollPointer.deserializePointer(start, mapper);
         val queryResults = new ArrayList<TicketSkeleton>();
         ticketDao.runInSession(

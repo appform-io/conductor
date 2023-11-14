@@ -40,10 +40,8 @@ import java.util.Date;
 @NoArgsConstructor
 public class StoredUserSessionDetails {
     public static final String SESSION_TABLE_NAME = "user_sessions";
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
 
+    @Id
     @Column(name = "session_id", nullable = false, length = 45)
     private String sessionId;
 
