@@ -36,3 +36,7 @@
 div.dataTables_wrapper div.dataTables_filter {
     text-align: inherit;
 }
+
+.small-text {
+    font-size: 0.875em;
+}

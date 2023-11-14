@@ -1,0 +1,31 @@
+<div class="row">
+    <div class="col-12">
+        {{#each comments}}
+            <p>
+                <span class="small-text"> <b>{{author}}</b> commented at <i>{{htmlDateTime updated}}</i></span>
+                <br>
+                {{content}}
+            </p>
+            <hr>
+        {{/each}}
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <form method="post" action="/tickets/{{summary/id}}/comments">
+            <div class="mb-3">
+                <label for="newComment" class="col-form-label fw-bold">Add Comment</label>
+                <textarea id="newComment" name="newComment"
+                          class="form-control border border-dark"
+                          maxlength="4000" placeholder="Comment on the ticket"
+                          aria-describedby="newCommentHelp" rows="3" required></textarea>
+                <div id="newCommentHelp" class="form-text">
+                    Post a comment. Max Length: 1000 characters.
+                </div>
+            </div>
+            <div class="mb-3 d-flex justify-content-end">
+                <button type="submit" class="btn btn-outline-primary"><i class="bi bi-chat"></i> Post</button>
+            </div>
+        </form>
+    </div>
+</div>

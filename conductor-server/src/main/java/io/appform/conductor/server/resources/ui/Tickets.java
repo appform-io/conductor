@@ -32,6 +32,7 @@ import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.appform.conductor.server.ticketmanagement.TicketSkeletonListResult;
 import io.appform.conductor.server.ui.views.tickets.*;
+import io.appform.conductor.server.ui.views.tickets.fragments.CommentsFragment;
 import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
@@ -39,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.Range;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
@@ -170,6 +172,37 @@ public class Tickets {
                                             fields,
                                             groupStore.list(),
                                             actionStore.listActionsForIds(ticketState.getVisibleActions())));
+    }
+
+    @POST
+    @Path("/{ticketId}/comments")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response addComment(
+            @Auth final ConductorUser user,
+            @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
+            @FormParam("newComment") @NotEmpty @Length(max = 4000) final String content) {
+        val ticket = ticketManager.readTicket(ticketId).orElse(null);
+        if (null == ticket) {
+            throw fail("No ticket found for ticket id: " + ticketId, "/");
+        }
+        val comment = ticketManager.addComment(ticketId, content, null).orElse(null);
+        if(null == comment) {
+            throw fail("Could not comment on ticket: " + ticketId, "/tickets/" + ticketId + "/details");
+        }
+        return redirect("/tickets/" + ticketId + "/details");
+    }
+
+    @GET
+    @Path("/{ticketId}/comments")
+    public Response listComments(
+            @Auth final ConductorUser user,
+            @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
+            @QueryParam("from") @Range(min = 0, max = 255) @DefaultValue("0") int start) {
+        val ticket = ticketManager.readTicket(ticketId).orElse(null);
+        if (null == ticket) {
+            throw fail("No ticket found for ticket id: " + ticketId, "/");
+        }
+        return render(new CommentsFragment(ticket.getSummary(), ticketManager.listComments(ticketId, start, 100)));
     }
 
     @POST
