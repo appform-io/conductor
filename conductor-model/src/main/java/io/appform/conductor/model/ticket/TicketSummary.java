@@ -26,7 +26,6 @@ import lombok.Value;
 import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
-import java.util.List;
 
 /**
  * A summary for a ticket

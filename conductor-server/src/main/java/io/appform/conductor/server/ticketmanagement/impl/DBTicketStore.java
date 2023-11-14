@@ -685,11 +685,11 @@ public class DBTicketStore implements TicketStore {
             }
 
             @Override
-            public Void visit(TicketReferenceEquals ticketReferenceEquals) {
+            public Void visit(TicketExternalReferenceEquals ticketExternalReferenceEquals) {
                 criteria.add(Restrictions.eq(StoredTicketSkeleton.Fields.externalReferenceSource,
-                        ticketReferenceEquals.getSource()));
+                        ticketExternalReferenceEquals.getSource()));
                 criteria.add(Restrictions.eq(StoredTicketSkeleton.Fields.externalReferenceId,
-                        ticketReferenceEquals.getValue()));
+                        ticketExternalReferenceEquals.getValue()));
                 return null;
             }
         }));

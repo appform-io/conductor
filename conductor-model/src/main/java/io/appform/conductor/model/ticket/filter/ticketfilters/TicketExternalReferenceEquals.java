@@ -16,7 +16,7 @@ import javax.validation.constraints.NotNull;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TicketReferenceEquals extends TicketFilter {
+public class TicketExternalReferenceEquals extends TicketFilter {
     @NotNull
     @NotEmpty
     String source;
@@ -27,8 +27,8 @@ public class TicketReferenceEquals extends TicketFilter {
 
     @Builder
     @Jacksonized
-    public TicketReferenceEquals(String source, String value) {
-        super(TicketFilterType.REFERENCE_EQUALS);
+    public TicketExternalReferenceEquals(String source, String value) {
+        super(TicketFilterType.EXTERNAL_REFERENCE_EQUALS);
         this.source = source;
         this.value = value;
     }
