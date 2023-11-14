@@ -17,6 +17,7 @@
 package io.appform.conductor.server.resources.ui;
 
 import com.google.common.base.Strings;
+import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.schema.*;
@@ -333,12 +334,20 @@ public class Manage {
                                 workflow,
                                 schema,
                                 null,
-                                actionStore.listActionsForScopes(List.of(Scope.GLOBAL,
-                                                                         Scope.create(Scope.ScopeType.WORKFLOW,
-                                                                                      workflowId))),
-                                actionStore.listActionsForIds(workflow.getAvailableActions()))))
+                                relevantActionsList(workflowId),
+                                workflowActions(workflow))))
                 .map(ConductorServerUtils::render)
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
+    }
+
+    private List<Action> workflowActions(Workflow workflow) {
+        return actionStore.listActionsForIds(workflow.getAvailableActions());
+    }
+
+    private List<Action> relevantActionsList(String workflowId) {
+        return actionStore.listActionsForScopes(List.of(Scope.GLOBAL,
+                                                        Scope.create(Scope.ScopeType.WORKFLOW,
+                                                                     workflowId)));
     }
 
     @POST
@@ -589,12 +598,8 @@ public class Manage {
                                                 .equals(stateTransitionId))
                                         .findFirst()
                                         .orElse(null),
-                                actionStore.listActionsForScopes(List.of(Scope.GLOBAL,
-                                                                         Scope.create(Scope.ScopeType.WORKFLOW,
-                                                                                      workflowId),
-                                                                         Scope.create(Scope.ScopeType.TRANSITION,
-                                                                                      stateTransitionId))),
-                                actionStore.listActionsForIds(workflow.getAvailableActions()))))
+                                relevantActionsList(workflowId),
+                                workflowActions(workflow))))
                 .map(ConductorServerUtils::render)
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
     }

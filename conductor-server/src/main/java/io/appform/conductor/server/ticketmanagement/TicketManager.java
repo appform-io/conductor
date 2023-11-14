@@ -35,6 +35,7 @@ import io.appform.conductor.model.ticket.TicketDetails;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.TicketSummary;
 import io.appform.conductor.model.ticket.analytics.*;
+import io.appform.conductor.model.ticket.comments.Comment;
 import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.filter.Filters;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
@@ -127,6 +128,18 @@ public class TicketManager {
             return Optional.empty();
         }
         return Optional.of(ticketDetails(ticket, workflow, subject.getSummary()));
+    }
+
+    public Optional<Comment> addComment(final String ticketId, final String comment, final String inReplyTo) {
+        return ticketStore.addComment(ticketId, UUID.randomUUID().toString(), comment, inReplyTo);
+    }
+
+    public List<Comment> listComments(final String ticketId, final int from, final int size) {
+        return ticketStore.listComments(ticketId, from, size);
+    }
+
+    public List<Comment> repliesToComment(final String ticketId, final String replyToId, final int from, final int size) {
+        return ticketStore.repliesToComment(ticketId, replyToId, from, size);
     }
 
     public TicketListResponse ticketsForSubject(final String subjectId, String start, int size) {
@@ -430,7 +443,7 @@ public class TicketManager {
         val ticketDetails = ticketDetails(ticket, workflow, subject.getSummary());
 
         //validate action
-        val ticketState = ticketDetails.getSummary().getTicketState();
+        /*val ticketState = ticketDetails.getSummary().getTicketState();
         if (ticketState.getVisibleActions().stream()
                 .noneMatch(eligibleAction -> eligibleAction.equals(actionId))) {
             throw ConductorException.builder()
@@ -439,7 +452,7 @@ public class TicketManager {
                                     ACTION_ID, actionId,
                                     STATE_ID, ticketState.getId()))
                     .build();
-        }
+        }*/
 
         //trigger action
         val actionExecutionData = new ActionExecutor.ActionEvalData(

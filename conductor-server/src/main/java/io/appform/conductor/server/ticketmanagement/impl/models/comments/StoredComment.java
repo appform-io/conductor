@@ -63,7 +63,7 @@ public class StoredComment implements Serializable {
     @Column
     private String author;
 
-    @Column
+    @Column(columnDefinition = "longtext")
     private String content;
 
     @Column(name = "reply_to_id")

@@ -17,6 +17,7 @@
 package io.appform.conductor.server.resources.ui;
 
 import com.google.common.base.Strings;
+import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.subject.SubjectIDType;
@@ -32,6 +33,7 @@ import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.appform.conductor.server.ticketmanagement.TicketSkeletonListResult;
 import io.appform.conductor.server.ui.views.tickets.*;
+import io.appform.conductor.server.ui.views.tickets.fragments.CommentsFragment;
 import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
@@ -39,9 +41,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.Range;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
-import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -68,7 +71,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 @Produces(MediaType.TEXT_HTML)
 @Slf4j
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
-@PermitAll
+@RolesAllowed(Permission.Values.TICKET_READ)
 public class Tickets {
     private final WorkflowStore workflowStore;
     private final SchemaStore schemaStore;
@@ -88,6 +91,7 @@ public class Tickets {
     @POST
     @Path("/create")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.TICKET_WRITE)
     public Response createTicket(
             @Auth ConductorUser user,
             @FormParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
@@ -173,8 +177,41 @@ public class Tickets {
     }
 
     @POST
+    @Path("/{ticketId}/comments")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.TICKET_WRITE)
+    public Response addComment(
+            @Auth final ConductorUser user,
+            @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
+            @FormParam("newComment") @NotEmpty @Length(max = 4000) final String content) {
+        val ticket = ticketManager.readTicket(ticketId).orElse(null);
+        if (null == ticket) {
+            throw fail("No ticket found for ticket id: " + ticketId, "/");
+        }
+        val comment = ticketManager.addComment(ticketId, content, null).orElse(null);
+        if(null == comment) {
+            throw fail("Could not comment on ticket: " + ticketId, "/tickets/" + ticketId + "/details");
+        }
+        return redirect("/tickets/" + ticketId + "/details");
+    }
+
+    @GET
+    @Path("/{ticketId}/comments")
+    public Response listComments(
+            @Auth final ConductorUser user,
+            @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
+            @QueryParam("from") @Range(min = 0, max = 255) @DefaultValue("0") int start) {
+        val ticket = ticketManager.readTicket(ticketId).orElse(null);
+        if (null == ticket) {
+            throw fail("No ticket found for ticket id: " + ticketId, "/");
+        }
+        return render(new CommentsFragment(ticket.getSummary(), ticketManager.listComments(ticketId, start, 100)));
+    }
+
+    @POST
     @Path("/{ticketId}/summary/update")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.TICKET_WRITE)
     public Response updateTicketSummary(
             @Auth final ConductorUser user,
             @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
@@ -188,6 +225,7 @@ public class Tickets {
     @POST
     @Path("/{ticketId}/priority/update")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.TICKET_WRITE)
     public Response updateTicket(
             @Auth final ConductorUser user,
             @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
@@ -200,6 +238,7 @@ public class Tickets {
     @POST
     @Path("/{ticketId}/group/update")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.TICKET_WRITE)
     public Response updateTicketGroup(
             @Auth final ConductorUser user,
             @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
@@ -213,6 +252,7 @@ public class Tickets {
     @POST
     @Path("/{ticketId}/fields/update")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.TICKET_WRITE)
     public Response updateTicketFields(
             @Auth final ConductorUser user,
             @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
@@ -225,6 +265,7 @@ public class Tickets {
     @POST
     @Path("/{ticketId}/assign")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.TICKET_WRITE)
     public Response assignTicketToMe(
             @Auth final ConductorUser user,
             @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId) {
@@ -237,6 +278,7 @@ public class Tickets {
     @POST
     @Path("/{ticketId}/assign/{userId}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.TICKET_WRITE)
     public Response assignTicketToUser(
             @Auth final ConductorUser user,
             @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
@@ -250,6 +292,7 @@ public class Tickets {
     @POST
     @Path("/{ticketId}/unassign")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.TICKET_WRITE)
     public Response unassignTicketFromMe(
             @Auth final ConductorUser user,
             @HeaderParam(com.google.common.net.HttpHeaders.REFERER) final URI referrer,
@@ -269,7 +312,8 @@ public class Tickets {
     @POST
     @Path("/{ticketId}/unassign/{userId}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response unassignTicketToUser(
+    @RolesAllowed(Permission.Values.TICKET_WRITE)
+    public Response unassignTicketFromUser(
             @Auth final ConductorUser user,
             @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
             @FormParam("userId") @NotEmpty @Length(max = 45) final String userId) {
@@ -282,6 +326,7 @@ public class Tickets {
     @POST
     @Path("/{ticketId}/actions/{actionId}/execute")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.TICKET_WRITE)
     public Response executeTicketAction(
             @Auth final ConductorUser user,
             @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
