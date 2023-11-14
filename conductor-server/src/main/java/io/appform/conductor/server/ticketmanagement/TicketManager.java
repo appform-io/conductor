@@ -142,6 +142,20 @@ public class TicketManager {
         return ticketStore.repliesToComment(ticketId, replyToId, from, size);
     }
 
+
+    public void addTicketRelation(final String ticketId, final String relatedTo, TicketRelationship relationship) {
+        //Dual write to optimize read
+        ticketStore.addRelatedTicket(ticketId, relatedTo, relationship);
+        ticketStore.addRelatedTicket(relatedTo, ticketId,
+                relationship == TicketRelationship.ANCESTOR ? TicketRelationship.DESCENDANT
+                        : TicketRelationship.ANCESTOR);
+    }
+
+    public List<RelatedTicket> listRelatedTickets(final String ticketId, final int from, final int size) {
+        return ticketStore.listRelatedTickets(ticketId, from, size);
+    }
+
+
     public TicketListResponse ticketsForSubject(final String subjectId, String start, int size) {
 
         return search(List.of(TicketSubjectEquals.builder()

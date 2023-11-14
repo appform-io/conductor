@@ -227,4 +227,25 @@ public class EventGeneratingTicketStore implements TicketStore {
         }
         return res;
     }
+
+    @Override
+    public Optional<RelatedTicket> addRelatedTicket(String ticketId, String relatedTo, TicketRelationship relationship) {
+        val res = ticketStore.addRelatedTicket(ticketId, relatedTo, relationship);
+        res.ifPresent(attachment -> eventBus.publish(new RelatedTicketAddedEvent(ticketId, relatedTo, relationship)));
+        return res;
+    }
+
+    @Override
+    public List<RelatedTicket> listRelatedTickets(String ticketId, int from, int size) {
+        return ticketStore.listRelatedTickets(ticketId, from, size);
+    }
+
+    @Override
+    public boolean deleteRelatedTicket(String ticketId, String relatedTo) {
+        val res =  ticketStore.deleteRelatedTicket(ticketId, relatedTo);
+        if (res) {
+            eventBus.publish(new RelatedTicketDeletedEvent(ticketId, relatedTo));
+        }
+        return res;
+    }
 }

@@ -192,4 +192,17 @@ public interface TicketStore {
     boolean deleteAttachment(
             final String ticketId,
             final String attachmentId);
+
+    Optional<RelatedTicket> addRelatedTicket(final String ticketId,
+                                             final String relatedTo,
+                                             final TicketRelationship relationship);
+
+    List<RelatedTicket> listRelatedTickets(final String ticketId,
+                                           int from,
+                                           int size);
+
+    boolean deleteRelatedTicket(final String ticketId,
+                                final String relatedTo);
+
+
 }

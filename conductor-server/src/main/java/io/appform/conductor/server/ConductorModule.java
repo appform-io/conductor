@@ -68,6 +68,7 @@ import io.appform.conductor.server.taskmanagement.impl.models.StoredTask;
 import io.appform.conductor.server.ticketmanagement.EventGeneratingTicketStore;
 import io.appform.conductor.server.ticketmanagement.TicketStore;
 import io.appform.conductor.server.ticketmanagement.impl.DBTicketStore;
+import io.appform.conductor.server.ticketmanagement.impl.models.StoredRelatedTicket;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredAttachment;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredComment;
@@ -321,6 +322,12 @@ public class ConductorModule extends AbstractModule {
     @Singleton
     public RelationalDao<StoredAttachment> attachmentDao() {
         return dbBundle.createRelatedObjectDao(StoredAttachment.class);
+    }
+
+    @Provides
+    @Singleton
+    public RelationalDao<StoredRelatedTicket> relatedTicketDao() {
+        return dbBundle.createRelatedObjectDao(StoredRelatedTicket.class);
     }
 
     @Provides
