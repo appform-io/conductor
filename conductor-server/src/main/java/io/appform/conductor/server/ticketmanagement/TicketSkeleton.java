@@ -17,7 +17,7 @@
 package io.appform.conductor.server.ticketmanagement;
 
 import io.appform.conductor.model.ticket.TicketPriority;
-import io.appform.conductor.model.ticket.TicketReferenceID;
+import io.appform.conductor.model.ticket.ExternalReferenceID;
 import io.appform.conductor.model.ticket.fields.TicketField;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
@@ -54,7 +54,7 @@ public class TicketSkeleton {
 
     private List<TicketField> fields;
 
-    private List<TicketReferenceID> references;
+    private ExternalReferenceID externalReferenceID;
 
     private List<String> ticketActionsIds;
 

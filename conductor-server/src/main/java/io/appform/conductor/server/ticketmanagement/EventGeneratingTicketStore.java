@@ -5,7 +5,7 @@ import com.google.common.net.MediaType;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.ticket.TicketPriority;
-import io.appform.conductor.model.ticket.TicketReferenceID;
+import io.appform.conductor.model.ticket.ExternalReferenceID;
 import io.appform.conductor.model.ticket.analytics.GroupingElement;
 import io.appform.conductor.model.ticket.analytics.TicketGroupResponse;
 import io.appform.conductor.model.ticket.comments.Attachment;
@@ -50,10 +50,10 @@ public class EventGeneratingTicketStore implements TicketStore {
             String subjectId,
             String ticketStateId,
             TicketPriority priority,
-            List<TicketReferenceID> references,
+            ExternalReferenceID externalReferenceID,
             List<TicketFieldData> fields) {
         val res = ticketStore.create(ticketId, title, description, workflowId,
-                                     subjectId, ticketStateId, priority, references, fields);
+                                     subjectId, ticketStateId, priority, externalReferenceID, fields);
         res.ifPresent(ticketSkeleton -> eventBus.publish(new TicketCreatedEvent(ticketSkeleton.getTicketId())));
         return res;
     }
@@ -67,10 +67,9 @@ public class EventGeneratingTicketStore implements TicketStore {
     public Optional<TicketSkeleton> update(
             String ticketId,
             UnaryOperator<TicketSkeleton> updater,
-            List<TicketReferenceID> references,
             List<TicketFieldData> fields) {
         //called by other update functions...this will raise duplicate events
-        return ticketStore.update(ticketId, updater, references, fields);
+        return ticketStore.update(ticketId, updater, fields);
     }
 
     @Override

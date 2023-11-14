@@ -549,7 +549,7 @@ public class TicketManager {
                                                    subject,
                                                    workflow.getStates().get(skeleton.getTicketStateId()),
                                                    skeleton.getPriority(),
-                                                   skeleton.getReferences(),
+                                                   skeleton.getExternalReferenceID(),
                                                    skeleton.getCreated(),
                                                    skeleton.getUpdated()),
                                  skeleton.getFields(),

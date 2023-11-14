@@ -86,9 +86,9 @@ public class TicketSummary {
     TicketPriority priority;
 
     /**
-     * List of external references for the ticket
+     * External reference for the ticket
      */
-    List<TicketReferenceID> references;
+    ExternalReferenceID externalReferenceID;
 
     /**
      * Date when ticket was created

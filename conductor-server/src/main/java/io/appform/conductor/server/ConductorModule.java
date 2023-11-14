@@ -72,7 +72,6 @@ import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkel
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredAttachment;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredComment;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
-import io.appform.conductor.server.ticketmanagement.impl.models.references.StoredTicketReferenceID;
 import io.appform.conductor.server.usermanagement.*;
 import io.appform.conductor.server.usermanagement.impl.*;
 import io.appform.conductor.server.usermanagement.impl.models.*;
@@ -310,12 +309,6 @@ public class ConductorModule extends AbstractModule {
     @Singleton
     public RelationalDao<StoredFieldValue> ticketFieldDao() {
         return dbBundle.createRelatedObjectDao(StoredFieldValue.class);
-    }
-
-    @Provides
-    @Singleton
-    public RelationalDao<StoredTicketReferenceID> ticketReferenceIDDao() {
-        return dbBundle.createRelatedObjectDao(StoredTicketReferenceID.class);
     }
 
     @Provides

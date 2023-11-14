@@ -21,14 +21,13 @@ import com.google.common.net.MediaType;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.ticket.TicketPriority;
-import io.appform.conductor.model.ticket.TicketReferenceID;
+import io.appform.conductor.model.ticket.ExternalReferenceID;
 import io.appform.conductor.model.ticket.analytics.*;
 import io.appform.conductor.model.ticket.comments.Attachment;
 import io.appform.conductor.model.ticket.comments.Comment;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import lombok.NonNull;
-import lombok.val;
 
 import java.net.URL;
 import java.util.*;
@@ -47,7 +46,7 @@ public interface TicketStore {
             final String subjectId,
             final String ticketStateId,
             final TicketPriority priority,
-            final List<TicketReferenceID> references,
+            final ExternalReferenceID externalReferenceID,
             final List<TicketFieldData> fields);
 
     Optional<TicketSkeleton> read(String ticketId, boolean readFields);
@@ -55,13 +54,18 @@ public interface TicketStore {
     Optional<TicketSkeleton> update(
             final String ticketId,
             final UnaryOperator<TicketSkeleton> updater,
-            final List<TicketReferenceID> references,
             final List<TicketFieldData> fields);
 
     default Optional<TicketSkeleton> updateSkeleton(
             final String ticketId,
             final UnaryOperator<TicketSkeleton> updater) {
-        return update(ticketId, updater, List.of(), List.of());
+        return update(ticketId, updater, List.of());
+    }
+
+    default Optional<TicketSkeleton> updateExternalReference(
+            final String ticketId,
+            final ExternalReferenceID externalReference) {
+        return update(ticketId, ticket -> ticket.setExternalReferenceID(externalReference), List.of());
     }
 
     default Optional<TicketSkeleton> updateState(
@@ -69,7 +73,6 @@ public interface TicketStore {
             @NonNull final TicketState newState) {
         return update(ticketId,
                       ticket -> ticket.setTicketStateId(newState.getId()),
-                    List.of(),
                     List.of());
     }
 
@@ -78,7 +81,6 @@ public interface TicketStore {
             @NonNull final TicketPriority newPriority) {
         return update(ticketId,
                       ticket -> ticket.setPriority(newPriority),
-                    List.of(),
                     List.of());
     }
 
@@ -89,7 +91,6 @@ public interface TicketStore {
         return update(ticketId,
                 ticket -> ticket.setAssignedToGroupId(groupId)
                               .setAssignedToUserId(userId),
-                  List.of(),
                   List.of());
     }
 
@@ -102,7 +103,7 @@ public interface TicketStore {
     default Optional<TicketSkeleton> setFields(
             final String ticketId,
             @NonNull List<TicketFieldData> fields) {
-        return update(ticketId, ticket -> ticket, List.of(), fields);
+        return update(ticketId, ticket -> ticket, fields);
     }
 
     default Optional<TicketSkeleton> assignToUser(
@@ -110,7 +111,6 @@ public interface TicketStore {
             @NonNull final String userId) {
         return update(ticketId,
                       ticket -> ticket.setAssignedToUserId(userId),
-                        List.of(),
                         List.of());
     }
 
@@ -123,7 +123,6 @@ public interface TicketStore {
                                       .addAll(Objects.requireNonNullElse(ticket.getTicketActionsIds(), List.of()))
                                       .add(actions)
                                       .build()),
-                      List.of(),
                       List.of());
     }
 
@@ -136,7 +135,6 @@ public interface TicketStore {
                                       .addAll(Objects.requireNonNullElse(ticket.getTicketActionsIds(), List.of()))
                                       .add(actions)
                                       .build()),
-                      List.of(),
                       List.of());
     }
 
