@@ -1,6 +1,8 @@
 /.idea/
 .*.sw*
 *.iml
+*.ipr
+*.iws
 */*.iml
 /creds.sh
 /target
