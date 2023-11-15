@@ -2,8 +2,8 @@ package io.appform.conductor.server.auth;
 
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.events.UserRoleAssignedEvent;
-import io.appform.conductor.server.eventmanagement.events.UserRoleRevokedEvent;
+import io.appform.conductor.server.eventmanagement.events.user.UserRoleAssignedEvent;
+import io.appform.conductor.server.eventmanagement.events.user.UserRoleRevokedEvent;
 import lombok.val;
 
 import javax.inject.Inject;

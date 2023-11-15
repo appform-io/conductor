@@ -6,7 +6,7 @@ import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.schema.SchemaSummary;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.events.*;
+import io.appform.conductor.server.eventmanagement.events.schema.*;
 import lombok.val;
 
 import javax.inject.Inject;
@@ -58,7 +58,7 @@ public class EventGeneratingSchemaStore implements SchemaStore {
         val res = schemaStore.updateState(schemaId, state);
         res.filter(schemaSummary -> schemaSummary.getState() == state)
                 .ifPresent(schemaSummary -> eventBus.publish(new SchemaStateUpdatedEvent(schemaSummary.getId(),
-                        schemaSummary.getState())));
+                                                                                         schemaSummary.getState())));
         return res;
     }
 

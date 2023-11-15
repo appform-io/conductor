@@ -3,7 +3,7 @@ package io.appform.conductor.server.subjectmanagement;
 import io.appform.conductor.model.subject.*;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.events.*;
+import io.appform.conductor.server.eventmanagement.events.subject.*;
 import lombok.val;
 
 import javax.inject.Inject;

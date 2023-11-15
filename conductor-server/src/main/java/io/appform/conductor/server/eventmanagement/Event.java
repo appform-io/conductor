@@ -16,9 +16,11 @@
 
 package io.appform.conductor.server.eventmanagement;
 
+import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.UUID;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.operatingUserId;
 
@@ -28,11 +30,17 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.operatingUs
 @Data
 public abstract class Event {
     private final EventType type;
+    private final String id;
+    private final ReferredObjectType objectType;
+    private final String objectId;
     private final String userId;
     private final Date date;
 
-    protected Event(EventType type) {
+    protected Event(EventType type, ReferredObjectType objectType, String objectId) {
         this.type = type;
+        this.id = UUID.randomUUID().toString();
+        this.objectType = objectType;
+        this.objectId = objectId;
         this.userId = operatingUserId();
         this.date = new Date();
     }

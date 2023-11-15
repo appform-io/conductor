@@ -16,8 +16,22 @@
 
 package io.appform.conductor.server.eventmanagement;
 
-import io.appform.conductor.server.eventmanagement.events.*;
+import io.appform.conductor.server.eventmanagement.events.actions.ActionCreatedEvent;
+import io.appform.conductor.server.eventmanagement.events.actions.ActionDeletedEvent;
+import io.appform.conductor.server.eventmanagement.events.actions.ActionUpdatedEvent;
+import io.appform.conductor.server.eventmanagement.events.group.GroupCreatedEvent;
+import io.appform.conductor.server.eventmanagement.events.group.GroupDeletedEvent;
+import io.appform.conductor.server.eventmanagement.events.group.GroupUpdatedEvent;
 import io.appform.conductor.server.eventmanagement.events.reporting.ReportExecutionCompletedEvent;
+import io.appform.conductor.server.eventmanagement.events.role.RoleCreatedEvent;
+import io.appform.conductor.server.eventmanagement.events.role.RoleDeletedEvent;
+import io.appform.conductor.server.eventmanagement.events.role.RoleUpdatedEvent;
+import io.appform.conductor.server.eventmanagement.events.schema.*;
+import io.appform.conductor.server.eventmanagement.events.skill.*;
+import io.appform.conductor.server.eventmanagement.events.subject.*;
+import io.appform.conductor.server.eventmanagement.events.ticket.*;
+import io.appform.conductor.server.eventmanagement.events.user.*;
+import io.appform.conductor.server.eventmanagement.events.workflow.*;
 
 /**
  *

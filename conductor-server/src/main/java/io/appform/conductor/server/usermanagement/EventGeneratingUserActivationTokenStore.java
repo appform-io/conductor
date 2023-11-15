@@ -4,7 +4,7 @@ import io.appform.conductor.model.usermgmt.UserActivationToken;
 import io.appform.conductor.model.usermgmt.UserActivationTokenState;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.events.UserActivationTokenGeneratedEvent;
+import io.appform.conductor.server.eventmanagement.events.user.UserActivationTokenGeneratedEvent;
 import lombok.val;
 
 import javax.inject.Inject;
