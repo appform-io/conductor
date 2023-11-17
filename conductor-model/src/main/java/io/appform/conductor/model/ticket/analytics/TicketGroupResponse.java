@@ -16,12 +16,12 @@
 
 package io.appform.conductor.model.ticket.analytics;
 
-import com.google.common.collect.TreeBasedTable;
-import lombok.*;
+import com.google.common.collect.Table;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
-
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  *
@@ -31,19 +31,11 @@ import java.util.TreeMap;
 @ToString(callSuper = true)
 public class TicketGroupResponse extends TicketQueryResponse {
 
-    @Value
-    @With
-    public static class GroupResponse {
-        String fieldName;
-        Map<String, Long> counts = new TreeMap<>();
-        Map<String, GroupResponse> children = new TreeMap<>();
-    }
-
-    TreeBasedTable<Integer, String, Object> counts;
+    Table<Integer, String, Object> counts;
 
     @Builder
     @Jacksonized
-    public TicketGroupResponse(String requestId, TreeBasedTable<Integer, String, Object> counts) {
+    public TicketGroupResponse(String requestId, Table<Integer, String, Object> counts) {
         super(TicketQueryOpCode.GROUP, requestId);
         this.counts = counts;
     }

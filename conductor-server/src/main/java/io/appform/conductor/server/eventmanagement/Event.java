@@ -17,8 +17,13 @@
 package io.appform.conductor.server.eventmanagement;
 
 import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
+import lombok.Builder;
 import lombok.Data;
+import lombok.Value;
+import lombok.val;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.UUID;
 
@@ -29,20 +34,48 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.operatingUs
  */
 @Data
 public abstract class Event {
+
+    @Value
+    @Builder
+    public static class EventTime {
+        int second;
+        int minute;
+        int hour;
+        int day;
+        int month;
+        int year;
+    }
+
     private final EventType type;
     private final String id;
     private final ReferredObjectType objectType;
     private final String objectId;
     private final String userId;
     private final Date date;
+    private final EventTime eventTime;
 
     protected Event(EventType type, ReferredObjectType objectType, String objectId) {
+        this(type, objectType, objectId, new Date());
+    }
+
+    protected Event(EventType type, ReferredObjectType objectType, String objectId, Date date) {
         this.type = type;
+        this.date = date;
         this.id = UUID.randomUUID().toString();
         this.objectType = objectType;
         this.objectId = objectId;
         this.userId = operatingUserId();
-        this.date = new Date();
+        
+        
+        val now = LocalDateTime.ofInstant(this.date.toInstant(), ZoneId.systemDefault());
+        this.eventTime = EventTime.builder()
+                .second(now.getSecond())
+                .minute(now.getMinute())
+                .hour(now.getHour())
+                .day(now.getDayOfMonth())
+                .month(now.getMonth().getValue())
+                .year(now.getYear())
+                .build();
     }
     
     public abstract <T> T accept(final EventVisitor<T> visitor);

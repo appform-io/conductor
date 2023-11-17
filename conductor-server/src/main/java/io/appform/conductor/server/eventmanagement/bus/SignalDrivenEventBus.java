@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.eventmanagement.impl;
+package io.appform.conductor.server.eventmanagement.bus;
 
 import io.appform.conductor.server.eventmanagement.Event;
 import io.appform.conductor.server.eventmanagement.EventBus;

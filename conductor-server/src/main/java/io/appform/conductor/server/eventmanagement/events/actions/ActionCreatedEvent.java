@@ -24,13 +24,19 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
+import java.util.Date;
+
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class ActionCreatedEvent extends Event {
 
     public ActionCreatedEvent(String actionId) {
-        super(EventType.ACTION_CREATED, ReferredObjectType.ACTION, actionId);
+        this(actionId, new Date());
+    }
+
+    public ActionCreatedEvent(String actionId, Date date) {
+        super(EventType.ACTION_CREATED, ReferredObjectType.ACTION, actionId, date);
     }
 
     @Override

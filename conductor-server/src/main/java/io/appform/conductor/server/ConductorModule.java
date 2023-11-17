@@ -39,7 +39,10 @@ import io.appform.conductor.server.config.MailConfig;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.EventHandler;
 import io.appform.conductor.server.eventmanagement.EventHandlerImplementation;
-import io.appform.conductor.server.eventmanagement.impl.SignalDrivenEventBus;
+import io.appform.conductor.server.eventmanagement.EventStore;
+import io.appform.conductor.server.eventmanagement.bus.SignalDrivenEventBus;
+import io.appform.conductor.server.eventmanagement.store.DBEventStore;
+import io.appform.conductor.server.eventmanagement.store.models.StoredEvent;
 import io.appform.conductor.server.reporting.ReportStore;
 import io.appform.conductor.server.reporting.impl.DBReportStore;
 import io.appform.conductor.server.reporting.impl.models.StoredReport;
@@ -156,6 +159,7 @@ public class ConductorModule extends AbstractModule {
 
         bind(TaskStore.class).to(DBTaskStore.class); //TODO::EVENTS
         bind(ReportStore.class).to(DBReportStore.class); //TODO::EVENTS
+        bind(EventStore.class).to(DBEventStore.class);
 
     }
 
@@ -363,6 +367,12 @@ public class ConductorModule extends AbstractModule {
     @Singleton
     public RelationalDao<StoredReportContext> reportContextDao() {
         return dbBundle.createRelatedObjectDao(StoredReportContext.class);
+    }
+
+    @Provides
+    @Singleton
+    public RelationalDao<StoredEvent> eventDao() {
+        return dbBundle.createRelatedObjectDao(StoredEvent.class);
     }
 
     @Provides

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Santanu Sinha
+ * Copyright (c) 2023 santanu
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.events;
+package io.appform.conductor.server.eventmanagement.query;
 
 /**
- *
+ * Type of filters that can be applied while querying for {@link io.appform.conductor.server.eventmanagement.Event}
+ * from {@link io.appform.conductor.server.eventmanagement.EventStore}
  */
-public class Event {
+public enum EventFilterType {
+    MATCH_ID,
+    MATCH_REFERENCES,
+    MATCH_USERS,
+    MATCH_DATE_RANGE
 }
