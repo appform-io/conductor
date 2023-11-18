@@ -165,6 +165,12 @@ public class ConductorModule extends AbstractModule {
 
     @Provides
     @Singleton
+    public Reflections reflections() {
+        return reflections;
+    }
+
+    @Provides
+    @Singleton
     @Named("eventHandlingPool")
     public ExecutorService executorService(final Environment environment) {
         return environment.lifecycle().executorService("event-handler").build();

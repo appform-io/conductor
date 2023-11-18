@@ -17,12 +17,15 @@
 package io.appform.conductor.server.eventmanagement.events.ticket;
 
 import io.appform.conductor.server.eventmanagement.Event;
+import io.appform.conductor.server.eventmanagement.EventSubType;
 import io.appform.conductor.server.eventmanagement.EventType;
 import io.appform.conductor.server.eventmanagement.EventVisitor;
 import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
+import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.List;
 
@@ -31,6 +34,9 @@ import java.util.List;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@EventSubType(EventType.TICKET_FIELDS_UPDATED)
+@SuperBuilder
+@Jacksonized
 public class TicketFieldsUpdatedEvent extends Event {
     List<String> fieldIds;
 

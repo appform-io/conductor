@@ -17,12 +17,15 @@
 package io.appform.conductor.server.eventmanagement.events.user;
 
 import io.appform.conductor.server.eventmanagement.Event;
+import io.appform.conductor.server.eventmanagement.EventSubType;
 import io.appform.conductor.server.eventmanagement.EventType;
 import io.appform.conductor.server.eventmanagement.EventVisitor;
 import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
+import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 
 /**
  *
@@ -30,6 +33,9 @@ import lombok.Value;
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@EventSubType(EventType.USER_SKILL_DISACCOSIATED)
+@SuperBuilder
+@Jacksonized
 public class UserSkillDisasocciatedEvent extends Event {
     String skillId;
     String skillValueId;

@@ -17,6 +17,7 @@
 package io.appform.conductor.server.eventmanagement.events.actions;
 
 import io.appform.conductor.server.eventmanagement.Event;
+import io.appform.conductor.server.eventmanagement.EventSubType;
 import io.appform.conductor.server.eventmanagement.EventType;
 import io.appform.conductor.server.eventmanagement.EventVisitor;
 import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
@@ -24,11 +25,16 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
+import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 
 
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@EventSubType(EventType.ACTION_UPDATED)
+@SuperBuilder
+@Jacksonized
 public class ActionUpdatedEvent extends Event {
 
     @Builder

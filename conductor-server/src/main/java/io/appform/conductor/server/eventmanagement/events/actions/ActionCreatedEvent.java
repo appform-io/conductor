@@ -17,26 +17,26 @@
 package io.appform.conductor.server.eventmanagement.events.actions;
 
 import io.appform.conductor.server.eventmanagement.Event;
+import io.appform.conductor.server.eventmanagement.EventSubType;
 import io.appform.conductor.server.eventmanagement.EventType;
 import io.appform.conductor.server.eventmanagement.EventVisitor;
 import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
-
-import java.util.Date;
+import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@EventSubType(EventType.ACTION_CREATED)
+@SuperBuilder
+@Jacksonized
 public class ActionCreatedEvent extends Event {
 
     public ActionCreatedEvent(String actionId) {
-        this(actionId, new Date());
-    }
-
-    public ActionCreatedEvent(String actionId, Date date) {
-        super(EventType.ACTION_CREATED, ReferredObjectType.ACTION, actionId, date);
+        super(EventType.ACTION_CREATED, ReferredObjectType.ACTION, actionId);
     }
 
     @Override
