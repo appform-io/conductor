@@ -499,11 +499,11 @@ public class DBTicketStore implements TicketStore {
             fixedParams = @Throws.Param(name = "type", value = StoredRelatedTicket.RELATED_TICKET_TABLE_NAME))
     public boolean deleteRelatedTicket( @Throws.RuntimeParam("id") String ticketId,
                                         @Throws.RuntimeParam("subId") String relatedToTicketId) {
+        val relatedId = ConductorServerUtils.readableId(ticketId, relatedToTicketId);
         return attachmentDao.update(ticketId,
                 DetachedCriteria.forClass(StoredRelatedTicket.class)
-                        .add(Property.forName(StoredRelatedTicket.Fields.ticketId).eq(ticketId))
-                        .add(Property.forName(StoredRelatedTicket.Fields.relatedToTicketId)
-                                .eq(relatedToTicketId)),
+                        .add(Property.forName(StoredRelatedTicket.Fields.relatedId)
+                                .eq(relatedId)),
                 storedRelatedTicket -> storedRelatedTicket.setDeleted(true));
     }
 
