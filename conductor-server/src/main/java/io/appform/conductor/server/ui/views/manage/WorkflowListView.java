@@ -18,6 +18,8 @@ package io.appform.conductor.server.ui.views.manage;
 
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.workflow.Workflow;
+import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
+import io.appform.conductor.server.eventmanagement.query.ObjectReference;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -35,7 +37,7 @@ public class WorkflowListView extends BaseLoggedInView {
     List<Workflow> workflows;
 
     public WorkflowListView(User currentUser, List<Workflow> workflows) {
-        super("templates/manage/workflow-list.hbs", currentUser);
+        super("templates/manage/workflow-list.hbs", currentUser, new ObjectReference(ReferredObjectType.WORKFLOW, null));
         this.workflows = workflows;
     }
 }

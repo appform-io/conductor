@@ -17,16 +17,15 @@
 package io.appform.conductor.server.ui.views.manage;
 
 import io.appform.conductor.model.schema.SchemaSummary;
-import io.appform.conductor.model.subject.Gender;
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
+import io.appform.conductor.server.eventmanagement.query.ObjectReference;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Render a list of schema
@@ -38,7 +37,7 @@ public class SchemaListView extends BaseLoggedInView {
     List<SchemaSummary> schemas;
 
     public SchemaListView(User currentUser, List<SchemaSummary> schemas) {
-        super("templates/manage/schema-list.hbs", currentUser);
+        super("templates/manage/schema-list.hbs", currentUser, new ObjectReference(ReferredObjectType.SCHEMA, null));
         this.schemas = schemas;
     }
 }

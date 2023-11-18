@@ -19,6 +19,8 @@ package io.appform.conductor.server.ui.views.reports;
 import io.appform.conductor.model.reporting.Report;
 import io.appform.conductor.model.reporting.ReportRun;
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
+import io.appform.conductor.server.eventmanagement.query.ObjectReference;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -38,7 +40,7 @@ public class ReportListView extends BaseLoggedInView {
     List<ReportRun> currentReportRuns;
 
     public ReportListView(User currentUser, List<Report> reports, Report currentReport, List<ReportRun> currentReportRuns) {
-        super("templates/reports/report-list.hbs", currentUser);
+        super("templates/reports/report-list.hbs", currentUser, new ObjectReference(ReferredObjectType.REPORT, null));
         this.reports = reports;
         this.currentReport = currentReport;
         this.currentReportRuns = currentReportRuns;

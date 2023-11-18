@@ -22,6 +22,7 @@ import io.appform.conductor.server.eventmanagement.Event;
 import io.appform.conductor.server.eventmanagement.EventStore;
 import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
 import io.appform.conductor.server.eventmanagement.query.EventFilters;
+import io.appform.conductor.server.eventmanagement.query.EventListResult;
 import io.appform.conductor.server.eventmanagement.query.ObjectReference;
 import io.appform.conductor.server.ui.views.common.EventsListFragment;
 import io.appform.conductor.server.utils.Pair;
@@ -62,29 +63,43 @@ public class Events {
     private final EventStore eventStore;
     private final ObjectMapper mapper;
 
+    @Path("/list/object/{objectType}")
+    @GET
+    public Response listByObjectType(
+            @Auth final ConductorUser user,
+            @PathParam("objectType") @NotNull final ReferredObjectType type,
+            @PathParam("next") @Length(max = 255) final String next) {
+        val filters = EventFilters.builder()
+                .referenceType(type)
+                .build();
+        return renderEvents(eventStore.list(filters, next, 10));
+    }
+
     @Path("/list/object/{objectType}/{objectId}")
     @GET
-    public Response response(
+    public Response listByObjectId(
             @Auth final ConductorUser user,
             @PathParam("objectType") @NotNull final ReferredObjectType type,
             @PathParam("objectId") @NotEmpty @Length(max = 255) final String objectId,
             @PathParam("next") @Length(max = 255) final String next) {
-        val results = eventStore.list(
-                EventFilters.builder()
-                        .reference(new ObjectReference(type, objectId))
-                        .build(),
-                next,
-                10);
+
+        val filters = EventFilters.builder()
+                .reference(new ObjectReference(type, objectId))
+                .build();
+        return renderEvents(eventStore.list(filters, next, 10));
+    }
+
+    @SneakyThrows
+    private String toString(Event event) {
+        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(event);
+    }
+
+    private Response renderEvents(EventListResult results) {
         return render(new EventsListFragment(results.getResults()
                                                      .stream()
                                                      .map(event -> Pair.of(event, toString(event)))
                                                      .toList(),
                                              results.getNext()),
                       Map.of("next-pointer", List.of(results.getNext())));
-    }
-
-    @SneakyThrows
-    private String toString(Event event) {
-        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(event);
     }
 }

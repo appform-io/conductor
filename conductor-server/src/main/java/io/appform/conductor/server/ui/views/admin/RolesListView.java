@@ -19,6 +19,8 @@ package io.appform.conductor.server.ui.views.admin;
 import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.auth.Role;
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
+import io.appform.conductor.server.eventmanagement.query.ObjectReference;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -40,7 +42,7 @@ public class RolesListView extends BaseLoggedInView {
     Role role;
 
     public RolesListView(User currentUser, List<Role> roles, Role role) {
-        super("templates/admin/role-list.hbs", currentUser);
+        super("templates/admin/role-list.hbs", currentUser, new ObjectReference(ReferredObjectType.ROLE, null));
         this.roles = roles;
         this.role = role;
     }

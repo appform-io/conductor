@@ -83,6 +83,9 @@ public class DBEventStore implements EventStore {
             criteria.add(Property.forName(StoredEvent.Fields.objectId).eq(filters.getReference().objectId()))
                     .add(Property.forName(StoredEvent.Fields.objectType).eq(filters.getReference().type()));
         }
+        else if(null != filters.getReferenceType()) {
+           criteria.add(Property.forName(StoredEvent.Fields.objectType).eq(filters.getReferenceType()));
+        }
         if (null != filters.getUserIds()  && !filters.getUserIds().isEmpty()) {
             criteria.add(Property.forName(StoredEvent.Fields.userId).in(filters.getUserIds()));
         }

@@ -24,6 +24,8 @@ import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.workflow.Workflow;
+import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
+import io.appform.conductor.server.eventmanagement.query.ObjectReference;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -57,7 +59,8 @@ public class TicketDetailsView extends BaseLoggedInView {
             List<TicketFieldView> fields,
             List<Group> availableGroups,
             List<Action> visibleActions) {
-        super("templates/tickets/ticket-details.hbs", currentUser);
+        super("templates/tickets/ticket-details.hbs", currentUser,
+              new ObjectReference(ReferredObjectType.TICKET, ticket.getSummary().getId()));
         this.ticket = ticket;
         this.workflow = workflow;
         this.schema = schema;

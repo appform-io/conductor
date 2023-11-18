@@ -20,6 +20,8 @@ import io.appform.conductor.model.skills.SkillValue;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.GroupType;
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
+import io.appform.conductor.server.eventmanagement.query.ObjectReference;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -42,7 +44,8 @@ public class GroupListView extends BaseLoggedInView {
     Collection<SkillValue> skills;
 
     public GroupListView(User currentUser, List<Group> groups, Group currentGroup, Collection<SkillValue> skills) {
-        super("templates/manage/group-list.hbs", currentUser);
+        super("templates/manage/group-list.hbs", currentUser,
+              new ObjectReference(ReferredObjectType.GROUP, null));
         this.groups = groups;
         this.currentGroup = currentGroup;
         this.skills = skills;

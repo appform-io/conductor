@@ -18,6 +18,8 @@ package io.appform.conductor.server.ui.views.tasks;
 
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
+import io.appform.conductor.server.eventmanagement.query.ObjectReference;
 import io.appform.conductor.server.taskmanagement.model.Task;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
@@ -44,7 +46,10 @@ public class RunActionOnCQLSelectView extends BaseLoggedInView {
             String query,
             List<Action> availableActions,
             Task task) {
-        super("templates/tasks/run-action-on-cql.hbs", currentUser);
+        super("templates/tasks/run-action-on-cql.hbs", currentUser,
+              null != task
+              ? new ObjectReference(ReferredObjectType.TASK, task.getId())
+              : null);
         this.workflowId = workflowId;
         this.query = query;
         this.availableActions = availableActions;

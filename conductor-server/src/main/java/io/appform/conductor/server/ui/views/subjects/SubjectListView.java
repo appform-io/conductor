@@ -20,6 +20,8 @@ import io.appform.conductor.model.subject.Gender;
 import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.subject.SubjectSummary;
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
+import io.appform.conductor.server.eventmanagement.query.ObjectReference;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -41,7 +43,7 @@ public class SubjectListView extends BaseLoggedInView {
     Set<Gender> gender = EnumSet.allOf(Gender.class);
 
     public SubjectListView(User currentUser, List<SubjectSummary> subjects) {
-        super("templates/subjects/subject-list.hbs", currentUser);
+        super("templates/subjects/subject-list.hbs", currentUser, new ObjectReference(ReferredObjectType.SUBJECT, null));
         this.subjects = subjects;
     }
 }

@@ -18,6 +18,8 @@ package io.appform.conductor.server.ui.views.tasks;
 
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
+import io.appform.conductor.server.eventmanagement.query.ObjectReference;
 import io.appform.conductor.server.taskmanagement.model.Task;
 import io.appform.conductor.server.taskmanagement.model.TaskType;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
@@ -42,7 +44,7 @@ public class TaskListView extends BaseLoggedInView {
     Set<TaskType> types = EnumSet.allOf(TaskType.class);
 
     public TaskListView(final User user, String workflowId, List<Task> tasks, Scope scope) {
-        super("templates/tasks/task-list.hbs", user);
+        super("templates/tasks/task-list.hbs", user, new ObjectReference(ReferredObjectType.TASK, null));
         this.workflowId = workflowId;
         this.tasks = tasks;
         this.scope = scope;

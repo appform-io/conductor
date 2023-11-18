@@ -378,7 +378,7 @@
     }
 
     function loadEventData(objectType, objectId) {
-        const data = $.get("/events/list/object/" + objectType + "/" + objectId
+        const data = $.get("/events/list/object/" + objectType + (objectId ? ("/" + objectId) : "")
                     + ($('#events-list').attr('nextPage') ? "?next=" + $('#events-list').attr('nextPage') : ""),
                 function(res, textStatus, request) {
                     if(res.length > 0) {

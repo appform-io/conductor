@@ -18,6 +18,8 @@ package io.appform.conductor.server.ui.views.manage;
 
 import io.appform.conductor.model.skills.SkillDefinition;
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
+import io.appform.conductor.server.eventmanagement.query.ObjectReference;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -36,7 +38,7 @@ public class SkillListView extends BaseLoggedInView {
     SkillDefinition currentSkill;
 
     public SkillListView(User currentUser, List<SkillDefinition> skills, SkillDefinition currentSkill) {
-        super("templates/manage/skills-list.hbs", currentUser);
+        super("templates/manage/skills-list.hbs", currentUser, new ObjectReference(ReferredObjectType.SKILL, null));
         this.skills = skills;
         this.currentSkill = currentSkill;
     }

@@ -17,6 +17,7 @@
 package io.appform.conductor.server.eventmanagement.query;
 
 import io.appform.conductor.server.eventmanagement.EventType;
+import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
@@ -32,6 +33,8 @@ import java.util.Set;
 public class EventFilters {
     @Singular
     Set<EventType> eventTypes;
+
+    ReferredObjectType referenceType;
 
     ObjectReference reference;
 

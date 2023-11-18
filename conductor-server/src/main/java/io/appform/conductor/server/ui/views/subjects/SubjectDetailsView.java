@@ -21,6 +21,8 @@ import io.appform.conductor.model.subject.Subject;
 import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.ticket.analytics.TicketGist;
+import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
+import io.appform.conductor.server.eventmanagement.query.ObjectReference;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -43,7 +45,10 @@ public class SubjectDetailsView extends BaseLoggedInView {
     Set<SubjectIDType> subIdTypes = EnumSet.allOf(SubjectIDType.class);
 
     public SubjectDetailsView(User currentUser, Subject subject, List<TicketGist> tickets) {
-        super("templates/subjects/subject-details.hbs", currentUser);
+        super("templates/subjects/subject-details.hbs", currentUser,
+              null != subject
+              ? new ObjectReference(ReferredObjectType.SUBJECT, subject.getSummary().getGlobalId())
+              : null);
         this.subject = subject;
         this.tickets = tickets;
     }
