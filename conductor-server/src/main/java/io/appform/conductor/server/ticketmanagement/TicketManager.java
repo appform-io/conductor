@@ -143,12 +143,16 @@ public class TicketManager {
     }
 
 
-    public void addTicketRelation(final String ticketId, final String relatedTo, TicketRelationship relationship) {
+    public void addForkRelation(final String parentTicketId, final String childTicketId) {
         //Dual write to optimize read
-        ticketStore.addRelatedTicket(ticketId, relatedTo, relationship);
-        ticketStore.addRelatedTicket(relatedTo, ticketId,
-                relationship == TicketRelationship.ANCESTOR ? TicketRelationship.DESCENDANT
-                        : TicketRelationship.ANCESTOR);
+        ticketStore.addRelatedTicket(parentTicketId, childTicketId, TicketRelationship.PARENT);
+        ticketStore.addRelatedTicket(childTicketId, parentTicketId,TicketRelationship.CHILD);
+    }
+
+    public void addReferenceRelation(final String ticketId, final String relatedToTicketId) {
+        //Dual write to optimize read
+        ticketStore.addRelatedTicket(ticketId, relatedToTicketId, TicketRelationship.REFERENCED);
+        ticketStore.addRelatedTicket(relatedToTicketId, ticketId, TicketRelationship.REFERENCED);
     }
 
     public List<RelatedTicket> listRelatedTickets(final String ticketId, final int from, final int size) {

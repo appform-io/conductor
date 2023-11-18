@@ -456,16 +456,22 @@ public class DBTicketStore implements TicketStore {
     @Throws(value = STORE_RELATED_ENTITY_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredRelatedTicket.RELATED_TICKET_TABLE_NAME))
     public Optional<RelatedTicket> addRelatedTicket(@Throws.RuntimeParam("id") String ticketId,
-                                    @Throws.RuntimeParam("subId") String relatedTo,
+                                    @Throws.RuntimeParam("subId") String relatedToTicketId,
                                     TicketRelationship relationship) {
-        return relatedTicketDao.save(ticketId,
-                        new StoredRelatedTicket()
-                                .setRelatedId(ConductorServerUtils.readableId(ticketId, relatedTo))
-                                .setTicketId(ticketId)
-                                .setRelatedTo(relatedTo)
-                                .setRelationship(relationship)
-                                .setDeleted(false))
-                .map(DBTicketStore::toRelatedTicket);
+        val relatedId = ConductorServerUtils.readableId(ticketId, relatedToTicketId);
+        return relatedTicketDao.createOrUpdate(ticketId,
+                                            DetachedCriteria.forClass(StoredRelatedTicket.class)
+                                                    .add(Property.forName(StoredRelatedTicket.Fields.relatedId)
+                                                            .eq(relatedId)),
+                                            existing -> existing.setRelationship(relationship)
+                                                    .setDeleted(false),
+                                            () -> new StoredRelatedTicket()
+                                                    .setRelatedId(relatedId)
+                                                    .setTicketId(ticketId)
+                                                    .setRelatedToTicketId(relatedToTicketId)
+                                                    .setRelationship(relationship)
+                                                    .setDeleted(false))
+                                    .map(DBTicketStore::toRelatedTicket);
     }
 
 
@@ -475,14 +481,15 @@ public class DBTicketStore implements TicketStore {
     @Throws(value = STORE_RELATED_ENTITY_LIST_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredRelatedTicket.RELATED_TICKET_TABLE_NAME))
     public List<RelatedTicket> listRelatedTickets(@Throws.RuntimeParam("id") String ticketId, int from, int size) {
-        return relatedTicketDao.select(ticketId, DetachedCriteria.forClass(StoredRelatedTicket.class)
-                                .add(Restrictions.eq(StoredRelatedTicket.Fields.ticketId, ticketId))
-                                .add(Restrictions.eq(StoredRelatedTicket.Fields.deleted, from)),
-                        from,
-                        size)
-                .stream()
-                .map(DBTicketStore::toRelatedTicket)
-                .toList();
+        return relatedTicketDao.select(ticketId,
+                                        DetachedCriteria.forClass(StoredRelatedTicket.class)
+                                            .add(Property.forName(StoredRelatedTicket.Fields.ticketId).eq(ticketId))
+                                            .add(Property.forName(StoredRelatedTicket.Fields.deleted).eq(from)),
+                                        from,
+                                        size)
+                                .stream()
+                                .map(DBTicketStore::toRelatedTicket)
+                                .toList();
     }
 
     @Override
@@ -491,12 +498,12 @@ public class DBTicketStore implements TicketStore {
     @Throws(value = STORE_RELATED_ENTITY_UPDATE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredRelatedTicket.RELATED_TICKET_TABLE_NAME))
     public boolean deleteRelatedTicket( @Throws.RuntimeParam("id") String ticketId,
-                                        @Throws.RuntimeParam("subId") String relatedTo) {
+                                        @Throws.RuntimeParam("subId") String relatedToTicketId) {
         return attachmentDao.update(ticketId,
                 DetachedCriteria.forClass(StoredRelatedTicket.class)
                         .add(Property.forName(StoredRelatedTicket.Fields.ticketId).eq(ticketId))
-                        .add(Property.forName(StoredRelatedTicket.Fields.relatedTo)
-                                .eq(relatedTo)),
+                        .add(Property.forName(StoredRelatedTicket.Fields.relatedToTicketId)
+                                .eq(relatedToTicketId)),
                 storedRelatedTicket -> storedRelatedTicket.setDeleted(true));
     }
 
@@ -686,13 +693,12 @@ public class DBTicketStore implements TicketStore {
                 }
                 else {
                     if (assignedToUser.isNegate()) {
-                        criteria.add(Restrictions.not(
-                                Restrictions.eq(StoredTicketSkeleton.Fields.assignedToUserId,
-                                                assignedToUser.getAssignedUserId())));
+                        criteria.add(Property.forName(StoredTicketSkeleton.Fields.assignedToUserId).ne(
+                                                assignedToUser.getAssignedUserId()));
                     }
                     else {
                         criteria.add(
-                                Restrictions.eq(StoredTicketSkeleton.Fields.assignedToGroupId,
+                                Property.forName(StoredTicketSkeleton.Fields.assignedToGroupId).eq(
                                                 assignedToUser.getAssignedUserId()));
                     }
                 }
@@ -1013,7 +1019,7 @@ public class DBTicketStore implements TicketStore {
     }
 
     private static RelatedTicket toRelatedTicket(StoredRelatedTicket storedRelatedTicket) {
-        return new RelatedTicket(storedRelatedTicket.getRelatedTo(),
+        return new RelatedTicket(storedRelatedTicket.getRelatedToTicketId(),
                 storedRelatedTicket.getRelationship());
     }
 }

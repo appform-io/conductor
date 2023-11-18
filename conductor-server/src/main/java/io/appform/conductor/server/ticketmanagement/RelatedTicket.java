@@ -5,7 +5,7 @@ import lombok.Value;
 @Value
 public class RelatedTicket {
 
-    private String relatedTo;
+    String relatedToTicketId;
 
-    private TicketRelationship relationship;
+    TicketRelationship relationship;
 }

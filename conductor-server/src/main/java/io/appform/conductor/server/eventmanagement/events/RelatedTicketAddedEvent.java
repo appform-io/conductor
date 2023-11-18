@@ -14,14 +14,14 @@ import lombok.Value;
 @ToString(callSuper = true)
 public class RelatedTicketAddedEvent extends Event {
     String ticketId;
-    String relatedTo;
+    String relatedToTicketId;
     TicketRelationship relationship;
 
     @Builder
-    public RelatedTicketAddedEvent(String ticketId, String relatedTo, TicketRelationship relationship) {
+    public RelatedTicketAddedEvent(String ticketId, String relatedToTicketId, TicketRelationship relationship) {
         super(EventType.RELATED_TICKET_ADDED);
         this.ticketId = ticketId;
-        this.relatedTo = relatedTo;
+        this.relatedToTicketId = relatedToTicketId;
         this.relationship = relationship;
     }
 

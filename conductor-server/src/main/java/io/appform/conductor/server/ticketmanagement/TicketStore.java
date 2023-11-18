@@ -194,7 +194,7 @@ public interface TicketStore {
             final String attachmentId);
 
     Optional<RelatedTicket> addRelatedTicket(final String ticketId,
-                                             final String relatedTo,
+                                             final String relatedToTicketId,
                                              final TicketRelationship relationship);
 
     List<RelatedTicket> listRelatedTickets(final String ticketId,
@@ -202,7 +202,7 @@ public interface TicketStore {
                                            int size);
 
     boolean deleteRelatedTicket(final String ticketId,
-                                final String relatedTo);
+                                final String relatedToTicketId);
 
 
 }

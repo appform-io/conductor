@@ -39,8 +39,8 @@ public class StoredRelatedTicket implements Serializable {
     @Column(name = "ticket_id")
     private String ticketId;
 
-    @Column(name = "related_to")
-    private String relatedTo;
+    @Column(name = "related_to_ticket_id")
+    private String relatedToTicketId;
 
     @Column(name = "relationship")
     @Enumerated

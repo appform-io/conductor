@@ -13,13 +13,13 @@ import lombok.Value;
 @ToString(callSuper = true)
 public class RelatedTicketDeletedEvent extends Event {
     String ticketId;
-    String relatedTo;
+    String relatedToTicketId;
 
     @Builder
-    public RelatedTicketDeletedEvent(String ticketId, String relatedTo) {
+    public RelatedTicketDeletedEvent(String ticketId, String relatedToTicketId) {
         super(EventType.RELATED_TICKET_DELETED);
         this.ticketId = ticketId;
-        this.relatedTo = relatedTo;
+        this.relatedToTicketId = relatedToTicketId;
     }
 
     @Override

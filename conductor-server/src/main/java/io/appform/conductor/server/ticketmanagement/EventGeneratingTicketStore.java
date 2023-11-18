@@ -229,9 +229,9 @@ public class EventGeneratingTicketStore implements TicketStore {
     }
 
     @Override
-    public Optional<RelatedTicket> addRelatedTicket(String ticketId, String relatedTo, TicketRelationship relationship) {
-        val res = ticketStore.addRelatedTicket(ticketId, relatedTo, relationship);
-        res.ifPresent(attachment -> eventBus.publish(new RelatedTicketAddedEvent(ticketId, relatedTo, relationship)));
+    public Optional<RelatedTicket> addRelatedTicket(String ticketId, String relatedToTicketId, TicketRelationship relationship) {
+        val res = ticketStore.addRelatedTicket(ticketId, relatedToTicketId, relationship);
+        res.ifPresent(attachment -> eventBus.publish(new RelatedTicketAddedEvent(ticketId, relatedToTicketId, relationship)));
         return res;
     }
 
@@ -241,10 +241,10 @@ public class EventGeneratingTicketStore implements TicketStore {
     }
 
     @Override
-    public boolean deleteRelatedTicket(String ticketId, String relatedTo) {
-        val res =  ticketStore.deleteRelatedTicket(ticketId, relatedTo);
+    public boolean deleteRelatedTicket(String ticketId, String relatedToTicketId) {
+        val res =  ticketStore.deleteRelatedTicket(ticketId, relatedToTicketId);
         if (res) {
-            eventBus.publish(new RelatedTicketDeletedEvent(ticketId, relatedTo));
+            eventBus.publish(new RelatedTicketDeletedEvent(ticketId, relatedToTicketId));
         }
         return res;
     }
