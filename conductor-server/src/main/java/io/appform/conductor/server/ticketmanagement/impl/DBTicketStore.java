@@ -685,10 +685,10 @@ public class DBTicketStore implements TicketStore {
 
             @Override
             public Void visit(TicketExternalReferenceEquals ticketExternalReferenceEquals) {
-                criteria.add(Restrictions.eq(StoredTicketSkeleton.Fields.externalReferenceSource,
-                        ticketExternalReferenceEquals.getSource()));
-                criteria.add(Restrictions.eq(StoredTicketSkeleton.Fields.externalReferenceId,
-                        ticketExternalReferenceEquals.getValue()));
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.externalReferenceSource)
+                                .eq(ticketExternalReferenceEquals.getSource()));
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.externalReferenceId)
+                                .eq(ticketExternalReferenceEquals.getValue()));
                 return null;
             }
         }));
