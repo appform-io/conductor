@@ -23,21 +23,21 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.util.Date;
 
 /**
  *
  */
 @Entity
-@Table(name = "date_field_schemas")
 @Getter
 @Setter
 @ToString
+@DiscriminatorValue(value = FieldType.DATE_TEXT)
 public class StoredDateFieldSchema extends StoredFieldSchema {
-    @Column(name = "default_value")
-    private Date defaultValue;
+    @Column(name = "default_date")
+    private Date defaultDate;
 
     public StoredDateFieldSchema() {
         super(FieldType.DATE);
@@ -53,7 +53,7 @@ public class StoredDateFieldSchema extends StoredFieldSchema {
             final Rule visibilityCondition,
             final Rule editableCondition,
             final boolean allowMultiple,
-            final Date defaultValue) {
+            final Date defaultDate) {
         super(FieldType.DATE,
               schemaId,
               fieldId,
@@ -64,7 +64,7 @@ public class StoredDateFieldSchema extends StoredFieldSchema {
               visibilityCondition,
               editableCondition,
               allowMultiple);
-        this.defaultValue = defaultValue;
+        this.defaultDate = defaultDate;
     }
 
     @Override

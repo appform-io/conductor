@@ -28,6 +28,7 @@ import io.appform.conductor.server.schemamanagement.impl.models.StoredFieldSchem
 import io.appform.conductor.server.schemamanagement.impl.models.StoredSchemaSummary;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Test for {@link DBSchemaStore}
  */
+@Slf4j
 @RelevantDBEntityPackages("io.appform.conductor.server.schemamanagement.impl.models")
 @ExtendWith(DBTestExtension.class)
 class DBSchemaStoreTest {

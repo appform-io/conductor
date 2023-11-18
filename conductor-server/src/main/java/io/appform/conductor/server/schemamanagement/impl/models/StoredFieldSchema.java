@@ -35,7 +35,8 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "field_schemas")
-@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = StoredFieldSchema.Fields.type)
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Getter
 @Setter
 @ToString
@@ -48,7 +49,7 @@ public abstract class StoredFieldSchema {
     private long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
+    @Column(name = "type", nullable = false, insertable = false, updatable =false)
     private final FieldType type;
 
     @Column(name = "schema_id", nullable = false)
