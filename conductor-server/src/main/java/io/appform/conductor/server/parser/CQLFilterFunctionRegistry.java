@@ -34,11 +34,11 @@ public class CQLFilterFunctionRegistry {
 
 
     private void registerFilterFunctions() {
-        registry.put("isExternalSource",
+        registry.put("external_source_equals",
                 parameters -> {
                     ConductorServerUtils.ensureCondition(parameters.size() == 2,
                             ConductorErrorCode.CQL_INVALID_FUNCTION_PARAMETER,
-                            Map.of("functionName", "isExternalSource"));
+                            Map.of("functionName", "external_source_equals"));
                     return new Pair<>(
                             List.of(new TicketExternalReferenceEquals(
                                     fieldName(parameters.get(0)),

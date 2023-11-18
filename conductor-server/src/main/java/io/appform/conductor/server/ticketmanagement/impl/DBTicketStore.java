@@ -135,19 +135,18 @@ public class DBTicketStore implements TicketStore {
             final TicketPriority priority,
             final ExternalReferenceID externalReferenceID,
             final List<TicketFieldData> fields) {
-        val skeleton = new StoredTicketSkeleton()
-                .setTicketId(ticketId)
-                .setTitle(title)
-                .setDescription(description)
-                .setWorkflowId(workflowId)
-                .setCreatedByUserId(ConductorServerUtils.operatingUserId())
-                .setSubjectId(subjectId)
-                .setTicketStateId(ticketStateId)
-                .setExternalReferenceId(externalReferenceId(externalReferenceID))
-                .setExternalReferenceSource(externalReferenceSource(externalReferenceID))
-                .setCreatedByUserId(ConductorServerUtils.operatingUserId())
-                .setPriority(priority);
-        ticketDao.saveAndGetExecutor(skeleton)
+        ticketDao.saveAndGetExecutor(new StoredTicketSkeleton()
+                        .setTicketId(ticketId)
+                        .setTitle(title)
+                        .setDescription(description)
+                        .setWorkflowId(workflowId)
+                        .setCreatedByUserId(ConductorServerUtils.operatingUserId())
+                        .setSubjectId(subjectId)
+                        .setTicketStateId(ticketStateId)
+                        .setExternalReferenceId(externalReferenceId(externalReferenceID))
+                        .setExternalReferenceSource(externalReferenceSource(externalReferenceID))
+                        .setCreatedByUserId(ConductorServerUtils.operatingUserId())
+                        .setPriority(priority))
                 .saveAll(fieldDao, ticket -> toStoredFields(ticket, fields))
                 .execute();
         return read(ticketId, true);

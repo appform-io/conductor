@@ -146,4 +146,6 @@ public interface EventVisitor<T> {
     T visit(TicketStateUpdatedEvent ticketStateUpdatedEvent);
 
     T visit(ReportExecutionCompletedEvent reportExecutionCompletedEvent);
+
+    T visit(TicketExternalReferenceIDUpdated ticketExternalReferenceIDUpdated);
 }

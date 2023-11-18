@@ -133,6 +133,17 @@ public class EventGeneratingTicketStore implements TicketStore {
         return res;
     }
 
+
+    @Override
+    public Optional<TicketSkeleton> updateExternalReferenceID(String ticketId,
+                                                              @NonNull ExternalReferenceID referenceID) {
+        val res = ticketStore.updateExternalReferenceID(ticketId, referenceID);
+        res.filter(ticketSkeleton -> ticketSkeleton.getExternalReferenceID().getRefId().equals(referenceID.getRefId()))
+                .ifPresent(ticketSkeleton -> eventBus.publish(new TicketExternalReferenceIDUpdated(
+                        ticketSkeleton.getTicketId(), referenceID)));
+        return res;
+    }
+
     @Override
     public TicketSkeletonListResult older(
             List<TicketFilter> ticketFilters,

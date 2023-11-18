@@ -89,8 +89,8 @@ class CQLEngineTest {
         when(workflowStore.read(anyString())).thenReturn(Optional.of(workflow));
         val parser = new CQLEngine(workflowStore, schemaStore, new CQLFilterFunctionRegistry());
         val output = parser.parse("select * from tickets.TWF" +
-                             " where assignedToGroupId in ('G1', 'G2') and isTerminal(state)" +
-                             " and fields.firstName = 'Tushar' and isExternalSource('icmr',1213)");
+                             " where assignedToGroupId in ('G1', 'G2') and is_terminal(state)" +
+                             " and fields.firstName = 'Tushar' and external_source_equals('icmr',1213)");
         assertTrue(output.isPresent());
         val filters = output.get().filters();
         val ticketFilters = filters.ticketFilters();

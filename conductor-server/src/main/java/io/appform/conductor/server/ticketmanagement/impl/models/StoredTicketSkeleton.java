@@ -90,7 +90,7 @@ public class StoredTicketSkeleton implements Serializable {
     @Enumerated(EnumType.STRING)
     private TicketPriority priority;
 
-    @Column(name = "ext_ref_source", length = 64)
+    @Column(name = "ext_ref_source", length = 128)
     private String externalReferenceSource;
 
     @Column(name = "ext_ref_id",  length = 128)

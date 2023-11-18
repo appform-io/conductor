@@ -114,6 +114,13 @@ public interface TicketStore {
                         List.of());
     }
 
+    default Optional<TicketSkeleton> updateExternalReferenceID(
+            final String ticketId,
+            @NonNull final ExternalReferenceID referenceID) {
+        return updateSkeleton(ticketId,
+                      ticket -> ticket.setExternalReferenceID(referenceID));
+    }
+
     default Optional<TicketSkeleton> addTicketAction(
             final String ticketId,
             @NonNull final String actions) {
