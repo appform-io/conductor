@@ -81,12 +81,18 @@
                             </ul>
                         </li>
                     </ul>
+
                     <form class="d-flex  me-2" role="search">
                         <a class="btn btn-success" role="button" href="/tickets/create"><i class="bi bi-plus-lg" title="Create a new ticket"></i></a>
                     </form>
                     <form class="d-flex" role="search" method="post" action="/tickets/go">
                         <input class="form-control me-2" name="goToTicketId" type="search" placeholder="Ticket #" aria-label="Go" title="Go a ticket">
                     </form>
+                    {{#empty objectReference}}
+                    {{else}}
+                        <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas"
+                            data-bs-target="#events" aria-controls="events">Events</button>
+                    {{/empty}}
 
                 </div>
             </div>
@@ -173,6 +179,30 @@
                 </div>
             </div>
         </div>-->
+    {{#empty objectReference}}
+    {{else}}
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="events" aria-labelledby="eventsLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="eventsLabel">Events</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Date</th>
+                        <th>User</th>
+                    </tr>
+                    </thead>
+                    <tbody id="events-list">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {{/empty}}
+
     <div class="row container-fluid m-2">
         <div class="col-sm-12">
             {{#block "content"}}
@@ -347,6 +377,18 @@
         return data;
     }
 
+    function loadEventData(objectType, objectId) {
+        const data = $.get("/events/list/object/" + objectType + "/" + objectId
+                    + ($('#events-list').attr('nextPage') ? "?next=" + $('#events-list').attr('nextPage') : ""),
+                function(res, textStatus, request) {
+                    if(res.length > 0) {
+                        $('#events-list').append(res);
+                    }
+                    $('#events-list').attr('nextPage', request.getResponseHeader("next-pointer"));
+                });
+        console.log(data);
+    }
+
     //Sets up data table with external search box
     $('.data-table').each(function() {
         const tableElement = $(this);
@@ -403,6 +445,18 @@
                 });
         }
     });
+
+    {{#empty objectReference}}
+    {{else}}
+        const events = $('#events')
+        events.on('show.bs.offcanvas', event => {
+            $('#events-list').empty();
+            $('#events-list').attr('nextPage', '');
+          loadEventData("{{objectReference.type}}", "{{objectReference.objectId}}");
+        });
+    {{/empty}}
+
+
 
 });
 

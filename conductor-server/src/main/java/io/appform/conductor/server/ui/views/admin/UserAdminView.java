@@ -20,6 +20,8 @@ import io.appform.conductor.model.auth.Role;
 import io.appform.conductor.model.skills.SkillValue;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
+import io.appform.conductor.server.eventmanagement.query.ObjectReference;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -38,9 +40,15 @@ public class UserAdminView extends BaseLoggedInView {
     List<Role> availableRoles;
     List<Group> availableGroups;
     List<SkillValue> availableSkills;
-    public UserAdminView(User currentUser, User userDetails, List<Role> availableRoles, List<Group> availableGroups,
-                         List<SkillValue> availableSkills) {
-        super("templates/admin/user-admin.hbs", currentUser);
+
+    public UserAdminView(
+            User currentUser, User userDetails, List<Role> availableRoles, List<Group> availableGroups,
+            List<SkillValue> availableSkills) {
+        super("templates/admin/user-admin.hbs",
+              currentUser,
+              null != userDetails
+                    ? new ObjectReference(ReferredObjectType.USER, userDetails.getSummary().getId())
+                    : null);
         this.userDetails = userDetails;
         this.availableRoles = availableRoles;
         this.availableGroups = availableGroups;

@@ -291,7 +291,15 @@ public class ConductorServerUtils {
     }
 
     public static Response render(final TemplateView view) {
-        return Response.ok(view).build();
+        return render(view, Map.of());
+    }
+
+    public static Response render(final TemplateView view, Map<String, List<Object>> headers) {
+        val responseBuilder = Response.ok(view);
+        if(!headers.isEmpty()) {
+            headers.forEach((name, values) -> values.forEach( value -> responseBuilder.header(name, value)));
+        }
+        return responseBuilder.build();
     }
 
     public static Response redirect(final String uri) {

@@ -17,6 +17,7 @@
 package io.appform.conductor.server.ui.views;
 
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.eventmanagement.query.ObjectReference;
 import lombok.Getter;
 import ru.vyarus.guicey.gsp.views.template.TemplateView;
 
@@ -26,9 +27,18 @@ import ru.vyarus.guicey.gsp.views.template.TemplateView;
 @Getter
 public abstract class BaseLoggedInView extends TemplateView {
     private final User currentUser;
+    private final ObjectReference objectReference;
 
     protected BaseLoggedInView(String templatePath, User currentUser) {
+        this(templatePath, currentUser, null);
+    }
+
+    public BaseLoggedInView(
+            String templatePath,
+            User currentUser,
+            ObjectReference objectReference) {
         super(templatePath);
         this.currentUser = currentUser;
+        this.objectReference = objectReference;
     }
 }

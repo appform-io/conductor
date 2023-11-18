@@ -20,6 +20,8 @@ import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
+import io.appform.conductor.server.eventmanagement.query.ObjectReference;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -40,7 +42,10 @@ public class SchemaView extends BaseLoggedInView {
     Set<FieldType> fieldTypes = EnumSet.allOf(FieldType.class);
 
     public SchemaView(User currentUser, Schema schema, FieldSchema field) {
-        super("templates/manage/schema-details.hbs", currentUser);
+        super("templates/manage/schema-details.hbs", currentUser,
+              null != schema
+              ? new ObjectReference(ReferredObjectType.SCHEMA, schema.getId())
+              : null);
         this.schema = schema;
         this.field = field;
     }

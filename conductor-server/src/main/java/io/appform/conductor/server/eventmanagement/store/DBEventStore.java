@@ -63,6 +63,7 @@ public class DBEventStore implements EventStore {
                         new StoredEvent()
                                 .setId(event.getId())
                                 .setType(event.getType())
+                                .setObjectType(event.getObjectType())
                                 .setObjectId(event.getObjectId())
                                 .setUserId(event.getUserId())
                                 .setDate(event.getDate())
@@ -75,14 +76,14 @@ public class DBEventStore implements EventStore {
     @SneakyThrows
     public EventListResult list(EventFilters filters, String nextPointer, int size) {
         val criteria = DetachedCriteria.forClass(StoredEvent.class);
-        if (null != filters.getEventTypes()) {
+        if (null != filters.getEventTypes() && !filters.getEventTypes().isEmpty()) {
             criteria.add(Property.forName(StoredEvent.Fields.type).in(filters.getEventTypes()));
         }
         if (null != filters.getReference()) {
             criteria.add(Property.forName(StoredEvent.Fields.objectId).eq(filters.getReference().objectId()))
                     .add(Property.forName(StoredEvent.Fields.objectType).eq(filters.getReference().type()));
         }
-        if (null != filters.getUserIds()) {
+        if (null != filters.getUserIds()  && !filters.getUserIds().isEmpty()) {
             criteria.add(Property.forName(StoredEvent.Fields.userId).in(filters.getUserIds()));
         }
         if (null != filters.getTimeWindow()) {
