@@ -471,7 +471,7 @@ public class DBTicketStore implements TicketStore {
         ticketIdCriteria
                 .setProjection(Projections.projectionList()
                                        .add(Projections.distinct(Projections.property(StoredTicketSkeleton.Fields.ticketId)))
-                                       .add(Projections.property(StoredTicketSkeleton.Fields.ticketId)));
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.created)));
         val pointer = TicketScrollPointer.deserializePointer(start, mapper);
         val queryResults = new ArrayList<TicketSkeleton>();
         ticketDao.runInSession(
