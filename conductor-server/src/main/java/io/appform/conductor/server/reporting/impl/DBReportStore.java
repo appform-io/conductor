@@ -296,9 +296,12 @@ public class DBReportStore implements ReportStore {
 
     private static StoredReportRun newRunForReport(StoredReport report) {
         val runDate = nextExecutionTimeForCron(report.getReportId(), report.getCron(), new Date());
-        val nextRunId = "RR-" + UUID.nameUUIDFromBytes((report.getReportId()
-                + "-" + runDate.getTime()
-                + "-" + System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8));
+        val nextRunId = ConductorServerUtils.readableId(
+                "RR",
+                UUID.nameUUIDFromBytes(
+                        ConductorServerUtils.readableId(report.getReportId(), String.valueOf(runDate.getTime()),
+                                        String.valueOf(System.currentTimeMillis()))
+                                .getBytes(StandardCharsets.UTF_8)).toString());
         return new StoredReportRun()
                 .setRunId(nextRunId)
                 .setReportId(report.getReportId())

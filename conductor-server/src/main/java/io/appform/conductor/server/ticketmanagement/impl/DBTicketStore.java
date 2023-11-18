@@ -231,7 +231,7 @@ public class DBTicketStore implements TicketStore {
                      relevantFieldSchema,
                      readFields,
                      fieldNames,
-                criteria -> criteria.addOrder(Order.desc(StoredTicketSkeleton.Fields.ticketId))); //TODO:generate ticketId  increasing seq
+                criteria -> criteria.addOrder(Order.desc(StoredTicketSkeleton.Fields.created)));
         return new TicketSkeletonListResult(
                 results.getFirst()
                         .stream()
@@ -261,7 +261,7 @@ public class DBTicketStore implements TicketStore {
                 relevantFieldSchema,
                 readFields,
                 fieldNames,
-                criteria -> criteria.addOrder(Order.desc(StoredTicketSkeleton.Fields.ticketId))); //TODO:generate ticketId  increasing seq
+                criteria -> criteria.addOrder(Order.desc(StoredTicketSkeleton.Fields.created)));
         return new TicketSkeletonListResult(
                 results.getFirst()
                         .stream()
@@ -404,7 +404,7 @@ public class DBTicketStore implements TicketStore {
             boolean encrypted) {
         return attachmentDao.save(ticketId,
                                   new StoredAttachment()
-                                          .setAttachmentId(attachmentId) //TODO: Generate attachmentId in same shard as of ticketId
+                                          .setAttachmentId(attachmentId)
                                           .setTicketId(ticketId)
                                           .setCreator(ConductorServerUtils.operatingUserId())
                                           .setMediaType(type)
@@ -760,7 +760,7 @@ public class DBTicketStore implements TicketStore {
             final StoredTicketSkeleton ticket,
             final TicketFieldData data) {
         return new StoredFieldValue()
-                .setFieldValueId(ticket.getTicketId() + "-" + data.getSchemaFieldId())
+                .setFieldValueId(ConductorServerUtils.readableId(ticket.getTicketId(), data.getSchemaFieldId()))
                 .setStoredEmbeddedFieldValue(new StoredEmbeddedFieldValue(data.getValue()))
                 .setTicket(ticket)
                 .setSchemaFieldId(data.getSchemaFieldId());

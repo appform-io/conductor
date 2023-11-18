@@ -72,8 +72,11 @@ public class DBUserRoleMappingStore implements UserRoleMappingStore {
     public boolean revokeRoleFromUser(
             @Throws.RuntimeParam("id") String userId,
             @Throws.RuntimeParam("subId") String roleId) {
+        val mappingId = ConductorServerUtils.readableId(userId, roleId);
         return userRolesDao.update(userId,
-                                   DetachedCriteria.forClass(StoredUserRoleMapping.class),
+                                   DetachedCriteria.forClass(StoredUserRoleMapping.class)
+                                           .add(Property.forName(StoredUserRoleMapping.Fields.mappingId)
+                                                   .eq(mappingId)),
                                    mapping -> mapping.setDeleted(true));
     }
 

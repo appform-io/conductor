@@ -58,7 +58,7 @@ public class DBSessionStore implements SessionStore {
     public Optional<UserSessionDetails> create(@Throws.RuntimeParam("id") String userId, SessionType type, Date expiry) {
         return sessionDetailsDao.save(userId,
                                       new StoredUserSessionDetails(
-                                              UUID.randomUUID().toString(), //TODO: Generate in same shard as of userId
+                                              UUID.randomUUID().toString(),
                                               userId,
                                               SessionState.ACTIVE,
                                               type,

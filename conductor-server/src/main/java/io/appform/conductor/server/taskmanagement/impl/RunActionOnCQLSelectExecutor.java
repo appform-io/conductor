@@ -24,6 +24,7 @@ import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
 import io.appform.conductor.server.taskmanagement.model.RunActionOnCQLSelectTaskSpec;
 import io.appform.conductor.server.taskmanagement.model.Task;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -62,7 +63,7 @@ public class RunActionOnCQLSelectExecutor {
         }
         do {
             val queryResponse = CQLEngine.runQuery(
-                    task.getId() + "-" + System.currentTimeMillis(),
+                    ConductorServerUtils.readableId(task.getId(), String.valueOf(System.currentTimeMillis())),
                     nextPtr.get(),
                     10,
                     parserOutput,

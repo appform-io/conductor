@@ -44,7 +44,6 @@ public class AddCommentActionExecutor {
         val ticketId = evalData.getTicket().getSummary().getId();
         val comment = templateEngine.evaluateToText(action.getContentTemplate(),
                                                           evalData.getTicketJson()).orElse(null);
-        //TODO: Generate commentId in same shard as of ticketId
         if(!Strings.isNullOrEmpty(comment)
         && ticketStore.addComment(ticketId, UUID.randomUUID().toString(), comment, null).isPresent()) {
             return ActionExecutionResult.SUCCESS;

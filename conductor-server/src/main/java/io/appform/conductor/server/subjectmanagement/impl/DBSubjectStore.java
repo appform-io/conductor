@@ -306,7 +306,7 @@ public class DBSubjectStore implements SubjectStore {
             String pinCode) {
         return addressDao.save(globalSubjectId,
                                new StoredAddress()
-                                       .setAddressId(UUID.randomUUID().toString()) //TODO: Generate in same shard as of globalSubjectId
+                                       .setAddressId(UUID.randomUUID().toString())
                                        .setType(type)
                                        .setHouseNumber(houseNumber)
                                        .setStreet(street)
