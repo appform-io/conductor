@@ -352,4 +352,8 @@ public abstract class EventVisitorAdapter<T> implements EventVisitor<T> {
     public T visit(RelatedTicketDeletedEvent relatedTicketDeletedEvent) {
         return defaultValue;
     }
+
+    public T visit(TicketExternalReferenceIDUpdated ticketExternalReferenceIDUpdated) {
+        return defaultValue;
+    }
 }

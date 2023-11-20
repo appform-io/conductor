@@ -23,19 +23,19 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.Table;
 
 /**
  *
  */
 @Entity
-@Table(name = "choice_field_schemas")
 @Getter
 @Setter
 @ToString
+@DiscriminatorValue(value = FieldType.CHOICE_TEXT)
 public class StoredChoiceFieldSchema extends StoredFieldSchema {
-    @Column(name = "default_value")
+    @Column(name = "default_selection")
     private String defaultSelection;
 
     @Column

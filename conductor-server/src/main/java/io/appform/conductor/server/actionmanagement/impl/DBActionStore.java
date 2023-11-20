@@ -143,7 +143,9 @@ public class DBActionStore implements ActionStore {
                             return existing.setTemplate(value).setActive(true);
                         }
                         return new StoredWebhookActionHeaderTemplate()
-                                .setId(action.getId() + "-" + ConductorServerUtils.lowerSnake(headerName))
+                                .setId(ConductorServerUtils.readableId(
+                                        action.getId(),
+                                        ConductorServerUtils.lowerSnake(headerName)))
                                 .setActive(true)
                                 .setAction(storedWebhookAction)
                                 .setName(headerName)

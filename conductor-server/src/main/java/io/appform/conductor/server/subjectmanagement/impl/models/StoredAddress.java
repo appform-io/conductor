@@ -42,15 +42,13 @@ import java.util.Objects;
 @Setter
 @FieldNameConstants
 @ToString
-@SQLDelete(sql = "update addresses set deleted=true where external_id=?")
+@SQLDelete(sql = "update addresses set deleted=true where address_id=?")
 public class StoredAddress {
     public static final String SUBJECT_ADDRESS_TABLE_NAME = "addresses";
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
 
-    @Column(name = "ext_id", unique = true)
-    private String extId;
+    @Id
+    @Column(name = "address_id", unique = true)
+    private String addressId;
 
     @Column
     @Enumerated(EnumType.STRING)
@@ -101,7 +99,7 @@ public class StoredAddress {
             return false;
         }
         val that = (StoredAddress) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(getAddressId(), that.getAddressId());
     }
 
     @Override

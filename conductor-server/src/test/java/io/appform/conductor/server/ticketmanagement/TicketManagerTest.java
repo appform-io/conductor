@@ -48,6 +48,7 @@ import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredC
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
 import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.usermanagement.UserStore;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.workflowmanagement.WorkflowSelector;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
@@ -91,7 +92,7 @@ class TicketManagerTest {
                                 creator.getId(),
                                 creator.getId(),
                                 List.of(
-                                        new StringFieldSchema("TS1-firstName",
+                                        new StringFieldSchema(ConductorServerUtils.readableId("TS1","firstName"),
                                                               "firstName",
                                                               "First Name",
                                                               "",
@@ -104,7 +105,7 @@ class TicketManagerTest {
                                                               200,
                                                               null,
                                                               null),
-                                        new StringFieldSchema("TS1-lastName",
+                                        new StringFieldSchema(ConductorServerUtils.readableId("TS1","lastName"),
                                                               "lastName",
                                                               "Last Name",
                                                               "",
@@ -194,9 +195,9 @@ class TicketManagerTest {
                                 "",
                                 false,
                                 List.of(),
-                                List.of("TS1-firstName"),
+                                List.of(ConductorServerUtils.readableId("TS1","firstName")),
                                 List.of(),
-                                List.of("TS1-firstName"),
+                                List.of(ConductorServerUtils.readableId("TS1","firstName")),
                                 List.of(),
                                 new Date(),
                                 new Date()),
@@ -206,9 +207,9 @@ class TicketManagerTest {
                                 "",
                                 false,
                                 List.of(),
-                                List.of("TS1-lastName"),
+                                List.of(ConductorServerUtils.readableId("TS1","lastName")),
                                 List.of(),
-                                List.of("TS1-lastName"),
+                                List.of(ConductorServerUtils.readableId("TS1","lastName")),
                                 List.of(),
                                 new Date(),
                                 new Date()),

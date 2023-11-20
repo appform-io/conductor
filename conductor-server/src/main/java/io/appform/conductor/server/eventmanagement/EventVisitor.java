@@ -151,4 +151,5 @@ public interface EventVisitor<T> {
 
     T visit(RelatedTicketDeletedEvent relatedTicketDeletedEvent);
 
+    T visit(TicketExternalReferenceIDUpdated ticketExternalReferenceIDUpdated);
 }

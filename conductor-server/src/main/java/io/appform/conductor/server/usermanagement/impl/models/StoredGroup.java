@@ -44,11 +44,9 @@ import java.util.Set;
 @NoArgsConstructor
 @FieldNameConstants
 public class StoredGroup {
-    public static final String GROUP_TABLE_NAME = "groups";
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    public static final String GROUP_TABLE_NAME = "user_groups";
 
+    @Id
     @Column(name = "group_id", length = 45, nullable = false, unique = true)
     @LookupKey
     private String groupId;
@@ -105,7 +103,7 @@ public class StoredGroup {
             return false;
         }
         StoredGroup that = (StoredGroup) o;
-        return Objects.equals(getId(), that.getId());
+        return Objects.equals(getGroupId(), that.getGroupId());
     }
 
     @Override

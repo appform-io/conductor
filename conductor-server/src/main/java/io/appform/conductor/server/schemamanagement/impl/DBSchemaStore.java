@@ -160,7 +160,7 @@ public class DBSchemaStore implements SchemaStore {
                                         @Override
                                         public StoredFieldSchema visit(StoredStringFieldSchema stringField) {
                                             val newSchema = (StoredStringFieldSchema) storedSchema;
-                                            return stringField.setDefaultValue(newSchema.getDefaultValue())
+                                            return stringField.setDefaultString(newSchema.getDefaultString())
                                                     .setMaxLength(newSchema.getMaxLength())
                                                     .setMatchPattern(newSchema.getMatchPattern());
                                         }
@@ -168,7 +168,7 @@ public class DBSchemaStore implements SchemaStore {
                                         @Override
                                         public StoredFieldSchema visit(StoredBooleanFieldSchema booleanField) {
                                             val newSchema = (StoredBooleanFieldSchema) storedSchema;
-                                            return booleanField.setDefaultValue(newSchema.isDefaultValue());
+                                            return booleanField.setDefaultBoolean(newSchema.isDefaultBoolean());
                                         }
 
                                         @Override
@@ -182,7 +182,7 @@ public class DBSchemaStore implements SchemaStore {
                                         @Override
                                         public StoredFieldSchema visit(StoredDateFieldSchema dateField) {
                                             val newSchema = (StoredDateFieldSchema) storedSchema;
-                                            return dateField.setDefaultValue(newSchema.getDefaultValue());
+                                            return dateField.setDefaultDate(newSchema.getDefaultDate());
                                         }
 
                                         @Override
@@ -191,7 +191,7 @@ public class DBSchemaStore implements SchemaStore {
                                             return numberField
                                                     .setMin(newSchema.getMin())
                                                     .setMax(newSchema.getMax())
-                                                    .setDefaultValue(newSchema.getDefaultValue());
+                                                    .setDefaultNumber(newSchema.getDefaultNumber());
                                         }
 
                                         @Override
@@ -295,7 +295,7 @@ public class DBSchemaStore implements SchemaStore {
                                              storedField.getUpdated(),
                                              stringField.getMaxLength(),
                                              stringField.getMatchPattern(),
-                                             stringField.getDefaultValue());
+                                             stringField.getDefaultString());
             }
 
             @Override
@@ -310,7 +310,7 @@ public class DBSchemaStore implements SchemaStore {
                                               storedField.isAllowMultiple(),
                                               storedField.getCreated(),
                                               storedField.getUpdated(),
-                                              booleanField.isDefaultValue());
+                                              booleanField.isDefaultBoolean());
             }
 
             @Override
@@ -341,7 +341,7 @@ public class DBSchemaStore implements SchemaStore {
                                            storedField.isAllowMultiple(),
                                            storedField.getCreated(),
                                            storedField.getUpdated(),
-                                           dateField.getDefaultValue());
+                                           dateField.getDefaultDate());
             }
 
             @Override
@@ -358,7 +358,7 @@ public class DBSchemaStore implements SchemaStore {
                                              storedField.getUpdated(),
                                              numberField.getMax(),
                                              numberField.getMin(),
-                                             numberField.getDefaultValue());
+                                             numberField.getDefaultNumber());
             }
 
             @SneakyThrows
@@ -499,7 +499,7 @@ public class DBSchemaStore implements SchemaStore {
                         stringField
                                 .setMaxLength(updatedStringField.getMaxLength())
                                 .setMatchPattern(updatedStringField.getMatchPattern())
-                                .setDefaultValue(updatedStringField.getDefaultValue());
+                                .setDefaultString(updatedStringField.getDefaultValue());
                         return super.visit(stringField);
                     }
                 });
@@ -514,7 +514,7 @@ public class DBSchemaStore implements SchemaStore {
                         numberField
                                 .setMax(updatedNumberField.getMax())
                                 .setMin(updatedNumberField.getMin())
-                                .setDefaultValue(updatedNumberField.getDefaultValue());
+                                .setDefaultNumber(updatedNumberField.getDefaultValue());
                         return super.visit(numberField);
                     }
                 });
@@ -526,7 +526,7 @@ public class DBSchemaStore implements SchemaStore {
                 schema.accept(new StoredFieldSchemaVisitorAdapter<Void>() {
                     @Override
                     public Void visit(StoredBooleanFieldSchema booleanField) {
-                        booleanField.setDefaultValue(booleanField.isDefaultValue());
+                        booleanField.setDefaultBoolean(booleanField.isDefaultBoolean());
                         return super.visit(booleanField);
                     }
                 });
@@ -553,7 +553,7 @@ public class DBSchemaStore implements SchemaStore {
                     @Override
                     public Void visit(StoredDateFieldSchema dateField) {
                         dateField
-                                .setDefaultValue(updateDateField.getDefaultValue());
+                                .setDefaultDate(updateDateField.getDefaultValue());
                         return super.visit(dateField);
                     }
                 });

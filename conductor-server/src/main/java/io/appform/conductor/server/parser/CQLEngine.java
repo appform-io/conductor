@@ -81,6 +81,7 @@ public class CQLEngine {
 
     private final WorkflowStore workflowStore;
     private final SchemaStore schemaStore;
+    private final CQLFilterFunctionRegistry cqlFilterFunctionRegistry;
 
     public static TicketQueryResponse runQuery(
             String requestId,
@@ -419,6 +420,19 @@ public class CQLEngine {
             return response;
         }
         whereClause.accept(new ExpressionVisitorAdapter() {
+
+            @Override
+            public void visit(Function function) {
+                val functionName = function.getName();
+                cqlFilterFunctionRegistry.filterFunction(functionName)
+                        .ifPresentOrElse(registeredFunction -> {
+                                        Pair<List<TicketFilter>, List<TicketFieldFilter>> filters =
+                                                registeredFunction.ticketFilters(function.getParameters());
+                                        tfs.addAll(filters.getFirst());
+                                        ffs.addAll(filters.getSecond());
+                                        },
+                                () -> super.visit(function));
+            }
 
             @Override
             public void visit(Between expr) {

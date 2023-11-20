@@ -54,14 +54,11 @@ public class StoredAttachment implements Serializable {
     private static final long serialVersionUID = -5698876015229760326L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    @Column(name = "attachment_id", unique = true)
+    private String attachmentId;
 
     @Column(name = "ticket_id", nullable = false)
     private String ticketId;
-
-    @Column(name = "attachment_id", unique = true)
-    private String attachmentId;
 
     @Column
     private String creator;
@@ -101,7 +98,7 @@ public class StoredAttachment implements Serializable {
             return false;
         }
         StoredAttachment that = (StoredAttachment) o;
-        return Objects.equals(getId(), that.getId());
+        return Objects.equals(getAttachmentId(), that.getAttachmentId());
     }
 
     @Override

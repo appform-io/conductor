@@ -331,6 +331,7 @@ public class ConductorServerUtils {
                 ticketStateMachineContext.getSubject(),
                 ticketStateMachineContext.getWorkflow().getStates().get(skeleton.getTicketStateId()),
                 skeleton.getPriority(),
+                skeleton.getExternalReferenceID(),
                 skeleton.getCreated(),
                 skeleton.getUpdated()),
                 skeleton.getFields(),

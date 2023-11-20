@@ -23,17 +23,17 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.Table;
 
 /**
  *
  */
 @Entity
-@Table(name = "number_field_schemas")
 @Getter
 @Setter
 @ToString
+@DiscriminatorValue(value = FieldType.NUMBER_TEXT)
 public class StoredNumberFieldSchema extends StoredFieldSchema {
     @Column(name = "max_value")
     private double max;
@@ -41,8 +41,8 @@ public class StoredNumberFieldSchema extends StoredFieldSchema {
     @Column(name = "min_value")
     private double min;
 
-    @Column(name = "default_value")
-    private double defaultValue;
+    @Column(name = "default_number")
+    private double defaultNumber;
 
     public StoredNumberFieldSchema() {
         super(FieldType.NUMBER);
@@ -60,7 +60,7 @@ public class StoredNumberFieldSchema extends StoredFieldSchema {
             final boolean allowMultiple,
             final double max,
             final double min,
-            final double defaultValue) {
+            final double defaultNumber) {
         super(FieldType.NUMBER,
               schemaId,
               fieldId,
@@ -73,7 +73,7 @@ public class StoredNumberFieldSchema extends StoredFieldSchema {
               allowMultiple);
         this.max = max;
         this.min = min;
-        this.defaultValue = defaultValue;
+        this.defaultNumber = defaultNumber;
     }
 
     @Override

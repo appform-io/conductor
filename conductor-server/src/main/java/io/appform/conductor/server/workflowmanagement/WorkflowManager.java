@@ -98,7 +98,7 @@ public class WorkflowManager {
             List<String> visibleFields,
             List<String> requiredFields,
             List<String> visibleActions) {
-        val stateId = workflowId + "_" + readableId(displayName);
+        val stateId = ConductorServerUtils.readableId(workflowId, displayName);
         val wf = workflowStore.read(workflowId).orElse(null);
         ensureNotNull(workflowId, wf);
         ensure(!wf.getStates().containsKey(stateId),

@@ -65,6 +65,7 @@ public enum ConductorErrorCode {
     INVALID_TEMPLATE_TYPE(5003, "Unsupported template type ${templateType}"),
 
     CQL_PARSING_ERROR(6001, "Error parsing CQL. Errors: ${cqlError}"),
+    CQL_INVALID_FUNCTION_PARAMETER(6002, "Invalid arguments for function: ${functionName}"),
 
     REPORT_UPDATE_ERROR(7001, "Error creating or updating report with name: ${name}"),
     ;

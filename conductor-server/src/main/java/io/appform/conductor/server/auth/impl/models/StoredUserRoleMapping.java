@@ -51,8 +51,8 @@ public class StoredUserRoleMapping implements Serializable {
     private static final long serialVersionUID = 8332369056839193904L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    @Column(name = "mapping_id", nullable = false)
+    private String mappingId;
 
     @Column(name = "user_id", nullable = false)
     private String userId;
@@ -82,7 +82,7 @@ public class StoredUserRoleMapping implements Serializable {
             return false;
         }
         StoredUserRoleMapping that = (StoredUserRoleMapping) o;
-        return Objects.equals(getId(), that.getId());
+        return Objects.equals(getMappingId(), that.getMappingId());
     }
 
     @Override
