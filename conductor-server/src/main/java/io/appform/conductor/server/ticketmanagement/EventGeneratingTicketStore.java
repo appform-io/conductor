@@ -5,6 +5,7 @@ import com.google.common.net.MediaType;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.ExternalReferenceID;
 import io.appform.conductor.model.ticket.analytics.GroupingElement;
 import io.appform.conductor.model.ticket.analytics.TicketGroupResponse;
 import io.appform.conductor.model.ticket.comments.Attachment;
@@ -49,9 +50,10 @@ public class EventGeneratingTicketStore implements TicketStore {
             String subjectId,
             String ticketStateId,
             TicketPriority priority,
+            ExternalReferenceID externalReferenceID,
             List<TicketFieldData> fields) {
         val res = ticketStore.create(ticketId, title, description, workflowId,
-                                     subjectId, ticketStateId, priority, fields);
+                                     subjectId, ticketStateId, priority, externalReferenceID, fields);
         res.ifPresent(ticketSkeleton -> eventBus.publish(new TicketCreatedEvent(ticketSkeleton.getTicketId())));
         return res;
     }
@@ -131,18 +133,14 @@ public class EventGeneratingTicketStore implements TicketStore {
         return res;
     }
 
+
     @Override
-    public Optional<TicketSkeleton> update(
-            String ticketId,
-            String title,
-            String description,
-            String subjectId,
-            String ticketStateId,
-            TicketPriority priority,
-            List<TicketFieldData> fields) {
-        val res = ticketStore.update(ticketId, title, description, subjectId,
-                                     ticketStateId, priority, fields);
-        res.ifPresent(ticketSkeleton -> eventBus.publish(new TicketUpdatedEvent(ticketSkeleton.getTicketId())));
+    public Optional<TicketSkeleton> updateExternalReferenceID(String ticketId,
+                                                              @NonNull ExternalReferenceID referenceID) {
+        val res = ticketStore.updateExternalReferenceID(ticketId, referenceID);
+        res.filter(ticketSkeleton -> ticketSkeleton.getExternalReferenceID().getRefId().equals(referenceID.getRefId()))
+                .ifPresent(ticketSkeleton -> eventBus.publish(new TicketExternalReferenceIDUpdated(
+                        ticketSkeleton.getTicketId(), referenceID)));
         return res;
     }
 
@@ -224,6 +222,27 @@ public class EventGeneratingTicketStore implements TicketStore {
         val res = ticketStore.deleteAttachment(ticketId, attachmentId);
         if (res) {
             eventBus.publish(new AttachmentDeletedEvent(ticketId, attachmentId));
+        }
+        return res;
+    }
+
+    @Override
+    public Optional<RelatedTicket> addRelatedTicket(String ticketId, String relatedToTicketId, TicketRelationship relationship) {
+        val res = ticketStore.addRelatedTicket(ticketId, relatedToTicketId, relationship);
+        res.ifPresent(attachment -> eventBus.publish(new RelatedTicketAddedEvent(ticketId, relatedToTicketId, relationship)));
+        return res;
+    }
+
+    @Override
+    public List<RelatedTicket> listRelatedTickets(String ticketId, int from, int size) {
+        return ticketStore.listRelatedTickets(ticketId, from, size);
+    }
+
+    @Override
+    public boolean deleteRelatedTicket(String ticketId, String relatedToTicketId) {
+        val res =  ticketStore.deleteRelatedTicket(ticketId, relatedToTicketId);
+        if (res) {
+            eventBus.publish(new RelatedTicketDeletedEvent(ticketId, relatedToTicketId));
         }
         return res;
     }

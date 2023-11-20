@@ -21,6 +21,7 @@ import com.google.common.net.MediaType;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.ExternalReferenceID;
 import io.appform.conductor.model.ticket.analytics.*;
 import io.appform.conductor.model.ticket.comments.Attachment;
 import io.appform.conductor.model.ticket.comments.Comment;
@@ -45,6 +46,7 @@ public interface TicketStore {
             final String subjectId,
             final String ticketStateId,
             final TicketPriority priority,
+            final ExternalReferenceID externalReferenceID,
             final List<TicketFieldData> fields);
 
     Optional<TicketSkeleton> read(String ticketId, boolean readFields);
@@ -60,12 +62,18 @@ public interface TicketStore {
         return update(ticketId, updater, List.of());
     }
 
+    default Optional<TicketSkeleton> updateExternalReference(
+            final String ticketId,
+            final ExternalReferenceID externalReference) {
+        return update(ticketId, ticket -> ticket.setExternalReferenceID(externalReference), List.of());
+    }
+
     default Optional<TicketSkeleton> updateState(
             final String ticketId,
             @NonNull final TicketState newState) {
         return update(ticketId,
                       ticket -> ticket.setTicketStateId(newState.getId()),
-                      List.of());
+                    List.of());
     }
 
     default Optional<TicketSkeleton> changePriority(
@@ -73,7 +81,7 @@ public interface TicketStore {
             @NonNull final TicketPriority newPriority) {
         return update(ticketId,
                       ticket -> ticket.setPriority(newPriority),
-                      List.of());
+                    List.of());
     }
 
     default Optional<TicketSkeleton> assignToGroup(
@@ -81,9 +89,9 @@ public interface TicketStore {
             @NonNull final String groupId,
             final String userId) {
         return update(ticketId,
-                      ticket -> ticket.setAssignedToGroupId(groupId)
+                ticket -> ticket.setAssignedToGroupId(groupId)
                               .setAssignedToUserId(userId),
-                      List.of());
+                  List.of());
     }
 
     default Optional<TicketSkeleton> setField(
@@ -103,7 +111,14 @@ public interface TicketStore {
             @NonNull final String userId) {
         return update(ticketId,
                       ticket -> ticket.setAssignedToUserId(userId),
-                      List.of());
+                        List.of());
+    }
+
+    default Optional<TicketSkeleton> updateExternalReferenceID(
+            final String ticketId,
+            @NonNull final ExternalReferenceID referenceID) {
+        return updateSkeleton(ticketId,
+                      ticket -> ticket.setExternalReferenceID(referenceID));
     }
 
     default Optional<TicketSkeleton> addTicketAction(
@@ -129,15 +144,6 @@ public interface TicketStore {
                                       .build()),
                       List.of());
     }
-
-    Optional<TicketSkeleton> update(
-            final String ticketId,
-            final String title,
-            final String description,
-            final String subjectId,
-            final String ticketStateId,
-            final TicketPriority priority,
-            final List<TicketFieldData> fields);
 
     TicketSkeletonListResult older(
             final List<TicketFilter> ticketFilters,
@@ -192,4 +198,17 @@ public interface TicketStore {
     boolean deleteAttachment(
             final String ticketId,
             final String attachmentId);
+
+    Optional<RelatedTicket> addRelatedTicket(final String ticketId,
+                                             final String relatedToTicketId,
+                                             final TicketRelationship relationship);
+
+    List<RelatedTicket> listRelatedTickets(final String ticketId,
+                                           int from,
+                                           int size);
+
+    boolean deleteRelatedTicket(final String ticketId,
+                                final String relatedToTicketId);
+
+
 }

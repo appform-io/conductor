@@ -25,11 +25,11 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
@@ -54,10 +54,8 @@ public class StoredTicketSkeleton implements Serializable {
     @Serial
     private static final long serialVersionUID = -9138428302273551724L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
 
+    @Id
     @LookupKey
     @Column(name = "ticket_id", unique = true, length = 45)
     private String ticketId;
@@ -90,6 +88,12 @@ public class StoredTicketSkeleton implements Serializable {
     @Enumerated(EnumType.STRING)
     private TicketPriority priority;
 
+    @Column(name = "ext_ref_source", length = 128)
+    private String externalReferenceSource;
+
+    @Column(name = "ext_ref_id",  length = 128)
+    private String externalReferenceId;
+
     @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<StoredFieldValue> fields;
@@ -97,13 +101,12 @@ public class StoredTicketSkeleton implements Serializable {
     @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "`created`", columnDefinition = "timestamp")
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp")
     private Date updated;
 
     @Override
@@ -115,7 +118,7 @@ public class StoredTicketSkeleton implements Serializable {
             return false;
         }
         StoredTicketSkeleton that = (StoredTicketSkeleton) o;
-        return Objects.equals(getId(), that.getId());
+        return Objects.equals(getTicketId(), that.getTicketId());
     }
 
     @Override

@@ -20,11 +20,12 @@ import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.schema.fields.StringFieldSchema;
+import io.appform.conductor.model.ticket.filter.TicketFilterType;
+import io.appform.conductor.model.ticket.filter.ticketfilters.TicketExternalReferenceEquals;
 import io.appform.conductor.model.workflow.*;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import lombok.val;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -42,7 +44,6 @@ import static org.mockito.Mockito.when;
 class CQLEngineTest {
 
     @Test
-    @Disabled
     void test() {
         val schema = new Schema("TS1",
                                 "Test Schema",
@@ -85,11 +86,25 @@ class CQLEngineTest {
         val workflowStore = mock(WorkflowStore.class);
         val schemaStore = mock(SchemaStore.class);
         when(schemaStore.get(anyString())).thenReturn(Optional.of(schema));
+        when(workflowStore.read(anyString())).thenReturn(Optional.of(workflow));
+        val parser = new CQLEngine(workflowStore, schemaStore, new CQLFilterFunctionRegistry());
+        val output = parser.parse("select * from tickets.TWF" +
+                             " where assignedToGroupId in ('G1', 'G2') and is_terminal(state)" +
+                             " and fields.firstName = 'Tushar' and external_source_equals('icmr',1213)");
+        assertTrue(output.isPresent());
+        val filters = output.get().filters();
+        val ticketFilters = filters.ticketFilters();
+        assertEquals(ticketFilters.size(), 3);
+        val externalReferenceFilter = ticketFilters.stream()
+                .filter(filter -> filter.getType() == TicketFilterType.EXTERNAL_REFERENCE_EQUALS)
+                .map(ticketFilter ->  (TicketExternalReferenceEquals) ticketFilter)
+                .findAny();
+        assertTrue(externalReferenceFilter.isPresent());
+        assertEquals(externalReferenceFilter.get().getSource(),"icmr");
+        assertEquals(externalReferenceFilter.get().getValue(),"1213");
+        val ticketFieldFilters = filters.fieldFilters();
+        assertEquals(ticketFieldFilters.size(), 1);
 
-        val parser = new CQLEngine(workflowStore, schemaStore);
-        parser.parse("select workflowId, title, age(), ticket.subject.name from tickets.TWF" +
-                             " where assignedToGroupId in ('G1', 'G2') and isTerminal(state)" +
-                             " and fields.issueState = 'KA'");
     }
 
     private static Workflow createWorkflow(Schema schema) {

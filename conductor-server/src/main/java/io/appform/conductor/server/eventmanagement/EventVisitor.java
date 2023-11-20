@@ -160,4 +160,10 @@ public interface EventVisitor<T> {
     T visit(TicketStateUpdatedEvent ticketStateUpdatedEvent);
 
     T visit(ReportExecutionCompletedEvent reportExecutionCompletedEvent);
+
+    T visit(RelatedTicketAddedEvent relatedTicketAddedEvent);
+
+    T visit(RelatedTicketDeletedEvent relatedTicketDeletedEvent);
+
+    T visit(TicketExternalReferenceIDUpdated ticketExternalReferenceIDUpdated);
 }

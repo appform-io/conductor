@@ -42,10 +42,8 @@ import java.util.Objects;
 @NoArgsConstructor
 public class StoredUser {
     public static final String USER_TABLE_NAME = "users";
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
 
+    @Id
     @LookupKey
     @Column(name = "user_id", unique = true, nullable = false, length = 45)
     private String userId;
@@ -94,7 +92,7 @@ public class StoredUser {
             return false;
         }
         StoredUser that = (StoredUser) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(getUserId(), that.getUserId());
     }
 
     @Override

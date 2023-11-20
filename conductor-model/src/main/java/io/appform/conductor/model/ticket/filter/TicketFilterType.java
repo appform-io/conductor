@@ -33,7 +33,8 @@ public enum TicketFilterType {
     STATE_IN("Ticket is in states"),
     PRIORITY_IN("Ticket has given priority"),
     CREATED_TIME_WINDOW("Tickets created in this window"),
-    UPDATED_TIME_WINDOW("Tickets updated in this window")
+    UPDATED_TIME_WINDOW("Tickets updated in this window"),
+    EXTERNAL_REFERENCE_EQUALS("Ticket external reference matches"),
             ;
 
     @Getter

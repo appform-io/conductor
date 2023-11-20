@@ -19,10 +19,12 @@ package io.appform.conductor.server.auth.impl;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.server.auth.UserRoleMappingStore;
 import io.appform.conductor.server.auth.impl.models.StoredUserRoleMapping;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Property;
 
@@ -49,12 +51,14 @@ public class DBUserRoleMappingStore implements UserRoleMappingStore {
     public boolean assignRoleToUser(
             @Throws.RuntimeParam("id") String userId,
             @Throws.RuntimeParam("subId") String roleId) {
+        val mappingId = ConductorServerUtils.readableId(userId, roleId);
         return userRolesDao.createOrUpdate(userId,
                                            DetachedCriteria.forClass(StoredUserRoleMapping.class)
                                                    .add(Property.forName(StoredUserRoleMapping.Fields.userId)
                                                                 .eq(userId)),
                                            existing -> existing.setRoleId(roleId).setDeleted(false),
                                            () -> new StoredUserRoleMapping()
+                                                   .setMappingId(mappingId)
                                                    .setUserId(userId)
                                                    .setRoleId(roleId))
                 .filter(mapping -> !mapping.isDeleted())
@@ -68,8 +72,11 @@ public class DBUserRoleMappingStore implements UserRoleMappingStore {
     public boolean revokeRoleFromUser(
             @Throws.RuntimeParam("id") String userId,
             @Throws.RuntimeParam("subId") String roleId) {
+        val mappingId = ConductorServerUtils.readableId(userId, roleId);
         return userRolesDao.update(userId,
-                                   DetachedCriteria.forClass(StoredUserRoleMapping.class),
+                                   DetachedCriteria.forClass(StoredUserRoleMapping.class)
+                                           .add(Property.forName(StoredUserRoleMapping.Fields.mappingId)
+                                                   .eq(mappingId)),
                                    mapping -> mapping.setDeleted(true));
     }
 

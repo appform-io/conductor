@@ -95,7 +95,7 @@ public class DBTaskStore implements TaskStore {
         val criteria = DetachedCriteria.forClass(StoredTask.class)
                 .add(Property.forName(StoredTask.Fields.deleted).eq(false));
         if (null != ids && !ids.isEmpty()) {
-            criteria.add(Property.forName(StoredTask.Fields.id).in(ids));
+            criteria.add(Property.forName(StoredTask.Fields.taskId).in(ids));
         }
         return list(criteria);
     }
@@ -130,7 +130,7 @@ public class DBTaskStore implements TaskStore {
     @SneakyThrows
     public StoredTask copyAttributes(final StoredTask storedTask, final Task task) {
         return storedTask
-                .setId(task.getId())
+                .setTaskId(task.getId())
                 .setType(task.getType())
                 .setName(task.getName())
                 .setDescription(task.getDescription())
@@ -148,7 +148,7 @@ public class DBTaskStore implements TaskStore {
     @SneakyThrows
     public Task toWire(final StoredTask task) {
         return new Task(
-                task.getId(),
+                task.getTaskId(),
                 task.getType(),
                 task.getName(),
                 task.getDescription(),

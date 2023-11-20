@@ -23,6 +23,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
@@ -30,10 +31,10 @@ import javax.persistence.Table;
  *
  */
 @Entity
-@Table(name = "string_field_schemas")
 @Getter
 @Setter
 @ToString
+@DiscriminatorValue(value = FieldType.STRING_TEXT)
 public class StoredStringFieldSchema extends StoredFieldSchema {
     @Column(name = "max_length")
     private int maxLength;
@@ -41,8 +42,8 @@ public class StoredStringFieldSchema extends StoredFieldSchema {
     @Column(name = "match_pattern")
     private String matchPattern;
 
-    @Column(name = "default_value")
-    private String defaultValue;
+    @Column(name = "default_string")
+    private String defaultString;
 
     public StoredStringFieldSchema() {
         super(FieldType.STRING);
@@ -60,7 +61,7 @@ public class StoredStringFieldSchema extends StoredFieldSchema {
             final boolean allowMultiple,
             final int maxLength,
             final String matchPattern,
-            final String defaultValue) {
+            final String defaultString) {
         super(FieldType.STRING,
               schemaId,
               fieldId,
@@ -73,7 +74,7 @@ public class StoredStringFieldSchema extends StoredFieldSchema {
               allowMultiple);
         this.maxLength = maxLength;
         this.matchPattern = matchPattern;
-        this.defaultValue = defaultValue;
+        this.defaultString = defaultString;
     }
 
     @Override

@@ -142,6 +142,24 @@ public class TicketManager {
         return ticketStore.repliesToComment(ticketId, replyToId, from, size);
     }
 
+
+    public void addForkRelation(final String parentTicketId, final String childTicketId) {
+        //Dual write to optimize read
+        ticketStore.addRelatedTicket(parentTicketId, childTicketId, TicketRelationship.PARENT);
+        ticketStore.addRelatedTicket(childTicketId, parentTicketId,TicketRelationship.CHILD);
+    }
+
+    public void addReferenceRelation(final String ticketId, final String relatedToTicketId) {
+        //Dual write to optimize read
+        ticketStore.addRelatedTicket(ticketId, relatedToTicketId, TicketRelationship.REFERENCED);
+        ticketStore.addRelatedTicket(relatedToTicketId, ticketId, TicketRelationship.REFERENCED);
+    }
+
+    public List<RelatedTicket> listRelatedTickets(final String ticketId, final int from, final int size) {
+        return ticketStore.listRelatedTickets(ticketId, from, size);
+    }
+
+
     public TicketListResponse ticketsForSubject(final String subjectId, String start, int size) {
 
         return search(List.of(TicketSubjectEquals.builder()
@@ -549,6 +567,7 @@ public class TicketManager {
                                                    subject,
                                                    workflow.getStates().get(skeleton.getTicketStateId()),
                                                    skeleton.getPriority(),
+                                                   skeleton.getExternalReferenceID(),
                                                    skeleton.getCreated(),
                                                    skeleton.getUpdated()),
                                  skeleton.getFields(),
@@ -798,6 +817,7 @@ public class TicketManager {
                            ticketStateMachineContext.getSubject().getGlobalId(),
                            startStateId,
                            TicketPriority.MEDIUM,
+                           null,
                            editedFields)
                 .ifPresent(ticketStateMachineContext::setTicketSkeleton);
     }
