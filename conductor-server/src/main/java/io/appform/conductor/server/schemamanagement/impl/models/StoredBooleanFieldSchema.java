@@ -23,20 +23,20 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.Table;
 
 /**
  *
  */
 @Entity
-@Table(name = "boolean_field_schemas")
 @Getter
 @Setter
 @ToString
+@DiscriminatorValue(value = FieldType.BOOLEAN_TEXT)
 public class StoredBooleanFieldSchema extends StoredFieldSchema {
-    @Column(name = "default_value")
-    private boolean defaultValue;
+    @Column(name = "default_boolean")
+    private boolean defaultBoolean;
 
     public StoredBooleanFieldSchema() {
         super(FieldType.BOOLEAN);
@@ -52,7 +52,7 @@ public class StoredBooleanFieldSchema extends StoredFieldSchema {
             final Rule visibilityCondition,
             final Rule editableCondition,
             final boolean allowMultiple,
-            final boolean defaultValue) {
+            final boolean defaultBoolean) {
         super(FieldType.BOOLEAN,
               schemaId,
               fieldId,
@@ -63,7 +63,7 @@ public class StoredBooleanFieldSchema extends StoredFieldSchema {
               visibilityCondition,
               editableCondition,
               allowMultiple);
-        this.defaultValue = defaultValue;
+        this.defaultBoolean = defaultBoolean;
     }
 
     @Override

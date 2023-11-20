@@ -54,6 +54,13 @@ public enum FieldType {
     DATE("Date")
     ;
 
+    public static final String STRING_TEXT = "STRING";
+    public static final String CHOICE_TEXT = "CHOICE";
+    public static final String BOOLEAN_TEXT = "BOOLEAN";
+    public static final String NUMBER_TEXT = "NUMBER";
+    public static final String LOCATION_TEXT = "LOCATION";
+    public static final String DATE_TEXT = "DATE";
+
     /**
      * Display name
      */

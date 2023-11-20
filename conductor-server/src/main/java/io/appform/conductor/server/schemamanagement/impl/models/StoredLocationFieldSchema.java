@@ -23,17 +23,17 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.Table;
 
 /**
  *
  */
 @Entity
-@Table(name = "location_field_schemas")
 @Getter
 @Setter
 @ToString
+@DiscriminatorValue(value = FieldType.LOCATION_TEXT)
 public class StoredLocationFieldSchema extends StoredFieldSchema {
     @Column(name = "default_lat")
     private double defaultLat;
