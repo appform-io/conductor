@@ -306,6 +306,7 @@ public class DBSubjectStore implements SubjectStore {
             String pinCode) {
         return addressDao.save(globalSubjectId,
                                new StoredAddress()
+                                       .setAddressId(UUID.randomUUID().toString())
                                        .setType(type)
                                        .setHouseNumber(houseNumber)
                                        .setStreet(street)
@@ -330,7 +331,7 @@ public class DBSubjectStore implements SubjectStore {
             UnaryOperator<Address> updater) {
         val criteria = DetachedCriteria.forClass(StoredAddress.class)
                 .add(Property.forName(StoredAddress.Fields.subjectGlobalId).eq(globalSubjectId))
-                .add(Property.forName(StoredAddress.Fields.extId).eq(extId));
+                .add(Property.forName(StoredAddress.Fields.addressId).eq(extId));
         addressDao.update(globalSubjectId,
                           criteria,
                           stored -> {
@@ -357,7 +358,7 @@ public class DBSubjectStore implements SubjectStore {
     public boolean deleteAddress(String globalSubjectId, String extId) {
         val criteria = DetachedCriteria.forClass(StoredAddress.class)
                 .add(Property.forName(StoredAddress.Fields.subjectGlobalId).eq(globalSubjectId))
-                .add(Property.forName(StoredAddress.Fields.extId).eq(extId));
+                .add(Property.forName(StoredAddress.Fields.addressId).eq(extId));
         return addressDao.update(globalSubjectId,
                                  criteria,
                                  stored -> stored.setDeleted(true));
@@ -423,7 +424,7 @@ public class DBSubjectStore implements SubjectStore {
     }
 
     private static Address toWire(final StoredAddress address) {
-        return new Address(address.getExtId(),
+        return new Address(address.getAddressId(),
                            address.getType(),
                            address.getHouseNumber(),
                            address.getStreet(),

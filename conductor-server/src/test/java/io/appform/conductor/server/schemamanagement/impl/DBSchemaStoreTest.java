@@ -26,6 +26,7 @@ import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.schemamanagement.impl.models.StoredFieldSchema;
 import io.appform.conductor.server.schemamanagement.impl.models.StoredSchemaSummary;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -65,7 +66,7 @@ class DBSchemaStoreTest {
         assertNotNull(schemaSummary);
         val sId = schemaSummary.getId();
         assertEquals(schemaSummary, store.getSummary(sId).orElse(null));
-        assertNotNull(store.addField(sId, sId + "-f1", new StringFieldSchema("f1",
+        assertNotNull(store.addField(sId, ConductorServerUtils.readableId(sId, "f1"), new StringFieldSchema("f1",
                                                                   "f1",
                                                                   "F1",
                                                                   "Test field 1",
@@ -78,7 +79,7 @@ class DBSchemaStoreTest {
                                                                   100,
                                                                   null,
                                                                   "Default FieldValue")).orElse(null));
-        assertNotNull(store.addField(sId, sId + "-f2", new BooleanFieldSchema("f2",
+        assertNotNull(store.addField(sId, ConductorServerUtils.readableId(sId, "f2"), new BooleanFieldSchema("f2",
                                                                    "f2",
                                                                    "F2",
                                                                    "Test field 2",
@@ -89,7 +90,7 @@ class DBSchemaStoreTest {
                                                                    new Date(),
                                                                    new Date(),
                                                                    false)).orElse(null));
-        assertNotNull(store.addField(sId, sId + "-f3", new DateFieldSchema("f3",
+        assertNotNull(store.addField(sId, ConductorServerUtils.readableId(sId, "f3"), new DateFieldSchema("f3",
                                                                 "f3",
                                                                 "F3",
                                                                 "Test field 3",
@@ -100,7 +101,7 @@ class DBSchemaStoreTest {
                                                                 new Date(),
                                                                 new Date(),
                                                                 new Date())).orElse(null));
-        assertNotNull(store.addField(sId, sId + "-f4", new LocationFieldSchema("f4",
+        assertNotNull(store.addField(sId, ConductorServerUtils.readableId(sId, "f4"), new LocationFieldSchema("f4",
                                                                     "f4",
                                                                     "F4",
                                                                     "Test field 4",
@@ -113,7 +114,7 @@ class DBSchemaStoreTest {
                                                                     5.0,
                                                                     -15.0))
                                                                         .orElse(null));
-        assertNotNull(store.addField(sId, sId + "-f5", new NumberFieldSchema("f5",
+        assertNotNull(store.addField(sId, ConductorServerUtils.readableId(sId, "f5"), new NumberFieldSchema("f5",
                                                                   "f5",
                                                                   "F5",
                                                                   "Test field 5",
@@ -127,7 +128,7 @@ class DBSchemaStoreTest {
                                                                   -10.0,
                                                                   0.0))
                               .orElse(null));
-        assertNotNull(store.addField(sId, sId + "-f6", new ChoiceFieldSchema("f6",
+        assertNotNull(store.addField(sId, ConductorServerUtils.readableId(sId, "f6"), new ChoiceFieldSchema("f6",
                                                                   "f6",
                                                                   "F6",
                                                                   "Test field 6",
@@ -149,7 +150,7 @@ class DBSchemaStoreTest {
 
         /* ******* String field tests start ***** */
         assertEquals(FieldType.STRING, schema.getFields().get(0).getType());
-        assertEquals(schemaSummary.getId() + "-" + "f1", schema.getFields().get(0).getId());
+        assertEquals(ConductorServerUtils.readableId(schemaSummary.getId(), "f1"), schema.getFields().get(0).getId());
         assertEquals("f1", schema.getFields().get(0).getName());
         assertEquals("F1", schema.getFields().get(0).getDisplayName());
         assertEquals("Test field 1", schema.getFields().get(0).getDescription());
@@ -191,7 +192,7 @@ class DBSchemaStoreTest {
 
         /* ******* Boolean field tests start ****** */
         assertEquals(FieldType.BOOLEAN, schema.getFields().get(1).getType());
-        assertEquals(schemaSummary.getId() + "-" + "f2", schema.getFields().get(1).getId());
+        assertEquals(ConductorServerUtils.readableId(schemaSummary.getId(), "f2"), schema.getFields().get(1).getId());
         assertEquals("f2", schema.getFields().get(1).getName());
         assertEquals("F2", schema.getFields().get(1).getDisplayName());
         assertEquals("Test field 2", schema.getFields().get(1).getDescription());
@@ -224,7 +225,7 @@ class DBSchemaStoreTest {
 
         /* ******* Date field tests start ****** */
         assertEquals(FieldType.DATE, schema.getFields().get(2).getType());
-        assertEquals(schemaSummary.getId() + "-" + "f3", schema.getFields().get(2).getId());
+        assertEquals(ConductorServerUtils.readableId(schemaSummary.getId(), "f3"), schema.getFields().get(2).getId());
         assertEquals("f3", schema.getFields().get(2).getName());
         assertEquals("F3", schema.getFields().get(2).getDisplayName());
         assertEquals("Test field 3", schema.getFields().get(2).getDescription());
@@ -257,7 +258,7 @@ class DBSchemaStoreTest {
 
         /* ******* Location field tests start ****** */
         assertEquals(FieldType.LOCATION, schema.getFields().get(3).getType());
-        assertEquals(schemaSummary.getId() + "-" + "f4", schema.getFields().get(3).getId());
+        assertEquals(ConductorServerUtils.readableId(schemaSummary.getId(), "f4"), schema.getFields().get(3).getId());
         assertEquals("f4", schema.getFields().get(3).getName());
         assertEquals("F4", schema.getFields().get(3).getDisplayName());
         assertEquals("Test field 4", schema.getFields().get(3).getDescription());
@@ -293,7 +294,7 @@ class DBSchemaStoreTest {
 
         /* ******* Number field tests start ****** */
         assertEquals(FieldType.NUMBER, schema.getFields().get(4).getType());
-        assertEquals(schemaSummary.getId() + "-" + "f5", schema.getFields().get(4).getId());
+        assertEquals(ConductorServerUtils.readableId(schemaSummary.getId(), "f5"), schema.getFields().get(4).getId());
         assertEquals("f5", schema.getFields().get(4).getName());
         assertEquals("F5", schema.getFields().get(4).getDisplayName());
         assertEquals("Test field 5", schema.getFields().get(4).getDescription());
@@ -331,7 +332,7 @@ class DBSchemaStoreTest {
 
         /* ******* Choice field tests start ****** */
         assertEquals(FieldType.CHOICE, schema.getFields().get(5).getType());
-        assertEquals(schemaSummary.getId() + "-" + "f6", schema.getFields().get(5).getId());
+        assertEquals(ConductorServerUtils.readableId(schemaSummary.getId(), "f6"), schema.getFields().get(5).getId());
         assertEquals("f6", schema.getFields().get(5).getName());
         assertEquals("F6", schema.getFields().get(5).getDisplayName());
         assertEquals("Test field 6", schema.getFields().get(5).getDescription());
@@ -384,19 +385,19 @@ class DBSchemaStoreTest {
                      store.updateState(sId, SchemaState.ACTIVE).map(SchemaSummary::getState).orElse(null));
         assertTrue(store.deleteField(sId, schema.getFields().get(0).getId()));
         assertEquals(5, store.get(sId).map(r -> r.getFields().size()).orElse(-1));
-        assertEquals("Changed", store.updateField(sId, sId + "-f2", schema.getFields().get(1).setDescription("Changed"))
+        assertEquals("Changed", store.updateField(sId, ConductorServerUtils.readableId(sId, "f2"), schema.getFields().get(1).setDescription("Changed"))
                 .map(FieldSchema::getDescription)
                 .orElse(null));
-        assertEquals("Changed", store.updateField(sId, sId + "-f3", schema.getFields().get(2).setDescription("Changed"))
+        assertEquals("Changed", store.updateField(sId, ConductorServerUtils.readableId(sId, "f3"), schema.getFields().get(2).setDescription("Changed"))
                 .map(FieldSchema::getDescription)
                 .orElse(null));
-        assertEquals("Changed", store.updateField(sId, sId + "-f4", schema.getFields().get(3).setDescription("Changed"))
+        assertEquals("Changed", store.updateField(sId, ConductorServerUtils.readableId(sId, "f4"), schema.getFields().get(3).setDescription("Changed"))
                 .map(FieldSchema::getDescription)
                 .orElse(null));
-        assertEquals("Changed", store.updateField(sId, sId + "-f5", schema.getFields().get(4).setDescription("Changed"))
+        assertEquals("Changed", store.updateField(sId, ConductorServerUtils.readableId(sId, "f5"), schema.getFields().get(4).setDescription("Changed"))
                 .map(FieldSchema::getDescription)
                 .orElse(null));
-        assertEquals("Changed", store.updateField(sId, sId + "-f6", schema.getFields().get(5).setDescription("Changed"))
+        assertEquals("Changed", store.updateField(sId, ConductorServerUtils.readableId(sId, "f6"), schema.getFields().get(5).setDescription("Changed"))
                 .map(FieldSchema::getDescription)
                 .orElse(null));
         assertNotNull(store.getField(sId, schema.getFields().get(2).getId()).orElse(null));

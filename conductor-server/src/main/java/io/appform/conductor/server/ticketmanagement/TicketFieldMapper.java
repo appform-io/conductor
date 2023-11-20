@@ -59,7 +59,7 @@ public class TicketFieldMapper {
             val field = it.next();
             val fieldData = field.getValue();
             val fieldName = field.getKey();
-            val fieldId = schemaId + "-" + fieldName;
+            val fieldId = ConductorServerUtils.readableId(schemaId, fieldName);
             val fieldSchema = fieldsMap.get(fieldId);
             if(null == fieldSchema) {
                 log.info("Skipping field mapping as no field schema found for field: " + fieldId);

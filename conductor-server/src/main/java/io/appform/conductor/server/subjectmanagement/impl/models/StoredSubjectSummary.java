@@ -41,13 +41,11 @@ import java.util.Objects;
 @Setter
 @FieldNameConstants
 @ToString
-@SQLDelete(sql = "update subject_summaries set deleted=true where external_id=?")
+@SQLDelete(sql = "update subject_summaries set deleted=true where global_id=?")
 public class StoredSubjectSummary {
     public static final String SUBJECT_TABLE_NAME = "subject_summaries";
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
 
+    @Id
     @LookupKey
     @Column(name = "global_id", unique = true)
     private String globalId;
@@ -89,7 +87,7 @@ public class StoredSubjectSummary {
             return false;
         }
         val that = (StoredSubjectSummary) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(getGlobalId(), that.getGlobalId());
     }
 
     @Override

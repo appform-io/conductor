@@ -212,7 +212,7 @@ public class DBTicketStore implements TicketStore {
                      relevantFieldSchema,
                      readFields,
                      fieldNames,
-                     criteria -> criteria.addOrder(Order.desc(StoredTicketSkeleton.Fields.id)));
+                criteria -> criteria.addOrder(Order.desc(StoredTicketSkeleton.Fields.created)));
         return new TicketSkeletonListResult(
                 results.getFirst()
                         .stream()
@@ -242,7 +242,7 @@ public class DBTicketStore implements TicketStore {
                 relevantFieldSchema,
                 readFields,
                 fieldNames,
-                criteria -> criteria.addOrder(Order.desc(StoredTicketSkeleton.Fields.id)));
+                criteria -> criteria.addOrder(Order.desc(StoredTicketSkeleton.Fields.created)));
         return new TicketSkeletonListResult(
                 results.getFirst()
                         .stream()
@@ -452,7 +452,7 @@ public class DBTicketStore implements TicketStore {
         ticketIdCriteria
                 .setProjection(Projections.projectionList()
                                        .add(Projections.distinct(Projections.property(StoredTicketSkeleton.Fields.ticketId)))
-                                       .add(Projections.property(StoredTicketSkeleton.Fields.id)));
+                                       .add(Projections.property(StoredTicketSkeleton.Fields.created)));
         val pointer = TicketScrollPointer.deserializePointer(start, mapper);
         val queryResults = new ArrayList<TicketSkeleton>();
         ticketDao.runInSession(
@@ -767,7 +767,7 @@ public class DBTicketStore implements TicketStore {
             final StoredTicketSkeleton ticket,
             final TicketFieldData data) {
         return new StoredFieldValue()
-                .setFieldValueId(ticket.getTicketId() + "-" + data.getSchemaFieldId())
+                .setFieldValueId(ConductorServerUtils.readableId(ticket.getTicketId(), data.getSchemaFieldId()))
                 .setStoredEmbeddedFieldValue(new StoredEmbeddedFieldValue(data.getValue()))
                 .setTicket(ticket)
                 .setSchemaFieldId(data.getSchemaFieldId());

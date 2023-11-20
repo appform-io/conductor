@@ -171,7 +171,7 @@ public class ConductorTaskScheduler implements Managed {
 
         @Override
         public String generateId(RunnableTask task, Date executionTime) {
-            return task.id() + "-" + executionTime.getTime();
+            return ConductorServerUtils.readableId(task.id(), String.valueOf(executionTime.getTime()));
         }
     }
 

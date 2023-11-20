@@ -51,14 +51,11 @@ public class StoredComment implements Serializable {
    private static final long serialVersionUID = -5044362079995936712L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    @Column(name = "comment_id", unique = true)
+    private String commentId;
 
     @Column(name = "ticket_id", nullable = false)
     private String ticketId;
-
-    @Column(name = "comment_id", unique = true)
-    private String commentId;
 
     @Column
     private String author;
@@ -90,7 +87,7 @@ public class StoredComment implements Serializable {
             return false;
         }
         StoredComment that = (StoredComment) o;
-        return Objects.equals(getId(), that.getId());
+        return Objects.equals(getCommentId(), that.getCommentId());
     }
 
     @Override
