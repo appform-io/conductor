@@ -25,6 +25,7 @@ import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.ExternalReferenceID;
 import io.appform.conductor.model.ticket.analytics.*;
 import io.appform.conductor.model.ticket.comments.Attachment;
 import io.appform.conductor.model.ticket.comments.Comment;
@@ -132,17 +133,20 @@ public class DBTicketStore implements TicketStore {
             final String subjectId,
             final String ticketStateId,
             final TicketPriority priority,
+            final ExternalReferenceID externalReferenceID,
             final List<TicketFieldData> fields) {
         ticketDao.saveAndGetExecutor(new StoredTicketSkeleton()
-                                             .setTicketId(ticketId)
-                                             .setTitle(title)
-                                             .setDescription(description)
-                                             .setWorkflowId(workflowId)
-                                             .setCreatedByUserId(ConductorServerUtils.operatingUserId())
-                                             .setSubjectId(subjectId)
-                                             .setTicketStateId(ticketStateId)
-                                             .setCreatedByUserId(ConductorServerUtils.operatingUserId())
-                                             .setPriority(priority))
+                        .setTicketId(ticketId)
+                        .setTitle(title)
+                        .setDescription(description)
+                        .setWorkflowId(workflowId)
+                        .setCreatedByUserId(ConductorServerUtils.operatingUserId())
+                        .setSubjectId(subjectId)
+                        .setTicketStateId(ticketStateId)
+                        .setExternalReferenceId(externalReferenceId(externalReferenceID))
+                        .setExternalReferenceSource(externalReferenceSource(externalReferenceID))
+                        .setCreatedByUserId(ConductorServerUtils.operatingUserId())
+                        .setPriority(priority))
                 .saveAll(fieldDao, ticket -> toStoredFields(ticket, fields))
                 .execute();
         return read(ticketId, true);
@@ -179,33 +183,10 @@ public class DBTicketStore implements TicketStore {
                                     .setAssignedToUserId(updated.getAssignedToUserId())
                                     .setSubjectId(updated.getSubjectId())
                                     .setTicketStateId(updated.getTicketStateId())
+                                    .setExternalReferenceId(externalReferenceId(updated.getExternalReferenceID()))
+                                    .setExternalReferenceSource(externalReferenceSource(updated.getExternalReferenceID()))
                                     .setPriority(updated.getPriority());
                         })
-                .saveAll(fieldDao, ticket -> toStoredFields(ticket, fields))
-                .execute();
-        return read(ticketId, true);
-    }
-
-    @Override
-    @MonitoredFunction
-    @SneakyThrows
-    @Throws(value = STORE_UPDATE_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SKELETON_TABLE_NAME))
-    public Optional<TicketSkeleton> update(
-            @Throws.RuntimeParam("id") final String ticketId,
-            final String title,
-            final String description,
-            final String subjectId,
-            final String ticketStateId,
-            final TicketPriority priority,
-            final List<TicketFieldData> fields) {
-
-        ticketDao.lockAndGetExecutor(ticketId)
-                .mutate(ticket -> ticket.setTitle(title)
-                        .setDescription(description)
-                        .setSubjectId(subjectId)
-                        .setTicketStateId(ticketStateId)
-                        .setPriority(priority))
                 .saveAll(fieldDao, ticket -> toStoredFields(ticket, fields))
                 .execute();
         return read(ticketId, true);
@@ -701,6 +682,15 @@ public class DBTicketStore implements TicketStore {
                                                           - updatedTimeWindow.getDuration().toMilliseconds())));
                 return null;
             }
+
+            @Override
+            public Void visit(TicketExternalReferenceEquals ticketExternalReferenceEquals) {
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.externalReferenceSource)
+                                .eq(ticketExternalReferenceEquals.getSource()));
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.externalReferenceId)
+                                .eq(ticketExternalReferenceEquals.getValue()));
+                return null;
+            }
         }));
     }
 
@@ -738,10 +728,27 @@ public class DBTicketStore implements TicketStore {
                 .setUpdated(skeleton.getUpdated())
                 .setFields(fields.stream()
                                    .map(DBTicketStore::toWireField)
-                                   .toList());
+                                   .toList())
+                .setExternalReferenceID(toExternalReferenceID(skeleton.getExternalReferenceSource(),
+                        skeleton.getExternalReferenceId()));
     }
 
-    private static List<StoredFieldValue> toStoredFields(StoredTicketSkeleton ticket, List<TicketFieldData> fields) {
+
+    private String externalReferenceSource(ExternalReferenceID reference) {
+        return Optional.ofNullable(reference).map(ExternalReferenceID::getSource).orElse(null);
+    }
+
+    private String externalReferenceId(ExternalReferenceID reference) {
+        return Optional.ofNullable(reference).map(ExternalReferenceID::getRefId).orElse(null);
+    }
+
+    private static ExternalReferenceID toExternalReferenceID(String extSource, String extRefId) {
+        return Strings.isNullOrEmpty(extSource) ? null :
+                new ExternalReferenceID(extSource, extRefId);
+    }
+
+    private static List<StoredFieldValue> toStoredFields(StoredTicketSkeleton ticket,
+                                                         List<TicketFieldData> fields) {
         return Objects.requireNonNullElse(fields, List.<TicketFieldData>of())
                 .stream()
                 .map(field -> toStoredField(ticket, field))

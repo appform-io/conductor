@@ -25,11 +25,11 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
@@ -89,6 +89,12 @@ public class StoredTicketSkeleton implements Serializable {
     @Column
     @Enumerated(EnumType.STRING)
     private TicketPriority priority;
+
+    @Column(name = "ext_ref_source", length = 128)
+    private String externalReferenceSource;
+
+    @Column(name = "ext_ref_id",  length = 128)
+    private String externalReferenceId;
 
     @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
     @ToString.Exclude

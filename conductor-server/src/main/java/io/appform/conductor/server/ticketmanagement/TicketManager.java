@@ -549,6 +549,7 @@ public class TicketManager {
                                                    subject,
                                                    workflow.getStates().get(skeleton.getTicketStateId()),
                                                    skeleton.getPriority(),
+                                                   skeleton.getExternalReferenceID(),
                                                    skeleton.getCreated(),
                                                    skeleton.getUpdated()),
                                  skeleton.getFields(),
@@ -798,6 +799,7 @@ public class TicketManager {
                            ticketStateMachineContext.getSubject().getGlobalId(),
                            startStateId,
                            TicketPriority.MEDIUM,
+                           null,
                            editedFields)
                 .ifPresent(ticketStateMachineContext::setTicketSkeleton);
     }

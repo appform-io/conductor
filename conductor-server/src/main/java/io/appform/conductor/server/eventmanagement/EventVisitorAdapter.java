@@ -342,4 +342,9 @@ public abstract class EventVisitorAdapter<T> implements EventVisitor<T> {
     public T visit(ReportExecutionCompletedEvent reportExecutionCompletedEvent) {
         return defaultValue;
     }
+
+    @Override
+    public T visit(TicketExternalReferenceIDUpdated ticketExternalReferenceIDUpdated) {
+        return defaultValue;
+    }
 }
