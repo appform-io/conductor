@@ -41,6 +41,7 @@ import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectID
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectSummary;
 import io.appform.conductor.server.templateengines.*;
 import io.appform.conductor.server.ticketmanagement.impl.DBTicketStore;
+import io.appform.conductor.server.ticketmanagement.impl.models.StoredRelatedTicket;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredAttachment;
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredComment;
@@ -126,6 +127,7 @@ class TicketManagerTest {
                                    bundle.createRelatedObjectDao(StoredFieldValue.class),
                                    bundle.createRelatedObjectDao(StoredComment.class),
                                    bundle.createRelatedObjectDao(StoredAttachment.class),
+                                   bundle.createRelatedObjectDao(StoredRelatedTicket.class),
                                    mapper);
         val sStore = mock(SchemaStore.class);
         when(sStore.get(anyString())).thenReturn(Optional.of(schema));

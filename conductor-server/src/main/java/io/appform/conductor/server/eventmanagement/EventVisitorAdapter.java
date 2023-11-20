@@ -344,6 +344,15 @@ public abstract class EventVisitorAdapter<T> implements EventVisitor<T> {
     }
 
     @Override
+    public T visit(RelatedTicketAddedEvent relatedTicketAddedEvent) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(RelatedTicketDeletedEvent relatedTicketDeletedEvent) {
+        return defaultValue;
+    }
+
     public T visit(TicketExternalReferenceIDUpdated ticketExternalReferenceIDUpdated) {
         return defaultValue;
     }
