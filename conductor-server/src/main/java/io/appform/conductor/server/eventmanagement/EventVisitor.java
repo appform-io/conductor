@@ -16,6 +16,9 @@
 
 package io.appform.conductor.server.eventmanagement;
 
+import io.appform.conductor.server.eventmanagement.events.ticket.RelatedTicketAddedEvent;
+import io.appform.conductor.server.eventmanagement.events.ticket.RelatedTicketDeletedEvent;
+import io.appform.conductor.server.eventmanagement.events.ticket.TicketExternalReferenceIDUpdated;
 import io.appform.conductor.server.eventmanagement.events.actions.ActionCreatedEvent;
 import io.appform.conductor.server.eventmanagement.events.actions.ActionDeletedEvent;
 import io.appform.conductor.server.eventmanagement.events.actions.ActionUpdatedEvent;

@@ -27,7 +27,7 @@ db:
     - driverClass: org.mariadb.jdbc.Driver
       user: root
       password: password
-      url: jdbc:mariadb://localhost/conductor_shard1?createDatabaseIfNotExist=true
+      url: jdbc:mariadb://localhost/cs_1?createDatabaseIfNotExist=true
       properties:
         charSet: UTF-8
         hibernate.dialect: org.hibernate.dialect.MariaDBDialect
@@ -44,7 +44,7 @@ db:
     - driverClass: org.mariadb.jdbc.Driver
       user: root
       password: password
-      url: jdbc:mariadb://localhost/conductor_shard2?createDatabaseIfNotExist=true
+      url: jdbc:mariadb://localhost/cs_2?createDatabaseIfNotExist=true
       properties:
         charSet: UTF-8
         hibernate.dialect: org.hibernate.dialect.MariaDBDialect
@@ -62,7 +62,7 @@ auth:
   signingSecret: "t1ArsjdSJqWdVSPAW2tMQ4Z1Ck0T9J9j"
   sessionDuration: 30d
   # Uncomment the following line for initial setup
-#  disableRoleCheck: true
+  disableRoleCheck: true
 
 mailConfig:
   smtpServer: sandbox.smtp.mailtrap.io
