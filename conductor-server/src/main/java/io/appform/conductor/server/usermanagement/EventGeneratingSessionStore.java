@@ -4,8 +4,8 @@ import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.model.usermgmt.UserSessionDetails;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.events.user.UserSessionCreatedEvent;
-import io.appform.conductor.server.eventmanagement.events.user.UserSessionUpdatedEvent;
+import io.appform.conductor.model.events.impl.user.UserSessionCreatedEvent;
+import io.appform.conductor.model.events.impl.user.UserSessionUpdatedEvent;
 import lombok.val;
 
 import javax.inject.Inject;

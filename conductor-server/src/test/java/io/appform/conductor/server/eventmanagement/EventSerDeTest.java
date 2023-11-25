@@ -18,9 +18,11 @@ package io.appform.conductor.server.eventmanagement;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
+import io.appform.conductor.model.events.Event;
+import io.appform.conductor.model.events.EventSubType;
 import io.appform.conductor.model.reporting.ReportRun;
 import io.appform.conductor.model.reporting.ReportRunResult;
-import io.appform.conductor.server.eventmanagement.events.reporting.ReportExecutionCompletedEvent;
+import io.appform.conductor.model.events.impl.reporting.ReportExecutionCompletedEvent;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +44,7 @@ class EventSerDeTest {
     @BeforeAll
     static void configure() {
         ConductorServerUtils.configureMapper(MAPPER);
-        val reflections = new Reflections("io.appform.conductor.server.eventmanagement");
+        val reflections = new Reflections("io.appform.conductor.model.events");
         val events = reflections.getTypesAnnotatedWith(EventSubType.class);
         events.forEach(eventType -> {
             val name = eventType.getAnnotation(EventSubType.class).value().name();

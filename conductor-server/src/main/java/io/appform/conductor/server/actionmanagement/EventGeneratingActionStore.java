@@ -4,9 +4,9 @@ import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.events.actions.ActionCreatedEvent;
-import io.appform.conductor.server.eventmanagement.events.actions.ActionDeletedEvent;
-import io.appform.conductor.server.eventmanagement.events.actions.ActionUpdatedEvent;
+import io.appform.conductor.model.events.impl.actions.ActionCreatedEvent;
+import io.appform.conductor.model.events.impl.actions.ActionDeletedEvent;
+import io.appform.conductor.model.events.impl.actions.ActionUpdatedEvent;
 import lombok.val;
 
 import javax.inject.Inject;

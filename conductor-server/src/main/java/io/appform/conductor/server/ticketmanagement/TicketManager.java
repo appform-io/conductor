@@ -33,6 +33,7 @@ import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.subject.SubjectSummary;
 import io.appform.conductor.model.ticket.TicketDetails;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.TicketRelationship;
 import io.appform.conductor.model.ticket.TicketSummary;
 import io.appform.conductor.model.ticket.analytics.*;
 import io.appform.conductor.model.ticket.comments.Comment;

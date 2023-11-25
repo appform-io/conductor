@@ -3,7 +3,7 @@ package io.appform.conductor.server.workflowmanagement;
 import io.appform.conductor.model.workflow.*;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.events.workflow.*;
+import io.appform.conductor.model.events.impl.workflow.*;
 import lombok.val;
 
 import javax.inject.Inject;

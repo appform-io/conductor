@@ -29,7 +29,7 @@ import io.appform.conductor.model.ticket.analytics.TicketQueryResponseVisitor;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.comms.MailSender;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.events.reporting.ReportExecutionCompletedEvent;
+import io.appform.conductor.model.events.impl.reporting.ReportExecutionCompletedEvent;
 import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.appform.conductor.server.utils.ConductorServerUtils;

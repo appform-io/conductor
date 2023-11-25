@@ -16,9 +16,18 @@
 
 package io.appform.conductor.server.eventmanagement;
 
-import com.google.common.collect.Table;
-import io.appform.conductor.server.eventmanagement.query.EventFilters;
-import io.appform.conductor.server.eventmanagement.query.EventListResult;
+import io.appform.conductor.model.events.Event;
+import io.appform.conductor.model.events.analytics.EventFilters;
+import io.appform.conductor.model.events.analytics.EventQueryRequest;
+import io.appform.conductor.model.events.analytics.EventQueryResponse;
+import io.appform.conductor.model.events.analytics.EventQueryVisitor;
+import io.appform.conductor.model.events.analytics.impl.EventGroupRequest;
+import io.appform.conductor.model.events.analytics.impl.EventGroupResponse;
+import io.appform.conductor.model.events.analytics.impl.EventListRequest;
+import io.appform.conductor.model.events.analytics.impl.EventListResponse;
+import io.appform.conductor.model.ticket.analytics.GroupingElement;
+
+import java.util.List;
 
 /**
  * A storage system for events
@@ -26,7 +35,21 @@ import io.appform.conductor.server.eventmanagement.query.EventListResult;
 public interface EventStore {
     boolean save(String eventId, final Event event);
 
-    EventListResult list(EventFilters filters, String nextPointer, int size);
+    default EventQueryResponse query(final EventQueryRequest query) {
+        return query.accpet(new EventQueryVisitor<>() {
+            @Override
+            public EventQueryResponse visit(EventListRequest listRequest) {
+                return list(listRequest.getFilters(), listRequest.getNextPointer(), listRequest.getSize());
+            }
 
-    Table<Integer, String, Object> groupBy(EventFilters filters);
+            @Override
+            public EventQueryResponse visit(EventGroupRequest groupRequest) {
+                return groupBy(groupRequest.getFilters(), groupRequest.getGroupingElements());
+            }
+        });
+    }
+
+    EventListResponse list(EventFilters filters, String nextPointer, int size);
+
+    EventGroupResponse groupBy(EventFilters filters, List<GroupingElement> groupingElements);
 }

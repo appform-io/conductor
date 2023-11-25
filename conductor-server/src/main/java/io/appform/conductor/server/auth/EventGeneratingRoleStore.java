@@ -4,9 +4,9 @@ import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.auth.Role;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.events.role.RoleCreatedEvent;
-import io.appform.conductor.server.eventmanagement.events.role.RoleDeletedEvent;
-import io.appform.conductor.server.eventmanagement.events.role.RoleUpdatedEvent;
+import io.appform.conductor.model.events.impl.role.RoleCreatedEvent;
+import io.appform.conductor.model.events.impl.role.RoleDeletedEvent;
+import io.appform.conductor.model.events.impl.role.RoleUpdatedEvent;
 import lombok.val;
 
 import javax.inject.Inject;

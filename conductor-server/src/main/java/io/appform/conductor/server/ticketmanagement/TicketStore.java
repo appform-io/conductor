@@ -22,6 +22,7 @@ import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.ExternalReferenceID;
+import io.appform.conductor.model.ticket.TicketRelationship;
 import io.appform.conductor.model.ticket.analytics.*;
 import io.appform.conductor.model.ticket.comments.Attachment;
 import io.appform.conductor.model.ticket.comments.Comment;

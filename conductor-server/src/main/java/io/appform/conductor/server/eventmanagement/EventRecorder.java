@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.eventmanagement;
 
+import io.appform.conductor.model.events.Event;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

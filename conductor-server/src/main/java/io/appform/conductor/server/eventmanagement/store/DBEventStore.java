@@ -18,14 +18,16 @@ package io.appform.conductor.server.eventmanagement.store;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.google.common.collect.Table;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
-import io.appform.conductor.server.eventmanagement.Event;
+import io.appform.conductor.model.events.analytics.impl.EventGroupResponse;
+import io.appform.conductor.model.ticket.analytics.GroupingElement;
+import io.appform.conductor.model.events.Event;
 import io.appform.conductor.server.eventmanagement.EventStore;
-import io.appform.conductor.server.eventmanagement.query.EventFilters;
-import io.appform.conductor.server.eventmanagement.query.EventListResult;
+import io.appform.conductor.model.events.analytics.EventFilters;
+import io.appform.conductor.model.events.analytics.impl.EventListResponse;
 import io.appform.conductor.server.eventmanagement.store.models.StoredEvent;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.utils.Pair;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.dropwizard.sharding.scroll.ScrollPointer;
@@ -38,11 +40,12 @@ import org.hibernate.criterion.Property;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
  * Stores events in DB.
- * Fields are stored directly for {@link Event}. Others are serialized as a map.
+ * Fields are stored directly for {@link Event}. The whole event is serialized and stored
  * Event shard routing is mostly on referred object ids as we expect most queries to be around that.
  */
 @Singleton
@@ -74,44 +77,24 @@ public class DBEventStore implements EventStore {
 
     @Override
     @SneakyThrows
-    public EventListResult list(EventFilters filters, String nextPointer, int size) {
-        val criteria = DetachedCriteria.forClass(StoredEvent.class);
-        if (null != filters.getEventTypes() && !filters.getEventTypes().isEmpty()) {
-            criteria.add(Property.forName(StoredEvent.Fields.type).in(filters.getEventTypes()));
-        }
-        if (null != filters.getReference()) {
-            criteria.add(Property.forName(StoredEvent.Fields.objectId).eq(filters.getReference().objectId()))
-                    .add(Property.forName(StoredEvent.Fields.objectType).eq(filters.getReference().type()));
-        }
-        else if(null != filters.getReferenceType()) {
-           criteria.add(Property.forName(StoredEvent.Fields.objectType).eq(filters.getReferenceType()));
-        }
-        if (null != filters.getUserIds()  && !filters.getUserIds().isEmpty()) {
-            criteria.add(Property.forName(StoredEvent.Fields.userId).in(filters.getUserIds()));
-        }
-        if (null != filters.getTimeWindow()) {
-            val startDate = Objects.requireNonNullElse(filters.getTimeWindow().getFrom(), new Date());
-            criteria.add(Property.forName(StoredEvent.Fields.date)
-                                 .between(startDate,
-                                          new Date(startDate.getTime() - filters.getTimeWindow()
-                                                  .getDuration()
-                                                  .toMillis())));
-        }
+    public EventListResponse list(EventFilters filters, String nextPointer, int size) {
+        val criteria = createCriteria(filters);
         val ptr = Strings.isNullOrEmpty(nextPointer)
                   ? null
                   : mapper.readValue(nextPointer, ScrollPointer.class);
         //TODO::YEAR etc
         val result = eventDao.scrollUp(criteria, ptr, size, StoredEvent.Fields.date);
-        return new EventListResult(result.getResult()
+        return new EventListResponse(result.getResult()
                                            .stream()
                                            .map(e -> toEvent(e.getSource(), e.getSourceFormat()))
                                            .toList(),
-                                   mapper.writeValueAsString(result.getPointer()));
+                                     mapper.writeValueAsString(result.getPointer()));
     }
 
     @Override
-    public Table<Integer, String, Object> groupBy(EventFilters filters) {
-        return null;
+    public EventGroupResponse groupBy(EventFilters filters, List<GroupingElement> groupingElements) {
+        val criteria = createCriteria(filters);
+        return new EventGroupResponse(ConductorServerUtils.groupByAcrossShards(groupingElements, eventDao::run, criteria));
     }
 
     private static String partitionKey(final Event event) {
@@ -128,5 +111,31 @@ public class DBEventStore implements EventStore {
         return switch (format) {
             case V1 -> mapper.readValue(data, Event.class);
         };
+    }
+
+    private static DetachedCriteria createCriteria(EventFilters filters) {
+        val criteria = DetachedCriteria.forClass(StoredEvent.class);
+        if (null != filters.getEventTypes() && !filters.getEventTypes().isEmpty()) {
+            criteria.add(Property.forName(StoredEvent.Fields.type).in(filters.getEventTypes()));
+        }
+        if (null != filters.getReference()) {
+            criteria.add(Property.forName(StoredEvent.Fields.objectId).eq(filters.getReference().objectId()))
+                    .add(Property.forName(StoredEvent.Fields.objectType).eq(filters.getReference().type()));
+        }
+        else if(null != filters.getReferenceType()) {
+            criteria.add(Property.forName(StoredEvent.Fields.objectType).eq(filters.getReferenceType()));
+        }
+        if (null != filters.getUserIds()  && !filters.getUserIds().isEmpty()) {
+            criteria.add(Property.forName(StoredEvent.Fields.userId).in(filters.getUserIds()));
+        }
+        if (null != filters.getTimeWindow()) {
+            val startDate = Objects.requireNonNullElse(filters.getTimeWindow().getFrom(), new Date());
+            criteria.add(Property.forName(StoredEvent.Fields.date)
+                                 .between(startDate,
+                                          new Date(startDate.getTime() - filters.getTimeWindow()
+                                                  .getDuration()
+                                                  .toMillis())));
+        }
+        return criteria;
     }
 }

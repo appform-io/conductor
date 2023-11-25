@@ -5,9 +5,9 @@ import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.usermgmt.UserType;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.events.user.UserCreatedEvent;
-import io.appform.conductor.server.eventmanagement.events.user.UserStateChangeEvent;
-import io.appform.conductor.server.eventmanagement.events.user.UserUpdatedEvent;
+import io.appform.conductor.model.events.impl.user.UserCreatedEvent;
+import io.appform.conductor.model.events.impl.user.UserStateChangeEvent;
+import io.appform.conductor.model.events.impl.user.UserUpdatedEvent;
 import lombok.val;
 
 import javax.inject.Inject;

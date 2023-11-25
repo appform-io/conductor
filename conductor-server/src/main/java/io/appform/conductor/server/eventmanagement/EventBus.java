@@ -16,6 +16,8 @@
 
 package io.appform.conductor.server.eventmanagement;
 
+import io.appform.conductor.model.events.Event;
+
 /**
  *
  */

@@ -16,7 +16,7 @@
 
 package io.appform.conductor.server.eventmanagement.handlers;
 
-import io.appform.conductor.server.eventmanagement.Event;
+import io.appform.conductor.model.events.Event;
 import io.appform.conductor.server.eventmanagement.EventHandler;
 import io.appform.conductor.server.eventmanagement.EventHandlerImplementation;
 import lombok.extern.slf4j.Slf4j;
