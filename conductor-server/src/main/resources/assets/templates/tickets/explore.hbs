@@ -21,6 +21,10 @@
                 </div>
             </form>
         </div>
+    </div>
+    <div id="cqlAlert">
+
+    </div>
 
     <section class="results">
 
@@ -47,15 +51,32 @@
 {{/partial}}
 
 {{#partial "page_js"}}
+    function showAlert(message) {
+        const htmlString = `
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            <div><span id="cqlErrorMessage">` + message + `</span></div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        `;
+        const alert = $('#cqlAlert');
+        alert.html(htmlString);
+    }
+
     const dataSize = 5;
     $("#query-form").submit(e => {
         e.preventDefault();
         const query = $("#query").val();
-        $.get("/apis/tickets/v1/query?format=TABLE&length=" + dataSize + "&query=" + encodeURIComponent(query),
+        $.get("/apis/analytics/v1/query?format=TABLE&length=" + dataSize + "&query=" + encodeURIComponent(query),
             function(res) {
-                if(!res || res.status != 'SUCCESS') {
+                if(!res) {
+                    showAlert("No response");
                     return;
                 }
+                if(res.status != 'SUCCESS') {
+                    showAlert(res.status + ": " + res.message);
+                    return;
+                }
+                $('#cqlAlert').html("");
                 if(res.data) {
                     const rows = Object.values(res.data.results);
                     if(res.data.metadata.opCode=="LIST") {
@@ -171,7 +192,7 @@
         const loadButton = $(this);
         const nextPage = dt.attr('nextPage');
         const query = dt.attr('currentQuery');
-        $.get("/apis/tickets/v1/query?format=TABLE&length=" + dataSize
+        $.get("/apis/analytics/v1/query?format=TABLE&length=" + dataSize
                 + "&query=" + query + (nextPage ?  "&next=" + nextPage : ""),
             function(res) {
                 if(!res || res.status != 'SUCCESS') {
