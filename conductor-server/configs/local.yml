@@ -15,7 +15,7 @@ logging:
   level: INFO
   loggers:
     io.appform.conductor: DEBUG
-
+#     log4j.logger.org.hibernate.type: TRACE
   appenders:
     - type: console
       threshold: TRACE

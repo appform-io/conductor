@@ -65,38 +65,50 @@
                         listOutput.removeClass('visually-hidden')
                             .removeClass('list-prototype');
                         listOutput.find('.query-title').text(query);
-                        var columns = [
-                            {
-                                'title': 'ID',
-                                'data' : 'ticketId'
-                            },
-                            {
-                                'title': 'Title',
-                                'data' : 'ticketId' ,
-                                'render' : function(data, type, row, meta) {
-                                    return '<a href="/tickets/' + data + '/details">' + row['title'] + '</a>';
-                                }
-                            },
-                            { 'title' : 'Workflow Name', 'data' : 'workflowName' },
-                            {
-                                'title' : 'State',
-                                'data' : 'stateName',
-                                'render' : function(data, type, row, meta) {
-                                    return '<span class="badge ' + (row['terminated'] ? 'bg-secondary' : 'bg-info') + ' ms-2">' + data + '</span>';
-                                }
-                            },
-                            { 'title': 'Priority', 'data' : 'priority' },
-                            { 'title': 'Created', 'data' : 'created', 'render' : timeSince },
-                            { 'title': 'Updated', 'data' : 'updated', 'render' : timeSince }
-                        ];
-                        columns = columns.concat(res.data.metadata.colHeaders
-                                .filter(header => header.startsWith("fields_"))
-                                .map(header => {
-                                    return {
-                                        'title' : header,
-                                        'data' : header
-                                    };
-                                }));
+                        var columns = [];
+                        if(res.data.metadata.domain == "TICKETS") {
+                            columns = [
+                                {
+                                    'title': 'ID',
+                                    'data' : 'ticketId'
+                                },
+                                {
+                                    'title': 'Title',
+                                    'data' : 'ticketId' ,
+                                    'render' : function(data, type, row, meta) {
+                                        return '<a href="/tickets/' + data + '/details">' + row['title'] + '</a>';
+                                    }
+                                },
+                                { 'title' : 'Workflow Name', 'data' : 'workflowName' },
+                                {
+                                    'title' : 'State',
+                                    'data' : 'stateName',
+                                    'render' : function(data, type, row, meta) {
+                                        return '<span class="badge ' + (row['terminated'] ? 'bg-secondary' : 'bg-info') + ' ms-2">' + data + '</span>';
+                                    }
+                                },
+                                { 'title': 'Priority', 'data' : 'priority' },
+                                { 'title': 'Created', 'data' : 'created', 'render' : timeSince },
+                                { 'title': 'Updated', 'data' : 'updated', 'render' : timeSince }
+                            ];
+                            columns = columns.concat(res.data.metadata.colHeaders
+                                    .filter(header => header.startsWith("fields_"))
+                                    .map(header => {
+                                        return {
+                                            'title' : header,
+                                            'data' : header
+                                        };
+                                    }));
+                        }
+                        else {
+                            columns = res.data.metadata.colHeaders
+                                        .map(header => {
+                                            return {
+                                                'title' : header,
+                                                'data' : header
+                                            };
+                                        })
+                        }
                         const dt = table.DataTable({
                             paging: false,
                             info: false,

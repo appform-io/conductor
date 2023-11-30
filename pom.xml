@@ -33,8 +33,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <lombok.version>1.18.24</lombok.version>
-        <dropwizard.version>2.1.4</dropwizard.version>
-        <dropwizard.sharding.version>2.0.28-9-SCROLL-RC3</dropwizard.sharding.version>
+        <dropwizard.version>2.1.10</dropwizard.version>
+        <dropwizard.sharding.version>2.1.10-1-SCROLL-RC3</dropwizard.sharding.version>
         <dropwizard.swagger.version>2.1.4-1</dropwizard.swagger.version>
         <handlebars.version>4.3.1</handlebars.version>
         <mariadb.driver.version>3.1.2</mariadb.driver.version>
@@ -54,7 +54,7 @@
         <aspectj.version>1.9.9.1</aspectj.version>
         <junit.version>5.8.2</junit.version>
         <mockito.version>4.4.0</mockito.version>
-        <wiremock.version>2.35.1</wiremock.version>
+        <wiremock.version>3.3.1</wiremock.version>
         <h2.version>2.2.220</h2.version>
     </properties>
 
@@ -62,7 +62,7 @@
         <dependencies>
             <dependency>
                 <groupId>io.dropwizard</groupId>
-                <artifactId>dropwizard-dependencies</artifactId>
+                <artifactId>dropwizard-bom</artifactId>
                 <version>${dropwizard.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
@@ -75,19 +75,14 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>org.hibernate.validator</groupId>
-                <artifactId>hibernate-validator</artifactId>
-                <version>6.0.20.Final</version>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>32.1.3-jre</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.httpcomponents.client5</groupId>
                 <artifactId>httpclient5</artifactId>
                 <version>${httpclient.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.dropwizard.metrics</groupId>
-                <artifactId>metrics-core</artifactId>
-                <version>4.2.17</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -119,8 +114,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock-jre8</artifactId>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock-standalone</artifactId>
             <version>${wiremock.version}</version>
             <scope>test</scope>
         </dependency>

@@ -19,6 +19,7 @@ package io.appform.conductor.server.taskmanagement.impl;
 import io.appform.conductor.model.ticket.analytics.TicketGroupResponse;
 import io.appform.conductor.model.ticket.analytics.TicketListResponse;
 import io.appform.conductor.model.ticket.analytics.TicketQueryResponseVisitor;
+import io.appform.conductor.server.eventmanagement.EventStore;
 import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
 import io.appform.conductor.server.taskmanagement.model.RunActionOnCQLSelectTaskSpec;
@@ -44,6 +45,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class RunActionOnCQLSelectExecutor {
     private static final String TASK_META_CURSOR = "SCROLL_CURSOR";
     private final TicketManager ticketManager;
+    private final EventStore eventStore;
     private final CQLEngine cqlEngine;
 
     @SuppressWarnings("unused")
@@ -67,30 +69,36 @@ public class RunActionOnCQLSelectExecutor {
                     nextPtr.get(),
                     10,
                     parserOutput,
-                    ticketManager);
-            queryResponse.accept(new TicketQueryResponseVisitor<Void>() {
-                @Override
-                public Void visit(TicketListResponse listResponse) {
-                    hasMore.set(!listResponse.getResults().isEmpty());
-                    nextPtr.set(listResponse.getNext());
-                    listResponse.getResults()
-                            .forEach(gist -> taskSpec.getActionIds()
-                                    .forEach(actionId -> {
-                                        log.info("Applying action {} on ticket {}",
-                                                 actionId, gist.getTicketId());
-                                        ticketManager.triggerTicketAction(gist.getTicketId(), actionId);
-                                    }));
-                    return null;
-                }
+                    ticketManager,
+                    eventStore);
+            switch (queryResponse.getDomain()) {
+                case TICKETS -> queryResponse.getTicketQueryResponse().accept(new TicketQueryResponseVisitor<Void>() {
+                    @Override
+                    public Void visit(TicketListResponse listResponse) {
+                        hasMore.set(!listResponse.getResults().isEmpty());
+                        nextPtr.set(listResponse.getNext());
+                        listResponse.getResults()
+                                .forEach(gist -> taskSpec.getActionIds()
+                                        .forEach(actionId -> {
+                                            log.info("Applying action {} on ticket {}",
+                                                     actionId, gist.getTicketId());
+                                            ticketManager.triggerTicketAction(gist.getTicketId(), actionId);
+                                        }));
+                        return null;
+                    }
 
-                @Override
-                public Void visit(TicketGroupResponse groupResponse) {
-                    log.warn("Aggregations are not supported on tasks as of now. Task ID: {}, CQL: {}",
-                             task.getId(),
-                             taskSpec.getQuery());
-                    return null;
+                    @Override
+                    public Void visit(TicketGroupResponse groupResponse) {
+                        log.warn("Aggregations are not supported on tasks as of now. Task ID: {}, CQL: {}",
+                                 task.getId(),
+                                 taskSpec.getQuery());
+                        return null;
+                    }
+                });
+                case EVENTS -> {
+                    //TODO::EVENTS
                 }
-            });
+            }
         } while (hasMore.get());
         return new ConductorTaskScheduler.TaskResult(
                 ConductorTaskScheduler.TaskStatus.SUCCESS,

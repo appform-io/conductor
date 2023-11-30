@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 /**
  *
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "opCode")
 @JsonSubTypes({
         @JsonSubTypes.Type(name = "LIST", value = EventListResponse.class),
         @JsonSubTypes.Type(name = "GROUP_BY", value = EventGroupResponse.class),
@@ -35,7 +35,7 @@ import lombok.RequiredArgsConstructor;
 @Data
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class EventQueryResponse {
-    private final EventQueryOpCode operation;
+    private final EventQueryOpCode opCode;
 
     public abstract <T> T accept(final EventQueryResponseVisitor<T> visitor);
 }

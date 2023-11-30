@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.events.analytics;
+package io.appform.conductor.server.dashboards.model;
 
-import io.dropwizard.util.Duration;
-import lombok.Builder;
 import lombok.Value;
-
-import java.util.Date;
 
 /**
  *
  */
 @Value
-@Builder
-public class EventTimeWindow {
-    Duration duration;
-    Date from;
+public class DashboardSection {
+    public enum QueryType {
+        CQL
+    }
+
+    String title;
+    QueryType queryType;
+    String cqlQuery;
 }

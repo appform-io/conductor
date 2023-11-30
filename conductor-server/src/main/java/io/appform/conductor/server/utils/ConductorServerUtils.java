@@ -31,6 +31,11 @@ import com.google.common.collect.Table;
 import com.google.common.collect.TreeBasedTable;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
+import io.appform.conductor.model.events.Event;
+import io.appform.conductor.model.events.analytics.EventQueryResponse;
+import io.appform.conductor.model.events.analytics.EventQueryResponseVisitor;
+import io.appform.conductor.model.events.analytics.impl.EventGroupResponse;
+import io.appform.conductor.model.events.analytics.impl.EventListResponse;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.ticket.TicketDetails;
@@ -391,7 +396,7 @@ public class ConductorServerUtils {
         }
     }
 
-    public static Table<Integer, String, Object> tabulate(
+    public static Table<Integer, String, Object> tabulateTicketQueryResponse(
             TicketQueryResponse response,
             List<CQLEngine.SelectedField> selectedFields) {
         val output = TreeBasedTable.<Integer, String, Object>create();
@@ -427,7 +432,47 @@ public class ConductorServerUtils {
 
         });
         return output;
+    }    public static Table<Integer, String, Object> tabulateEventQueryResponse(
+            EventQueryResponse response) {
+        val output = TreeBasedTable.<Integer, String, Object>create();
+        val rowIdx = new AtomicInteger(0);
+        response.accept(new EventQueryResponseVisitor<Void>() {
+            @Override
+            public Void visit(EventListResponse listResponse) {
+                listResponse.getResults()
+                        .forEach(event -> {
+                            val cols = output.row(rowIdx.incrementAndGet());
+                            cols.put(Event.Fields.id, event.getId());
+                            cols.put(Event.Fields.type, event.getType());
+                            cols.put(Event.Fields.date, event.getDate().toInstant().toString());
+                            cols.put(Event.Fields.objectType, event.getObjectType());
+                            cols.put(Event.Fields.objectId, event.getObjectId());
+                            cols.put(Event.Fields.userId, Strings.isNullOrEmpty(event.getUserId())
+                                    ? "" : event.getUserId());
+                            val eventTime = event.getEventTime();
+                            cols.put("date." + Event.EventTime.Fields.year, eventTime.getYear());
+                            cols.put("date." + Event.EventTime.Fields.month, eventTime.getMonth());
+                            cols.put("date." + Event.EventTime.Fields.day, eventTime.getDay());
+                            cols.put("date." + Event.EventTime.Fields.hour, eventTime.getHour());
+                            cols.put("date." + Event.EventTime.Fields.minute, eventTime.getMinute());
+                            cols.put("date." + Event.EventTime.Fields.second, eventTime.getSecond());
+                            cols.put("date." + Event.EventTime.Fields.millisecond, eventTime.getMillisecond());
+
+                            //TODO::SUBCLASS FIELDS
+                        });
+                return null;
+            }
+
+            @Override
+            public Void visit(EventGroupResponse groupResponse) {
+                output.putAll(groupResponse.getCounts());
+                return null;
+            }
+
+        });
+        return output;
     }
+
 
     private static String toString(final FieldValue fieldValue) {
         return fieldValue.accept(new FieldValueVisitor<String>() {
@@ -493,7 +538,7 @@ public class ConductorServerUtils {
                         return new TimeBucketGroupingElement(timeBucketGroupingElement.getDateAttribute(),
                                                              timeBucketGroupingElement.getResolution(),
                                                              Objects.requireNonNullElse(timeBucketGroupingElement.getAlias(),
-                                                                                        "timestamp"));
+                                                                                        timeBucketGroupingElement.getDateAttribute()));
                     }
                 }))
                 .toList();
@@ -534,9 +579,9 @@ public class ConductorServerUtils {
         return switch (timeBucketGroupingElement.getResolution()) {
             case MINUTE -> 60;
             case HOUR -> 36_00;
-            case DAY -> 864_000;
-            case WEEK -> 7 * 864_000;
-            case MONTH -> 30 * 864_000;
+            case DAY -> 864_00;
+            case WEEK -> 7 * 864_00;
+            case MONTH -> 30 * 864_00;
         };
     }
 

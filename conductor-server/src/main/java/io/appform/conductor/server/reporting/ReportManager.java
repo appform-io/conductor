@@ -30,6 +30,7 @@ import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.comms.MailSender;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.model.events.impl.reporting.ReportExecutionCompletedEvent;
+import io.appform.conductor.server.eventmanagement.EventStore;
 import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.appform.conductor.server.utils.ConductorServerUtils;
@@ -52,7 +53,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.tabulate;
+import static io.appform.conductor.server.utils.ConductorServerUtils.tabulateTicketQueryResponse;
 
 /**
  *
@@ -68,6 +69,7 @@ public class ReportManager implements Managed {
     private final EventBus eventBus;
     private final CQLEngine cqlEngine;
     private final TicketManager ticketManager;
+    private final EventStore eventStore;
     private final MailSender mailSender;
     private final ExecutorService reportRunnerPool;
 
@@ -79,7 +81,7 @@ public class ReportManager implements Managed {
             EventBus eventBus,
             CQLEngine cqlEngine,
             TicketManager ticketManager,
-            MailSender mailSender,
+            EventStore eventStore, MailSender mailSender,
             @Named(ConductorModule.BACKGROUND_JOBS_POOL_NAME) ExecutorService reportRunnerPool) {
         this.reportStore = reportStore;
         this.eventBus = eventBus;
@@ -87,6 +89,7 @@ public class ReportManager implements Managed {
 
 
         this.ticketManager = ticketManager;
+        this.eventStore = eventStore;
         this.mailSender = mailSender;
         this.reportRunnerPool = reportRunnerPool;
     }
@@ -159,6 +162,7 @@ public class ReportManager implements Managed {
                                                              eventBus,
                                                              cqlEngine,
                                                              ticketManager,
+                                                             eventStore,
                                                              mailSender,
                                                              reportRunnerPool,
                                                              currentlyRunningReports,
@@ -179,6 +183,7 @@ public class ReportManager implements Managed {
             EventBus eventBus,
             CQLEngine cqlEngine,
             TicketManager ticketManager,
+            EventStore eventStore,
             MailSender mailSender,
             ExecutorService reportRunner,
             Map<String, String> currentlyRunningReports,
@@ -193,6 +198,7 @@ public class ReportManager implements Managed {
                                                          reportStore,
                                                          cqlEngine,
                                                          ticketManager,
+                                                         eventStore,
                                                          mailSender,
                                                          eventBus,
                                                          currentlyRunningReports
@@ -209,6 +215,7 @@ public class ReportManager implements Managed {
         private final ReportStore reportStore;
         private final CQLEngine cqlEngine;
         private final TicketManager ticketManager;
+        private final EventStore eventStore;
         private final MailSender mailSender;
         private final EventBus eventBus;
         private final Map<String, String> currentlyRunningReports;
@@ -281,10 +288,23 @@ public class ReportManager implements Managed {
                                                                next,
                                                                10,
                                                                parserOutput,
-                                                               ticketManager);
-                        val table = tabulate(queryResponse, parserOutput.selectedFields());
-                        responseCount = getResponseCount(queryResponse);
-                        next = nextPointer(queryResponse);
+                                                               ticketManager,
+                                                               eventStore);
+                        val table = switch (queryResponse.getDomain()) {
+
+                            case TICKETS -> tabulateTicketQueryResponse(queryResponse.getTicketQueryResponse(),
+                                                                        ((CQLEngine.CQLTicketParserOutput) parserOutput).getSelectedFields());
+                            case EVENTS -> null; //TODO::EVENTS
+                        };
+                        responseCount = switch (queryResponse.getDomain()) {
+                            case TICKETS -> getResponseCountForTickets(queryResponse.getTicketQueryResponse());
+                            case EVENTS -> 0;  //TODO::EVENTS
+                        };
+                        next = switch (queryResponse.getDomain()) {
+
+                            case TICKETS -> nextPointerForTickets(queryResponse.getTicketQueryResponse());
+                            case EVENTS -> null;
+                        };
                         if (null == printer) {
                             printer = CSVFormat.Builder.create()
                                     .setHeader(table.columnKeySet().toArray(new String[0]))
@@ -322,7 +342,7 @@ public class ReportManager implements Managed {
                                        "Sent Successfully");
         }
 
-        private static Integer getResponseCount(TicketQueryResponse queryResponse) {
+        private static Integer getResponseCountForTickets(TicketQueryResponse queryResponse) {
             return queryResponse.accept(new TicketQueryResponseVisitor<>() {
                 @Override
                 public Integer visit(TicketListResponse listResponse) {
@@ -336,7 +356,7 @@ public class ReportManager implements Managed {
             });
         }
 
-        private static String nextPointer(TicketQueryResponse queryResponse) {
+        private static String nextPointerForTickets(TicketQueryResponse queryResponse) {
             return queryResponse.accept(new TicketQueryResponseVisitor<String>() {
                 @Override
                 public String visit(TicketListResponse listResponse) {

@@ -16,13 +16,20 @@
 
 package io.appform.conductor.server.resources.apis;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import io.appform.conductor.model.apis.ConductorApiResponse;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
+import io.appform.conductor.model.events.Event;
+import io.appform.conductor.model.events.analytics.EventQueryResponseVisitor;
+import io.appform.conductor.model.events.analytics.impl.EventGroupResponse;
+import io.appform.conductor.model.events.analytics.impl.EventListResponse;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.analytics.*;
 import io.appform.conductor.server.auth.ConductorUser;
+import io.appform.conductor.server.eventmanagement.EventStore;
 import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.appform.conductor.server.utils.ConductorServerUtils;
@@ -56,6 +63,7 @@ import static io.appform.conductor.server.resources.apis.Analytics.translateToTi
 public class Tickets {
 
     private final TicketManager ticketManager;
+    private final EventStore eventStore;
     private final CQLEngine cqlEngine;
 
     @GET
@@ -90,59 +98,22 @@ public class Tickets {
             @QueryParam("length") @DefaultValue("100") @Min(5) @Max(200) int size,
             @QueryParam("format") @DefaultValue("DEFAULT") final ResponseFormat responseFormat) {
         try {
-            val results = cqlEngine.parse(query).orElse(null);
-            if (null == results) {
+            val parserOutput = cqlEngine.parse(query).orElse(null);
+            if (null == parserOutput) {
                 return ConductorApiResponse.success(null);
             }
-            val queryResponse = CQLEngine.runQuery(requestId, next, size, results, ticketManager);
+            val queryResponse = CQLEngine.runQuery(requestId, next, size, parserOutput, ticketManager, eventStore);
             return ConductorApiResponse.success(
                     switch (responseFormat) {
                         case DEFAULT -> queryResponse;
-                        case TABLE -> {
-                            val table = ConductorServerUtils.tabulate(queryResponse, results.selectedFields());
-                            val metadata = new HashMap<String, Object>();
-                            metadata.put("opCode", queryResponse.getOpCode());
-                            metadata.put("requestId", queryResponse.getRequestId());
-                            metadata.put("query", query);
-                            metadata.computeIfAbsent("colHeaders",
-                                                     key -> Lists.reverse(List.copyOf(table.columnKeySet())));
-                            metadata.putAll(queryResponse.accept(new TicketQueryResponseVisitor<Map<String, Object>>() {
-                                @Override
-                                public Map<String, Object> visit(TicketListResponse listResponse) {
-                                    return ImmutableMap.<String, Object>builder()
-                                            .put("colHeaders",
-                                                 ImmutableList.<String>builder()
-                                                         .add(TicketGist.Fields.ticketId)
-                                                         .add(TicketGist.Fields.title)
-                                                         .add(TicketGist.Fields.workflowName)
-                                                         .add(TicketGist.Fields.stateName)
-                                                         .add(TicketGist.Fields.terminated)
-                                                         .add(TicketGist.Fields.priority)
-                                                         .add(TicketGist.Fields.created)
-                                                         .add(TicketGist.Fields.updated)
-                                                         .addAll(results.selectedFields()
-                                                                         .stream()
-                                                                         .map(CQLEngine.SelectedField::name)
-                                                                         .map(name -> "fields_" + name)
-                                                                         .toList())
-                                                         .build()
-                                                )
-                                            .put("next", listResponse.getNext())
-                                            .build();
-                                }
-
-                                @Override
-                                public Map<String, Object> visit(TicketGroupResponse groupResponse) {
-                                    return Map.of("colHeaders", ImmutableList.builder()
-                                            .addAll(ConductorServerUtils.aliasesForGroupingElements(results.groupingElements()))
-                                            .add("count")
-                                            .build());
-                                }
-
-                            }));
-
-                            yield new TabularResponse(table, metadata);
-                        }
+                        case TABLE -> switch (queryResponse.getDomain()) {
+                            case TICKETS -> tabulateTicketResponse(query,
+                                                                   queryResponse,
+                                                                   (CQLEngine.CQLTicketParserOutput) parserOutput);
+                            case EVENTS -> tabulateEventsResponse(query,
+                                                                  queryResponse,
+                                                                  parserOutput);
+                        };
                     });
         }
         catch (Exception e) {
@@ -159,6 +130,110 @@ public class Tickets {
             throw e;
         }
     }
+
+    private static TabularResponse tabulateTicketResponse(
+            String query,
+            CQLEngine.CQLQueryExecutionOutput queryResponse,
+            CQLEngine.CQLTicketParserOutput parserOutput) {
+        val ticketQueryResponse = queryResponse.getTicketQueryResponse();
+        val table = ConductorServerUtils.tabulateTicketQueryResponse(
+                ticketQueryResponse, parserOutput.getSelectedFields());
+        val metadata = new HashMap<String, Object>();
+        metadata.put("domain", CQLEngine.QueryDomain.TICKETS);
+        metadata.put("opCode", ticketQueryResponse.getOpCode());
+        metadata.put("requestId", ticketQueryResponse.getRequestId());
+        metadata.put("query", query);
+        metadata.computeIfAbsent("colHeaders",
+                                 key -> Lists.reverse(List.copyOf(table.columnKeySet())));
+        metadata.putAll(ticketQueryResponse.accept(new TicketQueryResponseVisitor<Map<String, Object>>() {
+            @Override
+            public Map<String, Object> visit(TicketListResponse listResponse) {
+                return ImmutableMap.<String, Object>builder()
+                        .put("colHeaders",
+                             ImmutableList.<String>builder()
+                                     .add(TicketGist.Fields.ticketId)
+                                     .add(TicketGist.Fields.title)
+                                     .add(TicketGist.Fields.workflowName)
+                                     .add(TicketGist.Fields.stateName)
+                                     .add(TicketGist.Fields.terminated)
+                                     .add(TicketGist.Fields.priority)
+                                     .add(TicketGist.Fields.created)
+                                     .add(TicketGist.Fields.updated)
+                                     .addAll(parserOutput.getSelectedFields()
+                                                     .stream()
+                                                     .map(CQLEngine.SelectedField::name)
+                                                     .map(name -> "fields_" + name)
+                                                     .toList())
+                                     .build()
+                            )
+                        .put("next", listResponse.getNext())
+                        .build();
+            }
+
+            @Override
+            public Map<String, Object> visit(TicketGroupResponse groupResponse) {
+                return Map.of("colHeaders", ImmutableList.builder()
+                        .addAll(ConductorServerUtils.aliasesForGroupingElements(parserOutput.getGroupingElements()))
+                        .add("count")
+                        .build());
+            }
+
+        }));
+
+        return new TabularResponse(table, metadata);
+    }    private static TabularResponse tabulateEventsResponse(
+            String query,
+            CQLEngine.CQLQueryExecutionOutput queryResponse,
+            CQLEngine.CQLParserOutput parserOutput) {
+        val eventQueryResponse = queryResponse.getEventQueryResponse();
+        val table = ConductorServerUtils.tabulateEventQueryResponse(
+                eventQueryResponse);
+        val metadata = new HashMap<String, Object>();
+        metadata.put("domain", CQLEngine.QueryDomain.EVENTS);
+        metadata.put("opCode", eventQueryResponse.getOpCode());
+        //metadata.put("requestId", eventQueryResponse.getRequestId());
+        metadata.put("query", query);
+        metadata.computeIfAbsent("colHeaders",
+                                 key -> Lists.reverse(List.copyOf(table.columnKeySet())));
+        metadata.putAll(eventQueryResponse.accept(new EventQueryResponseVisitor<Map<String, Object>>() {
+            @Override
+            public Map<String, Object> visit(EventListResponse listResponse) {
+                return ImmutableMap.<String, Object>builder()
+                        .put("colHeaders",
+                             ImmutableList.<String>builder()
+                                     .add(Event.Fields.id)
+                                     .add(Event.Fields.type)
+                                     .add(Event.Fields.date)
+                                     .add(Event.Fields.objectType)
+                                     .add(Event.Fields.objectId)
+                                     .add(Event.Fields.userId)
+                                     .add("date." + Event.EventTime.Fields.year)
+                                     .add("date." + Event.EventTime.Fields.month)
+                                     .add("date." + Event.EventTime.Fields.day)
+                                     .add("date." + Event.EventTime.Fields.hour)
+                                     .add("date." + Event.EventTime.Fields.minute)
+                                     .add("date." + Event.EventTime.Fields.second)
+                                     .add("date." + Event.EventTime.Fields.millisecond)
+                                     .build()
+                            )
+                        .put("next", listResponse.getNext())
+                        .build();
+            }
+
+            @Override
+            public Map<String, Object> visit(EventGroupResponse groupResponse) {
+                return Map.of("colHeaders", ImmutableList.builder()
+                        .addAll(ConductorServerUtils.aliasesForGroupingElements(parserOutput.getGroupingElements()))
+                        .add("count")
+                        .build());
+            }
+
+        }));
+
+        return new TabularResponse(table, metadata);
+    }
+
+
 
 }
 

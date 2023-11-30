@@ -43,9 +43,9 @@ public class EventFilters {
 
     EventTimeWindow timeWindow;
 
-    Range<Integer> yearRange;
-    Range<Integer> monthRange;
-    Range<Integer> dayRange;
-    Range<Integer> hourRange;
-    Range<Integer> minRange;
+    Range<Long> yearRange;
+    Range<Long> monthRange;
+    Range<Long> dayRange;
+    Range<Long> hourRange;
+    Range<Long> minRange;
 }

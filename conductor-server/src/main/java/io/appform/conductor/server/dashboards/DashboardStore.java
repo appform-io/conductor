@@ -14,20 +14,10 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.events.analytics;
-
-import io.dropwizard.util.Duration;
-import lombok.Builder;
-import lombok.Value;
-
-import java.util.Date;
+package io.appform.conductor.server.dashboards;
 
 /**
  *
  */
-@Value
-@Builder
-public class EventTimeWindow {
-    Duration duration;
-    Date from;
+public interface DashboardStore {
 }

@@ -20,10 +20,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.appform.conductor.model.events.impl.ReferredObjectType;
 import lombok.*;
+import lombok.experimental.FieldNameConstants;
 import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoField;
 import java.util.Date;
 import java.util.UUID;
 
@@ -34,11 +37,15 @@ import java.util.UUID;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @SuperBuilder
+@FieldNameConstants
 public abstract class Event {
 
     @Value
     @Builder
+    @Jacksonized
+    @FieldNameConstants
     public static class EventTime {
+        int millisecond;
         int second;
         int minute;
         int hour;
@@ -77,6 +84,7 @@ public abstract class Event {
                 .day(now.getDayOfMonth())
                 .month(now.getMonth().getValue())
                 .year(now.getYear())
+                .millisecond(now.get(ChronoField.MILLI_OF_SECOND))
                 .build();
     }
 }

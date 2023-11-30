@@ -19,6 +19,15 @@ package io.appform.conductor.server.parser;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import io.appform.conductor.model.events.Event;
+import io.appform.conductor.model.events.EventType;
+import io.appform.conductor.model.events.analytics.EventFilters;
+import io.appform.conductor.model.events.analytics.EventQueryOpCode;
+import io.appform.conductor.model.events.analytics.EventQueryResponse;
+import io.appform.conductor.model.events.analytics.EventTimeWindow;
+import io.appform.conductor.model.events.analytics.impl.EventGroupRequest;
+import io.appform.conductor.model.events.analytics.impl.EventListRequest;
+import io.appform.conductor.model.events.impl.ReferredObjectType;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.ticket.TicketPriority;
@@ -28,16 +37,15 @@ import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.fieldfilters.*;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
+import io.appform.conductor.server.eventmanagement.EventStore;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.appform.conductor.server.ticketmanagement.TicketSkeleton;
 import io.appform.conductor.server.utils.Pair;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import io.dropwizard.util.Duration;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -46,15 +54,19 @@ import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.StatementVisitorAdapter;
 import net.sf.jsqlparser.statement.select.*;
+import org.apache.commons.lang3.Range;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.lang.reflect.Field;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.lowerSnake;
 
@@ -68,50 +80,172 @@ public class CQLEngine {
     private static final Map<String, Class<?>> KNOWN_TICKET_ATTRIBUTES
             = Arrays.stream(TicketSkeleton.class.getDeclaredFields())
             .collect(Collectors.toMap(Field::getName, Field::getType));
+
+
     private static final Map<String, Class<?>> KNOWN_TICKET_DATE_ATTRIBUTES
             = Maps.filterEntries(KNOWN_TICKET_ATTRIBUTES, field -> field.getValue().equals(Date.class));
 
-    private static final Set<FieldType> COMPARABLE_TYPES = EnumSet.of(FieldType.DATE, FieldType.NUMBER);
+    private static final Map<String, Class<?>> KNOWN_EVENTS_ATTRIBUTES
+            = Stream.concat(Arrays.stream(Event.class.getDeclaredFields()),
+                            Arrays.stream(Event.EventTime.class.getDeclaredFields()))
+            .collect(Collectors.toMap(Field::getName, Field::getType));
+    private static final Map<String, Class<?>> KNOWN_EVENT_DATE_ATTRIBUTES
+            = Maps.filterEntries(KNOWN_EVENTS_ATTRIBUTES, field -> field.getValue().equals(Date.class));
+
+    private static final Set<FieldType> COMPARABLE_TICKET_FIELD_TYPES = EnumSet.of(FieldType.DATE, FieldType.NUMBER);
+    private static final Set<? extends Class<? extends Number>> NUMERIC_JAVA_TYPES
+            = Set.of(Long.class, Integer.class, Double.class);
 
     private static final Set<String> KNOWN_META_FIELDS = Set.of();
     private static final Set<String> KNOWN_FUNCTIONS = Set.of();
 
     private static final String TICKETS_DB_PREFIX = "tickets.";
+    private static final String EVENTS_DB = "events";
     private static final String TICKETS_FIELDS_PREFIX = "fields.";
 
     private final WorkflowStore workflowStore;
     private final SchemaStore schemaStore;
     private final CQLFilterFunctionRegistry cqlFilterFunctionRegistry;
 
-    public static TicketQueryResponse runQuery(
+    public enum QueryDomain {
+        TICKETS,
+        EVENTS
+    }
+
+    @Data
+    @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+    public static abstract class CQLParserOutput {
+        private final QueryDomain domain;
+        private final List<GroupingElement> groupingElements;
+
+        public abstract <T> T accept(final CQLParserOutputVisitor<T> visitor);
+    }
+
+    public interface CQLParserOutputVisitor<T> {
+
+        T visit(final CQLTicketParserOutput ticketParserOutput);
+
+        T visit(final CQLEventParserOutput eventParserOutput);
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    @ToString(callSuper = true)
+    public static class CQLTicketParserOutput extends CQLParserOutput {
+        private final Filters filters;
+        private final List<SelectedField> selectedFields;
+        private final TicketQueryOpCode opCode;
+        private final TimeSeriesDetails timeSeriesDetails;
+        private final long limit;
+
+        private CQLTicketParserOutput(
+                Filters filters,
+                List<SelectedField> selectedFields,
+                List<GroupingElement> groupingElements,
+                TicketQueryOpCode opCode,
+                TimeSeriesDetails timeSeriesDetails,
+                long limit) {
+            super(QueryDomain.TICKETS, groupingElements);
+            this.filters = filters;
+            this.selectedFields = selectedFields;
+            this.opCode = opCode;
+            this.timeSeriesDetails = timeSeriesDetails;
+            this.limit = limit;
+        }
+
+        @Override
+        public <T> T accept(CQLParserOutputVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    @ToString(callSuper = true)
+    public static class CQLEventParserOutput extends CQLParserOutput {
+        private final EventQueryOpCode opCode;
+        private final EventFilters filters;
+        private final long limit;
+
+        private CQLEventParserOutput(
+                EventQueryOpCode opCode,
+                EventFilters filters,
+                List<GroupingElement> groupingElements,
+                long limit) {
+            super(QueryDomain.EVENTS, groupingElements);
+            this.opCode = opCode;
+            this.filters = filters;
+            this.limit = limit;
+        }
+
+        @Override
+        public <T> T accept(CQLParserOutputVisitor<T> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    @Value
+    @Builder
+    public static class CQLQueryExecutionOutput {
+        QueryDomain domain;
+        TicketQueryResponse ticketQueryResponse;
+        EventQueryResponse eventQueryResponse;
+    }
+
+    public static CQLQueryExecutionOutput runQuery(
             String requestId,
             String next,
             int size,
             CQLParserOutput parserOutput,
-            TicketManager ticketManager) {
-        val filters = Objects.requireNonNullElse(parserOutput.filters(), Filters.EMPTY); //TODO::THROW
-        val ticketRequest = switch (parserOutput.opCode()) {
+            TicketManager ticketManager,
+            EventStore eventStore) {
+        return parserOutput.accept(new CQLParserOutputVisitor<>() {
+            @Override
+            public CQLQueryExecutionOutput visit(CQLTicketParserOutput ticketParserOutput) {
+                val filters = Objects.requireNonNullElse(ticketParserOutput.getFilters(), Filters.EMPTY); //TODO::THROW
+                val ticketRequest = switch (ticketParserOutput.getOpCode()) {
 
-            case LIST -> TicketListRequest.builder()
-                    .queryId(requestId)
-                    .filters(filters)
-                    .direction(TicketListRequest.Direction.FORWARD)
-                    .ticketDataFields(Objects.requireNonNullElse(parserOutput.selectedFields(),
-                                                                 List.<SelectedField>of())
-                                              .stream()
-                                              .map(SelectedField::fieldSchemaId)
-                                              .toList())
-                    .next(next)
-                    .size(Math.min(200, Math.max(size, (int) parserOutput.limit())))
-                    .build();
-            case GROUP -> TicketGroupRequest.builder()
-                    .queryId(requestId)
-                    .filters(filters)
-                    .groupingFields(parserOutput.groupingElements())
-                    .build();
-        };
-        log.info("Running query with request id: {}. Query: {}", requestId, ticketRequest);
-        return ticketManager.query(ticketRequest);
+                    case LIST -> TicketListRequest.builder()
+                            .queryId(requestId)
+                            .filters(filters)
+                            .direction(TicketListRequest.Direction.FORWARD)
+                            .ticketDataFields(Objects.requireNonNullElse(ticketParserOutput.getSelectedFields(),
+                                                                         List.<SelectedField>of())
+                                                      .stream()
+                                                      .map(SelectedField::fieldSchemaId)
+                                                      .toList())
+                            .next(next)
+                            .size(Math.min(200, Math.max(size, (int) ticketParserOutput.getLimit())))
+                            .build();
+                    case GROUP -> TicketGroupRequest.builder()
+                            .queryId(requestId)
+                            .filters(filters)
+                            .groupingFields(ticketParserOutput.getGroupingElements())
+                            .build();
+                };
+                log.info("Running query with request id: {}. Query: {}", requestId, ticketRequest);
+                return CQLQueryExecutionOutput.builder()
+                        .domain(QueryDomain.TICKETS)
+                        .ticketQueryResponse(ticketManager.query(ticketRequest))
+                        .build();
+            }
+
+            @Override
+            public CQLQueryExecutionOutput visit(CQLEventParserOutput eventParserOutput) {
+                val filter = eventParserOutput.getFilters();
+                val query = switch (eventParserOutput.opCode) {
+
+                    case LIST -> new EventListRequest(requestId, filter, next, 10);
+//                    case LIST -> new EventListRequest(requestId, filter, next, Math.min(200, Math.max(size, (int) eventParserOutput.getLimit())));
+                    case GROUP_BY -> new EventGroupRequest(requestId, filter, eventParserOutput.getGroupingElements());
+                };
+                return CQLQueryExecutionOutput.builder()
+                        .domain(QueryDomain.EVENTS)
+                        .eventQueryResponse(eventStore.query(query))
+                        .build();
+            }
+        });
+
     }
 
     public record TimeSeriesDetails(TimeResolution resolution, String column) {
@@ -119,18 +253,7 @@ public class CQLEngine {
                                                                               TicketSkeleton.Fields.updated);
     }
 
-    public record CQLParserOutput(
-            Filters filters,
-            List<SelectedField> selectedFields,
-            List<GroupingElement> groupingElements,
-            TicketQueryOpCode opCode,
-            TimeSeriesDetails timeSeriesDetails,
-            long limit
-    ) {
-    }
-
     @SneakyThrows
-    @SuppressWarnings("unchecked")
     public Optional<CQLParserOutput> parse(final String query) {
         if (Strings.isNullOrEmpty(query)) {
             return Optional.empty();
@@ -138,7 +261,34 @@ public class CQLEngine {
         val stmt = CCJSqlParserUtil.parse(query);
         val select = toPlainSelect(stmt).orElse(null);
         Preconditions.checkNotNull(select, "Only select statements are supported");
+        val queryDomain = determineQueryDomain(select);
+        return switch (queryDomain) {
 
+            case TICKETS -> parseTicketWorkflowCQL(select);
+            case EVENTS -> parseEventsQuery(select);
+        };
+    }
+
+    private Optional<CQLParserOutput> parseEventsQuery(PlainSelect select) {
+        val groupParsingOutput = parseGroupExpression(
+                select,
+                (colName, groupByExpr) -> {
+                    Preconditions.checkArgument(
+                            KNOWN_EVENTS_ATTRIBUTES.containsKey(colName),
+                            "Only event attributes " + KNOWN_EVENTS_ATTRIBUTES.keySet()
+                                    + " are allowed in group by clause. Expr: " + groupByExpr);
+                });
+        return Optional.of(new CQLEventParserOutput(
+                switch (groupParsingOutput.groupOpType.get()) {
+                    case LIST -> EventQueryOpCode.LIST;
+                    case GROUP -> EventQueryOpCode.GROUP_BY;
+                },
+                parseEventFilters(select),
+                groupParsingOutput.groupingElements,
+                100));
+    }
+
+    private Optional<CQLParserOutput> parseTicketWorkflowCQL(PlainSelect select) {
         val workflowId = ticketWorkFlowId(select);
         val wf = workflowStore.read(workflowId).orElse(null);
         Preconditions.checkNotNull(wf, "Invalid workflow id");
@@ -150,7 +300,41 @@ public class CQLEngine {
                 .collect(Collectors.toMap(FieldSchema::getName, java.util.function.Function.identity()));
         val selectedFields = selectedFields(select, fieldSchema);
         log.debug("Fields selected: {}", selectedFields);
-        val filters = filter(workflowId, select, fieldSchema);
+        val filters = parseTicketFilters(workflowId, select, fieldSchema);
+        val groupParsingOutput = parseGroupExpression(
+                select,
+                (colName, groupByExpr) -> {
+                    val elementType = elementType(colName, fieldSchema).orElse(null);
+                    Preconditions.checkArgument(
+                            elementType == ElementType.TICKET_ATTRIBUTE
+                                    && KNOWN_TICKET_ATTRIBUTES.containsKey(colName),
+                            "Only ticket attributes " + KNOWN_TICKET_ATTRIBUTES.keySet()
+                                    + " are allowed in group by clause. Expr: " + groupByExpr);
+                });
+        val limit = new AtomicLong(0);
+        val limitExpr = select.getLimit();
+        if (null != limitExpr) {
+            limitExpr.getRowCount().accept(new ExpressionVisitorAdapter() {
+                @Override
+                public void visit(LongValue value) {
+                    Preconditions.checkArgument(value.getValue() > 0 && value.getValue() < Integer.MAX_VALUE,
+                                                "Limit must be in int range. Expr: " + limitExpr);
+                    limit.set(value.getValue());
+                }
+            });
+        }
+        return Optional.of(new CQLTicketParserOutput(filters,
+                                                     selectedFields.getSecond(),
+                                                     groupParsingOutput.groupingElements(),
+                                                     groupParsingOutput.groupOpType().get(),
+                                                     groupParsingOutput.timeSeriesDetails().get(),
+                                                     limit.get()));
+    }
+
+    @SuppressWarnings("unchecked")
+    private GroupParsingOutput parseGroupExpression(
+            PlainSelect select,
+            BiConsumer<String, GroupByElement> groupColValidator) {
         val groupingElements = new ArrayList<GroupingElement>();
         val groupByExpr = select.getGroupBy();
         val groupOpType = new AtomicReference<>(TicketQueryOpCode.LIST);
@@ -170,8 +354,7 @@ public class CQLEngine {
                             val colName = switch (paramCount) {
                                 case 1, 2 -> {
                                     val dateCol = fieldName(((Expression) function.getParameters().get(0)));
-                                    Preconditions.checkArgument(KNOWN_TICKET_DATE_ATTRIBUTES.containsKey(dateCol),
-                                                                "Only date columns are allowed here");
+                                    groupColValidator.accept(dateCol, groupByExpr);
                                     yield dateCol;
                                 }
                                 default -> TicketSkeleton.Fields.updated;
@@ -181,39 +364,45 @@ public class CQLEngine {
                                     .get(1)).getValue())
                                              : TimeResolution.DAY;
 //                            timeSeriesDetails.set(new TimeSeriesDetails(resolution, colName));
-                            groupingElements.add(new TimeBucketGroupingElement(colName, resolution, colName));
+                            groupingElements.add(new TimeBucketGroupingElement(colName, resolution, "grouped_" + colName));
                         }
 
                         @Override
                         public void visit(Column column) {
                             val colName = column.getFullyQualifiedName();
-                            val elementType = elementType(colName, fieldSchema).orElse(null);
-                            Preconditions.checkArgument(elementType == ElementType.TICKET_ATTRIBUTE
-                                                                && KNOWN_TICKET_ATTRIBUTES.containsKey(colName),
-                                                        "Only ticket attributes are allowed in group by clause. Expr:" +
-                                                                " " + groupByExpr);
+                            groupColValidator.accept(colName, groupByExpr);
                             groupingElements.add(new ColumnGroupingElement(colName, colName));
                         }
                     }));
         }
-        val limit = new AtomicLong(0);
-        val limitExpr = select.getLimit();
-        if (null != limitExpr) {
-            limitExpr.getRowCount().accept(new ExpressionVisitorAdapter() {
-                @Override
-                public void visit(LongValue value) {
-                    Preconditions.checkArgument(value.getValue() > 0 && value.getValue() < Integer.MAX_VALUE,
-                                                "Limit must be in int range. Expr: " + limitExpr);
-                    limit.set(value.getValue());
+        return new GroupParsingOutput(groupingElements, groupOpType, timeSeriesDetails);
+    }
+
+    private record GroupParsingOutput(List<GroupingElement> groupingElements,
+                                      AtomicReference<TicketQueryOpCode> groupOpType,
+                                      AtomicReference<TimeSeriesDetails> timeSeriesDetails) {
+    }
+
+
+    private static QueryDomain determineQueryDomain(final PlainSelect select) {
+        val queryDomain = new AtomicReference<QueryDomain>();
+        select.getFromItem().accept(new FromItemVisitorAdapter() {
+            @Override
+            public void visit(Table table) {
+                val fqtn = table.getFullyQualifiedName();
+                log.debug("Query table name = {}", fqtn);
+                if (fqtn.startsWith(TICKETS_DB_PREFIX)) {
+                    queryDomain.set(QueryDomain.TICKETS);
                 }
-            });
-        }
-        return Optional.of(new CQLParserOutput(filters,
-                                               selectedFields.getSecond(),
-                                               groupingElements,
-                                               groupOpType.get(),
-                                               timeSeriesDetails.get(),
-                                               limit.get()));
+                else if (fqtn.equals(EVENTS_DB)) {
+                    queryDomain.set(QueryDomain.EVENTS);
+                }
+            }
+        });
+        Preconditions.checkNotNull(
+                queryDomain.get(),
+                "From should be 'tickets.workflowId' or 'events'. Expr: " + select.getFromItem().toString());
+        return queryDomain.get();
     }
 
     private String ticketWorkFlowId(final PlainSelect select) {
@@ -225,7 +414,7 @@ public class CQLEngine {
                 val fqtn = table.getFullyQualifiedName();
                 log.debug("Query table name = {}", fqtn);
                 Preconditions.checkArgument(fqtn.startsWith(TICKETS_DB_PREFIX),
-                                            "From should be 'tickets.workflowId'");
+                                            "From should be 'tickets.workflowId'. Expr: " + table.getFullyQualifiedName());
                 val namespaceIdx = fqtn.indexOf(".");
                 val workflowId = fqtn.substring(namespaceIdx + 1);
 
@@ -312,9 +501,16 @@ public class CQLEngine {
                     accessedColName.set(fieldName);
                 }
                 else {
-                    Preconditions.checkArgument(KNOWN_TICKET_ATTRIBUTES.containsKey(colName),
-                                                "Unknown ticket attribute selected. Attribute: " + colName);
-                    accessedColName.set(colName);
+                    if (KNOWN_TICKET_ATTRIBUTES.containsKey(colName)) {
+                        accessedColName.set(colName);
+                    }
+                    else if (KNOWN_EVENTS_ATTRIBUTES.containsKey(colName)) {
+                        accessedColName.set(colName);
+                    }
+                    else {
+                        throw new IllegalArgumentException(
+                                "Unknown attribute selected. Attribute: " + colName);
+                    }
                 }
                 log.debug("Added selection field: {}", colName);
             }
@@ -323,7 +519,7 @@ public class CQLEngine {
     }
 
 
-    private Object value(
+    private Object ticketExpressionValue(
             Expression expression,
             ElementType elementType,
             FieldSchema fieldSchema,
@@ -407,7 +603,325 @@ public class CQLEngine {
         return response.get();
     }
 
-    private Filters filter(
+    private Object eventExpressionValue(String attributeName, Expression expression, Class<?> type) {
+        val response = new AtomicReference<>();
+        expression.accept(new ExpressionVisitorAdapter() {
+
+            @Override
+            @SneakyThrows
+            public void visit(StringValue value) {
+                if (type == String.class || type == Enum.class) {
+                    response.set(value.getValue());
+                }
+                else if (type == Boolean.class) {
+                    response.set(Boolean.parseBoolean(value.getValue()));
+                }
+                else if (type == Long.class) {
+                    response.set(Long.parseLong(value.getValue()));
+                }
+                else if (type == Integer.class) {
+                    response.set(Integer.parseInt(value.getValue()));
+                }
+                else if (type == Date.class) {
+                    try {
+                        new SimpleDateFormat("yyyy-MM-dd").parse(value.getValue());
+                    }
+                    catch (ParseException e) {
+                        log.trace("Did not match yyyy-MM-dd");
+                    }
+                    response.set(new Date(Long.parseLong(value.getValue())));
+                }
+            }
+
+
+            @Override
+            public void visit(DateValue value) {
+                if (type == Date.class) {
+                    response.set(value.getValue());
+                }
+            }
+
+            @Override
+            public void visit(DoubleValue value) {
+                if (type == Double.class) {
+                    response.set(value.getValue());
+                }
+            }
+
+            @Override
+            public void visit(LongValue value) {
+                if (type == Long.class) {
+                    response.set((double) value.getValue());
+                }
+            }
+
+
+            @Override
+            public void visit(TimeValue value) {
+                if (type == Date.class) {
+                    response.set(value.getValue());
+                }
+            }
+
+            @Override
+            public void visit(TimestampValue value) {
+                if (type == Date.class) {
+                    response.set(value.getValue());
+                }
+            }
+        });
+        Preconditions.checkNotNull(response.get(),
+                                   "Please provide value in rhs of where clause. Expected value type: " + type.getSimpleName());
+        return response.get();
+    }
+
+    private EventFilters parseEventFilters(final PlainSelect select) {
+        val filtersBuilder = EventFilters.builder();
+        val whereClause = select.getWhere();
+        if (null == whereClause) {
+            return filtersBuilder.build();
+        }
+        whereClause.accept(new ExpressionVisitorAdapter() {
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public void visit(Function function) {
+                val functionName = function.getName();
+                cqlFilterFunctionRegistry.eventFilterFunction(functionName)
+                        .ifPresentOrElse(registeredFunction -> registeredFunction.eventFilters(function.getParameters(),
+                                                                                               filtersBuilder),
+                                         () -> super.visit(function));
+            }
+
+            @Override
+            public void visit(Between expr) {
+                val name = fieldName(expr.getLeftExpression());
+                val elementType = elementType(name, Map.of()).orElse(null);
+                val type = KNOWN_EVENTS_ATTRIBUTES.get(name);
+
+                Preconditions.checkNotNull(elementType, "Element type in between expression could not be determined");
+                ensureEventAttribute(elementType);
+
+                val startValue = eventExpressionValue(name, expr.getBetweenExpressionStart(), type);
+                val endValue = eventExpressionValue(name, expr.getBetweenExpressionEnd(), type);
+                switch (name) {
+                    case Event.Fields.date -> {
+                        val from = readDateValue(name, startValue);
+                        val to = readDateValue(name, endValue);
+                        filtersBuilder.timeWindow(EventTimeWindow.builder()
+                                                          .from(from)
+                                                          .duration(Duration.milliseconds(to.getTime() - from.getTime()))
+                                                          .build());
+                    }
+                    case Event.EventTime.Fields.day -> {
+                        val from = readLongValue(name, startValue);
+                        val to = readLongValue(name, endValue);
+                        Preconditions.checkArgument(from > 0 && from < 31 && to > 0 && to < 31,
+                                                    "Day values can be from 1-31 only");
+                        filtersBuilder.dayRange(Range.between(from, to));
+                    }
+                    //TODO::OTHER NUMBER RANGES FOR EVENT TIME
+                    default ->
+                            throw new IllegalArgumentException("Between operator is not applicable for field: " + name + ". Expr: " + expr);
+                }
+
+            }
+
+            record ComparisonParsedOutput(
+                    String name,
+                    ElementType elementType,
+                    Object value,
+                    Class<?> attributeType
+            ) {
+            }
+
+            @Override
+            public void visit(EqualsTo expr) {
+                val parsed = parseComparisonOperator(expr);
+                switch (parsed.name) {
+                    case Event.Fields.type -> filtersBuilder.eventType(EventType.valueOf(parsed.value.toString()));
+                    case Event.Fields.objectType ->
+                            filtersBuilder.referenceType(ReferredObjectType.valueOf(parsed.value.toString()));
+                    case Event.Fields.userId -> filtersBuilder.userId(parsed.value.toString());
+                    case Event.EventTime.Fields.day -> {
+                        val value = readLongValue(parsed.name, parsed.value);
+                        filtersBuilder.dayRange(Range.between(value, value));
+                    }
+                    //TODO::FOR OTHER RANGE TYPE VALUE
+                    default -> throw new IllegalArgumentException(
+                            "Equals to operator is not applicable for field: " + parsed.name + ". Expr: " + expr);
+                }
+            }
+
+            @Override
+            public void visit(NotEqualsTo expr) {
+                val parsed = parseComparisonOperator(expr);
+
+                switch (parsed.name) {
+                    default -> throw new IllegalArgumentException(
+                            "Equals to operator is not applicable for events field: " + parsed.name + ". Expr: " + expr);
+                }
+            }
+
+            @Override
+            public void visit(GreaterThan expr) {
+                val parsed = parseComparisonOperator(expr);
+                switch (parsed.name) {
+                    case Event.EventTime.Fields.day -> {
+                        val value = readLongValue(parsed.name, parsed.value);
+                        filtersBuilder.dayRange(Range.between(value + 1, Long.MAX_VALUE));
+                    }
+                    //TODO::FOR OTHER RANGE TYPE VALUE
+                    default -> throw new IllegalArgumentException(
+                            "Greater than operator is not applicable for field: " + parsed.name + ". Expr: " + expr);
+                }
+            }
+
+            @Override
+            public void visit(GreaterThanEquals expr) {
+                val parsed = parseComparisonOperator(expr);
+                switch (parsed.name) {
+                    case Event.EventTime.Fields.day -> {
+                        val value = readLongValue(parsed.name, parsed.value);
+                        filtersBuilder.dayRange(Range.between(value, Long.MAX_VALUE));
+                    }
+                    //TODO::FOR OTHER RANGE TYPE VALUE
+                    default -> throw new IllegalArgumentException(
+                            "Greater than equals operator is not applicable for field: " + parsed.name + ". Expr: " + expr);
+                }
+
+            }
+
+            @Override
+            public void visit(InExpression expr) {
+                val name = fieldName(expr.getLeftExpression());
+                val values = new ArrayList<>();
+                expr.getRightExpression().accept(new ExpressionVisitorAdapter() {
+
+                    @Override
+                    public void visit(ExpressionList<?> expressionList) {
+                        expressionList.forEach(item -> values.add(readValue(item)));
+                    }
+                });
+                switch (name) {
+                    case Event.Fields.type -> filtersBuilder.eventTypes(
+                            values.stream()
+                                    .map(v -> EventType.valueOf(v.toString()))
+                                    .collect(Collectors.toUnmodifiableSet()));
+                    case Event.Fields.userId -> filtersBuilder.userIds(
+                            values.stream()
+                                    .map(Object::toString)
+                                    .collect(Collectors.toUnmodifiableSet()));
+                    default -> throw new IllegalArgumentException(
+                            "In operator is not applicable for field: " + name + ". Expr: " + expr);
+                }
+            }
+
+            @Override
+            public void visit(MinorThan expr) {
+                val parsed = parseComparisonOperator(expr);
+                switch (parsed.name) {
+                    case Event.EventTime.Fields.day -> {
+                        val value = readLongValue(parsed.name, parsed.value);
+                        filtersBuilder.dayRange(Range.between(Long.MIN_VALUE, value - 1));
+                    }
+                    //TODO::FOR OTHER RANGE TYPE VALUE
+                    default -> throw new IllegalArgumentException(
+                            "Less than operator is not applicable for field: " + parsed.name + ". Expr: " + expr.getStringExpression());
+                }
+            }
+
+            @Override
+            public void visit(MinorThanEquals expr) {
+                val parsed = parseComparisonOperator(expr);
+                switch (parsed.name) {
+                    case Event.EventTime.Fields.day -> {
+                        val value = readLongValue(parsed.name, parsed.value);
+                        filtersBuilder.dayRange(Range.between(Long.MIN_VALUE, value));
+                    }
+                    //TODO::FOR OTHER RANGE TYPE VALUE
+                    default -> throw new IllegalArgumentException(
+                            "Less than equals is not applicable for field: " + parsed.name + ". Expr: " + expr.getStringExpression());
+                }
+            }
+
+            private ComparisonParsedOutput parseComparisonOperator(final ComparisonOperator expr) {
+                var name = fieldName(expr.getLeftExpression());
+                Preconditions.checkArgument(!Strings.isNullOrEmpty(name),
+                                            "event attribute is mandatory for comparison operator in " +
+                                                    "while clause. Expr: " + expr.getStringExpression());
+                val elementType = elementType(name, Map.of()).orElse(null);
+                Preconditions.checkArgument(elementType == ElementType.EVENT_ATTRIBUTE,
+                                            "Name can only be event attribute in comparison operator" +
+                                                    ". Error exp: " + expr.getStringExpression());
+                name = Strings.isNullOrEmpty(name) ? fieldName(expr.getRightExpression()) : name;
+
+                val value = readValue(expr.getRightExpression());
+                Preconditions.checkNotNull(value,
+                                           "Value is mandatory for comparison operator. Expr: " + expr.getStringExpression());
+                return new ComparisonParsedOutput(name, elementType, value, value.getClass());
+            }
+
+            private Object readValue(Expression expression) { //TODO::PARSE TO REQUIRED TYPE HERE ITSELF
+                val response = new AtomicReference<>();
+                expression.accept(new ExpressionVisitorAdapter() {
+
+                    @Override
+                    @SneakyThrows
+                    public void visit(StringValue value) {
+                        response.set(value.getValue());
+                    }
+
+
+                    @Override
+                    public void visit(DateValue value) {
+                        response.set(value.getValue());
+                    }
+
+                    @Override
+                    public void visit(DoubleValue value) {
+                        response.set(value.getValue());
+                    }
+
+                    @Override
+                    public void visit(LongValue value) {
+                        response.set(value.getValue());
+                    }
+
+
+                    @Override
+                    public void visit(TimeValue value) {
+                        response.set(Date.from(value.getValue().toInstant()));
+                    }
+
+                    @Override
+                    public void visit(TimestampValue value) {
+                        response.set(Date.from(value.getValue().toInstant()));
+                    }
+                });
+                Preconditions.checkNotNull(response.get(), "Please provide value in rhs of where clause");
+                return response.get();
+            }
+
+            private long readLongValue(String name, Object value) {
+                if (NUMERIC_JAVA_TYPES.contains(KNOWN_EVENTS_ATTRIBUTES.get(name))) {
+                    return (long) Double.parseDouble(value.toString());
+                }
+                throw new IllegalArgumentException("Could not parse date/numeric value for: " + name);
+            }
+
+            private Date readDateValue(String name, Object value) {
+                if (KNOWN_EVENT_DATE_ATTRIBUTES.containsKey(name)) {
+                    return (Date) value;
+                }
+                throw new IllegalArgumentException("Could not parse date/numeric value for: " + name);
+            }
+        });
+
+        return filtersBuilder.build();
+    }
+
+    private Filters parseTicketFilters(
             String workflowId,
             final PlainSelect select,
             final Map<String, FieldSchema> schema) {
@@ -422,16 +936,17 @@ public class CQLEngine {
         whereClause.accept(new ExpressionVisitorAdapter() {
 
             @Override
+            @SuppressWarnings("unchecked")
             public void visit(Function function) {
                 val functionName = function.getName();
-                cqlFilterFunctionRegistry.filterFunction(functionName)
+                cqlFilterFunctionRegistry.ticketFilterFunction(functionName)
                         .ifPresentOrElse(registeredFunction -> {
-                                        Pair<List<TicketFilter>, List<TicketFieldFilter>> filters =
-                                                registeredFunction.ticketFilters(function.getParameters());
-                                        tfs.addAll(filters.getFirst());
-                                        ffs.addAll(filters.getSecond());
-                                        },
-                                () -> super.visit(function));
+                                             Pair<List<TicketFilter>, List<TicketFieldFilter>> filters =
+                                                     registeredFunction.ticketFilters(function.getParameters());
+                                             tfs.addAll(filters.getFirst());
+                                             ffs.addAll(filters.getSecond());
+                                         },
+                                         () -> super.visit(function));
             }
 
             @Override
@@ -448,7 +963,7 @@ public class CQLEngine {
                                                                         "Unknown ticket attribute");
                     case TICKET_FIELD -> {
                         Preconditions.checkNotNull(fieldSchema, "Invalid field name " + name);
-                        Preconditions.checkArgument(COMPARABLE_TYPES.contains(fieldSchema.getType()));
+                        Preconditions.checkArgument(COMPARABLE_TICKET_FIELD_TYPES.contains(fieldSchema.getType()));
                     }
                     case META_FIELD -> {
                         throw new UnsupportedOperationException("Meta fields are unsupported in between operation");
@@ -457,8 +972,14 @@ public class CQLEngine {
                         throw new UnsupportedOperationException("Functions are unsupported in between operation");
                     }
                 }
-                val startValue = value(expr.getBetweenExpressionStart(), elementType, schema.get(name), Set.of());
-                val endValue = value(expr.getBetweenExpressionEnd(), elementType, schema.get(name), Set.of());
+                val startValue = ticketExpressionValue(expr.getBetweenExpressionStart(),
+                                                       elementType,
+                                                       schema.get(name),
+                                                       Set.of());
+                val endValue = ticketExpressionValue(expr.getBetweenExpressionEnd(),
+                                                     elementType,
+                                                     schema.get(name),
+                                                     Set.of());
                 val start = readDateNumericValue(fieldSchema, elementType, name, startValue);
                 val end = readDateNumericValue(fieldSchema, elementType, name, endValue);
                 ffs.add(switch (fieldSchema.getType()) {
@@ -469,8 +990,13 @@ public class CQLEngine {
                 });
             }
 
-            record ComparisonParsedOutput(String name, ElementType elementType, Object value, FieldSchema fieldSchema,
-                                          Class<?> ticketAttributeType) {
+            record ComparisonParsedOutput(
+                    String name,
+                    ElementType elementType,
+                    Object value,
+                    FieldSchema fieldSchema,
+                    Class<?> ticketAttributeType
+            ) {
             }
 
             @Override
@@ -555,10 +1081,10 @@ public class CQLEngine {
 
                     @Override
                     public void visit(ExpressionList<?> expressionList) {
-                        expressionList.forEach(item -> values.add(value(item,
-                                                                        elementType,
-                                                                        fieldSchema,
-                                                                        ticketAttributeTypeSet)));
+                        expressionList.forEach(item -> values.add(ticketExpressionValue(item,
+                                                                                        elementType,
+                                                                                        fieldSchema,
+                                                                                        ticketAttributeTypeSet)));
                     }
                 });
                 Preconditions.checkArgument(!values.isEmpty(),
@@ -660,9 +1186,12 @@ public class CQLEngine {
                 val ticketAttrTypeSet = null != ticketAttrType
                                         ? Set.<Class<?>>of(ticketAttrType)
                                         : Set.<Class<?>>of();
-                var value = value(expr.getRightExpression(), elementType, fieldSchema, ticketAttrTypeSet);
+                var value = ticketExpressionValue(expr.getRightExpression(),
+                                                  elementType,
+                                                  fieldSchema,
+                                                  ticketAttrTypeSet);
                 value = null == value
-                        ? value(expr.getLeftExpression(), elementType, fieldSchema, ticketAttrTypeSet)
+                        ? ticketExpressionValue(expr.getLeftExpression(), elementType, fieldSchema, ticketAttrTypeSet)
                         : value;
                 Preconditions.checkNotNull(value,
                                            "Value is mandatory for comparison operator. Expr: " + expr.getStringExpression());
@@ -679,9 +1208,10 @@ public class CQLEngine {
                         if (KNOWN_TICKET_DATE_ATTRIBUTES.containsKey(name)) {
                             yield (Date) value;
                         }
-                        else if (Set.of(Long.class, Integer.class, Double.class).contains(KNOWN_TICKET_ATTRIBUTES.get(
-                                name))) {
-                            yield (double) value;
+                        else {
+                            if (NUMERIC_JAVA_TYPES.contains(KNOWN_TICKET_ATTRIBUTES.get(name))) {
+                                yield (double) value;
+                            }
                         }
                         yield null;
                     }
@@ -691,7 +1221,7 @@ public class CQLEngine {
                         default -> null;
 
                     };
-                    case META_FIELD, FUNCTION -> null;
+                    case META_FIELD, FUNCTION, EVENT_ATTRIBUTE -> null;
                 }, "Could nor parse comparable value field " + name);
             }
         });
@@ -711,6 +1241,12 @@ public class CQLEngine {
                                             "where clause");
     }
 
+    private static void ensureEventAttribute(ElementType elementType) {
+        Preconditions.checkArgument(elementType == ElementType.EVENT_ATTRIBUTE,
+                                    "Provide a valid event attribute or ticket field name in the lhs of " +
+                                            "where clause");
+    }
+
     @NonNull
     private static Optional<Class<?>> ticketAttributeType(String name) {
         return Optional.ofNullable(KNOWN_TICKET_ATTRIBUTES.get(name));
@@ -719,6 +1255,7 @@ public class CQLEngine {
     private enum ElementType {
         TICKET_ATTRIBUTE,
         TICKET_FIELD,
+        EVENT_ATTRIBUTE,
         META_FIELD,
         FUNCTION
     }
@@ -736,6 +1273,9 @@ public class CQLEngine {
         }
         if (KNOWN_FUNCTIONS.contains(name)) {
             return Optional.of(ElementType.FUNCTION);
+        }
+        if (KNOWN_EVENTS_ATTRIBUTES.containsKey(name)) {
+            return Optional.of(ElementType.EVENT_ATTRIBUTE);
         }
         return Optional.empty();
     }

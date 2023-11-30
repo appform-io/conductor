@@ -7,6 +7,6 @@ import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 
 import java.util.List;
 
-public interface CQLFilterFunction {
+public interface CQLTicketFilterFunction {
     Pair<List<TicketFilter>, List<TicketFieldFilter>> ticketFilters(List<ExpressionList> parameters);
 }

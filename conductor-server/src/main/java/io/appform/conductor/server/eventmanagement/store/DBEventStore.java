@@ -131,10 +131,10 @@ public class DBEventStore implements EventStore {
         if (null != filters.getTimeWindow()) {
             val startDate = Objects.requireNonNullElse(filters.getTimeWindow().getFrom(), new Date());
             criteria.add(Property.forName(StoredEvent.Fields.date)
-                                 .between(startDate,
-                                          new Date(startDate.getTime() - filters.getTimeWindow()
+                                 .between(new Date(startDate.getTime() - filters.getTimeWindow()
                                                   .getDuration()
-                                                  .toMillis())));
+                                                  .toMilliseconds()),
+                                          startDate));
         }
         return criteria;
     }
