@@ -24,6 +24,7 @@ import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
+import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.workflowmanagement.impl.DBWorkflowStore;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketState;
@@ -52,6 +53,7 @@ class WorkflowManagerTest {
     @Test
     void testWorkflowCrud(BalancedDBShardingBundle<TestConfig> bundle) {
         val schemaStore = mock(SchemaStore.class);
+        val actionStore = mock(ActionStore.class);
         val schema = new Schema("S1",
                                 "S1",
                                 null,
@@ -67,7 +69,7 @@ class WorkflowManagerTest {
                                                 bundle.createRelatedObjectDao(StoredTicketState.class),
                                                 bundle.createRelatedObjectDao(StoredTicketStateTransition.class),
                                                 bundle.createRelatedObjectDao(StoredWorkflowSelectionRule.class));
-        val wfm = new WorkflowManager(workflowStore, schemaStore);
+        val wfm = new WorkflowManager(workflowStore, schemaStore, actionStore);
 
         val wf = wfm.create("Test",
                             "Test workflow",

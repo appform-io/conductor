@@ -40,6 +40,10 @@ public interface WorkflowStore {
 
     Optional<Workflow> update(final String id, final UnaryOperator<Workflow> updater);
 
+    default Optional<Workflow> updateWorkflowState(final String id, final WorkflowState state) {
+       return update(id, workflow -> workflow.setState(state));
+    }
+
     List<Workflow> list(final Set<WorkflowState> desiredState);
 
     boolean deleteWorkflow(final String id);

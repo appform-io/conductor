@@ -19,6 +19,7 @@ package io.appform.conductor.model.actions;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * An action that can be taken as a transition

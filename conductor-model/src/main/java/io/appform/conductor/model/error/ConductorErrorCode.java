@@ -40,10 +40,13 @@ public enum ConductorErrorCode {
     SCHEMA_FIELD_WRITE_FAILED(2002, "Error writing schema field for ${schemaId}/${fieldId}"),
     SCHEMA_FIELD_READ_FAILED(2003, "Error reading schema field for ${schemaId}/${fieldId}"),
     SCHEMA_FIELD_UPDATE_TYPE_MISMATCH(2004, "Type mismatch for ${schemaId}/${fieldId}. Old: ${oldType} New: ${newType}"),
+    SCHEMA_ERROR_INVALID_ID(2005, "Invalid schema ID: ${id}"),
+    SCHEMA_ERROR_ID_ALREADY_EXISITS(2006, "Cannot create schema as it already exists: ${schemaId}"),
 
     WORKFLOW_ERROR_INVALID_ID(3001, "Invalid workflow ID: ${id}"),
     WORKFLOW_ERROR(3002, "Error in workflow management: ${message}"),
     WORKFLOW_ERROR_INVALID_INITIAL_STATE(3003, "Error setting initial workflow: ${message}"),
+    WORKFLOW_ERROR_ID_ALREADY_EXISTS(3004, "Cannot create workflow as it already exists: ${workflowId}"),
 
     TICKET_MGMT_NO_WORKFLOW(4001, "No workflow found for given payload"),
     TICKET_MGMT_NO_SCHEMA(4002, "No active schema found for ${workflowId}/${schemaId}"),
@@ -68,6 +71,9 @@ public enum ConductorErrorCode {
     CQL_INVALID_FUNCTION_PARAMETER(6002, "Invalid arguments for function: ${functionName}"),
 
     REPORT_UPDATE_ERROR(7001, "Error creating or updating report with name: ${name}"),
+
+    ACTION_ALREADY_EXISTS(8001, "Cannot create action as it already exists: ${actionId}"),
+
     ;
 
     private final int errorCode;
