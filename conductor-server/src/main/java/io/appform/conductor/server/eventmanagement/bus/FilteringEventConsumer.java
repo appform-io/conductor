@@ -16,9 +16,9 @@
 
 package io.appform.conductor.server.eventmanagement.bus;
 
-import io.appform.conductor.server.eventmanagement.Event;
+import io.appform.conductor.model.events.Event;
 import io.appform.conductor.server.eventmanagement.EventHandler;
-import io.appform.conductor.server.eventmanagement.EventType;
+import io.appform.conductor.model.events.EventType;
 import io.appform.signals.signalhandlers.SignalConsumer;
 
 import java.util.Set;

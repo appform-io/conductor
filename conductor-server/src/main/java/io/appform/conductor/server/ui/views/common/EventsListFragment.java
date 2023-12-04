@@ -16,7 +16,7 @@
 
 package io.appform.conductor.server.ui.views.common;
 
-import io.appform.conductor.server.eventmanagement.Event;
+import io.appform.conductor.model.events.Event;
 import io.appform.conductor.server.utils.Pair;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;

@@ -31,6 +31,11 @@ import com.google.common.collect.Table;
 import com.google.common.collect.TreeBasedTable;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
+import io.appform.conductor.model.events.Event;
+import io.appform.conductor.model.events.analytics.EventQueryResponse;
+import io.appform.conductor.model.events.analytics.EventQueryResponseVisitor;
+import io.appform.conductor.model.events.analytics.impl.EventGroupResponse;
+import io.appform.conductor.model.events.analytics.impl.EventListResponse;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.ticket.TicketDetails;
@@ -44,6 +49,7 @@ import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.ticketmanagement.statemachine.models.TicketStateMachineContext;
 import io.appform.conductor.server.usermanagement.CurrentUserSessionStore;
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.val;
@@ -54,6 +60,10 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Projections;
+import org.hibernate.type.LongType;
+import org.hibernate.type.Type;
 import ru.vyarus.guicey.gsp.views.template.TemplateView;
 
 import javax.annotation.Nullable;
@@ -386,7 +396,7 @@ public class ConductorServerUtils {
         }
     }
 
-    public static Table<Integer, String, Object> tabulate(
+    public static Table<Integer, String, Object> tabulateTicketQueryResponse(
             TicketQueryResponse response,
             List<CQLEngine.SelectedField> selectedFields) {
         val output = TreeBasedTable.<Integer, String, Object>create();
@@ -422,7 +432,47 @@ public class ConductorServerUtils {
 
         });
         return output;
+    }    public static Table<Integer, String, Object> tabulateEventQueryResponse(
+            EventQueryResponse response) {
+        val output = TreeBasedTable.<Integer, String, Object>create();
+        val rowIdx = new AtomicInteger(0);
+        response.accept(new EventQueryResponseVisitor<Void>() {
+            @Override
+            public Void visit(EventListResponse listResponse) {
+                listResponse.getResults()
+                        .forEach(event -> {
+                            val cols = output.row(rowIdx.incrementAndGet());
+                            cols.put(Event.Fields.id, event.getId());
+                            cols.put(Event.Fields.type, event.getType());
+                            cols.put(Event.Fields.date, event.getDate().toInstant().toString());
+                            cols.put(Event.Fields.objectType, event.getObjectType());
+                            cols.put(Event.Fields.objectId, event.getObjectId());
+                            cols.put(Event.Fields.userId, Strings.isNullOrEmpty(event.getUserId())
+                                    ? "" : event.getUserId());
+                            val eventTime = event.getEventTime();
+                            cols.put("date." + Event.EventTime.Fields.year, eventTime.getYear());
+                            cols.put("date." + Event.EventTime.Fields.month, eventTime.getMonth());
+                            cols.put("date." + Event.EventTime.Fields.day, eventTime.getDay());
+                            cols.put("date." + Event.EventTime.Fields.hour, eventTime.getHour());
+                            cols.put("date." + Event.EventTime.Fields.minute, eventTime.getMinute());
+                            cols.put("date." + Event.EventTime.Fields.second, eventTime.getSecond());
+                            cols.put("date." + Event.EventTime.Fields.millisecond, eventTime.getMillisecond());
+
+                            //TODO::SUBCLASS FIELDS
+                        });
+                return null;
+            }
+
+            @Override
+            public Void visit(EventGroupResponse groupResponse) {
+                output.putAll(groupResponse.getCounts());
+                return null;
+            }
+
+        });
+        return output;
     }
+
 
     private static String toString(final FieldValue fieldValue) {
         return fieldValue.accept(new FieldValueVisitor<String>() {
@@ -466,6 +516,126 @@ public class ConductorServerUtils {
                                                                                     ZoneId.systemDefault()))
                 .map(zonedDateTime -> Date.from(zonedDateTime.toInstant()))
                 .orElseThrow(() -> new IllegalArgumentException("Could not determine next execution time for " + id));
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <T> TreeBasedTable<Integer, String, Object> groupByAcrossShards(
+            List<GroupingElement> groupingElements,
+            Function<DetachedCriteria, Map<Integer, List>> generator,
+            DetachedCriteria resultCriteria) {
+        val groupQuery = Projections.projectionList();
+        val aliasedElements = groupingElements.stream()
+                .map(groupingElement -> groupingElement.accept(new GroupingElementVisitor<GroupingElement>() {
+                    @Override
+                    public GroupingElement visit(ColumnGroupingElement columnGroupingElement) {
+                        return new ColumnGroupingElement(columnGroupingElement.getAttribute(),
+                                                         Objects.requireNonNullElse(columnGroupingElement.getAlias(),
+                                                                                    columnGroupingElement.getAttribute()));
+                    }
+
+                    @Override
+                    public GroupingElement visit(TimeBucketGroupingElement timeBucketGroupingElement) {
+                        return new TimeBucketGroupingElement(timeBucketGroupingElement.getDateAttribute(),
+                                                             timeBucketGroupingElement.getResolution(),
+                                                             Objects.requireNonNullElse(timeBucketGroupingElement.getAlias(),
+                                                                                        timeBucketGroupingElement.getDateAttribute()));
+                    }
+                }))
+                .toList();
+        aliasedElements.forEach(element -> element.accept(new GroupingElementVisitor<Void>() {
+            @Override
+            public Void visit(ColumnGroupingElement columnGroupingElement) {
+                groupQuery.add(Projections.alias(Projections.groupProperty(columnGroupingElement.getAttribute()),
+                                                 columnGroupingElement.getAlias()));
+                return null;
+            }
+
+            @Override
+            public Void visit(TimeBucketGroupingElement timeBucketGroupingElement) {
+                val divisor = divisorFromResolution(timeBucketGroupingElement);
+                groupQuery.add(Projections.sqlGroupProjection(
+                        "floor(unix_timestamp(" + timeBucketGroupingElement.getDateAttribute() + ") / " + divisor +
+                                ") as " +
+                                timeBucketGroupingElement.getAlias(),
+                        timeBucketGroupingElement.getAlias(),
+                        new String[]{timeBucketGroupingElement.getAlias()},
+                        new Type[]{LongType.INSTANCE}));
+                return null;
+            }
+        }));
+        groupQuery.add(Projections.rowCount());
+        resultCriteria.setProjection(groupQuery);
+        val queryResults = generator.apply(resultCriteria);
+        val rows = queryResults.values()
+                .stream()
+                .map(list -> (List<Object[]>) list)
+                .flatMap(List::stream)
+                .toList();
+        return parseGroupResponse(aliasedElements, rows);
+
+    }
+
+    private static int divisorFromResolution(TimeBucketGroupingElement timeBucketGroupingElement) {
+        return switch (timeBucketGroupingElement.getResolution()) {
+            case MINUTE -> 60;
+            case HOUR -> 36_00;
+            case DAY -> 864_00;
+            case WEEK -> 7 * 864_00;
+            case MONTH -> 30 * 864_00;
+        };
+    }
+
+    private static TreeBasedTable<Integer, String, Object> parseGroupResponse(
+            List<GroupingElement> groupingElements,
+            List<Object[]> rows) {
+        val output = new HashMap<List<String>, Long>();
+        val formats = EnumSet.allOf(TimeResolution.class)
+                .stream()
+                .collect(Collectors.toMap(Function.identity(), resolution -> switch (resolution) {
+                    case MINUTE -> new SimpleDateFormat("yyyy-MM-dd HH:mm");
+                    case HOUR -> new SimpleDateFormat("yyyy-MM-dd HH");
+                    case DAY -> new SimpleDateFormat("yyyy-MM-dd");
+                    case WEEK -> new SimpleDateFormat("yyyy ww");
+                    case MONTH -> new SimpleDateFormat("yyyy-MM");
+                }));
+        for (val row : rows) {
+            val key = new ArrayList<String>(row.length - 1);
+            for (var colId = 0; colId < row.length - 1; colId++) {
+                int finalColId = colId;
+                key.add(groupingElements.get(colId)
+                                .accept(new GroupingElementVisitor<>() {
+                                    @Override
+                                    public String visit(ColumnGroupingElement columnGroupingElement) {
+                                        return Objects.toString(row[finalColId]);
+                                    }
+
+                                    @Override
+                                    public String visit(TimeBucketGroupingElement timeBucketGroupingElement) {
+                                        val divisor = divisorFromResolution(timeBucketGroupingElement);
+                                        return formats.get(timeBucketGroupingElement.getResolution())
+                                                .format(toDate(row[finalColId], divisor));
+                                    }
+                                }));
+            }
+            val oldValue = output.computeIfAbsent(key, k -> 0L);
+            output.put(key, oldValue + (long) row[row.length - 1]);
+        }
+        val table = TreeBasedTable.<Integer, String, Object>create();
+        val rowIdx = new AtomicInteger(0);
+        output
+                .forEach((keys, value) -> {
+                    val row = table.row(rowIdx.incrementAndGet());
+                    for (int i = 0; i < keys.size(); i++) {
+                        row.put(groupingElements.get(i).getAlias(), keys.get(i));
+                    }
+                    row.put("count", value);
+                });
+        return table;
+    }
+
+    @NonNull
+    private static Date toDate(Object element, int divisor) {
+        return new Date(1000L * divisor * (Long) element);
     }
 }
 

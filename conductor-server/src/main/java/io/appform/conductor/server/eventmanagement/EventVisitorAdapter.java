@@ -16,22 +16,23 @@
 
 package io.appform.conductor.server.eventmanagement;
 
-import io.appform.conductor.server.eventmanagement.events.actions.ActionCreatedEvent;
-import io.appform.conductor.server.eventmanagement.events.actions.ActionDeletedEvent;
-import io.appform.conductor.server.eventmanagement.events.actions.ActionUpdatedEvent;
-import io.appform.conductor.server.eventmanagement.events.group.GroupCreatedEvent;
-import io.appform.conductor.server.eventmanagement.events.group.GroupDeletedEvent;
-import io.appform.conductor.server.eventmanagement.events.group.GroupUpdatedEvent;
-import io.appform.conductor.server.eventmanagement.events.reporting.ReportExecutionCompletedEvent;
-import io.appform.conductor.server.eventmanagement.events.role.RoleCreatedEvent;
-import io.appform.conductor.server.eventmanagement.events.role.RoleDeletedEvent;
-import io.appform.conductor.server.eventmanagement.events.role.RoleUpdatedEvent;
-import io.appform.conductor.server.eventmanagement.events.schema.*;
-import io.appform.conductor.server.eventmanagement.events.skill.*;
-import io.appform.conductor.server.eventmanagement.events.subject.*;
-import io.appform.conductor.server.eventmanagement.events.ticket.*;
-import io.appform.conductor.server.eventmanagement.events.user.*;
-import io.appform.conductor.server.eventmanagement.events.workflow.*;
+import io.appform.conductor.model.events.EventVisitor;
+import io.appform.conductor.model.events.impl.actions.ActionCreatedEvent;
+import io.appform.conductor.model.events.impl.actions.ActionDeletedEvent;
+import io.appform.conductor.model.events.impl.actions.ActionUpdatedEvent;
+import io.appform.conductor.model.events.impl.group.GroupCreatedEvent;
+import io.appform.conductor.model.events.impl.group.GroupDeletedEvent;
+import io.appform.conductor.model.events.impl.group.GroupUpdatedEvent;
+import io.appform.conductor.model.events.impl.reporting.ReportExecutionCompletedEvent;
+import io.appform.conductor.model.events.impl.role.RoleCreatedEvent;
+import io.appform.conductor.model.events.impl.role.RoleDeletedEvent;
+import io.appform.conductor.model.events.impl.role.RoleUpdatedEvent;
+import io.appform.conductor.model.events.impl.schema.*;
+import io.appform.conductor.model.events.impl.skill.*;
+import io.appform.conductor.model.events.impl.subject.*;
+import io.appform.conductor.model.events.impl.ticket.*;
+import io.appform.conductor.model.events.impl.user.*;
+import io.appform.conductor.model.events.impl.workflow.*;
 
 /**
  *

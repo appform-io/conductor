@@ -16,10 +16,11 @@
 
 package io.appform.conductor.server.eventmanagement.bus;
 
-import io.appform.conductor.server.eventmanagement.Event;
+import io.appform.conductor.model.events.Event;
+import io.appform.conductor.model.events.EventType;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.EventHandler;
-import io.appform.conductor.server.eventmanagement.EventType;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.signals.signals.ConsumingFireForgetSignal;
 
 import javax.inject.Inject;
@@ -57,6 +58,6 @@ public final class SignalDrivenEventBus implements EventBus {
 
     @Override
     public void publish(Event event) {
-        eventRaised.dispatch(event);
+        eventRaised.dispatch(event.setUserId(ConductorServerUtils.operatingUserId()));
     }
 }

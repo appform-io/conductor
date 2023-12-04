@@ -16,8 +16,8 @@
 
 package io.appform.conductor.server.eventmanagement.store.models;
 
-import io.appform.conductor.server.eventmanagement.EventType;
-import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
+import io.appform.conductor.model.events.EventType;
+import io.appform.conductor.model.events.impl.ReferredObjectType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

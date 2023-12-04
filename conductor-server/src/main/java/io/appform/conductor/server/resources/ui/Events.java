@@ -16,14 +16,18 @@
 
 package io.appform.conductor.server.resources.ui;
 
+import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.appform.conductor.model.events.analytics.EventQueryResponseVisitor;
+import io.appform.conductor.model.events.analytics.impl.EventGroupResponse;
+import io.appform.conductor.model.events.analytics.impl.EventListRequest;
 import io.appform.conductor.server.auth.ConductorUser;
-import io.appform.conductor.server.eventmanagement.Event;
+import io.appform.conductor.model.events.Event;
 import io.appform.conductor.server.eventmanagement.EventStore;
-import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
-import io.appform.conductor.server.eventmanagement.query.EventFilters;
-import io.appform.conductor.server.eventmanagement.query.EventListResult;
-import io.appform.conductor.server.eventmanagement.query.ObjectReference;
+import io.appform.conductor.model.events.impl.ReferredObjectType;
+import io.appform.conductor.model.events.analytics.EventFilters;
+import io.appform.conductor.model.events.analytics.impl.EventListResponse;
+import io.appform.conductor.model.events.analytics.ObjectReference;
 import io.appform.conductor.server.ui.views.common.EventsListFragment;
 import io.appform.conductor.server.utils.Pair;
 import io.dropwizard.auth.Auth;
@@ -47,7 +51,9 @@ import javax.ws.rs.core.Response;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
+import static io.appform.conductor.server.utils.ConductorServerUtils.fail;
 import static io.appform.conductor.server.utils.ConductorServerUtils.render;
 
 /**
@@ -65,6 +71,7 @@ public class Events {
 
     @Path("/list/object/{objectType}")
     @GET
+    @Timed
     public Response listByObjectType(
             @Auth final ConductorUser user,
             @PathParam("objectType") @NotNull final ReferredObjectType type,
@@ -72,11 +79,26 @@ public class Events {
         val filters = EventFilters.builder()
                 .referenceType(type)
                 .build();
-        return renderEvents(eventStore.list(filters, next, 10));
+        return eventStore.query(new EventListRequest(UUID.randomUUID().toString(),
+                                                     filters,
+                                                     next,
+                                                     10))
+                                    .accept(new EventQueryResponseVisitor<>() {
+                                        @Override
+                                        public Response visit(EventListResponse listResponse) {
+                                            return renderEvents(listResponse);
+                                        }
+
+                                        @Override
+                                        public Response visit(EventGroupResponse groupResponse) {
+                                            throw fail("Invalid query type", "/list/object/" + type);
+                                        }
+                                    });
     }
 
     @Path("/list/object/{objectType}/{objectId}")
     @GET
+    @Timed
     public Response listByObjectId(
             @Auth final ConductorUser user,
             @PathParam("objectType") @NotNull final ReferredObjectType type,
@@ -86,7 +108,21 @@ public class Events {
         val filters = EventFilters.builder()
                 .reference(new ObjectReference(type, objectId))
                 .build();
-        return renderEvents(eventStore.list(filters, next, 10));
+        return eventStore.query(new EventListRequest(UUID.randomUUID().toString(),
+                                                     filters,
+                                                     next,
+                                                     10))
+                .accept(new EventQueryResponseVisitor<>() {
+                    @Override
+                    public Response visit(EventListResponse listResponse) {
+                        return renderEvents(listResponse);
+                    }
+
+                    @Override
+                    public Response visit(EventGroupResponse groupResponse) {
+                        throw fail("Invalid query type", "/list/object/" + type + "/" + objectId);
+                    }
+                });
     }
 
     @SneakyThrows
@@ -94,7 +130,7 @@ public class Events {
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(event);
     }
 
-    private Response renderEvents(EventListResult results) {
+    private Response renderEvents(EventListResponse results) {
         return render(new EventsListFragment(results.getResults()
                                                      .stream()
                                                      .map(event -> Pair.of(event, toString(event)))

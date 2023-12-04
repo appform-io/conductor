@@ -17,7 +17,7 @@
 package io.appform.conductor.server.ui.views;
 
 import io.appform.conductor.model.usermgmt.User;
-import io.appform.conductor.server.eventmanagement.query.ObjectReference;
+import io.appform.conductor.model.events.analytics.ObjectReference;
 import lombok.Getter;
 import ru.vyarus.guicey.gsp.views.template.TemplateView;
 

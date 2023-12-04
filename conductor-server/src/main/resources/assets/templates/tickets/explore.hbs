@@ -21,6 +21,10 @@
                 </div>
             </form>
         </div>
+    </div>
+    <div id="cqlAlert">
+
+    </div>
 
     <section class="results">
 
@@ -47,15 +51,32 @@
 {{/partial}}
 
 {{#partial "page_js"}}
+    function showAlert(message) {
+        const htmlString = `
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            <div><span id="cqlErrorMessage">` + message + `</span></div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        `;
+        const alert = $('#cqlAlert');
+        alert.html(htmlString);
+    }
+
     const dataSize = 5;
     $("#query-form").submit(e => {
         e.preventDefault();
         const query = $("#query").val();
-        $.get("/apis/tickets/v1/query?format=TABLE&length=" + dataSize + "&query=" + encodeURIComponent(query),
+        $.get("/apis/analytics/v1/query?format=TABLE&length=" + dataSize + "&query=" + encodeURIComponent(query),
             function(res) {
-                if(!res || res.status != 'SUCCESS') {
+                if(!res) {
+                    showAlert("No response");
                     return;
                 }
+                if(res.status != 'SUCCESS') {
+                    showAlert(res.status + ": " + res.message);
+                    return;
+                }
+                $('#cqlAlert').html("");
                 if(res.data) {
                     const rows = Object.values(res.data.results);
                     if(res.data.metadata.opCode=="LIST") {
@@ -65,38 +86,50 @@
                         listOutput.removeClass('visually-hidden')
                             .removeClass('list-prototype');
                         listOutput.find('.query-title').text(query);
-                        var columns = [
-                            {
-                                'title': 'ID',
-                                'data' : 'ticketId'
-                            },
-                            {
-                                'title': 'Title',
-                                'data' : 'ticketId' ,
-                                'render' : function(data, type, row, meta) {
-                                    return '<a href="/tickets/' + data + '/details">' + row['title'] + '</a>';
-                                }
-                            },
-                            { 'title' : 'Workflow Name', 'data' : 'workflowName' },
-                            {
-                                'title' : 'State',
-                                'data' : 'stateName',
-                                'render' : function(data, type, row, meta) {
-                                    return '<span class="badge ' + (row['terminated'] ? 'bg-secondary' : 'bg-info') + ' ms-2">' + data + '</span>';
-                                }
-                            },
-                            { 'title': 'Priority', 'data' : 'priority' },
-                            { 'title': 'Created', 'data' : 'created', 'render' : timeSince },
-                            { 'title': 'Updated', 'data' : 'updated', 'render' : timeSince }
-                        ];
-                        columns = columns.concat(res.data.metadata.colHeaders
-                                .filter(header => header.startsWith("fields_"))
-                                .map(header => {
-                                    return {
-                                        'title' : header,
-                                        'data' : header
-                                    };
-                                }));
+                        var columns = [];
+                        if(res.data.metadata.domain == "TICKETS") {
+                            columns = [
+                                {
+                                    'title': 'ID',
+                                    'data' : 'ticketId'
+                                },
+                                {
+                                    'title': 'Title',
+                                    'data' : 'ticketId' ,
+                                    'render' : function(data, type, row, meta) {
+                                        return '<a href="/tickets/' + data + '/details">' + row['title'] + '</a>';
+                                    }
+                                },
+                                { 'title' : 'Workflow Name', 'data' : 'workflowName' },
+                                {
+                                    'title' : 'State',
+                                    'data' : 'stateName',
+                                    'render' : function(data, type, row, meta) {
+                                        return '<span class="badge ' + (row['terminated'] ? 'bg-secondary' : 'bg-info') + ' ms-2">' + data + '</span>';
+                                    }
+                                },
+                                { 'title': 'Priority', 'data' : 'priority' },
+                                { 'title': 'Created', 'data' : 'created', 'render' : timeSince },
+                                { 'title': 'Updated', 'data' : 'updated', 'render' : timeSince }
+                            ];
+                            columns = columns.concat(res.data.metadata.colHeaders
+                                    .filter(header => header.startsWith("fields_"))
+                                    .map(header => {
+                                        return {
+                                            'title' : header,
+                                            'data' : header
+                                        };
+                                    }));
+                        }
+                        else {
+                            columns = res.data.metadata.colHeaders
+                                        .map(header => {
+                                            return {
+                                                'title' : header,
+                                                'data' : header
+                                            };
+                                        })
+                        }
                         const dt = table.DataTable({
                             paging: false,
                             info: false,
@@ -159,7 +192,7 @@
         const loadButton = $(this);
         const nextPage = dt.attr('nextPage');
         const query = dt.attr('currentQuery');
-        $.get("/apis/tickets/v1/query?format=TABLE&length=" + dataSize
+        $.get("/apis/analytics/v1/query?format=TABLE&length=" + dataSize
                 + "&query=" + query + (nextPage ?  "&next=" + nextPage : ""),
             function(res) {
                 if(!res || res.status != 'SUCCESS') {

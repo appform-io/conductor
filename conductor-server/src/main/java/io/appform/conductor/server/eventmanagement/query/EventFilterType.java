@@ -16,8 +16,10 @@
 
 package io.appform.conductor.server.eventmanagement.query;
 
+import io.appform.conductor.model.events.Event;
+
 /**
- * Type of filters that can be applied while querying for {@link io.appform.conductor.server.eventmanagement.Event}
+ * Type of filters that can be applied while querying for {@link Event}
  * from {@link io.appform.conductor.server.eventmanagement.EventStore}
  */
 public enum EventFilterType {

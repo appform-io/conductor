@@ -16,12 +16,14 @@
 
 package io.appform.conductor.server.usermanagement.support;
 
+import io.appform.conductor.model.events.Event;
+import io.appform.conductor.model.events.EventType;
 import io.appform.conductor.model.skills.SkillValue;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.GroupType;
 import io.appform.conductor.server.eventmanagement.*;
-import io.appform.conductor.server.eventmanagement.events.user.UserSkillAssociatedEvent;
-import io.appform.conductor.server.eventmanagement.events.user.UserSkillDisasocciatedEvent;
+import io.appform.conductor.model.events.impl.user.UserSkillAssociatedEvent;
+import io.appform.conductor.model.events.impl.user.UserSkillDisasocciatedEvent;
 import io.appform.conductor.server.usermanagement.UserLifecycleManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

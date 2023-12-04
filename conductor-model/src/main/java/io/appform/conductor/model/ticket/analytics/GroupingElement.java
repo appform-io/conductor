@@ -16,6 +16,7 @@
 
 package io.appform.conductor.model.ticket.analytics;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 
@@ -24,6 +25,10 @@ import lombok.Data;
  */
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(name = "COLUMN", value = ColumnGroupingElement.class),
+        @JsonSubTypes.Type(name = "TIME_BUCKET", value = TimeBucketGroupingElement.class),
+})
 public abstract class GroupingElement {
     public enum Type {
         COLUMN,
@@ -32,6 +37,7 @@ public abstract class GroupingElement {
 
     private final Type type;
     private final String alias;
+
     protected GroupingElement(Type type, String alias) {
         this.type = type;
         this.alias = alias;

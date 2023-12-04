@@ -6,6 +6,7 @@ import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.ExternalReferenceID;
+import io.appform.conductor.model.ticket.TicketRelationship;
 import io.appform.conductor.model.ticket.analytics.GroupingElement;
 import io.appform.conductor.model.ticket.analytics.TicketGroupResponse;
 import io.appform.conductor.model.ticket.comments.Attachment;
@@ -14,7 +15,7 @@ import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.events.ticket.*;
+import io.appform.conductor.model.events.impl.ticket.*;
 import lombok.NonNull;
 import lombok.val;
 

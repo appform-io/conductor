@@ -6,7 +6,7 @@ import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.schema.SchemaSummary;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.events.schema.*;
+import io.appform.conductor.model.events.impl.schema.*;
 import lombok.val;
 
 import javax.inject.Inject;

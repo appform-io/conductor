@@ -2,7 +2,7 @@ package io.appform.conductor.server.usermanagement;
 
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.events.user.UserPasswordSetEvent;
+import io.appform.conductor.model.events.impl.user.UserPasswordSetEvent;
 import io.appform.conductor.server.internalmodels.auth.UserPasswordAuthDetails;
 import lombok.val;
 

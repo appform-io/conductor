@@ -19,13 +19,13 @@ package io.appform.conductor.server.ticketmanagement.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.google.common.collect.TreeBasedTable;
 import com.google.common.net.MediaType;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.ExternalReferenceID;
+import io.appform.conductor.model.ticket.TicketRelationship;
 import io.appform.conductor.model.ticket.analytics.*;
 import io.appform.conductor.model.ticket.comments.Attachment;
 import io.appform.conductor.model.ticket.comments.Comment;
@@ -56,8 +56,6 @@ import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.criterion.*;
 import org.hibernate.sql.JoinType;
-import org.hibernate.type.LongType;
-import org.hibernate.type.Type;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -66,14 +64,10 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.*;
 import static org.hibernate.criterion.CriteriaSpecification.DISTINCT_ROOT_ENTITY;
@@ -113,7 +107,9 @@ public class DBTicketStore implements TicketStore {
                                       TicketScrollPointer.class);
         }
 
-        public static String serializePointer(TicketScrollPointer pointer, ObjectMapper mapper) throws JsonProcessingException {
+        public static String serializePointer(
+                TicketScrollPointer pointer,
+                ObjectMapper mapper) throws JsonProcessingException {
             return Base64.getUrlEncoder().encodeToString(
                     mapper.writeValueAsString(pointer).getBytes(StandardCharsets.UTF_8));
         }
@@ -135,17 +131,17 @@ public class DBTicketStore implements TicketStore {
             final ExternalReferenceID externalReferenceID,
             final List<TicketFieldData> fields) {
         ticketDao.saveAndGetExecutor(new StoredTicketSkeleton()
-                        .setTicketId(ticketId)
-                        .setTitle(title)
-                        .setDescription(description)
-                        .setWorkflowId(workflowId)
-                        .setCreatedByUserId(ConductorServerUtils.operatingUserId())
-                        .setSubjectId(subjectId)
-                        .setTicketStateId(ticketStateId)
-                        .setExternalReferenceId(externalReferenceId(externalReferenceID))
-                        .setExternalReferenceSource(externalReferenceSource(externalReferenceID))
-                        .setCreatedByUserId(ConductorServerUtils.operatingUserId())
-                        .setPriority(priority))
+                                             .setTicketId(ticketId)
+                                             .setTitle(title)
+                                             .setDescription(description)
+                                             .setWorkflowId(workflowId)
+                                             .setCreatedByUserId(ConductorServerUtils.operatingUserId())
+                                             .setSubjectId(subjectId)
+                                             .setTicketStateId(ticketStateId)
+                                             .setExternalReferenceId(externalReferenceId(externalReferenceID))
+                                             .setExternalReferenceSource(externalReferenceSource(externalReferenceID))
+                                             .setCreatedByUserId(ConductorServerUtils.operatingUserId())
+                                             .setPriority(priority))
                 .saveAll(fieldDao, ticket -> toStoredFields(ticket, fields))
                 .execute();
         return read(ticketId, true);
@@ -208,9 +204,9 @@ public class DBTicketStore implements TicketStore {
                 fieldFilters,
                 start,
                 size,
-                     relevantFieldSchema,
-                     readFields,
-                     fieldNames,
+                relevantFieldSchema,
+                readFields,
+                fieldNames,
                 criteria -> criteria.addOrder(Order.desc(StoredTicketSkeleton.Fields.created)));
         return new TicketSkeletonListResult(
                 results.getFirst()
@@ -252,7 +248,6 @@ public class DBTicketStore implements TicketStore {
 
 
     @Override
-    @SuppressWarnings("unchecked")
     public TicketGroupResponse groupCount(
             String requestId,
             List<TicketFilter> ticketFilters,
@@ -260,57 +255,10 @@ public class DBTicketStore implements TicketStore {
             Map<String, FieldSchema> relevantFieldSchema,
             List<GroupingElement> groupingElements) {
         val resultCriteria = createTicketQueryCriteria(ticketFilters, fieldFilters, relevantFieldSchema);
-        val groupQuery = Projections.projectionList();
-        val aliasedElements = groupingElements.stream()
-                .map(groupingElement -> groupingElement.accept(new GroupingElementVisitor<GroupingElement>() {
-                    @Override
-                    public GroupingElement visit(ColumnGroupingElement columnGroupingElement) {
-                        return new ColumnGroupingElement(columnGroupingElement.getAttribute(),
-                                                         Objects.requireNonNullElse(columnGroupingElement.getAlias(),
-                                                                                    columnGroupingElement.getAttribute()));
-                    }
-
-                    @Override
-                    public GroupingElement visit(TimeBucketGroupingElement timeBucketGroupingElement) {
-                        return new TimeBucketGroupingElement(timeBucketGroupingElement.getDateAttribute(),
-                                                             timeBucketGroupingElement.getResolution(),
-                                                             Objects.requireNonNullElse(timeBucketGroupingElement.getAlias(),
-                                                                                        "timestamp"));
-                    }
-                }))
-                .toList();
-        aliasedElements.forEach(element -> element.accept(new GroupingElementVisitor<Void>() {
-            @Override
-            public Void visit(ColumnGroupingElement columnGroupingElement) {
-                groupQuery.add(Projections.alias(Projections.groupProperty(columnGroupingElement.getAttribute()),
-                                                 columnGroupingElement.getAlias()));
-                return null;
-            }
-
-            @Override
-            public Void visit(TimeBucketGroupingElement timeBucketGroupingElement) {
-                val divisor = divisorFromResolution(timeBucketGroupingElement);
-                groupQuery.add(Projections.sqlGroupProjection(
-                        "floor(unix_timestamp(" + timeBucketGroupingElement.getDateAttribute() + ") / " + divisor +
-                                ") as " +
-                                timeBucketGroupingElement.getAlias(),
-                        timeBucketGroupingElement.getAlias(),
-                        new String[]{timeBucketGroupingElement.getAlias()},
-                        new Type[]{LongType.INSTANCE}));
-                return null;
-            }
-        }));
-        groupQuery.add(Projections.rowCount());
-        resultCriteria.setProjection(groupQuery);
-        val queryResults = ticketDao.run(resultCriteria);
-        val rows = queryResults.values()
-                .stream()
-                .map(list -> (List<Object[]>) list)
-                .flatMap(List::stream)
-                .toList();
-        val table = parseGroupResponse(aliasedElements, rows);
-
-        return new TicketGroupResponse(requestId, table);
+        return new TicketGroupResponse(requestId,
+                                       ConductorServerUtils.groupByAcrossShards(groupingElements,
+                                                                                ticketDao::run,
+                                                                                resultCriteria));
     }
 
     @Override
@@ -436,23 +384,24 @@ public class DBTicketStore implements TicketStore {
     @SneakyThrows
     @Throws(value = STORE_RELATED_ENTITY_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredRelatedTicket.RELATED_TICKET_TABLE_NAME))
-    public Optional<RelatedTicket> addRelatedTicket(@Throws.RuntimeParam("id") String ticketId,
-                                    @Throws.RuntimeParam("subId") String relatedToTicketId,
-                                    TicketRelationship relationship) {
+    public Optional<RelatedTicket> addRelatedTicket(
+            @Throws.RuntimeParam("id") String ticketId,
+            @Throws.RuntimeParam("subId") String relatedToTicketId,
+            TicketRelationship relationship) {
         val relatedId = ConductorServerUtils.readableId(ticketId, relatedToTicketId);
         return relatedTicketDao.createOrUpdate(ticketId,
-                                            DetachedCriteria.forClass(StoredRelatedTicket.class)
-                                                    .add(Property.forName(StoredRelatedTicket.Fields.relatedId)
-                                                            .eq(relatedId)),
-                                            existing -> existing.setRelationship(relationship)
-                                                    .setDeleted(false),
-                                            () -> new StoredRelatedTicket()
-                                                    .setRelatedId(relatedId)
-                                                    .setTicketId(ticketId)
-                                                    .setRelatedToTicketId(relatedToTicketId)
-                                                    .setRelationship(relationship)
-                                                    .setDeleted(false))
-                                    .map(DBTicketStore::toRelatedTicket);
+                                               DetachedCriteria.forClass(StoredRelatedTicket.class)
+                                                       .add(Property.forName(StoredRelatedTicket.Fields.relatedId)
+                                                                    .eq(relatedId)),
+                                               existing -> existing.setRelationship(relationship)
+                                                       .setDeleted(false),
+                                               () -> new StoredRelatedTicket()
+                                                       .setRelatedId(relatedId)
+                                                       .setTicketId(ticketId)
+                                                       .setRelatedToTicketId(relatedToTicketId)
+                                                       .setRelationship(relationship)
+                                                       .setDeleted(false))
+                .map(DBTicketStore::toRelatedTicket);
     }
 
 
@@ -463,14 +412,14 @@ public class DBTicketStore implements TicketStore {
             fixedParams = @Throws.Param(name = "type", value = StoredRelatedTicket.RELATED_TICKET_TABLE_NAME))
     public List<RelatedTicket> listRelatedTickets(@Throws.RuntimeParam("id") String ticketId, int from, int size) {
         return relatedTicketDao.select(ticketId,
-                                        DetachedCriteria.forClass(StoredRelatedTicket.class)
-                                            .add(Property.forName(StoredRelatedTicket.Fields.ticketId).eq(ticketId))
-                                            .add(Property.forName(StoredRelatedTicket.Fields.deleted).eq(from)),
-                                        from,
-                                        size)
-                                .stream()
-                                .map(DBTicketStore::toRelatedTicket)
-                                .toList();
+                                       DetachedCriteria.forClass(StoredRelatedTicket.class)
+                                               .add(Property.forName(StoredRelatedTicket.Fields.ticketId).eq(ticketId))
+                                               .add(Property.forName(StoredRelatedTicket.Fields.deleted).eq(from)),
+                                       from,
+                                       size)
+                .stream()
+                .map(DBTicketStore::toRelatedTicket)
+                .toList();
     }
 
     @Override
@@ -478,16 +427,16 @@ public class DBTicketStore implements TicketStore {
     @SneakyThrows
     @Throws(value = STORE_RELATED_ENTITY_UPDATE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredRelatedTicket.RELATED_TICKET_TABLE_NAME))
-    public boolean deleteRelatedTicket( @Throws.RuntimeParam("id") String ticketId,
-                                        @Throws.RuntimeParam("subId") String relatedToTicketId) {
+    public boolean deleteRelatedTicket(
+            @Throws.RuntimeParam("id") String ticketId,
+            @Throws.RuntimeParam("subId") String relatedToTicketId) {
         val relatedId = ConductorServerUtils.readableId(ticketId, relatedToTicketId);
         return attachmentDao.update(ticketId,
-                DetachedCriteria.forClass(StoredRelatedTicket.class)
-                        .add(Property.forName(StoredRelatedTicket.Fields.relatedId)
-                                .eq(relatedId)),
-                storedRelatedTicket -> storedRelatedTicket.setDeleted(true));
+                                    DetachedCriteria.forClass(StoredRelatedTicket.class)
+                                            .add(Property.forName(StoredRelatedTicket.Fields.relatedId)
+                                                         .eq(relatedId)),
+                                    storedRelatedTicket -> storedRelatedTicket.setDeleted(true));
     }
-
 
 
     @SneakyThrows
@@ -521,13 +470,13 @@ public class DBTicketStore implements TicketStore {
                             .setFirstResult(pointer.getCurrOffset(shardId))
                             .setMaxResults(size);
                     val results = (List<Object[]>) executableCriteria.list();
-                    if(results.isEmpty()) {
+                    if (results.isEmpty()) {
                         return List.<StoredTicketSkeleton>of();
                     }
                     //The following is again due to a hibernate quirk which necessitates order by field to be present
                     // as a part of the projected fields for some reason. Works fine in real life, was breaking tests
                     val ids = results.stream()
-                            .map(r -> (String)r[0])
+                            .map(r -> (String) r[0])
                             .toList();
                     val pointQuery = DetachedCriteria.forClass(StoredTicketSkeleton.class)
                             .add(Property.forName(StoredTicketSkeleton.Fields.ticketId).in(ids));
@@ -548,64 +497,6 @@ public class DBTicketStore implements TicketStore {
                     return null;
                 });
         return Pair.of(queryResults, TicketScrollPointer.serializePointer(pointer, mapper));
-    }
-
-    private static int divisorFromResolution(TimeBucketGroupingElement timeBucketGroupingElement) {
-        return switch (timeBucketGroupingElement.getResolution()) {
-            case MINUTE -> 60;
-            case HOUR -> 36_00;
-            case DAY -> 864_000;
-            case WEEK -> 7 * 864_000;
-            case MONTH -> 30 * 864_000;
-        };
-    }
-
-    private static TreeBasedTable<Integer, String, Object> parseGroupResponse(
-            List<GroupingElement> groupingElements,
-            List<Object[]> rows) {
-        val output = new HashMap<List<String>, Long>();
-        val formats = EnumSet.allOf(TimeResolution.class)
-                .stream()
-                .collect(Collectors.toMap(Function.identity(), resolution -> switch (resolution) {
-                    case MINUTE -> new SimpleDateFormat("yyyy-MM-dd HH:mm");
-                    case HOUR -> new SimpleDateFormat("yyyy-MM-dd HH");
-                    case DAY -> new SimpleDateFormat("yyyy-MM-dd");
-                    case WEEK -> new SimpleDateFormat("yyyy ww");
-                    case MONTH -> new SimpleDateFormat("yyyy-MM");
-                }));
-        for (val row : rows) {
-            val key = new ArrayList<String>(row.length - 1);
-            for (var colId = 0; colId < row.length - 1; colId++) {
-                int finalColId = colId;
-                key.add(groupingElements.get(colId)
-                                .accept(new GroupingElementVisitor<>() {
-                                    @Override
-                                    public String visit(ColumnGroupingElement columnGroupingElement) {
-                                        return Objects.toString(row[finalColId]);
-                                    }
-
-                                    @Override
-                                    public String visit(TimeBucketGroupingElement timeBucketGroupingElement) {
-                                        val divisor = divisorFromResolution(timeBucketGroupingElement);
-                                        return formats.get(timeBucketGroupingElement.getResolution())
-                                                .format(toDate(row[finalColId], divisor));
-                                    }
-                                }));
-            }
-            val oldValue = output.computeIfAbsent(key, k -> 0L);
-            output.put(key, oldValue + (long) row[row.length - 1]);
-        }
-        val table = TreeBasedTable.<Integer, String, Object>create();
-        val rowIdx = new AtomicInteger(0);
-        output
-                .forEach((keys, value) -> {
-                    val row = table.row(rowIdx.incrementAndGet());
-                    for (int i = 0; i < keys.size(); i++) {
-                        row.put(groupingElements.get(i).getAlias(), keys.get(i));
-                    }
-                    row.put("count", value);
-                });
-        return table;
     }
 
     private DetachedCriteria createTicketQueryCriteria(
@@ -675,12 +566,12 @@ public class DBTicketStore implements TicketStore {
                 else {
                     if (assignedToUser.isNegate()) {
                         criteria.add(Property.forName(StoredTicketSkeleton.Fields.assignedToUserId).ne(
-                                                assignedToUser.getAssignedUserId()));
+                                assignedToUser.getAssignedUserId()));
                     }
                     else {
                         criteria.add(
                                 Property.forName(StoredTicketSkeleton.Fields.assignedToGroupId).eq(
-                                                assignedToUser.getAssignedUserId()));
+                                        assignedToUser.getAssignedUserId()));
                     }
                 }
                 return null;
@@ -743,19 +634,14 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketExternalReferenceEquals ticketExternalReferenceEquals) {
                 criteria.add(Property.forName(StoredTicketSkeleton.Fields.externalReferenceSource)
-                                .eq(ticketExternalReferenceEquals.getSource()));
+                                     .eq(ticketExternalReferenceEquals.getSource()));
                 criteria.add(Property.forName(StoredTicketSkeleton.Fields.externalReferenceId)
-                                .eq(ticketExternalReferenceEquals.getValue()));
+                                     .eq(ticketExternalReferenceEquals.getValue()));
                 return null;
             }
         }));
     }
 
-
-    @NonNull
-    private static Date toDate(Object element, int divisor) {
-        return new Date(1000L * divisor * (Long) element);
-    }
 
     private static TicketSkeleton toSummary(
             final StoredTicketSkeleton skeleton,
@@ -787,7 +673,7 @@ public class DBTicketStore implements TicketStore {
                                    .map(DBTicketStore::toWireField)
                                    .toList())
                 .setExternalReferenceID(toExternalReferenceID(skeleton.getExternalReferenceSource(),
-                        skeleton.getExternalReferenceId()));
+                                                              skeleton.getExternalReferenceId()));
     }
 
 
@@ -801,11 +687,12 @@ public class DBTicketStore implements TicketStore {
 
     private static ExternalReferenceID toExternalReferenceID(String extSource, String extRefId) {
         return Strings.isNullOrEmpty(extSource) ? null :
-                new ExternalReferenceID(extSource, extRefId);
+               new ExternalReferenceID(extSource, extRefId);
     }
 
-    private static List<StoredFieldValue> toStoredFields(StoredTicketSkeleton ticket,
-                                                         List<TicketFieldData> fields) {
+    private static List<StoredFieldValue> toStoredFields(
+            StoredTicketSkeleton ticket,
+            List<TicketFieldData> fields) {
         return Objects.requireNonNullElse(fields, List.<TicketFieldData>of())
                 .stream()
                 .map(field -> toStoredField(ticket, field))
@@ -1027,7 +914,7 @@ public class DBTicketStore implements TicketStore {
 
     private static RelatedTicket toRelatedTicket(StoredRelatedTicket storedRelatedTicket) {
         return new RelatedTicket(storedRelatedTicket.getRelatedToTicketId(),
-                storedRelatedTicket.getRelationship());
+                                 storedRelatedTicket.getRelationship());
     }
 }
 

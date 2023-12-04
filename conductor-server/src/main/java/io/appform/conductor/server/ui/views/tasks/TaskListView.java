@@ -18,8 +18,8 @@ package io.appform.conductor.server.ui.views.tasks;
 
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.usermgmt.User;
-import io.appform.conductor.server.eventmanagement.events.ReferredObjectType;
-import io.appform.conductor.server.eventmanagement.query.ObjectReference;
+import io.appform.conductor.model.events.impl.ReferredObjectType;
+import io.appform.conductor.model.events.analytics.ObjectReference;
 import io.appform.conductor.server.taskmanagement.model.Task;
 import io.appform.conductor.server.taskmanagement.model.TaskType;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;

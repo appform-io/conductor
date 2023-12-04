@@ -20,9 +20,9 @@ import io.appform.conductor.model.skills.SkillDefinition;
 import io.appform.conductor.model.skills.SkillValue;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.events.skill.*;
-import io.appform.conductor.server.eventmanagement.events.user.UserSkillAssociatedEvent;
-import io.appform.conductor.server.eventmanagement.events.user.UserSkillDisasocciatedEvent;
+import io.appform.conductor.model.events.impl.skill.*;
+import io.appform.conductor.model.events.impl.user.UserSkillAssociatedEvent;
+import io.appform.conductor.model.events.impl.user.UserSkillDisasocciatedEvent;
 import lombok.val;
 
 import javax.inject.Inject;

@@ -4,11 +4,11 @@ import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.GroupType;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.events.group.GroupCreatedEvent;
-import io.appform.conductor.server.eventmanagement.events.group.GroupDeletedEvent;
-import io.appform.conductor.server.eventmanagement.events.group.GroupUpdatedEvent;
-import io.appform.conductor.server.eventmanagement.events.user.UserGroupAssignedEvent;
-import io.appform.conductor.server.eventmanagement.events.user.UserGroupUnassignedEvent;
+import io.appform.conductor.model.events.impl.group.GroupCreatedEvent;
+import io.appform.conductor.model.events.impl.group.GroupDeletedEvent;
+import io.appform.conductor.model.events.impl.group.GroupUpdatedEvent;
+import io.appform.conductor.model.events.impl.user.UserGroupAssignedEvent;
+import io.appform.conductor.model.events.impl.user.UserGroupUnassignedEvent;
 import lombok.val;
 
 import javax.inject.Inject;
