@@ -73,7 +73,9 @@ public class App extends Application<AppConfig> {
     public void run(AppConfig configuration, Environment environment) {
         val objectMapper = environment.getObjectMapper();
         ConductorServerUtils.configureMapper(objectMapper);
-        ((AbstractServerFactory) configuration.getServerFactory()).setJerseyRootPath("/apis/*");
+        val serverFactory = (AbstractServerFactory) configuration.getServerFactory();
+        serverFactory.setJerseyRootPath("/apis/*");
+        serverFactory.setRegisterDefaultExceptionMappers(false);
         FunctionMetricsManager.initialize("io.appform.conductor", environment.metrics());
     }
 

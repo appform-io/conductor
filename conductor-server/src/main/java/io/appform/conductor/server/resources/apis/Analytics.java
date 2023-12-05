@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import io.appform.conductor.model.apis.ConductorApiResponse;
 import io.appform.conductor.model.error.ConductorErrorCode;
-import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.events.Event;
 import io.appform.conductor.model.events.analytics.EventQueryResponseVisitor;
 import io.appform.conductor.model.events.analytics.impl.EventGroupResponse;
@@ -40,6 +39,7 @@ import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import net.sf.jsqlparser.JSQLParserException;
 import org.hibernate.validator.constraints.Length;
 
 import javax.annotation.security.PermitAll;
@@ -116,12 +116,15 @@ public class Analytics {
                     });
         }
         catch (Exception e) {
-            return new ConductorApiResponse<>(ConductorErrorCode.CQL_PARSING_ERROR,
-                                              null,
-                                              ConductorException.generateErrorMessage(ConductorErrorCode.CQL_PARSING_ERROR,
-                                                                                      Map.of("cqlError",
-                                                                                             e.getMessage()),
-                                                                                      null));
+            var cause = (Throwable)e;
+            while (cause != null) {
+                if(cause instanceof JSQLParserException pe) {
+                    return ConductorApiResponse.failure(
+                            ConductorErrorCode.CQL_PARSING_ERROR, pe.getMessage());
+                }
+                cause = e.getCause();
+            }
+            throw e;
         }
     }
 
@@ -175,7 +178,9 @@ public class Analytics {
         }));
 
         return new TabularResponse(table, metadata);
-    }    private static TabularResponse tabulateEventsResponse(
+    }
+
+    private static TabularResponse tabulateEventsResponse(
             String query,
             CQLEngine.CQLQueryExecutionOutput queryResponse,
             CQLEngine.CQLParserOutput parserOutput) {

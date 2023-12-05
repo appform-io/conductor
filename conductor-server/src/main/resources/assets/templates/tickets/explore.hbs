@@ -66,8 +66,10 @@
     $("#query-form").submit(e => {
         e.preventDefault();
         const query = $("#query").val();
-        $.get("/apis/analytics/v1/query?format=TABLE&length=" + dataSize + "&query=" + encodeURIComponent(query),
-            function(res) {
+        $.ajax({
+            url: "/apis/analytics/v1/query?format=TABLE&length=" + dataSize + "&query=" + encodeURIComponent(query),
+            type: 'GET',
+            success: function(res) {
                 if(!res) {
                     showAlert("No response");
                     return;
@@ -184,7 +186,13 @@
                         dt.rows.add(rows).draw();
                     }
                 }
-            });
+            },
+
+            error: function(data) {
+                const res = data.responseJSON
+                showAlert(res.status + ": " + res.message);
+            }
+        });
     });
 
     $(document).on('click', '.load-older', function() {

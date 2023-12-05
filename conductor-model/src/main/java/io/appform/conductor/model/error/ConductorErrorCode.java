@@ -68,7 +68,7 @@ public enum ConductorErrorCode {
     CQL_INVALID_FUNCTION_PARAMETER(6002, "Invalid arguments for function: ${functionName}"),
 
     REPORT_UPDATE_ERROR(7001, "Error creating or updating report with name: ${name}"),
-    ;
+    UNHANDLED_SERVER_ERROR(9999, "Unhandled exception. Log code: ${logCode}. Message: ${message}");
 
     private final int errorCode;
     private final String messageFormat;
