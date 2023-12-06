@@ -16,7 +16,7 @@
 
 package io.appform.conductor.server.workflowmanagement;
 
-import com.google.common.base.Joiner;
+import com.google.common.collect.Sets;
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
@@ -26,17 +26,18 @@ import io.appform.conductor.model.workflow.*;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.actionmanagement.impl.models.StoredAction;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
-import io.appform.conductor.server.schemamanagement.impl.models.StoredSchemaSummary;
+import io.appform.conductor.server.ticketmanagement.TicketStore;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.utils.Pair;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflow;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
@@ -51,6 +52,7 @@ public class WorkflowManager {
     private final WorkflowStore workflowStore;
     private final SchemaStore schemaStore;
     private final ActionStore actionStore;
+    private final TicketStore ticketStore;
 
     public Optional<Workflow> create(
             final String name,
@@ -404,14 +406,21 @@ public class WorkflowManager {
                         .errorCode(ConductorErrorCode.SCHEMA_ERROR_INVALID_ID)
                         .context(Map.of("id", schemaId))
                         .build());
-        return new WorkflowDetails(workflow, schema, actionStore.listActionsForIds(workflow.getAvailableActions()));
+        val workflowActionIds = Set.copyOf(workflow.getAvailableActions());
+        val transitionActionsIds = workflow.getTicketStateTransitions()
+                .values().stream()
+                .flatMap(Collection::stream)
+                .flatMap(transition -> transition.getActionIds().stream())
+                .collect(Collectors.toSet());
+        val actionIds = new ArrayList<>(Sets.union(workflowActionIds, transitionActionsIds));
+        return new WorkflowDetails(workflow, schema, actionStore.listActionsForIds(actionIds));
     }
 
-    public WorkflowDetails restoreWorkflow(WorkflowDetails workflowDetails) {
-        val actions = restoreActions(workflowDetails.getActions());
-        val schema = restoreSchema(workflowDetails.getSchema());
-        val workflow = restoreWorkflow(workflowDetails.getWorkflow());
-        return new WorkflowDetails(workflow, schema, actions);
+    public ImportWorkflowResult importWorkflow(WorkflowDetails workflowDetails) {
+        val actions = importActions(workflowDetails.getActions());
+        val schema = importSchema(workflowDetails.getSchema());
+        val workflow = importWorkflow(workflowDetails.getWorkflow());
+        return new ImportWorkflowResult(workflow, schema, actions);
     }
 
     private Optional<Workflow> addSelectionRule(String workflowId, String ruleId, Rule rule) {
@@ -424,38 +433,56 @@ public class WorkflowManager {
         return updated;
     }
 
-    private List<Action> restoreActions(List<Action> actions) {
-        val existingActions = actionStore.read(actions.stream()
-                                            .map(Action::getId)
-                                            .collect(Collectors.toList()));
+    private List<ImportResult<Action>> importActions(List<Action> actions) {
+        val actionMap = actions.stream().collect(Collectors.toMap(Action::getId, Function.identity()));
+        val existingActions = actionStore.read(actions.stream().map(Action::getId)
+                                                                    .collect(Collectors.toList()))
+                                                            .stream().collect(Collectors.toMap(Action::getId,
+                                                                    Function.identity()));
 
-        if(!existingActions.isEmpty()) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.ACTION_ALREADY_EXISTS)
-                    .context(Map.of("actionId",
-                            Joiner.on(",").join(existingActions.stream().map(Action::getId).collect(Collectors.toList()))))
-                    .build();
+        if(existingActions.isEmpty()) {
+            return saveAction(actions);
         }
-        return actions.stream().map(action ->
-                        actionStore.save(action)
-                                .orElseThrow(() -> ConductorException.builder()
-                                        .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                                        .context(Map.of("type", StoredAction.ACTION_TABLE_NAME))
-                                        .context(Map.of("id", action.getId()))
-                                        .build()))
-                .collect(Collectors.toList());
+        val nonIdempotentExistingActionIds =
+                existingActions.values()
+                        .stream()
+                        .filter(existingAction ->
+                                !actionMap.get(existingAction.getId()).equals(existingAction))
+                        .map(Action::getId)
+                        .collect(Collectors.toSet());
+        val result = saveAction((Sets.difference(actionMap.keySet(),
+                        nonIdempotentExistingActionIds).stream().map(actionMap::get)
+                                                .collect(Collectors.toList())));
+        result.addAll(nonIdempotentExistingActionIds.stream()
+                .map(actionMap::get)
+                .map(action -> new ImportResult<>(action, false,
+                                        ConductorErrorCode.ACTION_ALREADY_EXISTS.name()))
+                .collect(Collectors.toList()));
+        return result;
     }
 
-    private Schema restoreSchema(Schema inSchema) {
+    @NotNull
+    private List<ImportResult<Action>> saveAction(List<Action> actions) {
+        return actions.stream().map(action -> {
+            val importedAction = actionStore.save(action)
+                    .orElseThrow(() -> ConductorException.builder()
+                            .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
+                            .context(Map.of("type", StoredAction.ACTION_TABLE_NAME))
+                            .context(Map.of("id", action.getId()))
+                            .build());
+            return new ImportResult<>(importedAction, true, null);
+        }).collect(Collectors.toList());
+    }
+
+    private ImportResult<Schema> importSchema(Schema inSchema) {
         val schemaId = inSchema.getId();
         val existingSchema = schemaStore.get(schemaId);
 
         //Check schema, if already active
-        existingSchema.filter(schema -> schema.getState() == SchemaState.ACTIVE)
-                .orElseThrow(() -> ConductorException.builder()
-                        .errorCode(ConductorErrorCode.SCHEMA_ERROR_ID_ALREADY_EXISITS)
-                        .context(Map.of("schemaId", schemaId))
-                        .build());
+        if(existingSchema.filter(schema -> schema.getState() == SchemaState.ACTIVE).isPresent()) {
+            return new ImportResult<>(inSchema, false,
+                    ConductorErrorCode.SCHEMA_ERROR_ID_ALREADY_EXISITS.name());
+        }
 
         //Delete all fields
         existingSchema.ifPresent(schema -> schema.getFields().forEach(fieldSchema ->
@@ -473,23 +500,24 @@ public class WorkflowManager {
                     return schemaSummary;
                 })
                 .flatMap(schemaSummary -> schemaStore.get(schemaSummary.getId()))
-                .orElseThrow(() -> ConductorException.builder()
-                                .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                                .context(Map.of("type", StoredSchemaSummary.SCHEMA_TABLE_NAME))
-                                .context(Map.of("id", schemaId))
-                                .build());
+                .map(schema -> new ImportResult<>(schema, true, null))
+                .orElse(new ImportResult<>(inSchema, false, ConductorErrorCode.STORE_WRITE_ERROR.name()));
     }
 
-    public Workflow restoreWorkflow(Workflow inWorkflow) {
+    public ImportResult<Workflow> importWorkflow(Workflow inWorkflow) {
         val workflowId = inWorkflow.getId();
         val existingWorkflow = workflowStore.read(workflowId);
 
         //Check schema, if already active
-        existingWorkflow.filter(workflow -> workflow.getState() == WorkflowState.ACTIVE)
-                .orElseThrow(() -> ConductorException.builder()
-                        .errorCode(ConductorErrorCode.WORKFLOW_ERROR_ID_ALREADY_EXISTS)
-                        .context(Map.of("workflowId", workflowId))
-                        .build());
+        if(existingWorkflow.filter(workflow -> workflow.getState() == WorkflowState.ACTIVE).isPresent()) {
+            return new ImportResult<>(inWorkflow, false,
+                    ConductorErrorCode.WORKFLOW_ERROR_ID_ALREADY_EXISTS.name());
+        }
+
+        if(existingWorkflow.isPresent() && ticketStore.ticketExists(workflowId)) {
+            return new ImportResult<>(inWorkflow, false,
+                    ConductorErrorCode.WORKFLOW_ERROR_ID_ALREADY_EXISTS.name());
+        }
 
         //Deleting existing rules, state & transitions
         existingWorkflow.ifPresent(workflow ->  {
@@ -533,11 +561,9 @@ public class WorkflowManager {
                                             transition.getRule(),
                                             transition.getActionIds())));
                     return workflow;
-                }).orElseThrow(() -> ConductorException.builder()
-                        .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
-                        .context(Map.of("type", StoredWorkflow.WORKFLOW_TABLE_NAME))
-                        .context(Map.of("id", workflowId))
-                        .build());
+                })
+                .map(workflow -> new ImportResult<>(workflow, true, null))
+                .orElse(new ImportResult<>(inWorkflow, false, ConductorErrorCode.STORE_WRITE_ERROR.name()));
     }
 
     private Optional<Workflow> handleTransition(

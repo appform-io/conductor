@@ -65,6 +65,11 @@ public class EventGeneratingTicketStore implements TicketStore {
     }
 
     @Override
+    public boolean ticketExists(String workflowId) {
+        return ticketStore.ticketExists(workflowId);
+    }
+
+    @Override
     public Optional<TicketSkeleton> update(
             String ticketId,
             UnaryOperator<TicketSkeleton> updater,
