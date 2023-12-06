@@ -74,7 +74,7 @@ public enum ConductorErrorCode {
 
     ACTION_ALREADY_EXISTS(8001, "Cannot create action as it already exists: ${actionId}"),
 
-    ;
+    UNHANDLED_SERVER_ERROR(9999, "Unhandled exception. Log code: ${logCode}. Message: ${message}");
 
     private final int errorCode;
     private final String messageFormat;

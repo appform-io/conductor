@@ -154,6 +154,12 @@ public class Admin {
         return render(new UserAdminView(user.getUserSession().getUser(), null, List.of(), List.of(), List.of()));
     }
 
+    @GET
+    @Path("/users/email")
+    public Response redirectToSearch() {
+        return redirect("/admin/users/search");
+    }
+
     @POST
     @Path("/users/email")
     public Response searchUserByEmail(

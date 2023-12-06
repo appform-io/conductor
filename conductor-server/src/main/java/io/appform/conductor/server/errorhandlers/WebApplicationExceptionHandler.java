@@ -18,7 +18,7 @@ public class WebApplicationExceptionHandler implements ExceptionMapper<WebApplic
     public Response toResponse(WebApplicationException exception) {
         val message = exception.getMessage();
         val response = exception.getResponse();
-        if(null != message) {
+        if (null != message) {
             log.error("Application error: {}.", message);
         }
         return response;
