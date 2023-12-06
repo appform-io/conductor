@@ -17,14 +17,17 @@
 package io.appform.conductor.model.actions;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
-import java.util.Objects;
 
 /**
  * An action that can be taken as a transition
  */
 @Data
+@FieldNameConstants
+@EqualsAndHashCode(exclude = {Action.Fields.created, Action.Fields.updated})
 public abstract class Action {
 
 
