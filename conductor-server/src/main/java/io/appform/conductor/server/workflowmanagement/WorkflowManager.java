@@ -490,11 +490,13 @@ public class WorkflowManager {
                                                         fieldSchema.getId())));
 
         //Create INACTIVE schema && upsert all fields
-        return schemaStore.create(inSchema.getName(), inSchema.getDescription())
+        return existingSchema.flatMap(existing -> schemaStore.updateDescription(existing.getId(),
+                        inSchema.getDescription()))
+                .or(() -> schemaStore.create(inSchema.getName(), inSchema.getDescription()))
                 .map(schemaSummary -> {
                     inSchema.getFields()
                             .forEach(inFieldSchema -> schemaStore.addField(schemaSummary.getId(),
-                                            ConductorServerUtils.readableId(schemaSummary.getId(), schemaSummary.getName()),
+                                            ConductorServerUtils.readableId(schemaSummary.getId(), inFieldSchema.getName()),
                                             inFieldSchema)
                                     .orElseThrow());
                     return schemaSummary;
@@ -514,9 +516,12 @@ public class WorkflowManager {
                     ConductorErrorCode.WORKFLOW_ERROR_ID_ALREADY_EXISTS.name());
         }
 
-        if(existingWorkflow.isPresent() && ticketStore.ticketExists(workflowId)) {
+        if(existingWorkflow.isPresent()) {
+            if(ticketStore.ticketExists(workflowId)
+                        || !existingWorkflow.get().getSchemaId().equals(inWorkflow.getSchemaId())) {
             return new ImportResult<>(inWorkflow, false,
                     ConductorErrorCode.WORKFLOW_ERROR_ID_ALREADY_EXISTS.name());
+            }
         }
 
         //Deleting existing rules, state & transitions
@@ -531,17 +536,25 @@ public class WorkflowManager {
         });
 
         //Create INACTIVE workflow state && upsert all rules, state & transitions
-        return workflowStore.create(inWorkflow.getId(),
+        return existingWorkflow.flatMap(existing ->
+                        workflowStore.update(existing.getId(),
+                                workflow -> workflow.setState(WorkflowState.INACTIVE)
+                                        .setDescription(inWorkflow.getDescription())
+                                        .setTitleTemplate(inWorkflow.getTitleTemplate())
+                                        .setSubjectIdTemplate(inWorkflow.getSubjectIdTemplate())
+                                        .setStartStateId(inWorkflow.getStartStateId())
+                                        .setDescriptionTemplate(inWorkflow.getDescriptionTemplate())))
+                .or(() -> workflowStore.create(inWorkflow.getId(),
                         inWorkflow.getDisplayName(),
                         inWorkflow.getDescription(),
                         inWorkflow.getSchemaId(),
                         inWorkflow.getTitleTemplate(),
                         inWorkflow.getSubjectIdTemplate(),
-                        inWorkflow.getDescriptionTemplate())
+                        inWorkflow.getDescriptionTemplate()))
                 .map(workflow -> {
                     inWorkflow.getSelectionRules()
                             .forEach((ruleId, rule) -> addSelectionRule(workflowId, ruleId, rule));
-                    workflow.getStates()
+                    inWorkflow.getStates()
                             .forEach((stateId, state) -> createState(workflowId,
                                     state.getDisplayName(),
                                     state.getDescription(),
@@ -551,7 +564,7 @@ public class WorkflowManager {
                                     state.getVisibleFields(),
                                     state.getRequiredFields(),
                                     state.getVisibleActions()));
-                    workflow.getTicketStateTransitions()
+                    inWorkflow.getTicketStateTransitions()
                             .forEach((stateId, transitions) ->
                                     transitions.forEach(transition
                                             -> createOrUpdateTransition(workflowId,
@@ -560,7 +573,7 @@ public class WorkflowManager {
                                             transition.getType(),
                                             transition.getRule(),
                                             transition.getActionIds())));
-                    return workflow;
+                    return inWorkflow;
                 })
                 .map(workflow -> new ImportResult<>(workflow, true, null))
                 .orElse(new ImportResult<>(inWorkflow, false, ConductorErrorCode.STORE_WRITE_ERROR.name()));

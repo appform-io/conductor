@@ -25,6 +25,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.Date;
 
@@ -47,6 +48,7 @@ public class SetFieldAction extends Action {
     FieldValue fieldValue;
 
     @Builder
+    @Jacksonized
     public SetFieldAction(
             String id,
             String name,

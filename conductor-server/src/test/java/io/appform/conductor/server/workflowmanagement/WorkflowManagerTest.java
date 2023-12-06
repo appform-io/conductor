@@ -16,6 +16,9 @@
 
 package io.appform.conductor.server.workflowmanagement;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.appform.conductor.model.workflow.ImportWorkflowResult;
+import io.appform.conductor.model.workflow.WorkflowDetails;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.Schema;
@@ -25,18 +28,29 @@ import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.actionmanagement.ActionStore;
+import io.appform.conductor.server.actionmanagement.impl.DBActionStore;
+import io.appform.conductor.server.actionmanagement.impl.models.StoredAction;
+import io.appform.conductor.server.schemamanagement.impl.DBSchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
+import io.appform.conductor.server.schemamanagement.impl.models.StoredFieldSchema;
+import io.appform.conductor.server.schemamanagement.impl.models.StoredSchemaSummary;
 import io.appform.conductor.server.ticketmanagement.TicketStore;
+import io.appform.conductor.server.ticketmanagement.impl.DBTicketStore;
+import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
 import io.appform.conductor.server.workflowmanagement.impl.DBWorkflowStore;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketState;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketStateTransition;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflow;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflowSelectionRule;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
+import io.dropwizard.util.Resources;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,7 +61,10 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link WorkflowManager}
  */
-@RelevantDBEntityPackages("io.appform.conductor.server.workflowmanagement.impl.models")
+@RelevantDBEntityPackages({"io.appform.conductor.server.workflowmanagement.impl.models",
+        "io.appform.conductor.server.schemamanagement.impl.models",
+        "io.appform.conductor.server.actionmanagement.impl.models",
+        "io.appform.conductor.server.ticketmanagement.impl.models"})
 @ExtendWith(DBTestExtension.class)
 class WorkflowManagerTest {
 
@@ -94,4 +111,41 @@ class WorkflowManagerTest {
         }
     }
 
+    @Test
+    void testWorkflowExport(BalancedDBShardingBundle<TestConfig> bundle)  throws Exception {
+        val mapper = new ObjectMapper();
+        val workflowDetails = mapper.readValue(fixture("fixtures/workflow_details.json" ),
+                WorkflowDetails.class);
+        val workflowStore = new DBWorkflowStore(bundle.createParentObjectDao(StoredWorkflow.class),
+                bundle.createRelatedObjectDao(StoredTicketState.class),
+                bundle.createRelatedObjectDao(StoredTicketStateTransition.class),
+                bundle.createRelatedObjectDao(StoredWorkflowSelectionRule.class));
+        val schemaStore = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),
+                bundle.createRelatedObjectDao(StoredFieldSchema.class), mapper);
+        val actionStore = new DBActionStore(bundle.createParentObjectDao(StoredAction.class));
+        val ticketStore = new DBTicketStore(bundle.createParentObjectDao(StoredTicketSkeleton.class), null,
+                null, null, null, mapper);
+        val wfm = new WorkflowManager(workflowStore, schemaStore, actionStore, ticketStore);
+        ImportWorkflowResult result =  wfm.importWorkflow(workflowDetails);
+        assertTrue(result.getWorkflow().isSuccess());
+        assertTrue(result.getSchema().isSuccess());
+        assertFalse(result.getActions().stream()
+                .anyMatch(actionImportResult -> !actionImportResult.isSuccess()));
+
+        ImportWorkflowResult idempotentResult =  wfm.importWorkflow(workflowDetails);
+        assertTrue(idempotentResult.getWorkflow().isSuccess());
+        assertTrue(idempotentResult.getSchema().isSuccess());
+        assertFalse(idempotentResult.getActions().stream()
+                .anyMatch(actionImportResult -> !actionImportResult.isSuccess()));
+    }
+
+
+    private String fixture(String filename) {
+        URL resource = Resources.getResource(filename);
+        try {
+            return Resources.toString(resource, StandardCharsets.UTF_8).trim();
+        } catch (IOException var4) {
+            throw new IllegalArgumentException(var4);
+        }
+    }
 }
