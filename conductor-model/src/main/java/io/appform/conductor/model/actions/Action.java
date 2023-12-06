@@ -26,8 +26,7 @@ import java.util.Date;
  * An action that can be taken as a transition
  */
 @Data
-@FieldNameConstants
-@EqualsAndHashCode(exclude = {Action.Fields.created, Action.Fields.updated})
+@EqualsAndHashCode(exclude = {"created", "updated"})
 public abstract class Action {
 
 
