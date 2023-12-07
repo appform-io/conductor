@@ -52,6 +52,8 @@ public interface TicketStore {
 
     Optional<TicketSkeleton> read(String ticketId, boolean readFields);
 
+    boolean ticketExists(String workflowId);
+
     Optional<TicketSkeleton> update(
             final String ticketId,
             final UnaryOperator<TicketSkeleton> updater,

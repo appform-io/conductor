@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 /**
  *
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "operation")
 @JsonSubTypes({
         @JsonSubTypes.Type(name = "LIST", value = EventListRequest.class),
         @JsonSubTypes.Type(name = "GROUP_BY", value = EventGroupRequest.class),

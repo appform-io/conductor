@@ -25,6 +25,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.Date;
 
@@ -43,6 +44,7 @@ public class AddCommentAction extends Action {
     Template contentTemplate;
 
     @Builder
+    @Jacksonized
     public AddCommentAction(
             String id,
             String name,

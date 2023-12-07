@@ -162,6 +162,18 @@ public class DBTicketStore implements TicketStore {
     @Override
     @MonitoredFunction
     @SneakyThrows
+    @Throws(value = STORE_READ_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SKELETON_TABLE_NAME))
+    public boolean ticketExists(final String workflowId) {
+        DetachedCriteria criteria = DetachedCriteria.forClass(StoredTicketSkeleton.class)
+                .add(Property.forName(StoredTicketSkeleton.Fields.workflowId).eq(workflowId));
+        return !ticketDao.scrollDown(criteria, null, 1, StoredTicketSkeleton.Fields.ticketId)
+                .getResult().isEmpty();
+    }
+
+    @Override
+    @MonitoredFunction
+    @SneakyThrows
     @Throws(value = STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SKELETON_TABLE_NAME))
     public Optional<TicketSkeleton> update(

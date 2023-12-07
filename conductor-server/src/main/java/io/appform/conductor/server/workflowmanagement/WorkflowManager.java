@@ -16,20 +16,29 @@
 
 package io.appform.conductor.server.workflowmanagement;
 
+import com.google.common.collect.Sets;
+import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
+import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.workflow.*;
+import io.appform.conductor.server.actionmanagement.ActionStore;
+import io.appform.conductor.server.actionmanagement.impl.models.StoredAction;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
+import io.appform.conductor.server.ticketmanagement.TicketStore;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.utils.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 
@@ -42,6 +51,8 @@ public class WorkflowManager {
 
     private final WorkflowStore workflowStore;
     private final SchemaStore schemaStore;
+    private final ActionStore actionStore;
+    private final TicketStore ticketStore;
 
     public Optional<Workflow> create(
             final String name,
@@ -335,14 +346,8 @@ public class WorkflowManager {
     }
 
     public Optional<Workflow> addSelectionRule(final String workflowId, final Rule rule) {
-        val wf = workflowStore.read(workflowId).orElse(null);
-        ensureNotNull(workflowId, wf);
-        val ruleId = UUID.randomUUID().toString();
-        val updated = workflowStore.createOrUpdateSelectionRule(workflowId, ruleId, rule);
-        ensure(updated.filter(workflow -> workflow.getSelectionRules().containsKey(ruleId)).isPresent(),
-               ConductorErrorCode.WORKFLOW_ERROR,
-               "Rule could not be added");
-        return updated;
+        val ruleId = UUID.randomUUID().toString(); //TODO: Move to rule name for consistency ?
+        return addSelectionRule(workflowId, ruleId, rule);
     }
 
     public Optional<Workflow> updateSelectionRule(final String workflowId, final String ruleId, final Rule rule) {
@@ -387,6 +392,191 @@ public class WorkflowManager {
                ConductorErrorCode.WORKFLOW_ERROR,
                "Action could not be added");
         return updated;
+    }
+
+    public WorkflowDetails workflowDetails(String workflowId) {
+        val workflow = read(workflowId)
+                .orElseThrow(() -> ConductorException.builder()
+                        .errorCode(ConductorErrorCode.WORKFLOW_ERROR_INVALID_ID)
+                        .context(Map.of("id", workflowId))
+                        .build());
+        val schemaId = workflow.getSchemaId();
+        val schema = schemaStore.get(schemaId)
+                .orElseThrow(() -> ConductorException.builder()
+                        .errorCode(ConductorErrorCode.SCHEMA_ERROR_INVALID_ID)
+                        .context(Map.of("id", schemaId))
+                        .build());
+        val workflowActionIds = Set.copyOf(workflow.getAvailableActions());
+        val transitionActionsIds = workflow.getTicketStateTransitions()
+                .values().stream()
+                .flatMap(Collection::stream)
+                .flatMap(transition -> transition.getActionIds().stream())
+                .collect(Collectors.toSet());
+        val actionIds = new ArrayList<>(Sets.union(workflowActionIds, transitionActionsIds));
+        return new WorkflowDetails(workflow, schema, actionStore.listActionsForIds(actionIds));
+    }
+
+    public ImportWorkflowResult importWorkflow(WorkflowDetails workflowDetails) {
+        val actions = importActions(workflowDetails.getActions());
+        val schema = importSchema(workflowDetails.getSchema());
+        val workflow = importWorkflow(workflowDetails.getWorkflow());
+        return new ImportWorkflowResult(workflow, schema, actions);
+    }
+
+    private Optional<Workflow> addSelectionRule(String workflowId, String ruleId, Rule rule) {
+        val wf = workflowStore.read(workflowId).orElse(null);
+        ensureNotNull(workflowId, wf);
+        val updated = workflowStore.createOrUpdateSelectionRule(workflowId, ruleId, rule);
+        ensure(updated.filter(workflow -> workflow.getSelectionRules().containsKey(ruleId)).isPresent(),
+                ConductorErrorCode.WORKFLOW_ERROR,
+                "Rule could not be added");
+        return updated;
+    }
+
+    private List<ImportResult<Action>> importActions(List<Action> actions) {
+        val actionMap = actions.stream().collect(Collectors.toMap(Action::getId, Function.identity()));
+        val existingActions = actionStore.read(actions.stream().map(Action::getId)
+                                                                    .collect(Collectors.toList()))
+                                                            .stream().collect(Collectors.toMap(Action::getId,
+                                                                    Function.identity()));
+
+        if(existingActions.isEmpty()) {
+            return saveAction(actions);
+        }
+        val nonIdempotentExistingActionIds =
+                existingActions.values()
+                        .stream()
+                        .filter(existingAction ->
+                                !actionMap.get(existingAction.getId()).equals(existingAction))
+                        .map(Action::getId)
+                        .collect(Collectors.toSet());
+        val result = saveAction((Sets.difference(actionMap.keySet(),
+                        nonIdempotentExistingActionIds).stream().map(actionMap::get)
+                                                .collect(Collectors.toList())));
+        result.addAll(nonIdempotentExistingActionIds.stream()
+                .map(actionMap::get)
+                .map(action -> new ImportResult<>(action, false,
+                                        ConductorErrorCode.ACTION_ALREADY_EXISTS.name()))
+                .collect(Collectors.toList()));
+        return result;
+    }
+
+    @NotNull
+    private List<ImportResult<Action>> saveAction(List<Action> actions) {
+        return actions.stream().map(action -> {
+            val importedAction = actionStore.save(action)
+                    .orElseThrow(() -> ConductorException.builder()
+                            .errorCode(ConductorErrorCode.STORE_WRITE_ERROR)
+                            .context(Map.of("type", StoredAction.ACTION_TABLE_NAME))
+                            .context(Map.of("id", action.getId()))
+                            .build());
+            return new ImportResult<>(importedAction, true, null);
+        }).collect(Collectors.toList());
+    }
+
+    private ImportResult<Schema> importSchema(Schema inSchema) {
+        val schemaId = inSchema.getId();
+        val existingSchema = schemaStore.get(schemaId);
+
+        //Check schema, if already active
+        if(existingSchema.filter(schema -> schema.getState() == SchemaState.ACTIVE).isPresent()) {
+            return new ImportResult<>(inSchema, false,
+                    ConductorErrorCode.SCHEMA_ERROR_ID_ALREADY_EXISITS.name());
+        }
+
+        //Delete all fields
+        existingSchema.ifPresent(schema -> schema.getFields().forEach(fieldSchema ->
+                                                schemaStore.deleteField(schemaId,
+                                                        fieldSchema.getId())));
+
+        //Create INACTIVE schema && upsert all fields
+        return existingSchema.flatMap(existing -> schemaStore.updateDescription(existing.getId(),
+                        inSchema.getDescription()))
+                .or(() -> schemaStore.create(inSchema.getName(), inSchema.getDescription()))
+                .map(schemaSummary -> {
+                    inSchema.getFields()
+                            .forEach(inFieldSchema -> schemaStore.addField(schemaSummary.getId(),
+                                            ConductorServerUtils.readableId(schemaSummary.getId(), inFieldSchema.getName()),
+                                            inFieldSchema)
+                                    .orElseThrow());
+                    return schemaSummary;
+                })
+                .flatMap(schemaSummary -> schemaStore.get(schemaSummary.getId()))
+                .map(schema -> new ImportResult<>(schema, true, null))
+                .orElse(new ImportResult<>(inSchema, false, ConductorErrorCode.STORE_WRITE_ERROR.name()));
+    }
+
+    public ImportResult<Workflow> importWorkflow(Workflow inWorkflow) {
+        val workflowId = inWorkflow.getId();
+        val existingWorkflow = workflowStore.read(workflowId);
+
+        //Check schema, if already active
+        if(existingWorkflow.filter(workflow -> workflow.getState() == WorkflowState.ACTIVE).isPresent()) {
+            return new ImportResult<>(inWorkflow, false,
+                    ConductorErrorCode.WORKFLOW_ERROR_ID_ALREADY_EXISTS.name());
+        }
+
+        if(existingWorkflow.isPresent()) {
+            if(ticketStore.ticketExists(workflowId)
+                        || !existingWorkflow.get().getSchemaId().equals(inWorkflow.getSchemaId())) {
+            return new ImportResult<>(inWorkflow, false,
+                    ConductorErrorCode.WORKFLOW_ERROR_ID_ALREADY_EXISTS.name());
+            }
+        }
+
+        //Deleting existing rules, state & transitions
+        existingWorkflow.ifPresent(workflow ->  {
+            workflow.getSelectionRules().keySet()
+                    .forEach(ruleId -> workflowStore.deleteSelectionRule(workflowId, ruleId));
+            workflow.getStates().keySet()
+                    .forEach(stateId -> workflowStore.deleteState(workflowId, stateId));
+            workflow.getTicketStateTransitions().values().stream()
+                    .flatMap(Collection::stream)
+                    .forEach(transition -> workflowStore.deleteTransition(workflowId, transition.getId()));
+        });
+
+        //Create INACTIVE workflow state && upsert all rules, state & transitions
+        return existingWorkflow.flatMap(existing ->
+                        workflowStore.update(existing.getId(),
+                                workflow -> workflow.setState(WorkflowState.INACTIVE)
+                                        .setDescription(inWorkflow.getDescription())
+                                        .setTitleTemplate(inWorkflow.getTitleTemplate())
+                                        .setSubjectIdTemplate(inWorkflow.getSubjectIdTemplate())
+                                        .setStartStateId(inWorkflow.getStartStateId())
+                                        .setDescriptionTemplate(inWorkflow.getDescriptionTemplate())))
+                .or(() -> workflowStore.create(inWorkflow.getId(),
+                        inWorkflow.getDisplayName(),
+                        inWorkflow.getDescription(),
+                        inWorkflow.getSchemaId(),
+                        inWorkflow.getTitleTemplate(),
+                        inWorkflow.getSubjectIdTemplate(),
+                        inWorkflow.getDescriptionTemplate()))
+                .map(workflow -> {
+                    inWorkflow.getSelectionRules()
+                            .forEach((ruleId, rule) -> addSelectionRule(workflowId, ruleId, rule));
+                    inWorkflow.getStates()
+                            .forEach((stateId, state) -> createState(workflowId,
+                                    state.getDisplayName(),
+                                    state.getDescription(),
+                                    state.isTerminal(),
+                                    state.getAllowedActions(),
+                                    state.getEditableFields(),
+                                    state.getVisibleFields(),
+                                    state.getRequiredFields(),
+                                    state.getVisibleActions()));
+                    inWorkflow.getTicketStateTransitions()
+                            .forEach((stateId, transitions) ->
+                                    transitions.forEach(transition
+                                            -> createOrUpdateTransition(workflowId,
+                                            transition.getFrom(),
+                                            transition.getTo(),
+                                            transition.getType(),
+                                            transition.getRule(),
+                                            transition.getActionIds())));
+                    return inWorkflow;
+                })
+                .map(workflow -> new ImportResult<>(workflow, true, null))
+                .orElse(new ImportResult<>(inWorkflow, false, ConductorErrorCode.STORE_WRITE_ERROR.name()));
     }
 
     private Optional<Workflow> handleTransition(

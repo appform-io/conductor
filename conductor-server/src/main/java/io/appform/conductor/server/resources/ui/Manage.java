@@ -318,6 +318,7 @@ public class Manage {
                                     null,
                                     null,
                                     null)
+                .flatMap(wf -> workflowStore.updateWorkflowState(wf.getId(), WorkflowState.ACTIVE)) //TODO: ACTIVATION FLOW
                 .map(wf -> redirect("/manage/workflow/" + wf.getId()))
                 .orElseThrow(() -> fail("Failed to create workflow", "/manage/workflow"));
     }

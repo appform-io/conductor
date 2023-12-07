@@ -21,6 +21,7 @@ import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import lombok.*;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.Date;
 
@@ -40,6 +41,7 @@ public class AddTicketAction extends Action {
     String actionId;
 
     @Builder
+    @Jacksonized
     public AddTicketAction(String id,
                            String name,
                            String description,

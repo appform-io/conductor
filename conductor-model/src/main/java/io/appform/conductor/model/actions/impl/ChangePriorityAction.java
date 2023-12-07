@@ -25,6 +25,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.Date;
 
@@ -39,6 +40,7 @@ public class ChangePriorityAction extends Action {
     TicketPriority priority;
 
     @Builder
+    @Jacksonized
     public ChangePriorityAction(
             String id,
             String name,

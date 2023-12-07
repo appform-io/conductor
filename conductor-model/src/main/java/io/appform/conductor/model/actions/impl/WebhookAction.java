@@ -22,6 +22,7 @@ import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.workflow.Template;
 import lombok.*;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.Date;
 import java.util.Map;
@@ -136,6 +137,7 @@ public class WebhookAction extends Action {
     int numRetries;
 
     @Builder
+    @Jacksonized
     public WebhookAction(
             String id,
             String name,

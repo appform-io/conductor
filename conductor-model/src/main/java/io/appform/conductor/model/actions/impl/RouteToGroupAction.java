@@ -24,6 +24,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.Date;
 
@@ -37,6 +38,7 @@ public class RouteToGroupAction extends Action {
     String groupId;
 
     @Builder
+    @Jacksonized
     public RouteToGroupAction(
             String id,
             String name,
