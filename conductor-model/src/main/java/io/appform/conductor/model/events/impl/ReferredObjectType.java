@@ -31,5 +31,6 @@ public enum ReferredObjectType {
     WORKFLOW,
 
     TASK,
+    DASHBOARD,
     REPORT
 }

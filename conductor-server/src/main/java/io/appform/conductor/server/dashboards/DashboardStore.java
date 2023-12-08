@@ -19,6 +19,8 @@ package io.appform.conductor.server.dashboards;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.server.dashboards.model.Dashboard;
+import io.appform.conductor.server.dashboards.model.DashboardSpec;
+import io.appform.conductor.server.dashboards.model.SpecVersion;
 import io.appform.conductor.server.reporting.impl.models.StoredReport;
 
 import java.util.List;
@@ -28,7 +30,13 @@ import java.util.Optional;
  *
  */
 public interface DashboardStore {
-    Optional<Dashboard> save(final String id, final Dashboard dashboard);
+    Optional<Dashboard> create(final String id, final String name, final String description);
+
+    Optional<Dashboard> update(final String id,
+                               final String description,
+                               final SpecVersion specVersion,
+                               final DashboardSpec spec);
+
     Optional<Dashboard> read(final String id);
     boolean delete(final String id);
 

@@ -37,7 +37,7 @@ import java.util.Date;
 @FieldNameConstants
 @AllArgsConstructor
 @NoArgsConstructor
-@SQLDelete(sql = "update dashboards set deleted=true where report_id=?")
+@SQLDelete(sql = "update dashboards set deleted=true where dashboard_id=?")
 public class StoredDashboard {
     public static final String DASHBOARD_TABLE_NAME = "dashboards";
 

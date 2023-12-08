@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.dashboards.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
@@ -23,12 +24,15 @@ import io.appform.conductor.server.dashboards.DashboardStore;
 import io.appform.conductor.server.dashboards.impl.model.StoredDashboard;
 import io.appform.conductor.server.dashboards.model.Dashboard;
 import io.appform.conductor.server.dashboards.model.DashboardSpec;
+import io.appform.conductor.server.dashboards.model.SpecVersion;
 import io.appform.conductor.server.reporting.impl.models.StoredReport;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Property;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -45,16 +49,45 @@ public class DBDashboardStore implements DashboardStore {
     private final ObjectMapper mapper;
 
     @Override
+    @SneakyThrows
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredDashboard.DASHBOARD_TABLE_NAME))
-    public Optional<Dashboard> save(
-            @Throws.RuntimeParam("id") String id,
-            Dashboard dashboard) {
+    public Optional<Dashboard> create(
+            @Throws.RuntimeParam("id") final String id,
+            final String name,
+            final String description) {
         return dashboardDao.createOrUpdate(id,
-                                           existing -> addAttributes(existing, dashboard)
-                                                   .setDeleted(false),
-                                           () -> toStored(dashboard))
+                                           existing -> initialize(name, description, existing),
+                                           () -> initialize(name, description, new StoredDashboard()))
                 .map(this::toWire);
+    }
+
+
+    @SneakyThrows
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredDashboard.DASHBOARD_TABLE_NAME))
+    public Optional<Dashboard> update(
+            @Throws.RuntimeParam("id") final String id,
+            final String description,
+            final SpecVersion specVersion,
+            final DashboardSpec spec) {
+        val status = dashboardDao.update(id, existing -> existing
+                .map(dashboard -> {
+                    try {
+                        return dashboard.setDescription(description)
+                                .setSpecVersion(specVersion)
+                                .setSpec(mapper.writeValueAsString(spec))
+                                .setLastUpdatedBy(ConductorServerUtils.operatingUserId());
+                    }
+                    catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .orElse(null));
+        if (status) {
+            return read(id);
+        }
+        return Optional.empty();
     }
 
     @Override
@@ -77,24 +110,22 @@ public class DBDashboardStore implements DashboardStore {
     @Throws(value = ConductorErrorCode.STORE_LIST_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredReport.REPORT_TABLE_NAME))
     public List<Dashboard> list() {
-        return dashboardDao.scatterGather(DetachedCriteria.forClass(DashboardStore.class))
+        return dashboardDao.scatterGather(DetachedCriteria.forClass(StoredDashboard.class)
+                                                  .add(Property.forName(StoredDashboard.Fields.deleted).eq(false)))
                 .stream()
                 .map(this::toWire)
                 .toList();
     }
 
-    private StoredDashboard toStored(final Dashboard dashboard) {
-        return addAttributes(new StoredDashboard(), dashboard);
-    }
-
-    @SneakyThrows
-    private StoredDashboard addAttributes(final StoredDashboard existing, final Dashboard dashboard) {
-        return existing.setDashboardId(dashboard.getId())
-                .setName(dashboard.getName())
-                .setDescription(dashboard.getDescription())
-                .setSpecVersion(dashboard.getSpecVersion())
-                .setSpec(mapper.writeValueAsString(dashboard.getSpec()))
-                .setLastUpdatedBy(ConductorServerUtils.operatingUserId());
+    private static StoredDashboard initialize(String name, String description, StoredDashboard existing) {
+        return existing
+                .setDashboardId(ConductorServerUtils.lowerSnake(name))
+                .setName(name)
+                .setDescription(description)
+                .setSpecVersion(null)
+                .setSpec(null)
+                .setLastUpdatedBy(ConductorServerUtils.operatingUserId())
+                .setDeleted(false);
     }
 
     @SneakyThrows
@@ -103,7 +134,9 @@ public class DBDashboardStore implements DashboardStore {
                              dashboard.getName(),
                              dashboard.getDescription(),
                              dashboard.getSpecVersion(),
-                             mapper.readValue(dashboard.getSpec(), DashboardSpec.class),
+                             null != dashboard.getSpec()
+                             ? mapper.readValue(dashboard.getSpec(), DashboardSpec.class)
+                             : null,
                              dashboard.getLastUpdatedBy(),
                              dashboard.getUpdated().getTime(),
                              dashboard.getUpdated());
