@@ -16,8 +16,23 @@
 
 package io.appform.conductor.server.dashboards;
 
+import io.appform.conductor.model.error.ConductorErrorCode;
+import io.appform.conductor.model.error.Throws;
+import io.appform.conductor.server.dashboards.model.Dashboard;
+import io.appform.conductor.server.reporting.impl.models.StoredReport;
+
+import java.util.List;
+import java.util.Optional;
+
 /**
  *
  */
 public interface DashboardStore {
+    Optional<Dashboard> save(final String id, final Dashboard dashboard);
+    Optional<Dashboard> read(final String id);
+    boolean delete(final String id);
+
+    @Throws(value = ConductorErrorCode.STORE_LIST_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredReport.REPORT_TABLE_NAME))
+    List<Dashboard> list();
 }

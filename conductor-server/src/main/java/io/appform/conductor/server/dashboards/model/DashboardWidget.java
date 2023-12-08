@@ -18,19 +18,16 @@ package io.appform.conductor.server.dashboards.model;
 
 import lombok.Value;
 
-import java.util.Date;
-
 /**
  *
  */
 @Value
-public class Dashboard {
-    String id;
-    String name;
-    String description;
-    SpecVersion specVersion;
-    DashboardSpec spec;
-    String lastUpdatedBy;
-    long version;
-    Date updated;
+public class DashboardWidget {
+    public enum QueryType {
+        CQL
+    }
+
+    String title;
+    QueryType queryType;
+    String cqlQuery;
 }

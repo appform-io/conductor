@@ -110,7 +110,10 @@ public class DBReportStore implements ReportStore {
     }
 
     @Override
-    public Optional<Report> updateState(String reportId, ReportState state) {
+    @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredReport.REPORT_TABLE_NAME))
+    public Optional<Report> updateState(
+            @Throws.RuntimeParam("id") String reportId, ReportState state) {
         if (reportDao.update(reportId,
                              existingOptional -> existingOptional.map(existing -> existing.setState(state))
                                      .orElse(null))) {
