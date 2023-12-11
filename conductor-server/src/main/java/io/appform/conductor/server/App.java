@@ -17,7 +17,10 @@
 package io.appform.conductor.server;
 
 import com.google.inject.Stage;
+import io.appform.conductor.model.error.ConductorErrorCode;
+import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.server.config.AppConfig;
+import io.appform.conductor.server.id.IdGenerator;
 import io.appform.conductor.server.ui.HandlebarsViewRenderer;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
@@ -33,6 +36,10 @@ import lombok.val;
 import ru.vyarus.dropwizard.guice.GuiceBundle;
 import ru.vyarus.dropwizard.guice.module.installer.feature.health.HealthCheckInstaller;
 import ru.vyarus.guicey.gsp.ServerPagesBundle;
+
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Random;
 
 /**
  * Main app for conductor
@@ -76,11 +83,22 @@ public class App extends Application<AppConfig> {
         val serverFactory = (AbstractServerFactory) configuration.getServerFactory();
         serverFactory.setJerseyRootPath("/apis/*");
         serverFactory.setRegisterDefaultExceptionMappers(false);
+        IdGenerator.initialize(nodeId());
         FunctionMetricsManager.initialize("io.appform.conductor", environment.metrics());
     }
 
     public static void main(String[] args) throws Exception {
         val app = new App();
         app.run(args);
+    }
+
+    private int nodeId() {
+        try {
+            return SecureRandom.getInstanceStrong().nextInt(100, 999);
+        } catch (Exception e) {
+            throw ConductorException.builder()
+                    .errorCode(ConductorErrorCode.UNHANDLED_SERVER_ERROR)
+                    .build();
+        }
     }
 }
