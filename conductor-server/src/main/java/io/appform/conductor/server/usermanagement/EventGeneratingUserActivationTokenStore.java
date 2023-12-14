@@ -1,5 +1,6 @@
 package io.appform.conductor.server.usermanagement;
 
+import io.appform.conductor.model.events.impl.user.UserActivationTokenStateUpdatedEvent;
 import io.appform.conductor.model.usermgmt.UserActivationToken;
 import io.appform.conductor.model.usermgmt.UserActivationTokenState;
 import io.appform.conductor.server.ConductorModule;
@@ -47,5 +48,18 @@ public class EventGeneratingUserActivationTokenStore implements UserActivationTo
     @Override
     public boolean update(String token, Consumer<UserActivationToken> handler) {
         return userActivationTokenStore.update(token, handler);
+    }
+
+    @Override
+    public boolean updateTokenState(String token, UserActivationTokenState state) {
+        val res = userActivationTokenStore.updateTokenState(token, state);
+        if (res) {
+            userActivationTokenStore.getById(token)
+                    .filter(userActivationToken -> userActivationToken.getState() == state)
+                    .ifPresent(userActivationToken ->
+                            eventBus.publish(new UserActivationTokenStateUpdatedEvent(userActivationToken.getUserId(),
+                                    userActivationToken.getState())));
+        }
+        return res;
     }
 }

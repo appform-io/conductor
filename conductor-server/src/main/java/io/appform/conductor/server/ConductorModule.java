@@ -43,6 +43,7 @@ import io.appform.conductor.server.eventmanagement.EventStore;
 import io.appform.conductor.server.eventmanagement.bus.SignalDrivenEventBus;
 import io.appform.conductor.server.eventmanagement.store.DBEventStore;
 import io.appform.conductor.server.eventmanagement.store.models.StoredEvent;
+import io.appform.conductor.server.reporting.EventGeneratingReportStore;
 import io.appform.conductor.server.reporting.ReportStore;
 import io.appform.conductor.server.reporting.impl.DBReportStore;
 import io.appform.conductor.server.reporting.impl.models.StoredReport;
@@ -65,6 +66,7 @@ import io.appform.conductor.server.subjectmanagement.impl.DBSubjectStore;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredAddress;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectID;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectSummary;
+import io.appform.conductor.server.taskmanagement.EventGeneratingTaskStore;
 import io.appform.conductor.server.taskmanagement.TaskStore;
 import io.appform.conductor.server.taskmanagement.impl.DBTaskStore;
 import io.appform.conductor.server.taskmanagement.impl.models.StoredTask;
@@ -158,8 +160,12 @@ public class ConductorModule extends AbstractModule {
         bind(TicketStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBTicketStore.class);
         bind(TicketStore.class).to(EventGeneratingTicketStore.class);
 
-        bind(TaskStore.class).to(DBTaskStore.class); //TODO::EVENTS
-        bind(ReportStore.class).to(DBReportStore.class); //TODO::EVENTS
+        bind(TaskStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBTaskStore.class);
+        bind(TaskStore.class).to(EventGeneratingTaskStore.class);
+
+        bind(ReportStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBReportStore.class);
+        bind(ReportStore.class).to(EventGeneratingReportStore.class);
+
         bind(EventStore.class).to(DBEventStore.class);
 
     }

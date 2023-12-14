@@ -111,17 +111,10 @@ public class UserAuthValidator {
             }
             val userId = user.get().getId();
             val passwordVerified = matchHash(userId, password, passwordData.getPassword());
-            val updatedPasswordData = passwordAuthStore.update(userId, passwordDetails -> {
-                        val attempts = passwordDetails.getFailedPasswordAttempts() + 1;
-                        if (passwordVerified) {
-                            passwordDetails.setFailedPasswordAttempts(0);
-                        }
-                        else {
-                            passwordDetails.setFailedPasswordAttempts(attempts);
-                        }
-                        return passwordDetails;
-                    })
-                    .orElse(null);
+            val updatedPasswordData =
+                    passwordAuthStore.updateFailedPasswordAttempt(userId,
+                            failedAttempts -> passwordVerified ? 0 : (failedAttempts + 1)
+                    ).orElse(null);
             if (null != updatedPasswordData) {
                 if (updatedPasswordData.getFailedPasswordAttempts() > 3) {
                     userStore.updateState(userId, UserState.LOCKED);
