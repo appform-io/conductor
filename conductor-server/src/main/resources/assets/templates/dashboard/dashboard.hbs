@@ -36,7 +36,9 @@
                                                     </form>
                                                 </div>
                                             </div>
-                                            <canvas class="widget-chart-area" id="canvas-{{id}}"></canvas>
+                                            <div class="chart-container" style="position: relative;">
+                                                <canvas class="widget-chart-area" id="canvas-{{id}}"></canvas>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -87,8 +89,10 @@
                         labels: widget.labels,
                         datasets: widget.datasets
                     },
-                    responsive: false,
+
                     options: {
+    responsive: true,
+    maintainAspectRatio: false,
                         scales: {
                             x: {
                                 stacked: true,
@@ -112,8 +116,11 @@
                         datasets: widget.datasets
                     },
                     responsive: true,
+                    maintainAspectRatio: false,
                     options: {
-                        scales: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
                             x: {
                                 type: 'timeseries',
                                 time: {
@@ -143,6 +150,7 @@
                         datasets: widget.datasets
                     },
                     responsive: false,
+                    maintainAspectRatio: false,
                     options: {
                         scales: {
                             x: {
