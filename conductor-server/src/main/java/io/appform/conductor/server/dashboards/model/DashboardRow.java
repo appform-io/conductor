@@ -16,11 +16,14 @@
 
 package io.appform.conductor.server.dashboards.model;
 
+import lombok.Value;
+
 import java.util.List;
 
 /**
  *
  */
+@Value
 public class DashboardRow {
     List<DashboardWidget> widgets;
 }

@@ -16,22 +16,31 @@
 
 package io.appform.conductor.server.dashboards.model;
 
-import lombok.Value;
+import lombok.*;
 
-import java.util.Map;
+import java.util.Collection;
+import java.util.List;
 
 /**
  *
  */
 @Value
-public class DashboardWidget {
-    public enum QueryType {
-        CQL
+@Builder
+@AllArgsConstructor(access = AccessLevel.PUBLIC)
+public class WidgetQueryResponse {
+    public enum Type {
+        BAR,
+        TIME_SERIES,
+        PIE,
+        FLARE
     }
-    String id;
-    String title;
-    QueryType queryType;
-    String cqlQuery;
-    int colWidth;
-    Map<String, Object> extraMeta;
+
+    public record DataSetElement(String label, //Group name
+                                 List<Object> data) {} //Y axis values
+
+    Type type;
+    @Singular
+    Collection<String> labels; //X axis
+    @Singular
+    List<DataSetElement> datasets;
 }

@@ -364,7 +364,7 @@ public class CQLEngine {
                                     .get(1)).getValue())
                                              : TimeResolution.DAY;
 //                            timeSeriesDetails.set(new TimeSeriesDetails(resolution, colName));
-                            groupingElements.add(new TimeBucketGroupingElement(colName, resolution, "grouped_" + colName));
+                            groupingElements.add(new TimeBucketGroupingElement(colName, resolution, colName));
                         }
 
                         @Override

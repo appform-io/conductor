@@ -40,3 +40,9 @@ div.dataTables_wrapper div.dataTables_filter {
 .small-text {
     font-size: 0.875em;
 }
+.widget-title {
+}
+
+.widget-chart-area {
+    width: 100%;
+}

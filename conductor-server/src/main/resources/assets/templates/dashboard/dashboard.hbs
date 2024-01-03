@@ -1,15 +1,170 @@
+{{#partial "page_js_includes"}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+{{/partial}}
 {{#partial "content"}}
-{{#with currentDashboard}}
-    <h4>Dashboard: <i>{{name}}</i></h4>
-    <div class="row">
-        <div class="col-12">
-            <small>{{description}}</small>
+    {{#with currentDashboard}}
+        <h4>Dashboard: <i>{{name}}</i></h4>
+        <div class="row">
+            <div class="col-12">
+                <small>{{description}}</small>
+            </div>
         </div>
-    </div>
-    <div class="row">
+        <section>
+            {{#with spec}}
+                {{#each rows}}
+                    <div class="row dashboard-row">
+                        {{#each widgets}}
+                            <div class="col-{{colWidth}} dashboard-widget" data-cql-query="{{cqlQuery}}" id="{{id}}">
+                                <div class="card" style="width: 95%; height: 30rem;">
+                                    <div class="card-header">
+                                        <span class="align-middle">{{title}}</span>
+                                        <button class="btn btn-outline-primary float-end" type="button" data-bs-toggle="collapse"
+                                                data-bs-target="#{{id}}-edit" aria-expanded="false"
+                                                aria-controls="{{id}}-edit"><i class="bi bi-pencil"></i></button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="card-text">
+                                            <div class="collapse" id="{{id}}-edit">
+                                                <div class="card card-body">
+                                                    <form>
+                                                        <label for="{{id}}-edit-cql" class="visually-hidden">Update
+                                                            CQL</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                               name="{{id}}-edit-cql" id="{{id}}-edit-cql"
+                                                               placeholder="CQL query" value="{{cqlQuery}}">
+                                                    </form>
+                                                </div>
+                                            </div>
+                                            <canvas class="widget-chart-area" id="canvas-{{id}}"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
 
-    </div>
-{{/with}}
+
+                            </div>
+
+                        {{/each}}
+                    </div>
+                {{/each}}
+            {{/with}}
+        </section>
+    {{/with}}
 {{/partial}}
 
+{{#partial "page_js"}}
+
+    function loadWidgetData(id) {
+        $.get("/apis/analytics/v1/query?format=WIDGET&query=" + $('#' + id + '-edit-cql').val(),
+        function(res) {
+            if(!res || res.status != 'SUCCESS') {
+                return;
+            }
+            if(res.data) {
+                console.log(JSON.stringify(res.data, null, 4));
+                renderWidget(id, res.data)
+            }
+        });
+    }
+
+    function renderWidget(id, widget) {
+        var chartOpts = null;
+        if(widget.type == 'BAR') {
+            chartOpts = renderBar(widget);
+        }
+        if(widget.type == 'TIME_SERIES') {
+            chartOpts = renderTimeSeries(widget);
+        }
+        if(chartOpts) {
+            const chart = new Chart(document.getElementById('canvas-' + id),chartOpts);
+        }
+    }
+
+    function renderBar(widget) {
+        return {
+                    type: 'bar',
+                    data: {
+                        labels: widget.labels,
+                        datasets: widget.datasets
+                    },
+                    responsive: false,
+                    options: {
+                        scales: {
+                            x: {
+                                stacked: true,
+                            },
+                            y: {
+                                stacked: true
+                            }
+                        }
+                    }
+
+                };
+    }
+
+    function renderTimeSeries(widget) {
+        const dateLabels = widget.labels.sort().map(v => new Date(parseInt(v)));
+        console.log(dateLabels)
+        return {
+                    type: 'line',
+                    data: {
+                        labels: dateLabels,
+                        datasets: widget.datasets
+                    },
+                    responsive: true,
+                    options: {
+                        scales: {
+                            x: {
+                                type: 'timeseries',
+                                time: {
+                                    unit: 'hour',
+                                    displayFormats: {
+                                        hour: 'dd-MM-yyyy H:00:00',
+                                        millisecond: 'dd-MM-yyyy H:mm:SS'
+                                    }
+                                },
+                                stacked: true
+                            },
+                            y: {
+                                stacked: true,
+                                min: 0
+                            }
+                        }
+                    }
+
+                };
+    }
+
+    function renderPie(widget) {
+        return {
+                    type: 'pie',
+                    data: {
+                        labels: widget.labels,
+                        datasets: widget.datasets
+                    },
+                    responsive: false,
+                    options: {
+                        scales: {
+                            x: {
+                                stacked: true,
+                            },
+                            y: {
+                                stacked: true
+                            }
+                        }
+                    }
+
+                };
+    }
+
+    {{#with currentDashboard}}
+        {{#with spec}}
+            {{#each rows}}
+                {{#each widgets}}
+                    loadWidgetData("{{id}}");
+                {{/each}}
+            {{/each}}
+        {{/with}}
+    {{/with}}
+{{/partial}}
 {{> common/base}}

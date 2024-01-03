@@ -21,5 +21,7 @@ package io.appform.conductor.model.ticket.analytics;
  */
 public enum ResponseFormat {
     DEFAULT,
-    TABLE
+    TABLE,
+
+    WIDGET
 }
