@@ -37,6 +37,7 @@ import org.hibernate.criterion.Property;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -117,15 +118,21 @@ public class DBDashboardStore implements DashboardStore {
                 .toList();
     }
 
-    private static StoredDashboard initialize(String name, String description, StoredDashboard existing) {
+    @SneakyThrows
+    private StoredDashboard initialize(String name, String description, StoredDashboard existing) {
         return existing
                 .setDashboardId(ConductorServerUtils.lowerSnake(name))
                 .setName(name)
                 .setDescription(description)
-                .setSpecVersion(null)
-                .setSpec(null)
+                .setSpecVersion(Objects.requireNonNullElse(existing.getSpecVersion(), SpecVersion.V1))
+                .setSpec(Objects.requireNonNullElseGet(existing.getSpec(), this::emptySpec))
                 .setLastUpdatedBy(ConductorServerUtils.operatingUserId())
                 .setDeleted(false);
+    }
+
+    @SneakyThrows
+    private String emptySpec() {
+        return mapper.writeValueAsString(new DashboardSpec(List.of()));
     }
 
     @SneakyThrows

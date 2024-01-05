@@ -310,7 +310,7 @@ public class Analytics {
                                 });
                         yield new WidgetQueryResponse(WidgetQueryResponse.Type.TIME_SERIES,
                                                       xValues,
-                                                      List.of(new WidgetQueryResponse.DataSetElement(labels.get(0),
+                                                      List.of(new WidgetQueryResponse.DataSetElement("count",
                                                                                                      yValues)),
                                                       Map.of("unit", unitForDisplay(timeGroupingElement)));
                     }

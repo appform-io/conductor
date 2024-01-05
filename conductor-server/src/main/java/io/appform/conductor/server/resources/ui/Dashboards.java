@@ -45,10 +45,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 
@@ -148,8 +145,7 @@ public class Dashboards {
                                          widgetCql,
                                          12,
                                          Map.of());
-        val rows = existing.getSpec()
-                .getRows();
+        val rows = Objects.requireNonNullElse(existing.getSpec().getRows(), List.<DashboardRow>of());
         val newRows = ImmutableList.<DashboardRow>builder()
                 .addAll(rows)
                 .add(new DashboardRow(List.of(widget)))
@@ -184,7 +180,9 @@ public class Dashboards {
             throw fail("Could not update widget on " + dashboardId + ". Invalid parameters", "/dashboards/" + dashboardId);
         }
         val newRows = new ArrayList<DashboardRow>();
-        for (val row : existing.getSpec().getRows()) {
+        val rows = Objects.requireNonNullElse(existing.getSpec().getRows(), List.<DashboardRow>of());
+
+        for (val row : rows) {
             val newWidgets = row.getWidgets()
                     .stream()
                     .map(widget -> {
@@ -223,8 +221,7 @@ public class Dashboards {
         if(null == existing) {
             throw fail("Could not find dashboard " + dashboardId, "/dashboards");
         }
-        val rows = existing.getSpec()
-                .getRows();
+        val rows = Objects.requireNonNullElse(existing.getSpec().getRows(), List.<DashboardRow>of());
         val newRows = new ArrayList<DashboardRow>();
         for (val row : rows) {
             val newWidgets = row.getWidgets()
