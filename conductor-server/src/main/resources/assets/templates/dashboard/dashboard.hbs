@@ -225,30 +225,18 @@
                 };
     }
 
-    function createPie(widget) {
-        return {
-                    type: 'pie',
-                    data: {},
-                    options: {
-                        responsive: false,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: {
-                                stacked: true,
-                            },
-                            y: {
-                                stacked: true
-                            }
-                        }
-                    }
-
-                };
+    function reloadAllWidgets() {
+        [...charts.keys()].forEach(id => loadWidgetData(id));
     }
 
     $(document).on('click', '.refresh-widget', function(widget) {
         const id = $(this).attr('data-widget-id');
         loadWidgetData(id);
     });
+
+    $(document).on('click', '.refresh-all', reloadAllWidgets);
+
+    setInterval(reloadAllWidgets, 60_000); //Refresh every minute
 
     {{#with currentDashboard}}
         {{#with spec}}
