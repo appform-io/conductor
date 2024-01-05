@@ -45,15 +45,16 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.*;
  *
  */
 @Slf4j
-@Path("/ui/login")
+@Path("/ui/user")
 @Template
 @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class Login {
+public class UIUserLifecycle {
 
     private final UserLifecycleManager userLifecycleManager;
 
     @GET
+    @Path("/login")
     public TemplateView loginPage() {
         return new TemplateView("templates/login.hbs");
     }
@@ -68,7 +69,7 @@ public class Login {
         return userLifecycleManager.createHumanUser(newName, newEmail, newPassword)
                 .map(UserSummary::getId)
                 .flatMap(userLifecycleManager::openToken)
-                .map(token -> redirect("/login/activate"))
+                .map(token -> redirect("/user/activate"))
                 .orElseThrow(() ->  fail("User registration failed for " + newName, "/"));
     }
 
@@ -85,16 +86,17 @@ public class Login {
     public Response activateToken(@FormParam("token") final String token,
                                   @FormParam("password") final String password) {
         return userLifecycleManager.activateUser(token, password)
-                .map(Login::newSessionResponse)
-                .orElseThrow(() -> fail("Could not activate token: " + token, "/login/activate"));
+                .map(UIUserLifecycle::newSessionResponse)
+                .orElseThrow(() -> fail("Could not activate token: " + token, "/user/activate"));
     }
 
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Path("/login")
     @POST
     public Response login(@FormParam("email") final String email,
                           @FormParam("password") final String password) {
         return userLifecycleManager.loginUser(email, password)
-                .map(Login::newSessionResponse)
+                .map(UIUserLifecycle::newSessionResponse)
                 .orElseThrow(() -> fail("Login Failure", "/"));
     }
 

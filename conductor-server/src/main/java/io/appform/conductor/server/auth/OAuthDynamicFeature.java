@@ -46,7 +46,7 @@ public class OAuthDynamicFeature extends AuthDynamicFeature {
                           public Response buildResponse(String prefix, String realm) {
                               val source = AuthSource.valueOf(realm);
                               return switch (source) {
-                                  case UI -> Response.seeOther(URI.create("/login")).build();
+                                  case UI -> Response.seeOther(URI.create("/user/login")).build();
                                   case API -> Response.status(Response.Status.UNAUTHORIZED).build();
                               };
                           }
