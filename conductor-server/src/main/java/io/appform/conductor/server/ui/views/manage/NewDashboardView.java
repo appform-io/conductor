@@ -14,36 +14,27 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket.analytics;
+package io.appform.conductor.server.ui.views.manage;
 
-import lombok.Builder;
+import io.appform.conductor.model.events.analytics.ObjectReference;
+import io.appform.conductor.model.events.impl.ReferredObjectType;
+import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
-import lombok.extern.jackson.Jacksonized;
 
 /**
- *
+ * Render a list of dashboards
  */
 @Value
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class TimeBucketGroupingElement extends GroupingElement {
-    String dateAttribute;
-    TimeResolution resolution;
+public class NewDashboardView extends BaseLoggedInView {
 
-    @Builder
-    @Jacksonized
-    public TimeBucketGroupingElement(
-            String dateAttribute,
-            TimeResolution resolution, String alias) {
-        super(Type.TIME_BUCKET, alias);
-        this.dateAttribute = dateAttribute;
-        this.resolution = resolution;
-    }
-
-    @Override
-    public <T> T accept(GroupingElementVisitor<T> visitor) {
-        return visitor.visit(this);
+    public NewDashboardView(User currentUser) {
+        super("templates/dashboard/new-dashboard.hbs",
+              currentUser,
+              new ObjectReference(ReferredObjectType.DASHBOARD, null));
     }
 }

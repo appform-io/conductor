@@ -1,0 +1,57 @@
+{{#partial "content"}}
+    <section>
+        <div class="row mb-2">
+            <div class="col-sm-12 col-md-7"><h4>Dashboards</h4></div>
+            <div class="col-sm-12 col-md-5 d-flex justify-content-end">
+                <div class="btn-toolbar" role="toolbar">
+                    <div class="btn-group me-2" role="group">
+                        <div class="input-group border border-dark col-3">
+                            <span class="input-group-text" id="search-box"><i class="bi fs2 bi-search"></i></span>
+                            <input type="text" class="form-control form-control-sm  data-table-search"
+                                   id="dashboard-search"
+                                   placeholder="Search dashboard" aria-label="Search dashboard" aria-describedby="search-box">
+                        </div>
+                    </div>
+                    <div class="btn-group pt-1 pb-1" role="group">
+                        <a href="/dashboards/new" class="btn btn-sm btn-success" role="button">
+                            <i class="bi fs2 bi-plus-lg"></i>Create</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col table-responsive">
+                <table class="table table-bordered border-dark data-table" data-table-search="#dashboard-search">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Last updated by</th>
+                        <th>Last Updated</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#each dashboards}}
+                        <tr>
+                            <td><a href="/dashboards/{{id}}">{{name}}</td>
+                            <td>{{description}}</td>
+                            <td>{{lastUpdatedBy}}</td>
+                            <td>{{updated}}</td>
+                            <td>
+                                <form class="confirmed-form" method="post" action="/dashboards/{{id}}/delete"
+                                      data-cnf-title="Deleting dashboard {{name}}"
+                                      data-cnf-text="Are you sure you want to delete this dashboard?">
+                                    <button type="submit" class="btn btn-link p-0 text-danger"><i
+                                            class="bi bi-trash-fill"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    {{/each}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+{{/partial}}
+{{> common/base}}

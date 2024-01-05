@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Santanu Sinha
+ * Copyright (c) 2023 santanu
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,24 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.ticket.analytics;
+package io.appform.conductor.server.dashboards.model;
+
+import lombok.Value;
+
+import java.util.Map;
 
 /**
  *
  */
-public enum ResponseFormat {
-    DEFAULT,
-    TABLE,
-
-    WIDGET
+@Value
+public class DashboardWidget {
+    public enum QueryType {
+        CQL
+    }
+    String id;
+    String title;
+    QueryType queryType;
+    String cqlQuery;
+    int colWidth;
+    Map<String, Object> extraMeta;
 }

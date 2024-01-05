@@ -1,0 +1,251 @@
+{{#partial "page_js_includes"}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+{{/partial}}
+{{#partial "content"}}
+    {{#with currentDashboard}}
+        <h4>Dashboard: <i>{{name}}</i></h4>
+        <div class="row mb-3">
+            <div class="col-12 col-md-8">
+                <small>{{description}}</small>
+            </div>
+            <div class="col-0 col-md-4">
+                <div class="btn-toolbar float-end" role="toolbar" aria-label="Widget toolbar">
+                    <div class="btn-group me-2" role="group" aria-label="Widget Actions">
+                        <div class="btn btn-sm btn-success refresh-all" title="Refresh Now"><i class="bi bi-arrow-clockwise"></i></div>
+                        <div class="btn btn-sm btn-primary add-widget"  title="Add new widget"  data-bs-toggle="collapse"
+                             data-bs-target="#add-widget" aria-expanded="false"
+                             aria-controls="add-widget"><i class="bi bi-plus-lg"></i></div>
+                        <div class="btn btn-sm btn-primary save-dashboard"  title="Save Dashboard"><i class="bi bi-save"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-0 col-md-2"></div>
+                <div class="collapse mt-3 p-3 border col-12 col-md-8" id="add-widget">
+                    <form method="post" action="/dashboards/{{id}}/widget">
+                        <div class="row mb-3">
+                            <label for="widgetTitle" class="col-sm-2 col-form-label col-form-label-sm"><b>Widget title</b></label>
+                            <div class="col-10">
+                                <input type="text" class="form-control form-control-sm"
+                                       name="widgetTitle" id="widgetTitle"
+                                       maxlength="45" required
+                                       placeholder="Title for the widget" value="{{title}}">
+                                <div id="widgetTitleHelp" class="form-text">Title for the widget. Max Length: 45.</div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label for="widgetCql" class="col-sm-2 col-form-label col-form-label-sm"><b>CQL query</b></label>
+                            <div class="col-10">
+                                <input type="text" class="form-control form-control-sm"
+                                       name="widgetCql" id="widgetTitle"
+                                       maxlength="1024" required
+                                       placeholder="Group by CQL query" value="{{title}}">
+                                <div id="widgetCqlHelp" class="form-text">CQL query for the widget. Max Length: 1024.</div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary float-end"><i class="bi bi-save"></i> Create</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <section class="widgets-section">
+            {{#with spec}}
+                {{#each rows}}
+                    <div class="row dashboard-row mb-3">
+                        {{#each widgets}}
+                            <div class="col-{{colWidth}} dashboard-widget" data-cql-query="{{cqlQuery}}" id="{{id}}">
+                                <div class="card" style="width: 95%; height: 30rem;">
+                                    <div class="card-header">
+                                        <span class="align-middle">{{title}}</span>
+                                        <div class="btn-toolbar float-end" role="toolbar" aria-label="Widget toolbar">
+                                            <div class="btn-group me-1" role="group" aria-label="Widget Actions">
+                                                <button class="btn btn-outline-success refresh-widget" type="button" data-widget-id="{{id}}"><i class="bi bi-arrow-clockwise"></i></button>
+                                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="collapse"
+                                                        data-bs-target="#{{id}}-edit" aria-expanded="false"
+                                                        aria-controls="{{id}}-edit"><i class="bi bi-pencil"></i></button>
+                                            </div>
+                                            <div class="btn-group me-2" role="group" aria-label="Widget Delete">
+                                                <form class="confirmed-form" method="post" action="/dashboards/{{../../id}}/widget/{{id}}/delete"
+                                                      data-cnf-title="Deleting widget {{title}}"
+                                                      data-cnf-text="Are you sure you want to delete this widget? The operation is not reversible.">
+                                                    <button class="btn btn-outline-danger delete-widget" type="submit"><i class="bi bi-trash"></i></button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="card-text">
+                                            <div class="collapse" id="{{id}}-edit">
+                                                <div class="card card-body">
+                                                    <form method="post" action="/dashboards/{{../../id}}/widget/{{id}}/update">
+                                                        <div class="row mb-3">
+                                                            <label for="{{id}}-widgetTitle" class="col-sm-2 col-form-label col-form-label-sm"><b>Widget title</b></label>
+                                                            <div class="col-10">
+                                                                <input type="text" class="form-control form-control-sm"
+                                                                       name="{{id}}-widgetTitle" id="{{id}}-widgetTitle"
+                                                                       maxlength="45" required
+                                                                       placeholder="Title for the widget" value="{{title}}">
+                                                                <div id="{{id}}-widgetTitleHelp" class="form-text">Title for the widget. Max Length: 45.</div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row mb-3">
+                                                            <label for="{{id}}-widgetCql" class="col-sm-2 col-form-label col-form-label-sm"><b>CQL query</b></label>
+                                                            <div class="col-10">
+                                                                <input type="text" class="form-control form-control-sm"
+                                                                       name="{{id}}-widgetCql" id="{{id}}-widgetCql"
+                                                                       maxlength="1024" required
+                                                                       placeholder="Group by CQL query" value="{{cqlQuery}}">
+                                                                <div id="{{id}}-widgetCqlHelp" class="form-text">CQL query for the widget. Max Length: 1024.</div>
+                                                            </div>
+                                                        </div>
+                                                        <button type="submit" class="btn btn-sm btn-outline-primary float-end"><i class="bi bi-save"></i> Update</button>
+                                                    </form>
+
+                                                </div>
+                                            </div>
+                                            <div class="chart-container" style="position: relative;">
+                                                <canvas class="widget-chart-area" id="canvas-{{id}}"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </div>
+
+                        {{/each}}
+                    </div>
+                {{/each}}
+            {{/with}}
+        </section>
+    {{/with}}
+{{/partial}}
+
+{{#partial "page_js"}}
+
+    const charts = new Map();
+
+    function loadWidgetData(id) {
+        $.get("/apis/analytics/v1/query?format=WIDGET&query=" + $('#' + id + '-widgetCql').val(),
+        function(res) {
+            if(!res || res.status != 'SUCCESS') {
+                return;
+            }
+            if(res.data) {
+                console.log(JSON.stringify(res.data, null, 4));
+                renderWidget(id, res.data)
+            }
+        });
+    }
+
+    function renderWidget(id, widget) {
+        var chart = null;
+        if(!charts.has(id)) {
+            var chartOpts = null;
+            if(widget.type == 'BAR') {
+                chartOpts = createBar(widget);
+            }
+            if(widget.type == 'TIME_SERIES') {
+                chartOpts = createTimeSeries(widget);
+            }
+            if(chartOpts) {
+                charts.set(id, new Chart(document.getElementById('canvas-' + id),chartOpts));
+            }
+        }
+        chart = charts.get(id);
+        if(chart) {
+            if(widget.type == 'BAR') {
+                chart.data = {
+                    labels: widget.labels,
+                    datasets: widget.datasets
+                };
+            }
+            if(widget.type == 'TIME_SERIES') {
+                const dateLabels = widget.labels.sort().map(v => new Date(parseInt(v)));
+                chart.data = {
+                    labels: dateLabels,
+                    datasets: widget.datasets
+                };
+            }
+            chart.update();
+        }
+    }
+
+    function createBar(widget) {
+        return {
+                    type: 'bar',
+                    data: {},
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                stacked: true,
+                            },
+                            y: {
+                                stacked: true
+                            }
+                        }
+                    }
+
+                };
+    }
+
+    function createTimeSeries(widget) {
+        return {
+                    type: 'line',
+                    data: {},
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        spanGaps: true,
+                        tension: 0.3,
+                        scales: {
+                            x: {
+                                type: 'timeseries',
+                                time: {
+                                    unit: widget.extraMeta.unit,
+                                    ticks: 'data',
+                                    displayFormats: {
+                                        day: 'dd-MM-yyyy',
+                                        hour: 'dd-MM-yyyy HH:00',
+                                        minute: 'dd-MM-yyyy HH:mm'
+                                    }
+                                },
+                                stacked: true
+                            },
+                            y: {
+                                stacked: true,
+                                min: 0
+                            }
+                        }
+                    }
+
+                };
+    }
+
+    function reloadAllWidgets() {
+        [...charts.keys()].forEach(id => loadWidgetData(id));
+    }
+
+    $(document).on('click', '.refresh-widget', function(widget) {
+        const id = $(this).attr('data-widget-id');
+        loadWidgetData(id);
+    });
+
+    $(document).on('click', '.refresh-all', reloadAllWidgets);
+
+    setInterval(reloadAllWidgets, 60_000); //Refresh every minute
+
+    {{#with currentDashboard}}
+        {{#with spec}}
+            {{#each rows}}
+                {{#each widgets}}
+                    loadWidgetData("{{id}}");
+                {{/each}}
+            {{/each}}
+        {{/with}}
+    {{/with}}
+{{/partial}}
+{{> common/base}}

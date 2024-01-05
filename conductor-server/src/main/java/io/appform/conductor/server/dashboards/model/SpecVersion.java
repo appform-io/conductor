@@ -16,18 +16,9 @@
 
 package io.appform.conductor.server.dashboards.model;
 
-import lombok.Value;
-
 /**
  *
  */
-@Value
-public class DashboardSection {
-    public enum QueryType {
-        CQL
-    }
-
-    String title;
-    QueryType queryType;
-    String cqlQuery;
+public enum SpecVersion {
+    V1
 }

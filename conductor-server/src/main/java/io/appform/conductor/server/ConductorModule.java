@@ -36,6 +36,9 @@ import io.appform.conductor.server.auth.impl.models.StoredUserRoleMapping;
 import io.appform.conductor.server.config.AppConfig;
 import io.appform.conductor.server.config.AuthConfig;
 import io.appform.conductor.server.config.MailConfig;
+import io.appform.conductor.server.dashboards.DashboardStore;
+import io.appform.conductor.server.dashboards.impl.DBDashboardStore;
+import io.appform.conductor.server.dashboards.impl.model.StoredDashboard;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.EventHandler;
 import io.appform.conductor.server.eventmanagement.EventHandlerImplementation;
@@ -165,6 +168,7 @@ public class ConductorModule extends AbstractModule {
 
         bind(ReportStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBReportStore.class);
         bind(ReportStore.class).to(EventGeneratingReportStore.class);
+        bind(DashboardStore.class).to(DBDashboardStore.class); //TODO::EVENTS
 
         bind(EventStore.class).to(DBEventStore.class);
 
@@ -374,6 +378,12 @@ public class ConductorModule extends AbstractModule {
     @Singleton
     public LookupDao<StoredReport> reportDao() {
         return dbBundle.createParentObjectDao(StoredReport.class);
+    }
+
+    @Provides
+    @Singleton
+    public LookupDao<StoredDashboard> dashboardDao() {
+        return dbBundle.createParentObjectDao(StoredDashboard.class);
     }
 
     @Provides

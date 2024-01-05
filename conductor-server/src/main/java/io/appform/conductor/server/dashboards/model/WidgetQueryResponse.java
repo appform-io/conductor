@@ -16,21 +16,33 @@
 
 package io.appform.conductor.server.dashboards.model;
 
-import lombok.Value;
+import lombok.*;
 
-import java.util.Date;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
  */
 @Value
-public class Dashboard {
-    String id;
-    String name;
-    String description;
-    SpecVersion specVersion;
-    DashboardSpec spec;
-    String lastUpdatedBy;
-    long version;
-    Date updated;
+@Builder
+@AllArgsConstructor(access = AccessLevel.PUBLIC)
+public class WidgetQueryResponse {
+    public enum Type {
+        BAR,
+        TIME_SERIES,
+        PIE,
+        FLARE
+    }
+
+    public record DataSetElement(String label, //Group name
+                                 List<Object> data) {} //Y axis values
+
+    Type type;
+    @Singular
+    Collection<String> labels; //X axis
+    @Singular
+    List<DataSetElement> datasets;
+    Map<String, Object> extraMeta;
 }
