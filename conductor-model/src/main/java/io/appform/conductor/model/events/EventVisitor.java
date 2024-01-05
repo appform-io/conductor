@@ -16,6 +16,12 @@
 
 package io.appform.conductor.model.events;
 
+import io.appform.conductor.model.events.impl.reporting.ReportCreatedEvent;
+import io.appform.conductor.model.events.impl.reporting.ReportDeletedEvent;
+import io.appform.conductor.model.events.impl.reporting.ReportStateUpdatedEvent;
+import io.appform.conductor.model.events.impl.task.TaskCreatedEvent;
+import io.appform.conductor.model.events.impl.task.TaskDeletedEvent;
+import io.appform.conductor.model.events.impl.task.TaskUpdatedEvent;
 import io.appform.conductor.model.events.impl.ticket.RelatedTicketAddedEvent;
 import io.appform.conductor.model.events.impl.ticket.RelatedTicketDeletedEvent;
 import io.appform.conductor.model.events.impl.ticket.TicketExternalReferenceIDUpdated;
@@ -169,4 +175,24 @@ public interface EventVisitor<T> {
     T visit(RelatedTicketDeletedEvent relatedTicketDeletedEvent);
 
     T visit(TicketExternalReferenceIDUpdated ticketExternalReferenceIDUpdated);
+
+    T visit(UserPasswordFailedAttemptUpdatedEvent userPasswordFailedAttemptUpdatedEvent);
+
+    T visit(SchemaDescriptionUpdatedEvent schemaDescriptionUpdatedEvent);
+
+    T visit(UserActivationTokenStateUpdatedEvent userActivationTokenStateUpdatedEvent);
+
+    T visit(SkillValueUpdatedEvent skillValueUpdatedEvent);
+
+    T visit(ReportCreatedEvent reportCreatedEvent);
+
+    T visit(ReportStateUpdatedEvent reportStateUpdatedEvent);
+
+    T visit(ReportDeletedEvent reportDeletedEvent);
+
+    T visit(TaskCreatedEvent taskCreatedEvent);
+
+    T visit(TaskDeletedEvent taskDeletedEvent);
+
+    T visit(TaskUpdatedEvent taskUpdatedEvent);
 }

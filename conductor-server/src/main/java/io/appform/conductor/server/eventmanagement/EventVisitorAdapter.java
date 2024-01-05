@@ -23,13 +23,19 @@ import io.appform.conductor.model.events.impl.actions.ActionUpdatedEvent;
 import io.appform.conductor.model.events.impl.group.GroupCreatedEvent;
 import io.appform.conductor.model.events.impl.group.GroupDeletedEvent;
 import io.appform.conductor.model.events.impl.group.GroupUpdatedEvent;
+import io.appform.conductor.model.events.impl.reporting.ReportCreatedEvent;
+import io.appform.conductor.model.events.impl.reporting.ReportDeletedEvent;
 import io.appform.conductor.model.events.impl.reporting.ReportExecutionCompletedEvent;
+import io.appform.conductor.model.events.impl.reporting.ReportStateUpdatedEvent;
 import io.appform.conductor.model.events.impl.role.RoleCreatedEvent;
 import io.appform.conductor.model.events.impl.role.RoleDeletedEvent;
 import io.appform.conductor.model.events.impl.role.RoleUpdatedEvent;
 import io.appform.conductor.model.events.impl.schema.*;
 import io.appform.conductor.model.events.impl.skill.*;
 import io.appform.conductor.model.events.impl.subject.*;
+import io.appform.conductor.model.events.impl.task.TaskCreatedEvent;
+import io.appform.conductor.model.events.impl.task.TaskDeletedEvent;
+import io.appform.conductor.model.events.impl.task.TaskUpdatedEvent;
 import io.appform.conductor.model.events.impl.ticket.*;
 import io.appform.conductor.model.events.impl.user.*;
 import io.appform.conductor.model.events.impl.workflow.*;
@@ -369,6 +375,56 @@ public abstract class EventVisitorAdapter<T> implements EventVisitor<T> {
     }
 
     public T visit(TicketExternalReferenceIDUpdated ticketExternalReferenceIDUpdated) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(UserPasswordFailedAttemptUpdatedEvent userPasswordFailedAttemptUpdatedEvent) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(SchemaDescriptionUpdatedEvent schemaDescriptionUpdatedEvent) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(UserActivationTokenStateUpdatedEvent userActivationTokenStateUpdatedEvent) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(SkillValueUpdatedEvent skillValueUpdatedEvent) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(ReportCreatedEvent reportCreatedEvent) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(ReportStateUpdatedEvent reportStateUpdatedEvent) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(ReportDeletedEvent reportDeletedEvent) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(TaskCreatedEvent taskCreatedEvent) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(TaskDeletedEvent taskDeletedEvent) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(TaskUpdatedEvent taskUpdatedEvent) {
         return defaultValue;
     }
 }

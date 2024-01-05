@@ -35,4 +35,8 @@ public interface UserActivationTokenStore {
     Optional<UserActivationToken> getForUser(String userId, Set<UserActivationTokenState> requiredStates);
 
     boolean update(String token, Consumer<UserActivationToken> handler);
+
+    default boolean updateTokenState(String token, UserActivationTokenState userActivationTokenState) {
+        return update(token, t -> t.setState(userActivationTokenState));
+    }
 }

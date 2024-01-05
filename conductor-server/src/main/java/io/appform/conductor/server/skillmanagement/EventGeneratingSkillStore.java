@@ -80,7 +80,9 @@ public class EventGeneratingSkillStore implements SkillStore {
 
     @Override
     public Optional<SkillDefinition> updateSkillValue(String id, String valueId, String value) {
-        return skillStore.updateSkillValue(id, valueId, value);
+        val res = skillStore.updateSkillValue(id, valueId, value);
+        res.ifPresent(skillDefinition -> eventBus.publish(new SkillValueUpdatedEvent(id, valueId, value)));
+        return res;
     }
 
     @Override

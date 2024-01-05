@@ -50,7 +50,11 @@ public class EventGeneratingSchemaStore implements SchemaStore {
 
     @Override
     public Optional<SchemaSummary> updateDescription(String schemaId, String description) {
-        return schemaStore.updateDescription(schemaId, description);
+        val res = schemaStore.updateDescription(schemaId, description);
+        res.filter(schemaSummary -> schemaSummary.getDescription().equals(description))
+                .ifPresent(schemaSummary -> eventBus.publish(new SchemaDescriptionUpdatedEvent(schemaSummary.getId(),
+                        schemaSummary.getDescription())));
+        return res;
     }
 
     @Override

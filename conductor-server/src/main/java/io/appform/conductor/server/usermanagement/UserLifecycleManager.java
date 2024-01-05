@@ -164,7 +164,7 @@ public class UserLifecycleManager {
         }
 
         val tokenUpdateStatus = userActivationTokenStore.get()
-                .update(token, t -> t.setState(UserActivationTokenState.VALIDATED));
+                .updateTokenState(token, UserActivationTokenState.VALIDATED);
         if (!tokenUpdateStatus) {
             return Optional.empty();
         }

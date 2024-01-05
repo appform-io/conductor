@@ -1,5 +1,6 @@
 package io.appform.conductor.server.usermanagement;
 
+import io.appform.conductor.model.events.impl.user.UserPasswordFailedAttemptUpdatedEvent;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.model.events.impl.user.UserPasswordSetEvent;
@@ -10,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.Optional;
+import java.util.function.ToIntFunction;
 import java.util.function.UnaryOperator;
 
 @Singleton
@@ -33,6 +35,13 @@ public class EventGeneratingUserPasswordAuthStore implements UserPasswordAuthSto
     @Override
     public Optional<UserPasswordAuthDetails> update(String userId, UnaryOperator<UserPasswordAuthDetails> updater) {
         return userPasswordAuthStore.update(userId, updater);
+    }
+
+    public Optional<UserPasswordAuthDetails> updateFailedPasswordAttempt(final String userId, ToIntFunction<Integer> attempts) {
+        val res = userPasswordAuthStore.updateFailedPasswordAttempt(userId, attempts);
+        res.ifPresent(userPasswordAuthDetails -> eventBus.publish(new UserPasswordFailedAttemptUpdatedEvent(userPasswordAuthDetails.getUserId(),
+                userPasswordAuthDetails.getFailedPasswordAttempts())));
+        return res;
     }
 
     @Override
