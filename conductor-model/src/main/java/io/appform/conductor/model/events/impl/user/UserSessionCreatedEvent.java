@@ -21,6 +21,7 @@ import io.appform.conductor.model.events.EventSubType;
 import io.appform.conductor.model.events.EventType;
 import io.appform.conductor.model.events.EventVisitor;
 import io.appform.conductor.model.events.impl.ReferredObjectType;
+import io.appform.conductor.model.usermgmt.SessionType;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
@@ -37,10 +38,12 @@ import lombok.extern.jackson.Jacksonized;
 public class UserSessionCreatedEvent extends Event {
 
     String sessionId;
+    SessionType sessionType;
 
-    public UserSessionCreatedEvent(String sessionId, String userId) {
+    public UserSessionCreatedEvent(String sessionId, String userId, SessionType sessionType) {
         super(EventType.USER_SESSION_CREATED, ReferredObjectType.USER, userId);
         this.sessionId = sessionId;
+        this.sessionType = sessionType;
     }
 
     @Override

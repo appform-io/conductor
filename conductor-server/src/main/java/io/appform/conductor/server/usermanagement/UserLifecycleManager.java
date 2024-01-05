@@ -69,6 +69,7 @@ public class UserLifecycleManager {
     private final Provider<UserRoleMappingStore> roleMappingStore;
     private final Provider<UserPasswordAuthStore> passwordAuthStore;
     private final Provider<UserActivationTokenStore> userActivationTokenStore;
+    private final Provider<SessionStore> sessionStore;
     private final UserAuthValidator userAuthValidator;
     private final Provider<GroupStore> groupStore;
     private final Provider<SkillStore> skillStore;
@@ -204,6 +205,13 @@ public class UserLifecycleManager {
         return userAuthValidator.authenticate(new PasswordAuthData(null, email, password));
     }
 
+
+    public boolean logoutUser(UserSession session) {
+        //Get a validated user
+        return sessionStore.get()
+                .complete(session.getUser().getSummary().getId(), session.getSessionId());
+    }
+
     /**
      * This will validate the session for a user
      *
@@ -219,7 +227,6 @@ public class UserLifecycleManager {
      * @param name           name of the group
      * @param description    description of the group
      * @param type
-     * @param assignmentRule
      * @return The newly created group
      */
     public Optional<Group> createGroup(String name, String description, GroupType type, Set<String> requiredSkills) {

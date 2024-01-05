@@ -19,13 +19,16 @@ package io.appform.conductor.server.resources.ui;
 import io.appform.conductor.model.usermgmt.UserSession;
 import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.server.auth.ConductorAuthFilter;
+import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.ui.views.ActivationView;
 import io.appform.conductor.server.usermanagement.UserLifecycleManager;
+import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.vyarus.guicey.gsp.views.template.Template;
 import ru.vyarus.guicey.gsp.views.template.TemplateView;
 
+import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
@@ -96,10 +99,36 @@ public class Login {
     }
 
 
+    @GET
+    @Path("/logout")
+    @PermitAll
+    public Response logout(@Auth final ConductorUser user) {
+        if(userLifecycleManager.logoutUser(user.getUserSession())) {
+            return logout();
+        }
+        return Response.seeOther(URI.create("/")).build();
+    }
+
+
     private static Response newSessionResponse(UserSession userSession) {
         return Response.seeOther(URI.create("/"))
                 .cookie(new NewCookie(ConductorAuthFilter.COOKIE_NAME,
                                       userSession.getJwt(),
+                                      "/",
+                                      null,
+                                      Cookie.DEFAULT_VERSION,
+                                      null,
+                                      NewCookie.DEFAULT_MAX_AGE,
+                                      null,
+                                      false,
+                                      true))
+                .build();
+    }
+
+    private static Response logout() {
+        return Response.seeOther(URI.create("/"))
+                .cookie(new NewCookie(ConductorAuthFilter.COOKIE_NAME,
+                                      "",
                                       "/",
                                       null,
                                       Cookie.DEFAULT_VERSION,

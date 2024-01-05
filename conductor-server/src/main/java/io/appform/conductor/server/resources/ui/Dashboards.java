@@ -26,7 +26,6 @@ import io.appform.conductor.server.dashboards.model.DashboardRow;
 import io.appform.conductor.server.dashboards.model.DashboardSpec;
 import io.appform.conductor.server.dashboards.model.DashboardWidget;
 import io.appform.conductor.server.dashboards.model.SpecVersion;
-import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.ui.views.manage.DashboardListView;
 import io.appform.conductor.server.ui.views.manage.DashboardView;
 import io.appform.conductor.server.ui.views.manage.NewDashboardView;
@@ -61,7 +60,6 @@ public class Dashboards {
 
     private final DashboardStore dashboardStore;
     private final ObjectMapper mapper;
-    private final CQLEngine cqlEngine;
 
     @GET
     public Response renderDashboardList(@Auth ConductorUser user) {

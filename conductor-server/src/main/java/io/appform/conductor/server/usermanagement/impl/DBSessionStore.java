@@ -35,7 +35,7 @@ import javax.inject.Inject;
 import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Stores {@link io.appform.conductor.model.usermgmt.UserSessionDetails} in RDBMS
@@ -87,10 +87,9 @@ public class DBSessionStore implements SessionStore {
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredUserSessionDetails.SESSION_TABLE_NAME))
     public Optional<UserSessionDetails> update(
-            String userId, @Throws.RuntimeParam("id") String sessionId, Consumer<UserSessionDetails> handler) {
+            String userId, @Throws.RuntimeParam("id") String sessionId, Function<UserSessionDetails, UserSessionDetails> handler) {
         val status = sessionDetailsDao.update(userId, sessionCriteria(userId, sessionId), storedSession -> {
-            val session = toWire(storedSession);
-            handler.accept(session);
+            val session = handler.apply(toWire(storedSession));
             storedSession.setState(session.getState());
             storedSession.setLastActive(session.getLastActive());
             return storedSession;
