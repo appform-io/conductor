@@ -17,10 +17,14 @@
 package io.appform.conductor.server.resources.ui;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.dashboards.DashboardStore;
+import io.appform.conductor.server.dashboards.model.DashboardRow;
 import io.appform.conductor.server.dashboards.model.DashboardSpec;
+import io.appform.conductor.server.dashboards.model.DashboardWidget;
 import io.appform.conductor.server.dashboards.model.SpecVersion;
 import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.ui.views.manage.DashboardListView;
@@ -39,7 +43,12 @@ import javax.inject.Inject;
 import javax.validation.constraints.NotEmpty;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 
@@ -118,6 +127,119 @@ public class Dashboards {
             @PathParam("dashboardId") @NotEmpty @Length(max = 45) final String dashboardId) {
         return dashboardStore.read(dashboardId)
                 .map(dashboard -> render(new DashboardView(user.getUserSession().getUser(), dashboard)))
-                .orElseThrow(() -> fail("Could not find dashboard " + dashboardId, "/dashboard"));
+                .orElseThrow(() -> fail("Could not find dashboard " + dashboardId, "/dashboards"));
+    }
+
+    @POST
+    @Path("{dashboardId}/widget")
+    @RolesAllowed(Permission.Values.MANAGE_DASHBOARD)
+    public Response addWidget(
+            @Auth ConductorUser user,
+            @PathParam("dashboardId") @NotEmpty @Length(max = 45) final String dashboardId,
+            @FormParam("widgetTitle") @Length(max = 45) final String widgetTitle,
+            @FormParam("widgetCql") @Length(max = 1024) final String widgetCql) {
+        val existing = dashboardStore.read(dashboardId).orElse(null);
+        if(null == existing) {
+            throw fail("Could not find dashboard " + dashboardId, "/dashboards");
+        }
+        val widget = new DashboardWidget(UUID.randomUUID().toString(),
+                                         widgetTitle,
+                                         DashboardWidget.QueryType.CQL,
+                                         widgetCql,
+                                         12,
+                                         Map.of());
+        val rows = existing.getSpec()
+                .getRows();
+        val newRows = ImmutableList.<DashboardRow>builder()
+                .addAll(rows)
+                .add(new DashboardRow(List.of(widget)))
+                .build();
+        return dashboardStore.update(dashboardId,
+                              existing.getDescription(),
+                              existing.getSpecVersion(),
+                              new DashboardSpec(newRows))
+                .map(dashboard -> redirect("/dashboards/" + dashboard.getId()))
+                .orElseThrow(() -> fail("Could not create dashboard", "/dashboards"));
+    }
+
+    @POST
+    @Path("{dashboardId}/widget/{widgetId}/update")
+    @RolesAllowed(Permission.Values.MANAGE_DASHBOARD)
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response updateWidget(
+            @Auth ConductorUser user,
+            @PathParam("dashboardId") @NotEmpty @Length(max = 45) final String dashboardId,
+            @PathParam("widgetId") @NotEmpty @Length(max = 45) final String widgetId,
+            MultivaluedMap<String, String> form) {
+        val existing = dashboardStore.read(dashboardId).orElse(null);
+        if(null == existing) {
+            throw fail("Could not find dashboard " + dashboardId, "/dashboards");
+        }
+        val widgetTitle = form.getFirst(widgetId + "-widgetTitle");
+        val widgetCql = form.getFirst(widgetId + "-widgetCql");
+        if(Strings.isNullOrEmpty(widgetTitle)
+                || Strings.isNullOrEmpty(widgetCql)
+        || widgetTitle.length() > 45
+        || widgetCql.length() > 1024) {
+            throw fail("Could not update widget on " + dashboardId + ". Invalid parameters", "/dashboards/" + dashboardId);
+        }
+        val newRows = new ArrayList<DashboardRow>();
+        for (val row : existing.getSpec().getRows()) {
+            val newWidgets = row.getWidgets()
+                    .stream()
+                    .map(widget -> {
+                        if(!widget.getId().equals(widgetId)) {
+                            return widget;
+                        }
+                        return new DashboardWidget(widget.getId(),
+                                                   widgetTitle,
+                                                   widget.getQueryType(),
+                                                   widgetCql,
+                                                   widget.getColWidth(),
+                                                   widget.getExtraMeta());
+                    })
+                    .toList();
+            if(!newWidgets.isEmpty()) {
+                newRows.add(new DashboardRow(newWidgets));
+            }
+        }
+
+        return dashboardStore.update(dashboardId,
+                              existing.getDescription(),
+                              existing.getSpecVersion(),
+                              new DashboardSpec(newRows))
+                .map(dashboard -> redirect("/dashboards/" + dashboard.getId()))
+                .orElseThrow(() -> fail("Could not update dashboard", "/dashboards/" + dashboardId));
+    }
+
+    @POST
+    @Path("{dashboardId}/widget/{widgetId}/delete")
+    @RolesAllowed(Permission.Values.MANAGE_DASHBOARD)
+    public Response deleteWidget(
+            @Auth ConductorUser user,
+            @PathParam("dashboardId") @NotEmpty @Length(max = 45) final String dashboardId,
+            @PathParam("widgetId") @NotEmpty @Length(max = 45) final String widgetId) {
+        val existing = dashboardStore.read(dashboardId).orElse(null);
+        if(null == existing) {
+            throw fail("Could not find dashboard " + dashboardId, "/dashboards");
+        }
+        val rows = existing.getSpec()
+                .getRows();
+        val newRows = new ArrayList<DashboardRow>();
+        for (val row : rows) {
+            val newWidgets = row.getWidgets()
+                    .stream()
+                    .filter(widget -> !widget.getId().equals(widgetId))
+                    .toList();
+            if(!newWidgets.isEmpty()) {
+                newRows.add(new DashboardRow(newWidgets));
+            }
+        }
+        return dashboardStore.update(dashboardId,
+                              existing.getDescription(),
+                              existing.getSpecVersion(),
+                              new DashboardSpec(newRows))
+                .map(dashboard -> redirect("/dashboards/" + dashboard.getId()))
+                .orElseThrow(() -> fail("Could not update dashboard", "/dashboards/" + dashboardId));
     }
 }

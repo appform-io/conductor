@@ -20,6 +20,7 @@ import lombok.*;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -43,4 +44,5 @@ public class WidgetQueryResponse {
     Collection<String> labels; //X axis
     @Singular
     List<DataSetElement> datasets;
+    Map<String, Object> extraMeta;
 }

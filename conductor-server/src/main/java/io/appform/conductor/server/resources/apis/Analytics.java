@@ -222,7 +222,8 @@ public class Analytics {
                         yield new WidgetQueryResponse(WidgetQueryResponse.Type.BAR,
                                                       xValues,
                                                       List.of(new WidgetQueryResponse.DataSetElement(labels.get(0),
-                                                                                                     yValues)));
+                                                                                                     yValues)),
+                                                      Map.of());
                     }
                     case 2 -> {
                         val col = cols.get(0);
@@ -254,41 +255,64 @@ public class Analytics {
                         yield new WidgetQueryResponse(
                                 WidgetQueryResponse.Type.BAR,
                                 stackXValues.keySet(),
-                                datasets);
+                                datasets,
+                                Map.of());
                     }
                     default -> throw new IllegalArgumentException("You can group by at most 2 fields for charts");
                 };
 
             }
             case TIME_SERIES -> {
+                Preconditions.checkArgument(parserOutput.getGroupingElements()
+                                                    .get(0)
+                                                    .getType()
+                                                    .equals(GroupingElement.Type.TIME_BUCKET),
+                                            "For time series charts, time_bucket must be the first grouping element");
+                val timeGroupingElement = (TimeBucketGroupingElement)parserOutput.getGroupingElements().get(0);
                 val labels =
                         new ArrayList<>(ConductorServerUtils.aliasesForGroupingElements(parserOutput.getGroupingElements()));
                 //Actual col names in table
                 val cols = colListForGroupingElements(parserOutput);
                 val numCols = cols.size();
-                val dateFormats = dateFormatsForTimeResolution();
-                val dateFormat = parserOutput.getGroupingElements()
-                        .stream()
-                        .filter(groupingElement -> groupingElement.getType().equals(GroupingElement.Type.TIME_BUCKET))
-                        .map(TimeBucketGroupingElement.class::cast)
-                        .map(timeBucketGroupingElement -> dateFormats.get(timeBucketGroupingElement.getResolution()))
-                        .findFirst()
-                        .orElse(null);
+                val dateFormat = dateFormatsForTimeResolution().get(timeGroupingElement.getResolution());
                 Preconditions.checkNotNull(dateFormat, "Could not get date format for time bucket");
+                val gap = switch (timeGroupingElement.getResolution()) {
+                    case MINUTE -> 60_000L;
+                    case HOUR -> 36_00_000L;
+                    case DAY -> 8_64_00_000L;
+                    case WEEK -> 60_48_00_000L;
+                    case MONTH -> 2_59_20_00_000L;
+                };
                 yield switch (numCols) {
                     case 1 -> {
                         val col = cols.get(0);
                         val xValues = new ArrayList<String>();
                         val yValues = new ArrayList<>();
+
+                        val prevDate = new AtomicReference<Date>(null);
                         table.rowMap()
                                 .forEach((row, columns) -> {
+                                    val date = dateStrToDate(dateFormat, columns.get(col));
+                                    if(prevDate.get() != null) {
+                                        val prev = prevDate.get();
+                                        val currTime = date.getTime();
+                                        val prevTime = prev.getTime();
+                                        if(prevTime + gap < currTime) {
+                                            for (var nextTime = prevTime + gap; nextTime < currTime; nextTime += gap) {
+                                                xValues.add(Long.toString(nextTime));
+                                                yValues.add(0L);
+                                            }
+                                        }
+                                    }
+                                    prevDate.set(date);
                                     xValues.add(dateStrToEpochStr(dateFormat, columns.get(col)));
                                     yValues.add(columns.get("count"));
                                 });
                         yield new WidgetQueryResponse(WidgetQueryResponse.Type.TIME_SERIES,
                                                       xValues,
                                                       List.of(new WidgetQueryResponse.DataSetElement(labels.get(0),
-                                                                                                     yValues)));
+                                                                                                     yValues)),
+                                                      Map.of("unit", unitForDisplay(timeGroupingElement)));
                     }
                     case 2 -> {
                         val col = cols.get(0);
@@ -311,19 +335,47 @@ public class Analytics {
                         val datasets = new ArrayList<WidgetQueryResponse.DataSetElement>();
                         for (val stackValue : stackYValues) {
                             val data = new ArrayList<>();
+                            val prevDate = new AtomicReference<Date>(null);
                             for (val colValue : stackXValues.keySet()) {
+                                val date = dateStrToDate(dateFormat, colValue);
+                                if(prevDate.get() != null) {
+                                    val prev = prevDate.get();
+                                    val currTime = date.getTime();
+                                    val prevTime = prev.getTime();
+                                    if(prevTime + gap < currTime) {
+                                        for (var nextTime = prevTime + gap; nextTime < currTime; nextTime += gap) {
+                                            data.add(0L);
+                                        }
+                                    }
+                                }
+                                prevDate.set(date);
                                 data.add(stackXValues.getOrDefault(colValue, new TreeMap<>())
                                                  .getOrDefault(stackValue, 0L));
                             }
                             datasets.add(new WidgetQueryResponse.DataSetElement(stackValue, data));
                         }
+                        val dateLabels = new ArrayList<String>();
+                        val prevDate = new AtomicReference<Date>(null);
+                        for (val colValue : stackXValues.keySet()) {
+                            val date = dateStrToDate(dateFormat, colValue);
+                            if (prevDate.get() != null) {
+                                val prev = prevDate.get();
+                                val currTime = date.getTime();
+                                val prevTime = prev.getTime();
+                                if (prevTime + gap < currTime) {
+                                    for (var nextTime = prevTime + gap; nextTime < currTime; nextTime += gap) {
+                                        dateLabels.add(Long.toString(nextTime));
+                                    }
+                                }
+                                dateLabels.add(Long.toString(currTime));
+                            }
+                            prevDate.set(date);
+                        }
                         yield new WidgetQueryResponse(
                                 WidgetQueryResponse.Type.TIME_SERIES,
-                                stackXValues.keySet()
-                                        .stream()
-                                        .map(date -> dateStrToEpochStr(dateFormat, date))
-                                        .toList(),
-                                datasets);
+                                dateLabels,
+                                datasets,
+                                Map.of("unit", unitForDisplay(timeGroupingElement)));
                     }
                     default -> throw new IllegalArgumentException("You can group by at most 2 fields for charts");
                 };
@@ -346,15 +398,30 @@ public class Analytics {
 //        return new WidgetQueryResponse(WidgetQueryResponse.Type.BAR, labels, datasets);
     }
 
+    private static Object unitForDisplay(TimeBucketGroupingElement timeGroupingElement) {
+        return switch (timeGroupingElement.getResolution()) {
+            case MINUTE -> "minute";
+            case HOUR -> "hour";
+            case DAY -> "day";
+            case WEEK -> "day";
+            case MONTH -> "day";
+        };
+    }
+
     @SneakyThrows
     private static String dateStrToEpochStr(
             SimpleDateFormat dateFormat,
             Object dateStr) {
-        return Objects.toString(dateFormat.parse(Objects.toString(dateStr)).getTime());
+        return Objects.toString(dateStrToDate(dateFormat, dateStr).getTime());
     }
 
     @SneakyThrows
-    private static String dateToEpochString(String date, SimpleDateFormat dateFormat)  {
+    private static Date dateStrToDate(SimpleDateFormat dateFormat, Object dateStr) {
+        return dateFormat.parse(Objects.toString(dateStr));
+    }
+
+    @SneakyThrows
+    private static String dateToEpochString(String date, SimpleDateFormat dateFormat) {
         return Objects.toString(dateFormat.parse(date));
     }
 
