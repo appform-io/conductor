@@ -205,11 +205,27 @@ public class UserLifecycleManager {
         return userAuthValidator.authenticate(new PasswordAuthData(null, email, password));
     }
 
-
+    /**
+     * Logout the session
+     * @param session Session to be logged out of
+     * @return true if successful
+     */
     public boolean logoutUser(UserSession session) {
         //Get a validated user
         return sessionStore.get()
                 .complete(session.getUser().getSummary().getId(), session.getSessionId());
+    }
+
+    /**
+     * Update name for the user
+     * @param userId user id for use whose name needs to be updated
+     * @param name New name
+     * @return updated user
+     */
+    public Optional<UserSummary> updateUser(final String userId, final String name) {
+        return userStore.get()
+                .update(userId,
+                        user -> user.withName(name));
     }
 
     /**

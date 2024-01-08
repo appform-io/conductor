@@ -21,10 +21,13 @@ import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.server.auth.ConductorAuthFilter;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.ui.views.ActivationView;
+import io.appform.conductor.server.ui.views.user.UserAccountView;
 import io.appform.conductor.server.usermanagement.UserLifecycleManager;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
+import org.hibernate.validator.constraints.Length;
 import ru.vyarus.guicey.gsp.views.template.Template;
 import ru.vyarus.guicey.gsp.views.template.TemplateView;
 
@@ -111,6 +114,25 @@ public class UIUserLifecycle {
         return Response.seeOther(URI.create("/")).build();
     }
 
+    @GET
+    public Response userDetails(@Auth final ConductorUser user) {
+        val userId = user.getUserSession().getUser().getSummary().getId();
+        return userLifecycleManager.userDetails(userId)
+                .map(userDetails -> render(new UserAccountView(userDetails,
+                                                        userDetails)))
+                .orElseThrow(() -> fail("Unkown user " + userId, "/" ));
+
+    }
+
+    @POST
+    @Path("/name")
+    public Response updateName(@Auth final ConductorUser user,
+                               @FormParam("name") @NotEmpty @Length(max = 255) final String name) {
+        val userId = user.getUserSession().getUser().getSummary().getId();
+        return userLifecycleManager.updateUser(userId, name)
+                .map(updated -> redirect("/user"))
+                .orElseThrow(() -> fail("Could not update name for " + userId, "/user"));
+    }
 
     private static Response newSessionResponse(UserSession userSession) {
         return Response.seeOther(URI.create("/"))
