@@ -30,12 +30,17 @@ public interface UserPasswordAuthStore {
 
     Optional<UserPasswordAuthDetails> update(final String userId, final UnaryOperator<UserPasswordAuthDetails> updater);
 
-    default Optional<UserPasswordAuthDetails> updateFailedPasswordAttempt(final String userId,
-                                                                          ToIntFunction<Integer> attempts) {
-        return update(userId, passwordDetails -> {
-            passwordDetails.setFailedPasswordAttempts(attempts.applyAsInt(passwordDetails.getFailedPasswordAttempts()));
-            return passwordDetails;
-        });
+    default Optional<UserPasswordAuthDetails> updatePassword(final String userId, final String password) {
+        return update(userId, user -> user.withPassword(password)
+                .withFailedPasswordAttempts(0));
+    }
+
+    default Optional<UserPasswordAuthDetails> updateFailedPasswordAttempt(
+            final String userId,
+            final ToIntFunction<Integer> attempts) {
+        return update(userId,
+                      passwordDetails -> passwordDetails.withFailedPasswordAttempts(
+                              attempts.applyAsInt(passwordDetails.getFailedPasswordAttempts())));
     }
 
     Optional<UserPasswordAuthDetails> get(final String userId);

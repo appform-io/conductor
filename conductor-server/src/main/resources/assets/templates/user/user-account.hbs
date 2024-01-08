@@ -75,6 +75,32 @@
                             </form>
                         </div>
                     </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <h4>Update your password</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <form action="/user/password" method="post">
+                                <div class="row mb-3">
+                                    <label for="name" class="col-sm-2 col-form-label col-form-label-sm"><b>Name</b></label>
+                                    <div class="col-10">
+                                        <input type="text" class="form-control form-control-sm"
+                                               name="name" id="name"
+                                               maxlength="255" required
+                                               placeholder="Full name" value="{{userDetails/summary/name}}">
+                                        <div id="nameHelp" class="form-text">Your full name. Max Length: 255.</div>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-12 d-flex justify-content-end">
+                                        <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

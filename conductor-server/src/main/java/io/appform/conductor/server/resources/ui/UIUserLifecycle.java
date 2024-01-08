@@ -73,7 +73,7 @@ public class UIUserLifecycle {
                 .map(UserSummary::getId)
                 .flatMap(userLifecycleManager::openToken)
                 .map(token -> redirect("/user/activate"))
-                .orElseThrow(() ->  fail("User registration failed for " + newName, "/"));
+                .orElseThrow(() -> fail("User registration failed for " + newName, "/"));
     }
 
     @Path("/activate")
@@ -86,8 +86,9 @@ public class UIUserLifecycle {
     @Path("/activate")
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response activateToken(@FormParam("token") final String token,
-                                  @FormParam("password") final String password) {
+    public Response activateToken(
+            @FormParam("token") final String token,
+            @FormParam("password") final String password) {
         return userLifecycleManager.activateUser(token, password)
                 .map(UIUserLifecycle::newSessionResponse)
                 .orElseThrow(() -> fail("Could not activate token: " + token, "/user/activate"));
@@ -96,8 +97,9 @@ public class UIUserLifecycle {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Path("/login")
     @POST
-    public Response login(@FormParam("email") final String email,
-                          @FormParam("password") final String password) {
+    public Response login(
+            @FormParam("email") @Email @NotEmpty @Length(max = 255) final String email,
+            @FormParam("password") @NotEmpty @Length(max = 255) final String password) {
         return userLifecycleManager.loginUser(email, password)
                 .map(UIUserLifecycle::newSessionResponse)
                 .orElseThrow(() -> fail("Login Failure", "/"));
@@ -108,7 +110,7 @@ public class UIUserLifecycle {
     @Path("/logout")
     @PermitAll
     public Response logout(@Auth final ConductorUser user) {
-        if(userLifecycleManager.logoutUser(user.getUserSession())) {
+        if (userLifecycleManager.logoutUser(user.getUserSession())) {
             return logout();
         }
         return Response.seeOther(URI.create("/")).build();
@@ -119,19 +121,33 @@ public class UIUserLifecycle {
         val userId = user.getUserSession().getUser().getSummary().getId();
         return userLifecycleManager.userDetails(userId)
                 .map(userDetails -> render(new UserAccountView(userDetails,
-                                                        userDetails)))
-                .orElseThrow(() -> fail("Unkown user " + userId, "/" ));
+                                                               userDetails)))
+                .orElseThrow(() -> fail("Unkown user " + userId, "/"));
 
     }
 
     @POST
     @Path("/name")
-    public Response updateName(@Auth final ConductorUser user,
-                               @FormParam("name") @NotEmpty @Length(max = 255) final String name) {
+    public Response updateName(
+            @Auth final ConductorUser user,
+            @FormParam("name") @NotEmpty @Length(max = 255) final String name) {
         val userId = user.getUserSession().getUser().getSummary().getId();
-        return userLifecycleManager.updateUser(userId, name)
+        return userLifecycleManager.updateUserName(userId, name)
                 .map(updated -> redirect("/user"))
                 .orElseThrow(() -> fail("Could not update name for " + userId, "/user"));
+    }
+
+    @POST
+    @Path("/password")
+    public Response updatePassword(
+            @Auth final ConductorUser user,
+            @FormParam("oldPassword") @NotEmpty @Length(max = 255) final String oldPassword,
+            @FormParam("newPassword") @NotEmpty @Length(max = 255) final String newPassword) {
+        val userId = user.getUserSession().getUser().getSummary().getId();
+        if (userLifecycleManager.changePassword(userId, oldPassword, newPassword)) {
+            return redirect("/user");
+        }
+        throw fail("Could not update name for " + userId, "/user");
     }
 
     private static Response newSessionResponse(UserSession userSession) {

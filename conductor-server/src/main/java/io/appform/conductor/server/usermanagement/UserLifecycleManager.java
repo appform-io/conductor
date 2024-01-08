@@ -82,7 +82,8 @@ public class UserLifecycleManager {
                                              Strings.isNullOrEmpty(roleId) ? null
                                                                            : roleStore.get().read(roleId).orElse(null),
                                              Strings.isNullOrEmpty(roleId) ? Set.of()
-                                                                           : roleStore.get().permissionsForRoles(List.of(roleId)),
+                                                                           : roleStore.get()
+                                                     .permissionsForRoles(List.of(roleId)),
                                              groupStore.get().findGroupsForUser(userSummary.getId()),
                                              skillStore.get().listSkillsForUser(userId)));
     }
@@ -158,7 +159,8 @@ public class UserLifecycleManager {
         }
 
         val userId = userToken.getUserId();
-        val userSession = userAuthValidator.authenticate(new PasswordAuthData(userId, null, password)).orElse(null);
+        val userSession = userAuthValidator.authenticatedSession(new PasswordAuthData(userId, null, password)).orElse(
+                null);
         if (null == userSession) {
             log.error("No valid user for token {} userID {}", token, userId);
             return Optional.empty();
@@ -202,11 +204,12 @@ public class UserLifecycleManager {
      */
     public Optional<UserSession> loginUser(String email, String password) {
         //Get a validated user
-        return userAuthValidator.authenticate(new PasswordAuthData(null, email, password));
+        return userAuthValidator.authenticatedSession(new PasswordAuthData(null, email, password));
     }
 
     /**
      * Logout the session
+     *
      * @param session Session to be logged out of
      * @return true if successful
      */
@@ -218,14 +221,26 @@ public class UserLifecycleManager {
 
     /**
      * Update name for the user
+     *
      * @param userId user id for use whose name needs to be updated
-     * @param name New name
+     * @param name   New name
      * @return updated user
      */
-    public Optional<UserSummary> updateUser(final String userId, final String name) {
+    public Optional<UserSummary> updateUserName(final String userId, final String name) {
         return userStore.get()
                 .update(userId,
                         user -> user.withName(name));
+    }
+
+    public boolean changePassword(final String userId, final String oldPassword, final String newPassword) {
+        if (Strings.isNullOrEmpty(oldPassword) || Strings.isNullOrEmpty(newPassword)) {
+            log.error("Empty passwords: old {} new {}", oldPassword, newPassword);
+        }
+        else if(userAuthValidator.authenticate(new PasswordAuthData(userId, null, oldPassword))) {
+            log.info("Password updated for user: {}", userId);
+            return passwordAuthStore.get().updatePassword(userId, hash(newPassword)).isPresent();
+        }
+        return false;
     }
 
     /**
@@ -234,14 +249,14 @@ public class UserLifecycleManager {
      * @param token The JWT token for a session
      */
     public Optional<UserSession> validateToken(String token) {
-        return userAuthValidator.authenticate(new UserTokenAuthData(token));
+        return userAuthValidator.authenticatedSession(new UserTokenAuthData(token));
     }
 
     /**
      * Create a new {@link Group}
      *
-     * @param name           name of the group
-     * @param description    description of the group
+     * @param name        name of the group
+     * @param description description of the group
      * @param type
      * @return The newly created group
      */
@@ -251,12 +266,12 @@ public class UserLifecycleManager {
     }
 
 
-
     /**
      * Update description for a group
-     * @param groupId Group ID for group
-     * @param description New description
-     * @param type Type of group
+     *
+     * @param groupId        Group ID for group
+     * @param description    New description
+     * @param type           Type of group
      * @param requiredSkills Set of skills needed to get automatically assigned to this group
      * @return Updated group data
      */
@@ -267,9 +282,9 @@ public class UserLifecycleManager {
             final Set<String> requiredSkills) {
         return groupStore.get()
                 .update(groupId,
-                       group -> group.setDescription(description)
-                               .setType(type)
-                               .setRequiredSkills(requiredSkills));
+                        group -> group.setDescription(description)
+                                .setType(type)
+                                .setRequiredSkills(requiredSkills));
     }
 
     /**
@@ -285,6 +300,7 @@ public class UserLifecycleManager {
 
     /**
      * Read a group.
+     *
      * @param groupId ID for the group to be read
      * @return group or empty
      */
@@ -294,6 +310,7 @@ public class UserLifecycleManager {
 
     /**
      * Return all groups
+     *
      * @return a list of groups
      */
     public List<Group> listGroups() {
@@ -316,8 +333,9 @@ public class UserLifecycleManager {
 
     /**
      * Remove an user from a group
+     *
      * @param groupId Group to be removed from
-     * @param userId USer to be removed from group
+     * @param userId  USer to be removed from group
      * @return Status of operation
      */
     public boolean removeUserFromGroup(String groupId, String userId) {
@@ -351,8 +369,9 @@ public class UserLifecycleManager {
                 .createSkillDefinition(name);
     }
 
-    public Optional<SkillDefinition> updateSkillDefinition(final String skillId,
-                                                           final String name) {
+    public Optional<SkillDefinition> updateSkillDefinition(
+            final String skillId,
+            final String name) {
         return skillStore.get()
                 .updateSkillDefinition(skillId, name);
     }
@@ -367,14 +386,16 @@ public class UserLifecycleManager {
                 .readSkillDefinition(skillId);
     }
 
-    public Optional<SkillDefinition> addSkillValue(final String skillId,
-                                                   final String value) {
+    public Optional<SkillDefinition> addSkillValue(
+            final String skillId,
+            final String value) {
         return skillStore.get()
                 .addValueToSkillDefinition(skillId, value);
     }
 
-    public Optional<SkillDefinition> removeSkillValue(final String skillId,
-                                                      final String valueId) {
+    public Optional<SkillDefinition> removeSkillValue(
+            final String skillId,
+            final String valueId) {
         return skillStore.get()
                 .removeValueFromSkillDefinition(skillId, valueId);
     }
