@@ -84,13 +84,35 @@
                         <div class="col-12">
                             <form action="/user/password" method="post">
                                 <div class="row mb-3">
-                                    <label for="name" class="col-sm-2 col-form-label col-form-label-sm"><b>Name</b></label>
+                                    <label for="name" class="col-sm-2 col-form-label col-form-label-sm"><b>Existing Password</b></label>
                                     <div class="col-10">
-                                        <input type="text" class="form-control form-control-sm"
-                                               name="name" id="name"
+                                        <input type="password" class="form-control form-control-sm"
+                                               name="oldPassword" id="oldPassword"
                                                maxlength="255" required
-                                               placeholder="Full name" value="{{userDetails/summary/name}}">
-                                        <div id="nameHelp" class="form-text">Your full name. Max Length: 255.</div>
+                                               placeholder="Existing password">
+                                        <div id="nameHelp" class="form-text">Your old password. Max Length: 255.</div>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="newPassword" class="col-sm-2 col-form-label col-form-label-sm"><b>New Password</b></label>
+                                    <div class="col-10">
+                                        <input type="password" class="form-control form-control-sm"
+                                               name="newPassword" id="newPassword"
+                                               maxlength="255" minlength="8" required
+                                               onchange="if(this.checkValidity()) form.confirmPassword.pattern = this.value;"
+                                               placeholder="New password">
+                                        <div id="newPasswordHelp" class="form-text">Your new password. Max Length: 255.</div>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="confirmPassword" class="col-sm-2 col-form-label col-form-label-sm"><b>Confirm New Password</b></label>
+                                    <div class="col-10">
+                                        <input type="password" class="form-control form-control-sm"
+                                               id="confirmPassword" name="confirmPassword"
+                                               maxlength="255" minlength="8" required
+                                               onchange="this.setCustomValidity(this.validity.patternMismatch ? 'Please enter the same Password as above' : '');"
+                                               placeholder="Confirm new password">
+                                        <div id="confirmPasswordHelp" class="form-text">Your new password. Max Length: 255.</div>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -166,5 +188,17 @@
         </section>
     {{/with}}
 
+{{/partial}}
+
+{{#partial "page_js"}}
+    function onChange() {
+        const password = document.querySelector('input[id=newPassword]');
+        const confirm = document.querySelector('input[id=confirmPassword]');
+        if (confirm.value === password.value) {
+            confirm.setCustomValidity('');
+        } else {
+            confirm.setCustomValidity('Passwords do not match');
+        }
+    }
 {{/partial}}
 {{> common/base}}
