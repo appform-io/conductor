@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.workflowmanagement;
+package io.appform.conductor.server.workflowmanagement.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.appform.conductor.model.workflow.*;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.hazelcast.HazelcastClient;
+import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
@@ -31,6 +33,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.UnaryOperator;
 import java.util.stream.StreamSupport;
 
@@ -43,6 +46,8 @@ public class CachingWorkflowStore implements WorkflowStore {
     private final WorkflowStore root;
 
     private Cache<String, Workflow> cache;
+
+    private final AtomicBoolean initialized = new AtomicBoolean();
 
     @Inject
     public CachingWorkflowStore(
@@ -70,10 +75,15 @@ public class CachingWorkflowStore implements WorkflowStore {
                     .setStatisticsEnabled(true);
             cache = cacheManager.createCache(getClass().getSimpleName(), config);
             root.list(EnumSet.allOf(WorkflowState.class)).forEach(wf -> cache.put(wf.getId(), wf));
-
+            initialized.set(true);
             log.info("Cache created");
         });
 
+    }
+
+    @VisibleForTesting
+    boolean isInitialized() {
+        return initialized.get();
     }
 
     @Override
