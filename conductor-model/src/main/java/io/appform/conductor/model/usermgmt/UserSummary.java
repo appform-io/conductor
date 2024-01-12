@@ -17,6 +17,7 @@
 package io.appform.conductor.model.usermgmt;
 
 import lombok.Value;
+import lombok.With;
 
 import java.util.Date;
 
@@ -27,6 +28,7 @@ import java.util.Date;
 public class UserSummary {
     String id;
     UserType type;
+    @With
     String name;
     String email;
     UserState state;

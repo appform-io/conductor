@@ -19,6 +19,7 @@ package io.appform.conductor.server.usermanagement;
 import io.appform.conductor.server.internalmodels.auth.UserPasswordAuthDetails;
 
 import java.util.Optional;
+import java.util.function.ToIntFunction;
 import java.util.function.UnaryOperator;
 
 /**
@@ -28,6 +29,19 @@ public interface UserPasswordAuthStore {
     Optional<UserPasswordAuthDetails> set(final String userId, final String password);
 
     Optional<UserPasswordAuthDetails> update(final String userId, final UnaryOperator<UserPasswordAuthDetails> updater);
+
+    default Optional<UserPasswordAuthDetails> updatePassword(final String userId, final String password) {
+        return update(userId, user -> user.withPassword(password)
+                .withFailedPasswordAttempts(0));
+    }
+
+    default Optional<UserPasswordAuthDetails> updateFailedPasswordAttempt(
+            final String userId,
+            final ToIntFunction<Integer> attempts) {
+        return update(userId,
+                      passwordDetails -> passwordDetails.withFailedPasswordAttempts(
+                              attempts.applyAsInt(passwordDetails.getFailedPasswordAttempts())));
+    }
 
     Optional<UserPasswordAuthDetails> get(final String userId);
 }

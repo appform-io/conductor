@@ -17,19 +17,22 @@
 package io.appform.conductor.server.internalmodels.auth;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Value;
+import lombok.With;
 
 import java.util.Date;
 
 /**
  *
  */
-@Data
+@Value
 @AllArgsConstructor
 public class UserPasswordAuthDetails {
-    private final String userId;
-    private String password;
-    private int failedPasswordAttempts;
-    private final Date created;
-    private final Date updated;
+    String userId;
+    @With
+    String password;
+    @With
+    int failedPasswordAttempts;
+    Date created;
+    Date updated;
 }

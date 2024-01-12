@@ -284,11 +284,11 @@ public class ConductorServerUtils {
         connectionManager.setDefaultMaxPerRoute(100);
         connectionManager.setMaxTotal(Integer.MAX_VALUE);
         connectionManager.setDefaultConnectionConfig(ConnectionConfig.custom()
-                .setConnectTimeout(connectionTimeout)
-                .setSocketTimeout(connectionTimeout)
-                .setValidateAfterInactivity(TimeValue.ofSeconds(10))
-                .setTimeToLive(TimeValue.ofHours(1))
-                .build());
+                                                             .setConnectTimeout(connectionTimeout)
+                                                             .setSocketTimeout(connectionTimeout)
+                                                             .setValidateAfterInactivity(TimeValue.ofSeconds(10))
+                                                             .setTimeToLive(TimeValue.ofHours(1))
+                                                             .build());
         val requestConfig = RequestConfig.custom()
                 .setConnectionRequestTimeout(connectionTimeout)
                 .setResponseTimeout(Timeout.of(Duration.ofSeconds(5)))
@@ -306,8 +306,8 @@ public class ConductorServerUtils {
 
     public static Response render(final TemplateView view, Map<String, List<Object>> headers) {
         val responseBuilder = Response.ok(view);
-        if(!headers.isEmpty()) {
-            headers.forEach((name, values) -> values.forEach( value -> responseBuilder.header(name, value)));
+        if (!headers.isEmpty()) {
+            headers.forEach((name, values) -> values.forEach(value -> responseBuilder.header(name, value)));
         }
         return responseBuilder.build();
     }
@@ -344,26 +344,28 @@ public class ConductorServerUtils {
     public static TicketDetails ticketDetails(TicketStateMachineContext ticketStateMachineContext) {
         val skeleton = ticketStateMachineContext.getTicketSkeleton();
         return new TicketDetails(new TicketSummary(skeleton.getTicketId(),
-                skeleton.getTitle(),
-                skeleton.getDescription(),
-                skeleton.getWorkflowId(),
-                ticketStateMachineContext.getTicketCreatedBy(),
-                ticketStateMachineContext.getTicketAssignedToGroup(),
-                ticketStateMachineContext.getTicketAssignedToUser(),
-                ticketStateMachineContext.getSubject(),
-                ticketStateMachineContext.getWorkflow().getStates().get(skeleton.getTicketStateId()),
-                skeleton.getPriority(),
-                skeleton.getExternalReferenceID(),
-                skeleton.getCreated(),
-                skeleton.getUpdated()),
-                skeleton.getFields(),
-                List.of()); //TODO::ACTION
+                                                   skeleton.getTitle(),
+                                                   skeleton.getDescription(),
+                                                   skeleton.getWorkflowId(),
+                                                   ticketStateMachineContext.getTicketCreatedBy(),
+                                                   ticketStateMachineContext.getTicketAssignedToGroup(),
+                                                   ticketStateMachineContext.getTicketAssignedToUser(),
+                                                   ticketStateMachineContext.getSubject(),
+                                                   ticketStateMachineContext.getWorkflow()
+                                                           .getStates()
+                                                           .get(skeleton.getTicketStateId()),
+                                                   skeleton.getPriority(),
+                                                   skeleton.getExternalReferenceID(),
+                                                   skeleton.getCreated(),
+                                                   skeleton.getUpdated()),
+                                 skeleton.getFields(),
+                                 List.of()); //TODO::ACTION
     }
 
     public static Date htmlDateToDate(String date) {
         return Strings.isNullOrEmpty(date)
                ? null
-                : Date.from(LocalDate.parse(date)
+               : Date.from(LocalDate.parse(date)
                                    .atStartOfDay(ZoneId.systemDefault())
                                    .toInstant());
     }
@@ -373,6 +375,7 @@ public class ConductorServerUtils {
         list.add(item);
         return list;
     }
+
     public static <T> List<T> removeFromList(final List<T> input, final T item) {
         return Objects.requireNonNullElse(input, List.<T>of())
                 .stream()
@@ -394,7 +397,7 @@ public class ConductorServerUtils {
             os.writeObject(input);
             os.flush();
 
-            try(val ois = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()))) {
+            try (val ois = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()))) {
                 return (T) ois.readObject();
             }
         }
@@ -423,7 +426,8 @@ public class ConductorServerUtils {
                             gist.getFields().forEach(field -> fieldsData.put(field.getFieldSchemaId(),
                                                                              ConductorServerUtils.toString(field.getFieldValue())));
                             selectedFields.forEach(selectedField -> cols.put(
-                                    "fields_" + selectedField.name(), fieldsData.getOrDefault(selectedField.fieldSchemaId(), "")));
+                                    "fields_" + selectedField.name(),
+                                    fieldsData.getOrDefault(selectedField.fieldSchemaId(), "")));
                         });
                 return null;
             }
@@ -436,7 +440,9 @@ public class ConductorServerUtils {
 
         });
         return output;
-    }    public static Table<Integer, String, Object> tabulateEventQueryResponse(
+    }
+
+    public static Table<Integer, String, Object> tabulateEventQueryResponse(
             EventQueryResponse response) {
         val output = TreeBasedTable.<Integer, String, Object>create();
         val rowIdx = new AtomicInteger(0);
@@ -452,7 +458,7 @@ public class ConductorServerUtils {
                             cols.put(Event.Fields.objectType, event.getObjectType());
                             cols.put(Event.Fields.objectId, event.getObjectId());
                             cols.put(Event.Fields.userId, Strings.isNullOrEmpty(event.getUserId())
-                                    ? "" : event.getUserId());
+                                                          ? "" : event.getUserId());
                             val eventTime = event.getEventTime();
                             cols.put("date." + Event.EventTime.Fields.year, eventTime.getYear());
                             cols.put("date." + Event.EventTime.Fields.month, eventTime.getMonth());
@@ -517,7 +523,7 @@ public class ConductorServerUtils {
         val parser = new CronParser(cronDefinition);
         val executionTime = ExecutionTime.forCron(parser.parse(cronExpression));
         return executionTime.nextExecution(ZonedDateTime.ofInstant(currTime.toInstant(),
-                                                                                    ZoneId.systemDefault()))
+                                                                   ZoneId.systemDefault()))
                 .map(zonedDateTime -> Date.from(zonedDateTime.toInstant()))
                 .orElseThrow(() -> new IllegalArgumentException("Could not determine next execution time for " + id));
     }
@@ -592,8 +598,98 @@ public class ConductorServerUtils {
     private static TreeBasedTable<Integer, String, Object> parseGroupResponse(
             List<GroupingElement> groupingElements,
             List<Object[]> rows) {
-        val output = new HashMap<List<String>, Long>();
-        val formats = EnumSet.allOf(TimeResolution.class)
+        val output = new TreeMap<List<Object>, Long>((lhs, rhs) -> {
+            //Comparator basically ensures sorting of the grouping keys
+            val sizeComp = Integer.compare(lhs.size(), rhs.size());
+            if(sizeComp != 0) {
+                return sizeComp;
+            }
+            //List elements are either string or date
+            for(var i = 0; i < lhs.size(); i++) {
+                val lhsValue = lhs.get(i);
+                val rhsValue = rhs.get(i);
+                if(lhsValue instanceof String s) {
+                    val res = s.compareTo((String) rhsValue);
+                    if(0 != res) {
+                        return res;
+                    }
+                }
+                else if (lhsValue instanceof Date l) {
+                    val res = l.equals(rhsValue)
+                           ? 0
+                            : (l.before((Date) rhsValue) ? -1 : 1);
+                    if(res != 0) {
+                        return res;
+                    }
+                }
+            }
+            return 0;
+        });
+        val formats = dateFormatsForTimeResolution();
+        for (val row : rows) {
+            val key = new ArrayList<>(row.length - 1);
+            for (var colId = 0; colId < row.length - 1; colId++) {
+                int finalColId = colId;
+                key.add(groupingElements.get(colId)
+                                .accept(new GroupingElementVisitor<>() {
+                                    @Override
+                                    public Object visit(ColumnGroupingElement columnGroupingElement) {
+                                        return Objects.toString(row[finalColId]);
+                                    }
+
+                                    @Override
+                                    public Object visit(TimeBucketGroupingElement timeBucketGroupingElement) {
+                                        val divisor = divisorFromResolution(timeBucketGroupingElement);
+                                        return toDate(row[finalColId], divisor);
+
+                                    }
+                                }));
+            }
+            val oldValue = output.computeIfAbsent(key, k -> 0L);
+            output.put(key, oldValue + (long) row[row.length - 1]);
+        }
+
+        val table = TreeBasedTable.<Integer, String, Object>create();
+        val rowIdx = new AtomicInteger(0);
+        output
+                .forEach((keys, value) -> {
+                    val row = table.row(rowIdx.incrementAndGet());
+                    for (int i = 0; i < keys.size(); i++) {
+                        val groupingElement = groupingElements.get(i);
+                        val cellValue = keys.get(i);
+                        groupingElement.accept(new GroupingElementVisitor<Void>() {
+                            @Override
+                            public Void visit(ColumnGroupingElement columnGroupingElement) {
+                                row.put(columnGroupingElement.getAlias(), cellValue);
+                                return null;
+                            }
+
+                            @Override
+                            public Void visit(TimeBucketGroupingElement timeBucketGroupingElement) {
+                                row.put(timeBucketGroupingElement.getAlias(),
+                                        formats.get(timeBucketGroupingElement.getResolution())
+                                                .format((Date) cellValue));
+                                return null;
+                            }
+                        });
+                    }
+                    row.put("count", value);
+                });
+        /*val comparator =
+                new Ordering<Table.Cell<Integer, String, Object>>() {
+                    @Override
+                    public int compare(
+                            Table.Cell<Integer, String, Object> left,
+                            Table.Cell<Integer, String, Object> right) {
+                        return ;
+                    }
+
+                };*/
+        return table;
+    }
+
+    public static Map<TimeResolution, SimpleDateFormat> dateFormatsForTimeResolution() {
+        return EnumSet.allOf(TimeResolution.class)
                 .stream()
                 .collect(Collectors.toMap(Function.identity(), resolution -> switch (resolution) {
                     case MINUTE -> new SimpleDateFormat("yyyy-MM-dd HH:mm");
@@ -602,39 +698,6 @@ public class ConductorServerUtils {
                     case WEEK -> new SimpleDateFormat("yyyy ww");
                     case MONTH -> new SimpleDateFormat("yyyy-MM");
                 }));
-        for (val row : rows) {
-            val key = new ArrayList<String>(row.length - 1);
-            for (var colId = 0; colId < row.length - 1; colId++) {
-                int finalColId = colId;
-                key.add(groupingElements.get(colId)
-                                .accept(new GroupingElementVisitor<>() {
-                                    @Override
-                                    public String visit(ColumnGroupingElement columnGroupingElement) {
-                                        return Objects.toString(row[finalColId]);
-                                    }
-
-                                    @Override
-                                    public String visit(TimeBucketGroupingElement timeBucketGroupingElement) {
-                                        val divisor = divisorFromResolution(timeBucketGroupingElement);
-                                        return formats.get(timeBucketGroupingElement.getResolution())
-                                                .format(toDate(row[finalColId], divisor));
-                                    }
-                                }));
-            }
-            val oldValue = output.computeIfAbsent(key, k -> 0L);
-            output.put(key, oldValue + (long) row[row.length - 1]);
-        }
-        val table = TreeBasedTable.<Integer, String, Object>create();
-        val rowIdx = new AtomicInteger(0);
-        output
-                .forEach((keys, value) -> {
-                    val row = table.row(rowIdx.incrementAndGet());
-                    for (int i = 0; i < keys.size(); i++) {
-                        row.put(groupingElements.get(i).getAlias(), keys.get(i));
-                    }
-                    row.put("count", value);
-                });
-        return table;
     }
 
     @NonNull

@@ -17,6 +17,7 @@
 package io.appform.conductor.server.auth;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
+import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import io.appform.conductor.model.usermgmt.*;
 import io.appform.conductor.server.config.AuthConfig;
@@ -44,7 +45,11 @@ import javax.inject.Provider;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.BiFunction;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.errorMessage;
 
@@ -70,81 +75,58 @@ public class UserAuthValidator {
      * @param authData The data to be validated
      * @return A user session or empty
      */
-    public Optional<UserSession> authenticate(final UserAuthData authData) {
-        return authData.accept(new AuthenticationVisitor(userStore,
-                                                         groupStore,
-                                                         passwordAuthStore,
-                                                         sessionStore,
-                                                         roleStore,
-                                                         roleMappingStore,
-                                                         userLifecycleManager,
-                                                         authConfig));
+    public Optional<UserSession> authenticatedSession(final UserAuthData authData) {
+        return authData.accept(new AuthenticationVisitor<>(userStore,
+                                                           groupStore,
+                                                           passwordAuthStore,
+                                                           sessionStore,
+                                                           userLifecycleManager,
+                                                           authConfig,
+                                                           this::createSession,
+                                                           (sessionDetails, token) -> new UserSession(
+                                                                   userLifecycleManager.get()
+                                                                           .userDetails(sessionDetails.getUserId())
+                                                                           .orElseThrow(),
+                                                                   sessionDetails.getId(),
+                                                                   sessionDetails.getState(),
+                                                                   sessionDetails.getType(),
+                                                                   sessionDetails.getExpiry(),
+                                                                   token)));
     }
 
-    private record AuthenticationVisitor(UserStore userStore,
-                                         GroupStore groupStore,
-                                         UserPasswordAuthStore passwordAuthStore,
-                                         SessionStore sessionStore,
-                                         RoleStore roleStore,
-                                         UserRoleMappingStore roleMappingStore,
-                                         Provider<UserLifecycleManager> userLifecycleManager,
-                                         AuthConfig authConfig) implements UserAuthDataVisitor<Optional<UserSession>> {
+    public boolean authenticate(final UserAuthData authData) {
+        return authData.accept(new AuthenticationVisitor<>(userStore,
+                                                                  groupStore,
+                                                                  passwordAuthStore,
+                                                                  sessionStore,
+                                                                  userLifecycleManager,
+                                                                  authConfig,
+                                                                  user -> Optional.of(true),
+                                                                  (session, token) -> true))
+                .orElse(false);
+    }
+
+    private record AuthenticationVisitor<T>(UserStore userStore,
+                                            GroupStore groupStore,
+                                            UserPasswordAuthStore passwordAuthStore,
+                                            SessionStore sessionStore,
+                                            Provider<UserLifecycleManager> userLifecycleManager,
+                                            AuthConfig authConfig,
+                                            Function<UserSummary, Optional<T>> sessionCreator,
+                                            BiFunction<UserSessionDetails, String, T> sessionRetriever) implements UserAuthDataVisitor<Optional<T>> {
 
         private static final EnumSet<UserState> TERMINAL_USER_STATES
                 = EnumSet.of(UserState.BLACKLISTED, UserState.EXITED, UserState.DELETED);
 
         @Override
-        public Optional<UserSession> visit(PasswordAuthData passwordAuthData) {
-            val password = passwordAuthData.getPassword();
-            val user = Strings.isNullOrEmpty(passwordAuthData.getEmail())
-                       ? userStore.getById(passwordAuthData.getUserId())
-                       : userStore.getByEmail(passwordAuthData.getEmail());
-            val passwordData = user
-                    .flatMap(userData -> passwordAuthStore.get(userData.getId()))
-                    .orElse(null);
-            if (null == passwordData) {
-                log.error("No valid user found for userID: {}",
-                          Strings.isNullOrEmpty(passwordAuthData.getEmail())
-                          ? passwordAuthData.getUserId()
-                          : passwordAuthData.getEmail());
-                return Optional.empty();
-            }
-            val userId = user.get().getId();
-            val passwordVerified = matchHash(userId, password, passwordData.getPassword());
-            val updatedPasswordData = passwordAuthStore.update(userId, passwordDetails -> {
-                        val attempts = passwordDetails.getFailedPasswordAttempts() + 1;
-                        if (passwordVerified) {
-                            passwordDetails.setFailedPasswordAttempts(0);
-                        }
-                        else {
-                            passwordDetails.setFailedPasswordAttempts(attempts);
-                        }
-                        return passwordDetails;
-                    })
-                    .orElse(null);
-            if (null != updatedPasswordData) {
-                if (updatedPasswordData.getFailedPasswordAttempts() > 3) {
-                    userStore.updateState(userId, UserState.LOCKED);
-                    log.warn("User {} has been locked due to too many failed password attempts.", userId);
-                }
-                else {
-                    log.error("Password validation failure for user {}. [attempts: {}]",
-                              userId, updatedPasswordData.getFailedPasswordAttempts());
-                }
-            }
-            else {
-                log.warn("No password info found for user: {}", userId);
-            }
-            if (passwordVerified) {
-                return user
-                        .filter(AuthenticationVisitor::isUserActionable)
-                        .flatMap(this::createSession);
-            }
-            return Optional.empty();
+        public Optional<T> visit(PasswordAuthData passwordAuthData) {
+            return checkPassword(passwordAuthData)
+                    .filter(AuthenticationVisitor::isUserActionable)
+                    .flatMap(sessionCreator);
         }
 
         @Override
-        public Optional<UserSession> visit(UserTokenAuthData tokenData) {
+        public Optional<T> visit(UserTokenAuthData tokenData) {
 
             val consumer = new JwtConsumerBuilder()
                     .setAllowedClockSkewInSeconds(30)
@@ -163,13 +145,7 @@ public class UserAuthValidator {
                 return userStore.getById(userId)
                         .filter(AuthenticationVisitor::isUserActionable)
                         .flatMap(userSummary -> sessionStore.getById(userId, sessionId)
-                                .map(sessionDetails -> new UserSession(
-                                        userLifecycleManager.get().userDetails(sessionDetails.getUserId()).orElseThrow(),
-                                        sessionDetails.getId(),
-                                        sessionDetails.getState(),
-                                        sessionDetails.getType(),
-                                        sessionDetails.getExpiry(),
-                                        token)));
+                                .map(session -> sessionRetriever.apply(session, token)));
             }
             catch (InvalidJwtException e) {
                 log.error("JWT validation failure for token: " + token + " error: " + errorMessage(e));
@@ -181,22 +157,47 @@ public class UserAuthValidator {
         }
 
         @SneakyThrows
-        private String tokenFromSession(final UserSessionDetails session, UserSummary userSummary) {
-            val claims = new JwtClaims();
-            claims.setIssuer("Conductor");
-            claims.setAudience(userSummary.getType().name());
-            claims.setSubject(userSummary.getId());
-            claims.setJwtId(session.getId());
-            claims.setIssuedAtToNow();
-            if (null != session.getExpiry()) {
-                claims.setExpirationTime(NumericDate.fromMilliseconds(session.getExpiry().getTime()));
+        private Optional<UserSummary> checkPassword(final PasswordAuthData passwordAuthData) {
+            val password = passwordAuthData.getPassword();
+            val user = Strings.isNullOrEmpty(passwordAuthData.getEmail())
+                       ? userStore.getById(passwordAuthData.getUserId())
+                       : userStore.getByEmail(passwordAuthData.getEmail());
+            val passwordData = user
+                    .flatMap(userData -> passwordAuthStore.get(userData.getId()))
+                    .orElse(null);
+            if (null == passwordData) {
+                log.error("No valid user found for userID: {}",
+                          Strings.isNullOrEmpty(passwordAuthData.getEmail())
+                          ? passwordAuthData.getUserId()
+                          : passwordAuthData.getEmail());
+                return Optional.empty();
             }
-            val jws = new JsonWebSignature();
-            jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.HMAC_SHA256);
-            jws.setKey(verificationKey(authConfig));
-            jws.setPayload(claims.toJson());
-            return jws.getCompactSerialization();
+            val userId = user.get().getId();
+            val passwordVerified = matchHash(userId, password, passwordData.getPassword());
+            val updatedPasswordData =
+                    passwordAuthStore.updateFailedPasswordAttempt(userId,
+                                                                  failedAttempts -> passwordVerified ? 0
+                                                                                                     :
+                                                                                    (failedAttempts + 1)
+                                                                 ).orElse(null);
+            if (null != updatedPasswordData) {
+                if (updatedPasswordData.getFailedPasswordAttempts() > 3) {
+                    log.warn("User {} has been locked due to too many failed password attempts.", userId);
+                    return userStore.updateState(userId, UserState.LOCKED);
+                }
+                else {
+                    log.error("Password validation failure for user {}. [attempts: {}]",
+                              userId, updatedPasswordData.getFailedPasswordAttempts());
+                }
+            }
+            else {
+                log.warn("No password info found for user: {}", userId);
+            }
+            return passwordVerified
+                   ? user
+                   : Optional.empty();
         }
+
 
         private static boolean isUserActionable(final UserSummary userDetails) {
             return null != userDetails
@@ -212,27 +213,47 @@ public class UserAuthValidator {
             return res.verified;
         }
 
-        private Optional<UserSession> createSession(final UserSummary userSummary) {
-            val user = userLifecycleManager.get().userDetails(userSummary.getId()).orElseThrow();
-            val sessionType = switch (userSummary.getType()) {
-                case HUMAN -> SessionType.DYNAMIC;
-                case SYSTEM -> SessionType.STATIC;
-            };
-            val defaultSessionDuration = Duration.ofMillis(Objects.requireNonNullElse(authConfig.getSessionDuration(),
-                                                                                      io.dropwizard.util.Duration.days(
-                                                                                              30)).toMilliseconds());
-            val expiry = switch (sessionType) {
-                case DYNAMIC -> Date.from(Instant.now().plus(defaultSessionDuration));
-                case STATIC -> null;
-            };
-            return sessionStore.create(userSummary.getId(), sessionType, expiry)
-                    .map(sessionDetails -> new UserSession(user,
-                                                           sessionDetails.getId(),
-                                                           sessionDetails.getState(),
-                                                           sessionType,
-                                                           expiry,
-                                                           tokenFromSession(sessionDetails, userSummary)));
+
+    }
+
+    private Optional<UserSession> createSession(final UserSummary userSummary) {
+        val user = userLifecycleManager.get().userDetails(userSummary.getId()).orElseThrow();
+        val sessionType = switch (userSummary.getType()) {
+            case HUMAN -> SessionType.DYNAMIC;
+            case SYSTEM -> SessionType.STATIC;
+        };
+        val defaultSessionDuration = Duration.ofMillis(Objects.requireNonNullElse(authConfig.getSessionDuration(),
+                                                                                  io.dropwizard.util.Duration.days(
+                                                                                          30)).toMilliseconds());
+        val expiry = switch (sessionType) {
+            case DYNAMIC -> Date.from(Instant.now().plus(defaultSessionDuration));
+            case STATIC -> null;
+        };
+        return sessionStore.create(userSummary.getId(), sessionType, expiry)
+                .map(sessionDetails -> new UserSession(user,
+                                                       sessionDetails.getId(),
+                                                       sessionDetails.getState(),
+                                                       sessionType,
+                                                       expiry,
+                                                       tokenFromSession(sessionDetails, userSummary)));
+    }
+
+    @SneakyThrows
+    private String tokenFromSession(final UserSessionDetails session, UserSummary userSummary) {
+        val claims = new JwtClaims();
+        claims.setIssuer("Conductor");
+        claims.setAudience(userSummary.getType().name());
+        claims.setSubject(userSummary.getId());
+        claims.setJwtId(session.getId());
+        claims.setIssuedAtToNow();
+        if (null != session.getExpiry()) {
+            claims.setExpirationTime(NumericDate.fromMilliseconds(session.getExpiry().getTime()));
         }
+        val jws = new JsonWebSignature();
+        jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.HMAC_SHA256);
+        jws.setKey(verificationKey(authConfig));
+        jws.setPayload(claims.toJson());
+        return jws.getCompactSerialization();
     }
 
     private static HmacKey verificationKey(AuthConfig authConfig) {

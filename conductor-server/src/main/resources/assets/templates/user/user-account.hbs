@@ -1,0 +1,204 @@
+
+{{#partial "content"}}
+    {{#with userDetails}}
+        <section>
+            <div class="row">
+                <div class="col-sm-12 col-md-4">
+                    <h4>User Details</h4>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12 col-md-6">
+                    <table class="table table-bordered">
+                        <tbody>
+                        {{#with summary}}
+                            <tr>
+                                <th scope="row">ID</th>
+                                <td>{{id}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Name</th>
+                                <td>{{name}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Type</th>
+                                <td>{{type}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">E-Mail</th>
+                                <td>{{email}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Created On</th>
+                                <td>{{created}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Last updated</th>
+                                <td>{{updated}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">State</th>
+                                <td>{{readable state}}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Current Role</th>
+                                <td>{{#with assignedRole}}{{name}}{{/with}}</td>
+                            </tr>
+                        {{/with}}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="row mb-3">
+                        <div class="col">
+                            <h4>Update your details</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <form action="/user/name" method="post">
+                                <div class="row mb-3">
+                                    <label for="name" class="col-sm-2 col-form-label col-form-label-sm"><b>Name</b></label>
+                                    <div class="col-10">
+                                        <input type="text" class="form-control form-control-sm"
+                                               name="name" id="name"
+                                               maxlength="255" required
+                                               placeholder="Full name" value="{{userDetails/summary/name}}">
+                                        <div id="nameHelp" class="form-text">Your full name. Max Length: 255.</div>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-12 d-flex justify-content-end">
+                                        <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <h4>Update your password</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <form action="/user/password" method="post">
+                                <div class="row mb-3">
+                                    <label for="name" class="col-sm-2 col-form-label col-form-label-sm"><b>Existing Password</b></label>
+                                    <div class="col-10">
+                                        <input type="password" class="form-control form-control-sm"
+                                               name="oldPassword" id="oldPassword"
+                                               maxlength="255" required
+                                               placeholder="Existing password">
+                                        <div id="nameHelp" class="form-text">Your old password. Max Length: 255.</div>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="newPassword" class="col-sm-2 col-form-label col-form-label-sm"><b>New Password</b></label>
+                                    <div class="col-10">
+                                        <input type="password" class="form-control form-control-sm"
+                                               name="newPassword" id="newPassword"
+                                               maxlength="255" minlength="8" required
+                                               onchange="if(this.checkValidity()) form.confirmPassword.pattern = this.value;"
+                                               placeholder="New password">
+                                        <div id="newPasswordHelp" class="form-text">Your new password. Max Length: 255.</div>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="confirmPassword" class="col-sm-2 col-form-label col-form-label-sm"><b>Confirm New Password</b></label>
+                                    <div class="col-10">
+                                        <input type="password" class="form-control form-control-sm"
+                                               id="confirmPassword" name="confirmPassword"
+                                               maxlength="255" minlength="8" required
+                                               onchange="this.setCustomValidity(this.validity.patternMismatch ? 'Please enter the same Password as above' : '');"
+                                               placeholder="Confirm new password">
+                                        <div id="confirmPasswordHelp" class="form-text">Your new password. Max Length: 255.</div>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-12 d-flex justify-content-end">
+                                        <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section>
+            <div class="row">
+                <div class="col-sm-12 col-md-6">
+                    <div class="row">
+                        <div class="col-12">
+                            <h4>Group Memberships</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 table-responsive">
+                            <table class="table table-bordered border-dark">
+                                <thead>
+                                <tr>
+                                    <th>Group</th>
+                                    <th>Description</th>
+                                    <th>Type</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {{#each groups}}
+                                    <tr>
+                                        <td title="{{id}}">{{name}}</td>
+                                        <td>{{desciption}}</td>
+                                        <td><span class="badge bg-info ms-2">{{readable type}}</span></td>
+                                    </tr>
+                                {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                    <div class="row">
+                        <div class="col-12">
+                            <h4>Skills</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 table-responsive">
+                            <table class="table table-bordered border-dark">
+                                <thead>
+                                <tr>
+                                    <th>Skill Name</th>
+                                    <th>Skill Value</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {{#each skills}}
+                                    <tr>
+                                        <td title="Skill: {{skillId}}">{{name}}</td>
+                                        <td title="Value:  Value: {{skillValueId}}">{{value}}</td>
+                                    </tr>
+                                {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    {{/with}}
+
+{{/partial}}
+
+{{#partial "page_js"}}
+    function onChange() {
+        const password = document.querySelector('input[id=newPassword]');
+        const confirm = document.querySelector('input[id=confirmPassword]');
+        if (confirm.value === password.value) {
+            confirm.setCustomValidity('');
+        } else {
+            confirm.setCustomValidity('Passwords do not match');
+        }
+    }
+{{/partial}}
+{{> common/base}}

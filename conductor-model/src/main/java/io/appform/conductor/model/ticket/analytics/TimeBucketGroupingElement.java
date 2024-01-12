@@ -37,7 +37,7 @@ public class TimeBucketGroupingElement extends GroupingElement {
     public TimeBucketGroupingElement(
             String dateAttribute,
             TimeResolution resolution, String alias) {
-        super(Type.COLUMN, alias);
+        super(Type.TIME_BUCKET, alias);
         this.dateAttribute = dateAttribute;
         this.resolution = resolution;
     }

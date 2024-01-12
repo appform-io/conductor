@@ -28,75 +28,101 @@
     </style>
 </head>
 <body>
-<main role="main" class="container-fluid">
-    <div class="row">
-        <nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
-            <div class="container-fluid">
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-menu"
-                        aria-controls="main-menu" aria-expanded="false" aria-label="Toggle Main Menu">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <a class="navbar-brand logo-area" href="/">
-                    <img src="/images/conductor.png" width="30" height="24" class="d-inline-block align-text-top">
-                    CONDUCTOR
-                </a>
+<header>
+    <nav class="container-fluid navbar navbar-expand-lg bg-primarycontainer-xxl flex-wrap flex-lg-nowrap bg-primary" aria-label="Main navigation" data-bs-theme="dark">
+        <button class="navbar-toggler d-flex d-lg-none order-3 p-2 me-2" type="button" data-bs-toggle="offcanvas"
+                data-bs-target="#main-menu" aria-controls="main-menu" aria-label="Toggle navigation">
+            <span><i class="bi bi-list"></i> </span>
+        </button>
+        <a class="navbar-brand logo-area ms-2" href="/">
+            <img src="/images/conductor.png" width="30" height="24" class="d-inline-block align-text-top">
+            CONDUCTOR
+        </a>
+        <div class="offcanvas-lg offcanvas-start flex-grow-1" id="main-menu">
+            <div class="offcanvas-header px-4 pb-0">
+                <h5 class="offcanvas-title text-white" id="main-menu-label">Conductor</h5>
+                <button type="button" class="btn-close" data-bs-theme="dark"
+                        data-bs-dismiss="offcanvas" aria-label="Close" data-bs-target="#main-menu"></button>
+            </div>
+            <div class="offcanvas-body p-4 pt-0 p-lg-0" >
+                <ul class="navbar-nav me-auto my-2 my-lg-0" style="--bs-scroll-height: 100px;">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link active">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/tickets/query" class="nav-link">Explore Data</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/tickets" class="nav-link">Browse Tickets</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/dashboards" class="nav-link">Dashboards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/subjects/search" class="nav-link">Subjects</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Manage
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/manage/schema">Schema Management</a></li>
+                            <li><a class="dropdown-item" href="/manage/workflow">Workflow Management</a></li>
+                            <li><a class="dropdown-item" href="/manage/groups">Group Management</a></li>
+                            <li><a class="dropdown-item" href="/manage/skills">Skill Management</a></li>
+                            <li><a class="dropdown-item" href="/actions">Global Action Management</a></li>
+                            <li><a class="dropdown-item" href="/manage/reports">Reports</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Administration
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/admin/roles">Role Management</a></li>
+                            <li><a class="dropdown-item" href="/admin/users/search">User Management</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="navbar-nav flex-row flex-wrap ms-md-auto me-3">
+                    <li class="nav-item float-end" style="display: inline-flex">
+                        <form class="d-flex  me-2" role="search">
+                            <a class="btn btn-success" role="button" href="/tickets/create"><i class="bi bi-plus-lg" title="Create a new ticket"></i></a>
+                        </form>
+                        <form class="d-flex" role="search" method="post" action="/tickets/go">
+                            <input class="form-control me-2" name="goToTicketId" type="search" placeholder="Ticket #" aria-label="Go" title="Go a ticket">
+                        </form>
+                    </li>
 
-                <div class="collapse navbar-collapse" id="main-menu">
-                    <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
-                        <li class="nav-item">
-                            <a href="/" class="nav-link active">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="/tickets/query" class="nav-link">Explore Data</a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="/tickets" class="nav-link">Browse Tickets</a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="/" class="nav-link">Analytics</a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="/subjects/search" class="nav-link">Subjects</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Manage
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/manage/schema">Schema Management</a></li>
-                                <li><a class="dropdown-item" href="/manage/workflow">Workflow Management</a></li>
-                                <li><a class="dropdown-item" href="/manage/groups">Group Management</a></li>
-                                <li><a class="dropdown-item" href="/manage/skills">Skill Management</a></li>
-                                <li><a class="dropdown-item" href="/actions">Global Action Management</a></li>
-                                <li><a class="dropdown-item" href="/manage/reports">Reports</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Administration
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/admin/roles">Role Management</a></li>
-                                <li><a class="dropdown-item" href="/admin/users/search">User Management</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-
-                    <form class="d-flex  me-2" role="search">
-                        <a class="btn btn-success" role="button" href="/tickets/create"><i class="bi bi-plus-lg" title="Create a new ticket"></i></a>
-                    </form>
-                    <form class="d-flex" role="search" method="post" action="/tickets/go">
-                        <input class="form-control me-2" name="goToTicketId" type="search" placeholder="Ticket #" aria-label="Go" title="Go a ticket">
-                    </form>
                     {{#empty objectReference}}
                     {{else}}
-                        <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas"
-                            data-bs-target="#events" aria-controls="events">Events</button>
+                        <li class="nav-item float-end">
+                            <a class="nav-link d-none d-md-block" type="button" data-bs-toggle="offcanvas"
+                                    data-bs-target="#events" aria-controls="events">Events</a>
+                        </li>
                     {{/empty}}
 
-                </div>
+                    <li class="nav-item dropdown dropdown-menu-end float-end me-3">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle ms-3 me-1"></i>  {{currentUser/summary/name}}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/user">Account Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/user/logout">Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+
+
+
             </div>
-        </nav>
+        </div>
+    </nav>
+</header>
+<main role="main" class="container-fluid">
+    <div class="row">
 
 
     </div>

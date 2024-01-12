@@ -36,7 +36,7 @@ public class ConductorAuthenticator implements Authenticator<String, ConductorUs
 
     @Override
     public Optional<ConductorUser> authenticate(String credentials) throws AuthenticationException {
-        return userAuthValidator.authenticate(new UserTokenAuthData(credentials))
+        return userAuthValidator.authenticatedSession(new UserTokenAuthData(credentials))
                 .map(ConductorUser::new);
     }
 }

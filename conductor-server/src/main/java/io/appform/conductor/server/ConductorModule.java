@@ -36,6 +36,9 @@ import io.appform.conductor.server.auth.impl.models.StoredUserRoleMapping;
 import io.appform.conductor.server.config.AppConfig;
 import io.appform.conductor.server.config.AuthConfig;
 import io.appform.conductor.server.config.MailConfig;
+import io.appform.conductor.server.dashboards.DashboardStore;
+import io.appform.conductor.server.dashboards.impl.DBDashboardStore;
+import io.appform.conductor.server.dashboards.impl.model.StoredDashboard;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.server.eventmanagement.EventHandler;
 import io.appform.conductor.server.eventmanagement.EventHandlerImplementation;
@@ -43,6 +46,7 @@ import io.appform.conductor.server.eventmanagement.EventStore;
 import io.appform.conductor.server.eventmanagement.bus.SignalDrivenEventBus;
 import io.appform.conductor.server.eventmanagement.store.DBEventStore;
 import io.appform.conductor.server.eventmanagement.store.models.StoredEvent;
+import io.appform.conductor.server.reporting.EventGeneratingReportStore;
 import io.appform.conductor.server.reporting.ReportStore;
 import io.appform.conductor.server.reporting.impl.DBReportStore;
 import io.appform.conductor.server.reporting.impl.models.StoredReport;
@@ -65,6 +69,7 @@ import io.appform.conductor.server.subjectmanagement.impl.DBSubjectStore;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredAddress;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectID;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectSummary;
+import io.appform.conductor.server.taskmanagement.EventGeneratingTaskStore;
 import io.appform.conductor.server.taskmanagement.TaskStore;
 import io.appform.conductor.server.taskmanagement.impl.DBTaskStore;
 import io.appform.conductor.server.taskmanagement.impl.models.StoredTask;
@@ -158,8 +163,13 @@ public class ConductorModule extends AbstractModule {
         bind(TicketStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBTicketStore.class);
         bind(TicketStore.class).to(EventGeneratingTicketStore.class);
 
-        bind(TaskStore.class).to(DBTaskStore.class); //TODO::EVENTS
-        bind(ReportStore.class).to(DBReportStore.class); //TODO::EVENTS
+        bind(TaskStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBTaskStore.class);
+        bind(TaskStore.class).to(EventGeneratingTaskStore.class);
+
+        bind(ReportStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBReportStore.class);
+        bind(ReportStore.class).to(EventGeneratingReportStore.class);
+        bind(DashboardStore.class).to(DBDashboardStore.class); //TODO::EVENTS
+
         bind(EventStore.class).to(DBEventStore.class);
 
     }
@@ -368,6 +378,12 @@ public class ConductorModule extends AbstractModule {
     @Singleton
     public LookupDao<StoredReport> reportDao() {
         return dbBundle.createParentObjectDao(StoredReport.class);
+    }
+
+    @Provides
+    @Singleton
+    public LookupDao<StoredDashboard> dashboardDao() {
+        return dbBundle.createParentObjectDao(StoredDashboard.class);
     }
 
     @Provides

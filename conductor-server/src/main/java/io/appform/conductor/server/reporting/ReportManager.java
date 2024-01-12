@@ -254,7 +254,6 @@ public class ReportManager implements Managed {
                                           result.getRunId(),
                                           result,
                                           context);
-                eventBus.publish(new ReportExecutionCompletedEvent(report.getId(), result));
             }
             catch (Exception e) {
                 log.error("Error saving status for: " + run.getReportId() + "/" + run.getRunId(), e);

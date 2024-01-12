@@ -18,18 +18,19 @@ package io.appform.conductor.server.dashboards.model;
 
 import lombok.Value;
 
-import java.util.List;
+import java.util.Date;
+
 /**
  *
  */
 @Value
 public class Dashboard {
-    public enum SpecVersion {
-        V1
-    }
-
-    String title;
+    String id;
+    String name;
     String description;
     SpecVersion specVersion;
-    List<DashboardSection> sections;
+    DashboardSpec spec;
+    String lastUpdatedBy;
+    long version;
+    Date updated;
 }

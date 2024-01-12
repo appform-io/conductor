@@ -16,12 +16,13 @@
 
 package io.appform.conductor.server.usermanagement;
 
+import io.appform.conductor.model.usermgmt.SessionState;
 import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.model.usermgmt.UserSessionDetails;
 
 import java.util.Date;
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * A store for {@link UserSessionDetails}
@@ -30,5 +31,19 @@ public interface SessionStore {
 
     Optional<UserSessionDetails> create(String userId, SessionType type, Date expiry);
     Optional<UserSessionDetails> getById(String userId, String sessionId);
-    Optional<UserSessionDetails> update(String userId, String sessionId, Consumer<UserSessionDetails> handler);
+    Optional<UserSessionDetails> update(String userId, String sessionId, Function<UserSessionDetails, UserSessionDetails> handler);
+
+    default boolean complete(String userId, String sessionId) {
+        return update(userId, sessionId,
+                      userSessionDetails -> new UserSessionDetails(userSessionDetails.getId(),
+                                                                   userSessionDetails.getUserId(),
+                                                                   SessionState.COMPLETED,
+                                                                   userSessionDetails.getType(),
+                                                                   userSessionDetails.getExpiry(),
+                                                                   userSessionDetails.getCreated(),
+                                                                   userSessionDetails.getLastActive()))
+                .map(userSessionDetails -> userSessionDetails.getState().equals(SessionState.COMPLETED))
+                .orElse(false);
+    }
+
 }
