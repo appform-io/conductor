@@ -20,6 +20,8 @@ import io.appform.conductor.model.schema.TicketState;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +31,10 @@ import java.util.Map;
  */
 @Data
 @AllArgsConstructor
-public class Workflow {
+public class Workflow implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1139666858647412150L;
     /**
      * Unique id for the workflow
      */

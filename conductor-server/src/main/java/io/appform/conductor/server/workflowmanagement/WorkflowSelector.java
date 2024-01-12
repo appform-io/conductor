@@ -27,6 +27,7 @@ import io.dropwizard.lifecycle.Managed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Singleton
+@Order(300)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class WorkflowSelector implements Managed {
     private static final String HANDLER_NAME = "RELOAD_HANDLER";

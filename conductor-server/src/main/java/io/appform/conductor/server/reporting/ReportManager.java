@@ -29,7 +29,6 @@ import io.appform.conductor.model.ticket.analytics.TicketQueryResponseVisitor;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.comms.MailSender;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.model.events.impl.reporting.ReportExecutionCompletedEvent;
 import io.appform.conductor.server.eventmanagement.EventStore;
 import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
@@ -42,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -61,6 +61,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.tabulateTic
 
 @Singleton
 @Slf4j
+@Order(200)
 public class ReportManager implements Managed {
     private static final String HANDLER_NAME = "REPORT_POLLER";
 

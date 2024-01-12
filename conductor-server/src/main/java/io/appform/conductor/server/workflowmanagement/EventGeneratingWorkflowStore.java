@@ -20,7 +20,7 @@ public class EventGeneratingWorkflowStore implements  WorkflowStore {
     private final WorkflowStore workflowStore;
 
     @Inject
-    public EventGeneratingWorkflowStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) WorkflowStore workflowStore) {
+    public EventGeneratingWorkflowStore(EventBus eventBus, @Named(ConductorModule.CACHED_IMPLEMENTATION_NAME) WorkflowStore workflowStore) {
         this.eventBus = eventBus;
         this.workflowStore = workflowStore;
     }

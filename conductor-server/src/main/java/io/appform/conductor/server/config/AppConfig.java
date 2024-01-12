@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.config;
 
+import io.appform.conductor.server.config.hz.ClusterConfig;
 import io.appform.dropwizard.sharding.config.ShardedHibernateFactory;
 import io.dropwizard.Configuration;
 import lombok.Data;
@@ -43,5 +44,8 @@ public class AppConfig extends Configuration {
 
     @Valid
     private MailConfig mailConfig;
+
+    @Valid
+    private ClusterConfig cluster;
 
 }
