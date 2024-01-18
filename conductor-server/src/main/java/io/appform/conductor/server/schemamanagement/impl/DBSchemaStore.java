@@ -59,29 +59,20 @@ public class DBSchemaStore implements SchemaStore {
     @SneakyThrows
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredSchemaSummary.SCHEMA_TABLE_NAME))
-    public Optional<SchemaSummary> create(@Throws.RuntimeParam("id") String name, String description) {
+    public Optional<Schema> create(@Throws.RuntimeParam("id") String name, String description) {
         val schemaId = lowerSnake(name);
         return schemaDao.save(new StoredSchemaSummary(schemaId,
                                                       name,
                                                       description,
                                                       INACTIVE,
                                                       operatingUserId()))
-                .map(DBSchemaStore::toSummary);
-    }
-
-    @Override
-    @MonitoredFunction
-    @SneakyThrows
-    @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = StoredSchemaSummary.SCHEMA_TABLE_NAME))
-    public Optional<SchemaSummary> getSummary(String schemaId) {
-        return schemaDao.get(schemaId).map(DBSchemaStore::toSummary);
+                .map(this::toSchema);
     }
 
     @Override
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = StoredSchemaSummary.SCHEMA_TABLE_NAME))
+            fixedParams = @Throws.Param(name = "type", value = "cached-" + StoredSchemaSummary.SCHEMA_TABLE_NAME))
     public Optional<Schema> get(@Throws.RuntimeParam("id") String schemaId) {
         return schemaDao.readOnlyExecutor(schemaId)
                 .readAugmentParent(fieldDao,
@@ -95,10 +86,13 @@ public class DBSchemaStore implements SchemaStore {
     }
 
     @Override
-    public List<SchemaSummary> list() {
+    @MonitoredFunction
+    @Throws(value = ConductorErrorCode.STORE_LIST_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = "cached-" + StoredSchemaSummary.SCHEMA_TABLE_NAME))
+    public List<Schema> list() {
         return schemaDao.scatterGather(DetachedCriteria.forClass(StoredSchemaSummary.class))
                 .stream()
-                .map(DBSchemaStore::toSummary)
+                .map(this::toSchema)
                 .toList();
     }
 
@@ -106,23 +100,23 @@ public class DBSchemaStore implements SchemaStore {
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredSchemaSummary.SCHEMA_TABLE_NAME))
-    public Optional<SchemaSummary> updateDescription(@Throws.RuntimeParam("id") String schemaId, String description) {
+    public Optional<Schema> updateDescription(@Throws.RuntimeParam("id") String schemaId, String description) {
         return Optional.ofNullable(schemaDao.lockAndGetExecutor(schemaId)
                                            .mutate(summary -> summary.setDescription(description))
                                            .execute())
-                .map(DBSchemaStore::toSummary);
+                .map(this::toSchema);
     }
 
     @Override
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredSchemaSummary.SCHEMA_TABLE_NAME))
-    public Optional<SchemaSummary> updateState(@Throws.RuntimeParam("id") String schemaId, SchemaState state) {
+    public Optional<Schema> updateState(@Throws.RuntimeParam("id") String schemaId, SchemaState state) {
         return Optional.ofNullable(schemaDao.lockAndGetExecutor(schemaId)
                                            .mutate(summary -> summary.setState(state)
                                                    .setStateChangedBy(operatingUserId()))
                                            .execute())
-                .map(DBSchemaStore::toSummary);
+                .map(this::toSchema);
     }
 
     @Override
@@ -244,17 +238,6 @@ public class DBSchemaStore implements SchemaStore {
                         .add(Property.forName(StoredFieldSchema.Fields.fieldId).eq(fieldId)))
                 .mutate(schema -> schema.setDeleted(true))
                 .execute() != null;
-    }
-
-    private static SchemaSummary toSummary(final StoredSchemaSummary schemaSummary) {
-        return new SchemaSummary(schemaSummary.getSchemaId(),
-                                 schemaSummary.getName(),
-                                 schemaSummary.getDescription(),
-                                 0,
-                                 schemaSummary.getState(),
-                                 schemaSummary.getStateChangedBy(),
-                                 schemaSummary.getCreated(),
-                                 schemaSummary.getUpdated());
     }
 
     private Schema toSchema(final StoredSchemaSummary schema) {

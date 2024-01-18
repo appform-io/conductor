@@ -16,7 +16,6 @@
 
 package io.appform.conductor.server.workflowmanagement.impl;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.appform.conductor.model.workflow.*;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.hazelcast.HazelcastClient;
@@ -25,15 +24,14 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import javax.cache.Cache;
-import javax.cache.configuration.MutableConfiguration;
-import javax.cache.expiry.EternalExpiryPolicy;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
+import javax.inject.Singleton;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.UnaryOperator;
 import java.util.stream.StreamSupport;
 
@@ -41,49 +39,23 @@ import java.util.stream.StreamSupport;
  *
  */
 @Slf4j
+@Singleton
 public class CachingWorkflowStore implements WorkflowStore {
 
     private final WorkflowStore root;
 
-    private Cache<String, Workflow> cache;
-
-    private final AtomicBoolean initialized = new AtomicBoolean();
+    private final Provider<Cache<String, Workflow>> cacheProvider;
 
     @Inject
     public CachingWorkflowStore(
             @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) WorkflowStore root,
             HazelcastClient hazelcastClient) {
         this.root = root;
-        hazelcastClient.registerInitializer(cacheManager -> {
-            val config = new MutableConfiguration<String, Workflow>()
-                    /*.setCacheLoaderFactory(() -> new CacheLoader<>() {
-                        @Override
-                        public Workflow load(String key) throws CacheLoaderException {
-                            return root.read(key).orElse(null);
-                        }
-
-                        @Override
-                        public Map<String, Workflow> loadAll(Iterable<? extends String> iterable) throws CacheLoaderException {
-                            return root.list(EnumSet.allOf(WorkflowState.class))
-                                    .stream()
-                                    .collect(Collectors.toMap(Workflow::getId, Function.identity()));
-                        }
-                    })*/
-                    .setExpiryPolicyFactory(EternalExpiryPolicy::new)
-                    .setReadThrough(false)
-                    .setWriteThrough(false)
-                    .setStatisticsEnabled(true);
-            cache = cacheManager.createCache(getClass().getSimpleName(), config);
-            root.list(EnumSet.allOf(WorkflowState.class)).forEach(wf -> cache.put(wf.getId(), wf));
-            initialized.set(true);
-            log.info("Cache created");
-        });
-
-    }
-
-    @VisibleForTesting
-    boolean isInitialized() {
-        return initialized.get();
+        val cacheName = getClass().getSimpleName();
+        this.cacheProvider = hazelcastClient.getORCreateCache(
+                cacheName,
+                cache -> root.list(EnumSet.allOf(WorkflowState.class))
+                        .forEach(wf -> cache.put(wf.getId(), wf)));
     }
 
     @Override
@@ -107,7 +79,7 @@ public class CachingWorkflowStore implements WorkflowStore {
 
     @Override
     public Optional<Workflow> read(String workflowId) {
-        return Optional.of(cache.get(workflowId));
+        return Optional.of(cacheProvider.get().get(workflowId));
     }
 
     @Override
@@ -117,13 +89,14 @@ public class CachingWorkflowStore implements WorkflowStore {
     }
 
     private Workflow refreshworkflow(String id, Workflow wf) {
+        val cache = this.cacheProvider.get();
         cache.put(id, wf); //Remove old value
         return cache.get(id);
     }
 
     @Override
     public List<Workflow> list(Set<WorkflowState> desiredState) {
-        return StreamSupport.stream(cache.spliterator(), false)
+        return StreamSupport.stream(cacheProvider.get().spliterator(), false)
                 .map(Cache.Entry::getValue)
                 .filter(wf -> desiredState.contains(wf.getState()))
                 .toList();
@@ -133,7 +106,7 @@ public class CachingWorkflowStore implements WorkflowStore {
     public boolean deleteWorkflow(String id) {
         val status = root.deleteWorkflow(id);
         if (status) {
-            cache.remove(id);
+            cacheProvider.get().remove(id);
         }
         return status;
     }

@@ -23,21 +23,25 @@ import com.hazelcast.core.HazelcastInstance;
 import io.appform.conductor.server.config.hz.*;
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.lifecycle.ServerLifecycleListener;
+import lombok.Getter;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.eclipse.jetty.server.Server;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 
+import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.cache.Caching;
+import javax.cache.configuration.Configuration;
+import javax.cache.configuration.MutableConfiguration;
+import javax.cache.expiry.EternalExpiryPolicy;
 import javax.cache.spi.CachingProvider;
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -47,15 +51,16 @@ import java.util.function.Consumer;
  */
 @Order(10)
 @Singleton
+@Slf4j
 public class HazelcastClient implements Managed, ServerLifecycleListener {
-    private static final Logger logger = LoggerFactory.getLogger(HazelcastClient.class.getSimpleName());
-
     public static final String HEALTHCHECK_MAP = "healthCheck";
 
-    private HazelcastInstance hazelcast;
-    private Config hazelcastConfig;
+    private HazelcastInstance hazelcast = null;
+    private final Config hazelcastConfig;
 
-    List<Consumer<CacheManager>> initializers = new ArrayList<>();
+    @Getter
+    private CacheManager cacheManager;
+
 
     @Inject
     public HazelcastClient(ClusterConfig clusterConfig) {
@@ -73,34 +78,35 @@ public class HazelcastClient implements Managed, ServerLifecycleListener {
                                 .setEnabled(false);
                         AwsConfig awsConfig = new AwsConfig();
 
-                        if(!Strings.isNullOrEmpty(awsClusterDiscoveryConfig.getServiceName())) {
+                        if (!Strings.isNullOrEmpty(awsClusterDiscoveryConfig.getServiceName())) {
                             awsConfig.setProperty("service-name", awsClusterDiscoveryConfig.getServiceName());
                         }
-                        if(!Strings.isNullOrEmpty(awsClusterDiscoveryConfig.getAccessKey())) {
+                        if (!Strings.isNullOrEmpty(awsClusterDiscoveryConfig.getAccessKey())) {
                             awsConfig.setProperty("access-key", awsClusterDiscoveryConfig.getAccessKey());
                         }
-                        if(!Strings.isNullOrEmpty(awsClusterDiscoveryConfig.getSecretKey())) {
+                        if (!Strings.isNullOrEmpty(awsClusterDiscoveryConfig.getSecretKey())) {
                             awsConfig.setProperty("secret-key", awsClusterDiscoveryConfig.getSecretKey());
                         }
-                        if(!Strings.isNullOrEmpty(awsClusterDiscoveryConfig.getIamRole())) {
+                        if (!Strings.isNullOrEmpty(awsClusterDiscoveryConfig.getIamRole())) {
                             awsConfig.setProperty("iam-role", awsClusterDiscoveryConfig.getIamRole());
                         }
-                        if(!Strings.isNullOrEmpty(awsClusterDiscoveryConfig.getRegion())) {
+                        if (!Strings.isNullOrEmpty(awsClusterDiscoveryConfig.getRegion())) {
                             awsConfig.setProperty("region", awsClusterDiscoveryConfig.getRegion());
                         }
-                        if(!Strings.isNullOrEmpty(awsClusterDiscoveryConfig.getHostHeader())) {
+                        if (!Strings.isNullOrEmpty(awsClusterDiscoveryConfig.getHostHeader())) {
                             awsConfig.setProperty("host-header", awsClusterDiscoveryConfig.getHostHeader());
                         }
-                        if(!Strings.isNullOrEmpty(awsClusterDiscoveryConfig.getSecurityGroupName())) {
-                            awsConfig.setProperty("security-group-name", awsClusterDiscoveryConfig.getSecurityGroupName());
+                        if (!Strings.isNullOrEmpty(awsClusterDiscoveryConfig.getSecurityGroupName())) {
+                            awsConfig.setProperty("security-group-name",
+                                                  awsClusterDiscoveryConfig.getSecurityGroupName());
                         }
-                        if(awsClusterDiscoveryConfig.getOpTimeoutSeconds() > 0) {
+                        if (awsClusterDiscoveryConfig.getOpTimeoutSeconds() > 0) {
                             awsConfig.setProperty("connection-timeout-seconds",
                                                   Integer.toString(awsClusterDiscoveryConfig.getOpTimeoutSeconds()));
                             awsConfig.setProperty("read-timeout-seconds",
                                                   Integer.toString(awsClusterDiscoveryConfig.getOpTimeoutSeconds()));
                         }
-                        if(awsClusterDiscoveryConfig.isExternalClient()) {
+                        if (awsClusterDiscoveryConfig.isExternalClient()) {
                             awsConfig.setProperty("use-public-ip", Boolean.TRUE.toString());
                         }
                         hazelcastConfigNetworkConfigJoin.setAwsConfig(awsConfig);
@@ -123,34 +129,34 @@ public class HazelcastClient implements Managed, ServerLifecycleListener {
 
                         AwsConfig awsConfig = new AwsConfig();
                         awsConfig.setEnabled(true);
-                        if(!Strings.isNullOrEmpty(awsECSDiscoveryConfig.getAccessKey())) {
+                        if (!Strings.isNullOrEmpty(awsECSDiscoveryConfig.getAccessKey())) {
                             awsConfig.setProperty("access-key", awsECSDiscoveryConfig.getAccessKey());
                         }
-                        if(!Strings.isNullOrEmpty(awsECSDiscoveryConfig.getSecretKey())) {
+                        if (!Strings.isNullOrEmpty(awsECSDiscoveryConfig.getSecretKey())) {
                             awsConfig.setProperty("secret-key", awsECSDiscoveryConfig.getSecretKey());
                         }
-                        if(!Strings.isNullOrEmpty(awsECSDiscoveryConfig.getRegion())) {
+                        if (!Strings.isNullOrEmpty(awsECSDiscoveryConfig.getRegion())) {
                             awsConfig.setProperty("region", awsECSDiscoveryConfig.getRegion());
                         }
-                        if(!Strings.isNullOrEmpty(awsECSDiscoveryConfig.getCluster())) {
+                        if (!Strings.isNullOrEmpty(awsECSDiscoveryConfig.getCluster())) {
                             awsConfig.setProperty("cluster", awsECSDiscoveryConfig.getCluster());
                         }
-                        if(!Strings.isNullOrEmpty(awsECSDiscoveryConfig.getFamily())) {
+                        if (!Strings.isNullOrEmpty(awsECSDiscoveryConfig.getFamily())) {
                             awsConfig.setProperty("family", awsECSDiscoveryConfig.getFamily());
                         }
-                        if(!Strings.isNullOrEmpty(awsECSDiscoveryConfig.getServiceName())) {
+                        if (!Strings.isNullOrEmpty(awsECSDiscoveryConfig.getServiceName())) {
                             awsConfig.setProperty("service-name", awsECSDiscoveryConfig.getServiceName());
                         }
-                        if(!Strings.isNullOrEmpty(awsECSDiscoveryConfig.getHostHeader())) {
+                        if (!Strings.isNullOrEmpty(awsECSDiscoveryConfig.getHostHeader())) {
                             awsConfig.setProperty("host-header", awsECSDiscoveryConfig.getHostHeader());
                         }
-                        if(awsECSDiscoveryConfig.getOpTimeoutSeconds() > 0) {
+                        if (awsECSDiscoveryConfig.getOpTimeoutSeconds() > 0) {
                             awsConfig.setProperty("connection-timeout-seconds",
                                                   Integer.toString(awsECSDiscoveryConfig.getOpTimeoutSeconds()));
                             awsConfig.setProperty("read-timeout-seconds",
                                                   Integer.toString(awsECSDiscoveryConfig.getOpTimeoutSeconds()));
                         }
-                        if(awsECSDiscoveryConfig.isExternalClient()) {
+                        if (awsECSDiscoveryConfig.isExternalClient()) {
                             awsConfig.setProperty("use-public-ip", Boolean.TRUE.toString());
                         }
                         return null;
@@ -159,7 +165,8 @@ public class HazelcastClient implements Managed, ServerLifecycleListener {
                     @Override
                     public Void visit(KubernetesClusterDiscoveryConfig kubernetesClusterDiscoveryConfig) {
                         JoinConfig kbConfig = hzConfig.getNetworkConfig().getJoin();
-                        kbConfig.getMulticastConfig().setEnabled(!kubernetesClusterDiscoveryConfig.isDisableMulticast());
+                        kbConfig.getMulticastConfig()
+                                .setEnabled(!kubernetesClusterDiscoveryConfig.isDisableMulticast());
                         kbConfig.getKubernetesConfig().setEnabled(true);
                         return null;
                     }
@@ -194,14 +201,51 @@ public class HazelcastClient implements Managed, ServerLifecycleListener {
 
     @Override
     public void start() throws Exception {
-        logger.info("Starting Hazelcast Instance");
-        configureHealthcheck();
-        hazelcast = Hazelcast.newHazelcastInstance(hazelcastConfig);
-        CachingProvider cachingProvider = Caching.getCachingProvider(HazelcastCachingProvider.MEMBER_CACHING_PROVIDER);
-        CacheManager cacheManager = cachingProvider.getCacheManager(null, null, HazelcastCachingProvider.propertiesByInstanceName(hazelcastConfig.getInstanceName()));
+        if (null == hazelcast) {
+            log.info("Starting Hazelcast Instance");
+            configureHealthcheck();
+            hazelcast = Hazelcast.newHazelcastInstance(hazelcastConfig);
+            CachingProvider cachingProvider =
+                    Caching.getCachingProvider(HazelcastCachingProvider.MEMBER_CACHING_PROVIDER);
+            cacheManager = cachingProvider.getCacheManager(null,
+                                                           null,
+                                                           HazelcastCachingProvider.propertiesByInstanceName(
+                                                                   hazelcastConfig.getInstanceName()));
+        }
+        else {
+            log.info("Skipped starting HZ as this was already started");
+        }
+        log.info("Started Hazelcast Instance");
+    }
 
-        initializers.forEach(initializer -> initializer.accept(cacheManager));
-        logger.info("Started Hazelcast Instance");
+
+    public <K, V> Provider<Cache<K, V>> getORCreateCache(
+            String name, Consumer<Cache<K, V>> initializer) {
+        return getORCreateCache(name,
+                                new MutableConfiguration<K, V>()
+                                        .setExpiryPolicyFactory(EternalExpiryPolicy::new)
+                                        .setReadThrough(false)
+                                        .setWriteThrough(false)
+                                        .setStatisticsEnabled(true),
+                                initializer);
+    }
+
+    public <K, V> Provider<Cache<K, V>> getORCreateCache(
+            String name,
+            Configuration<K, V> config,
+            Consumer<Cache<K, V>> initializer) {
+        return new Provider<Cache<K, V>>() {
+            @Override
+            public Cache<K, V> get() {
+                return Objects.requireNonNullElseGet(cacheManager.getCache(name),
+                                                     () -> {
+                                                         val cache = cacheManager.createCache(name, config);
+                                                         initializer.accept(cache);
+                                                         log.info("Created cache {}", name);
+                                                         return cache;
+                                                     });
+            }
+        };
     }
 
     private void configureHealthcheck() {
@@ -215,20 +259,8 @@ public class HazelcastClient implements Managed, ServerLifecycleListener {
         hazelcast.shutdown();
     }
 
-    public HazelcastInstance getHazelcast() {
-        return hazelcast;
-    }
-
-    public Config getHazelcastConfig() {
-        return hazelcastConfig;
-    }
-
     @Override
     public void serverStarted(Server server) {
 
-    }
-
-    public void registerInitializer(final Consumer<CacheManager> initializer) {
-        initializers.add(initializer);
     }
 }

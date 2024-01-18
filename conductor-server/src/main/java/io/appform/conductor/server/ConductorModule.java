@@ -54,6 +54,7 @@ import io.appform.conductor.server.reporting.impl.DBReportStore;
 import io.appform.conductor.server.reporting.impl.models.StoredReport;
 import io.appform.conductor.server.reporting.impl.models.StoredReportContext;
 import io.appform.conductor.server.reporting.impl.models.StoredReportRun;
+import io.appform.conductor.server.schemamanagement.impl.CachingSchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.DBSchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.EventGeneratingSchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
@@ -165,6 +166,7 @@ public class ConductorModule extends AbstractModule {
         bind(ActionStore.class).to(EventGeneratingActionStore.class);
 
         bind(SchemaStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBSchemaStore.class);
+        bind(SchemaStore.class).annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME)).to(CachingSchemaStore.class);
         bind(SchemaStore.class).to(EventGeneratingSchemaStore.class);
 
         bind(WorkflowStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBWorkflowStore.class);

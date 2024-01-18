@@ -462,7 +462,7 @@ public class TicketManager {
         val ticketDetails = ticketDetails(ticket, workflow, subject.getSummary());
 
         //validate action
-        /*val ticketState = ticketDetails.getSummary().getTicketState();
+        /*val ticketState = ticketDetails.get().getTicketState();
         if (ticketState.getVisibleActions().stream()
                 .noneMatch(eligibleAction -> eligibleAction.equals(actionId))) {
             throw ConductorException.builder()

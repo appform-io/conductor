@@ -17,10 +17,9 @@
 package io.appform.conductor.server.workflowmanagement.impl;
 
 import io.appform.conductor.server.DBTestExtension;
+import io.appform.conductor.server.HazelcastTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
-import io.appform.conductor.server.config.hz.ClusterConfig;
-import io.appform.conductor.server.config.hz.SimpleClusterDiscoveryConfig;
 import io.appform.conductor.server.hazelcast.HazelcastClient;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketState;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketStateTransition;
@@ -29,34 +28,26 @@ import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflow
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.SneakyThrows;
 import lombok.val;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.time.Duration;
 
 /**
  *
  */
 @RelevantDBEntityPackages("io.appform.conductor.server.workflowmanagement.impl.models")
-@ExtendWith(DBTestExtension.class)
+@ExtendWith({DBTestExtension.class, HazelcastTestExtension.class})
 class CachingWorkflowStoreTest extends AbstractWorkflowStoreTest {
 
     @Test
     @SneakyThrows
-    void testBasicCrud(BalancedDBShardingBundle<TestConfig> bundle) {
-        val config = new ClusterConfig().setName("conductor").setDiscovery(new SimpleClusterDiscoveryConfig());
-        val hz = new HazelcastClient(config);
+    void testBasicCrud(BalancedDBShardingBundle<TestConfig> bundle,
+                       HazelcastClient hz) {
         val ds = new CachingWorkflowStore(new DBWorkflowStore(
                 bundle.createParentObjectDao(StoredWorkflow.class),
                 bundle.createRelatedObjectDao(StoredTicketState.class),
                 bundle.createRelatedObjectDao(StoredTicketStateTransition.class),
                 bundle.createRelatedObjectDao(StoredWorkflowSelectionRule.class)),
                 hz);
-        hz.start();
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(30))
-                        .until(ds::isInitialized);
         checkStoreFunctionality(ds);
     }
 
