@@ -19,13 +19,19 @@ package io.appform.conductor.model.usermgmt;
 import lombok.Value;
 import lombok.With;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * A user for the system. This includes operators, administrators etc
  */
 @Value
-public class UserSummary {
+public class UserSummary implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = -8955544854005815841L;
+
     String id;
     UserType type;
     @With

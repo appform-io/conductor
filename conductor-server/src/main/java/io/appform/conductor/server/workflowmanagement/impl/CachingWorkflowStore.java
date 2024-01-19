@@ -36,7 +36,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.StreamSupport;
 
 /**
- *
+ * Caches workflow data based on workflow id
  */
 @Slf4j
 @Singleton
@@ -48,8 +48,8 @@ public class CachingWorkflowStore implements WorkflowStore {
 
     @Inject
     public CachingWorkflowStore(
-            @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) WorkflowStore root,
-            HazelcastClient hazelcastClient) {
+            @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) final WorkflowStore root,
+            final HazelcastClient hazelcastClient) {
         this.root = root;
         val cacheName = getClass().getSimpleName();
         this.cacheProvider = hazelcastClient.getORCreateCache(

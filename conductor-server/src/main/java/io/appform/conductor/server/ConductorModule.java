@@ -133,6 +133,7 @@ public class ConductorModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(UserStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBUserStore.class);
+        bind(UserStore.class).annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME)).to(CachingUserStore.class);
         bind(UserStore.class).to(EventGeneratingUserStore.class);
 
         bind(GroupStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBGroupStore.class);
