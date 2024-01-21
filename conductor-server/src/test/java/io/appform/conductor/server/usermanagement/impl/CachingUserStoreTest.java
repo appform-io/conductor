@@ -32,6 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -54,6 +55,7 @@ class CachingUserStoreTest {
         when(root.getById(anyString()))
                 .thenAnswer(new Answer<Optional<UserSummary>>() {
                     @Override
+                    @SuppressWarnings("unchecked")
                     public Optional<UserSummary> answer(InvocationOnMock invocationOnMock) throws Throwable {
                         getCounter.incrementAndGet();
                         return (Optional<UserSummary>) invocationOnMock.callRealMethod();
@@ -74,6 +76,9 @@ class CachingUserStoreTest {
                     assertEquals(UserState.CREATED,
                                  store.getById(user.getId()).map(UserSummary::getState).orElse(null));
                 }));
+        assertEquals(users.stream().sorted(Comparator.comparing(UserSummary::getId)).toList(),
+                     store.getByIds(users.stream().map(UserSummary::getId).toList())
+                             .stream().sorted(Comparator.comparing(UserSummary::getId)).toList());
         assertEquals(numUsers, getCounter.get());
 
         users.forEach(user -> store.updateState(user.getId(), UserState.ACTIVE)); //This will increment counter by 100
