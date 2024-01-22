@@ -12,7 +12,6 @@ import lombok.val;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -25,7 +24,7 @@ public class EventGeneratingRoleStore implements RoleStore {
     private final RoleStore roleStore;
 
     @Inject
-    public EventGeneratingRoleStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) RoleStore roleStore) {
+    public EventGeneratingRoleStore(EventBus eventBus, @Named(ConductorModule.CACHED_IMPLEMENTATION_NAME) RoleStore roleStore) {
         this.eventBus = eventBus;
         this.roleStore = roleStore;
     }
@@ -45,11 +44,6 @@ public class EventGeneratingRoleStore implements RoleStore {
     @Override
     public List<Role> list() {
         return roleStore.list();
-    }
-
-    @Override
-    public Set<Permission> permissionsForRoles(Collection<String> roleIds) {
-        return roleStore.permissionsForRoles(roleIds);
     }
 
     @Override

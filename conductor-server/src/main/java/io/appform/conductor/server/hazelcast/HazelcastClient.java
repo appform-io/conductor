@@ -34,8 +34,13 @@ import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.cache.Caching;
 import javax.cache.configuration.Configuration;
+import javax.cache.configuration.Factory;
 import javax.cache.configuration.MutableConfiguration;
+import javax.cache.expiry.Duration;
 import javax.cache.expiry.EternalExpiryPolicy;
+import javax.cache.expiry.ExpiryPolicy;
+import javax.cache.expiry.TouchedExpiryPolicy;
+import javax.cache.integration.CacheLoader;
 import javax.cache.spi.CachingProvider;
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -220,28 +225,46 @@ public class HazelcastClient implements Managed, ServerLifecycleListener {
     }
 
 
-    public <K, V> Provider<Cache<K, V>> getORCreateCache(
+    public <K, V> Provider<Cache<K, V>> consistentCache(
             String name, Consumer<Cache<K, V>> initializer) {
-        return getORCreateCache(name,
-                                new MutableConfiguration<K, V>()
-                                        .setExpiryPolicyFactory(EternalExpiryPolicy::new)
-                                        .setReadThrough(false)
-                                        .setWriteThrough(false)
-                                        .setStatisticsEnabled(true),
-                                initializer);
+        return configuredCache(name,
+                               new MutableConfiguration<K, V>()
+                                       .setExpiryPolicyFactory(EternalExpiryPolicy::new)
+                                       .setReadThrough(false)
+                                       .setWriteThrough(false)
+                                       .setStatisticsEnabled(true),
+                               initializer);
     }
 
-    public <K, V> Provider<Cache<K, V>> getORCreateCache(
+    public <K, V> Provider<Cache<K, V>> loadingCache(
+            String name, CacheLoader<K, V> loader) {
+        return loadingCache(name, loader, cache -> {});
+    }
+
+    public <K, V> Provider<Cache<K, V>> loadingCache(
+            String name, CacheLoader<K, V> loader, Consumer<Cache<K, V>> initializer) {
+        return configuredCache(name,
+                               new MutableConfiguration<K, V>()
+                                       .setExpiryPolicyFactory((Factory<ExpiryPolicy>) () -> new TouchedExpiryPolicy(
+                                               Duration.TEN_MINUTES))
+                                       .setReadThrough(true)
+                                       .setCacheLoaderFactory((Factory<CacheLoader<K, V>>) () -> loader)
+                                       .setWriteThrough(false)
+                                       .setStatisticsEnabled(true),
+                               initializer);
+    }
+
+    public <K, V> Provider<Cache<K, V>> configuredCache(
             String name,
             Configuration<K, V> config,
             Consumer<Cache<K, V>> initializer) {
         return () -> Objects.requireNonNullElseGet(cacheManager.getCache(name),
-                                           () -> {
-                                                 val cache = cacheManager.createCache(name, config);
-                                                 initializer.accept(cache);
-                                                 log.info("Created cache {}", name);
-                                                 return cache;
-                                             });
+                                                   () -> {
+                                                       val cache = cacheManager.createCache(name, config);
+                                                       initializer.accept(cache);
+                                                       log.info("Created cache {}", name);
+                                                       return cache;
+                                                   });
     }
 
     private void configureHealthcheck() {
@@ -253,10 +276,10 @@ public class HazelcastClient implements Managed, ServerLifecycleListener {
     @Override
     public void stop() throws Exception {
         StreamSupport.stream(cacheManager.getCacheNames().spliterator(), false)
-                        .forEach(cacheName -> {
-                            cacheManager.getCache(cacheName).close();
-                            log.info("Closed cache {}", cacheName);
-                        });
+                .forEach(cacheName -> {
+                    cacheManager.getCache(cacheName).close();
+                    log.info("Closed cache {}", cacheName);
+                });
         hazelcast.shutdown();
     }
 

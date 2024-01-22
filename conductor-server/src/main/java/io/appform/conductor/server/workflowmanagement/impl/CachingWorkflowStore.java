@@ -53,7 +53,7 @@ public class CachingWorkflowStore implements WorkflowStore {
             final HazelcastClient hazelcastClient) {
         this.root = root;
         val cacheName = getClass().getSimpleName();
-        this.cacheProvider = hazelcastClient.getORCreateCache(
+        this.cacheProvider = hazelcastClient.consistentCache(
                 cacheName,
                 cache -> root.list(EnumSet.allOf(WorkflowState.class))
                         .forEach(wf -> cache.put(wf.getId(), wf)));

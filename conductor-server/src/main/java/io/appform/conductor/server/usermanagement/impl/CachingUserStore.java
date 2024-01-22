@@ -26,11 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import javax.cache.Cache;
-import javax.cache.configuration.Factory;
-import javax.cache.configuration.MutableConfiguration;
-import javax.cache.expiry.AccessedExpiryPolicy;
-import javax.cache.expiry.Duration;
-import javax.cache.expiry.ExpiryPolicy;
 import javax.cache.integration.CacheLoader;
 import javax.cache.integration.CacheLoaderException;
 import javax.inject.Inject;
@@ -62,32 +57,26 @@ public class CachingUserStore implements UserStore {
             final HazelcastClient hazelcastClient) {
         this.root = root;
         val cacheName = getClass().getSimpleName();
-        cacheProvider = hazelcastClient.getORCreateCache(
+        cacheProvider = hazelcastClient.loadingCache(
                 cacheName,
-                new MutableConfiguration<String, UserSummary>()
-                        .setExpiryPolicyFactory((Factory<ExpiryPolicy>) () -> new AccessedExpiryPolicy(Duration.TEN_MINUTES))
-                        .setCacheLoaderFactory((Factory<CacheLoader<String, UserSummary>>) () -> new CacheLoader<>() {
-                            @Override
-                            public UserSummary load(String key) throws CacheLoaderException {
-                                log.debug("Loading data for user: {}", key);
-                                return root.getById(key).orElse(null);
-                            }
+                new CacheLoader<>() {
+                    @Override
+                    public UserSummary load(String key) throws CacheLoaderException {
+                        log.debug("Loading data for user: {}", key);
+                        return root.getById(key).orElse(null);
+                    }
 
-                            @Override
-                            public Map<String, UserSummary> loadAll(Iterable<? extends String> keys) throws CacheLoaderException {
-                                val userIds = StreamSupport.stream(keys.spliterator(), false)
-                                        .map(String.class::cast)
-                                        .toList();
-                                log.debug("Loading data for users: {}", userIds);
-                                return root.getByIds(userIds)
-                                        .stream()
-                                        .collect(toMap(UserSummary::getId, Function.identity()));
-                            }
-                        })
-                        .setReadThrough(true)
-                        .setWriteThrough(false)
-                        .setStatisticsEnabled(true),
-                cache -> {}); //Can't pre-load all users
+                    @Override
+                    public Map<String, UserSummary> loadAll(Iterable<? extends String> keys) throws CacheLoaderException {
+                        val userIds = StreamSupport.stream(keys.spliterator(), false)
+                                .map(String.class::cast)
+                                .toList();
+                        log.debug("Loading data for users: {}", userIds);
+                        return root.getByIds(userIds)
+                                .stream()
+                                .collect(toMap(UserSummary::getId, Function.identity()));
+                    }
+                }); //Can't pre-load all users
 
     }
 

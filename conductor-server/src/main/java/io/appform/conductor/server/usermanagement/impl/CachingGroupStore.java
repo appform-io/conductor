@@ -26,11 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import javax.cache.Cache;
-import javax.cache.configuration.Factory;
-import javax.cache.configuration.MutableConfiguration;
-import javax.cache.expiry.Duration;
-import javax.cache.expiry.ExpiryPolicy;
-import javax.cache.expiry.TouchedExpiryPolicy;
 import javax.cache.integration.CacheLoader;
 import javax.cache.integration.CacheLoaderException;
 import javax.inject.Inject;
@@ -56,35 +51,29 @@ public class CachingGroupStore implements GroupStore {
 
     @Inject
     public CachingGroupStore(
-            @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) GroupStore root,
+            @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) final GroupStore root,
             final HazelcastClient hazelcastClient) {
         this.root = root;
-        this.groupCacheProvider = hazelcastClient.getORCreateCache(
+        this.groupCacheProvider = hazelcastClient.consistentCache(
                 getClass().getSimpleName() + "-groups",
                 cache -> cache.putAll(root.list()
                                               .stream()
                                               .collect(Collectors.toUnmodifiableMap(Group::getId,
                                                                                     Function.identity()))));
-        userGroupsCacheProvider = hazelcastClient.getORCreateCache(
+        userGroupsCacheProvider = hazelcastClient.loadingCache(
                 getClass().getSimpleName() + "-user-groups",
-                new MutableConfiguration<String, List<Group>>()
-                        .setExpiryPolicyFactory((Factory<ExpiryPolicy>) () -> new TouchedExpiryPolicy(Duration.TEN_MINUTES))
-                        .setCacheLoaderFactory((Factory<CacheLoader<String, List<Group>>>) () -> new CacheLoader<>() {
-                            @Override
-                            public List<Group> load(String key) throws CacheLoaderException {
-                                log.debug("Loading data for user: {}", key);
-                                return root.findGroupsForUser(key);
-                            }
+                new CacheLoader<>() {
+                    @Override
+                    public List<Group> load(String key) throws CacheLoaderException {
+                        log.debug("Loading data for user: {}", key);
+                        return root.findGroupsForUser(key);
+                    }
 
-                            @Override
-                            public Map<String, List<Group>> loadAll(Iterable<? extends String> keys) throws CacheLoaderException {
-                                throw new UnsupportedOperationException("Can't send load multiple data"); //TODO
-                            }
-                        })
-                        .setReadThrough(true)
-                        .setWriteThrough(false)
-                        .setStatisticsEnabled(true),
-                cache -> {}); //Can't pre-load all users
+                    @Override
+                    public Map<String, List<Group>> loadAll(Iterable<? extends String> keys) throws CacheLoaderException {
+                        throw new UnsupportedOperationException("Can't send load multiple data"); //TODO
+                    }
+                }); //Can't pre-load all users
 
     }
 

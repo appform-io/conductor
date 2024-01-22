@@ -52,7 +52,7 @@ public class CachingSchemaStore implements SchemaStore {
             HazelcastClient hazelcastClient) {
         this.root = root;
         val cacheName = getClass().getSimpleName();
-        this.cacheProvider = hazelcastClient.getORCreateCache(
+        this.cacheProvider = hazelcastClient.consistentCache(
                 cacheName,
                 cache -> root.list()
                         .forEach(wf -> cache.put(wf.getId(), wf)));

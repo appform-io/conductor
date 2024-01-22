@@ -18,6 +18,7 @@ package io.appform.conductor.server.usermanagement;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.google.common.base.Strings;
+import io.appform.conductor.model.auth.Role;
 import io.appform.conductor.model.skills.SkillDefinition;
 import io.appform.conductor.model.skills.SkillValue;
 import io.appform.conductor.model.usermgmt.*;
@@ -78,14 +79,16 @@ public class UserLifecycleManager {
     public Optional<User> userDetails(@NonNull final String userId) {
         val roleId = roleMappingStore.get().roleForUser(userId).orElse(null);
         return userStore.get().getById(userId)
-                .map(userSummary -> new User(userSummary,
-                                             Strings.isNullOrEmpty(roleId) ? null
-                                                                           : roleStore.get().read(roleId).orElse(null),
-                                             Strings.isNullOrEmpty(roleId) ? Set.of()
-                                                                           : roleStore.get()
-                                                     .permissionsForRoles(List.of(roleId)),
-                                             groupStore.get().findGroupsForUser(userSummary.getId()),
-                                             skillStore.get().listSkillsForUser(userId)));
+                .map(userSummary -> {
+                    val role = Strings.isNullOrEmpty(roleId)
+                               ? Optional.<Role>empty()
+                               : roleStore.get().read(roleId);
+                    return new User(userSummary,
+                                    role.orElse(null),
+                                    role.map(Role::getPermissions).orElse(Set.of()),
+                                    groupStore.get().findGroupsForUser(userSummary.getId()),
+                                    skillStore.get().listSkillsForUser(userId));
+                });
     }
 
     /**
@@ -236,7 +239,7 @@ public class UserLifecycleManager {
         if (Strings.isNullOrEmpty(oldPassword) || Strings.isNullOrEmpty(newPassword)) {
             log.error("Empty passwords: old {} new {}", oldPassword, newPassword);
         }
-        else if(userAuthValidator.authenticate(new PasswordAuthData(userId, null, oldPassword))) {
+        else if (userAuthValidator.authenticate(new PasswordAuthData(userId, null, oldPassword))) {
             log.info("Password updated for user: {}", userId);
             return passwordAuthStore.get().updatePassword(userId, hash(newPassword)).isPresent();
         }
