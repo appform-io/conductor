@@ -21,6 +21,7 @@ import io.appform.conductor.model.usermgmt.UserType;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.hazelcast.HazelcastClient;
 import io.appform.conductor.server.usermanagement.UserStore;
+import io.appform.functionmetrics.MonitoredFunction;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
@@ -91,26 +92,31 @@ public class CachingUserStore implements UserStore {
     }
 
     @Override
+    @MonitoredFunction
     public Optional<UserSummary> create(String userId, String name, UserType type, String email) {
         return root.create(userId, name, type, email);
     }
 
     @Override
+    @MonitoredFunction
     public Optional<UserSummary> getById(String userId) {
         return Optional.ofNullable(cacheProvider.get().get(userId));
     }
 
     @Override
+    @MonitoredFunction
     public List<UserSummary> getByIds(List<String> userIds) {
         return root.getByIds(userIds); //Bulk get doesn't need to be cached, should not be needed
     }
 
     @Override
+    @MonitoredFunction
     public Optional<UserSummary> getByEmail(String email) {
         return root.getByEmail(email); //This would be used in auth path, let it go to DB
     }
 
     @Override
+    @MonitoredFunction
     public Optional<UserSummary> update(String userId, UnaryOperator<UserSummary> handler) {
         val res = root.update(userId, handler);
         if(res.isPresent()) {

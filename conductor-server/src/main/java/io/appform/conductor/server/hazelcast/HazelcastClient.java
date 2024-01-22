@@ -43,6 +43,7 @@ import javax.inject.Singleton;
 import java.net.InetAddress;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.stream.StreamSupport;
 
 /**
  * User: Santanu Sinha (santanu.sinha@flipkart.com)
@@ -234,18 +235,13 @@ public class HazelcastClient implements Managed, ServerLifecycleListener {
             String name,
             Configuration<K, V> config,
             Consumer<Cache<K, V>> initializer) {
-        return new Provider<Cache<K, V>>() {
-            @Override
-            public Cache<K, V> get() {
-                return Objects.requireNonNullElseGet(cacheManager.getCache(name),
-                                                     () -> {
-                                                         val cache = cacheManager.createCache(name, config);
-                                                         initializer.accept(cache);
-                                                         log.info("Created cache {}", name);
-                                                         return cache;
-                                                     });
-            }
-        };
+        return () -> Objects.requireNonNullElseGet(cacheManager.getCache(name),
+                                           () -> {
+                                                 val cache = cacheManager.createCache(name, config);
+                                                 initializer.accept(cache);
+                                                 log.info("Created cache {}", name);
+                                                 return cache;
+                                             });
     }
 
     private void configureHealthcheck() {
@@ -256,6 +252,11 @@ public class HazelcastClient implements Managed, ServerLifecycleListener {
 
     @Override
     public void stop() throws Exception {
+        StreamSupport.stream(cacheManager.getCacheNames().spliterator(), false)
+                        .forEach(cacheName -> {
+                            cacheManager.getCache(cacheName).close();
+                            log.info("Closed cache {}", cacheName);
+                        });
         hazelcast.shutdown();
     }
 

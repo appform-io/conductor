@@ -727,10 +727,11 @@ public class Manage {
     public Response deleteGroup(
             @Auth ConductorUser user,
             @PathParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
-
-        return userLifecycleManager.deleteGroup(groupId)
-                .map(group -> redirect("/manage/groups/"))
-                .orElseThrow(() -> fail("Could not create group", "/manage/groups"));
+        val status = userLifecycleManager.deleteGroup(groupId);
+        if(status) {
+            return redirect("/manage/groups/");
+        }
+        throw fail("Could not create group", "/manage/groups");
     }
 
     @POST

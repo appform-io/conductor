@@ -137,6 +137,7 @@ public class ConductorModule extends AbstractModule {
         bind(UserStore.class).to(EventGeneratingUserStore.class);
 
         bind(GroupStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBGroupStore.class);
+        bind(GroupStore.class).annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME)).to(CachingGroupStore.class);
         bind(GroupStore.class).to(EventGeneratingGroupStore.class);
 
         bind(SessionStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBSessionStore.class);

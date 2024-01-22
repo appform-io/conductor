@@ -20,6 +20,7 @@ import io.appform.conductor.model.workflow.*;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.hazelcast.HazelcastClient;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
+import io.appform.functionmetrics.MonitoredFunction;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
@@ -78,23 +79,20 @@ public class CachingWorkflowStore implements WorkflowStore {
     }
 
     @Override
+    @MonitoredFunction
     public Optional<Workflow> read(String workflowId) {
         return Optional.of(cacheProvider.get().get(workflowId));
     }
 
     @Override
+    @MonitoredFunction
     public Optional<Workflow> update(String id, UnaryOperator<Workflow> updater) {
         return root.update(id, updater)
                 .map(wf -> refreshworkflow(wf.getId(), wf));
     }
 
-    private Workflow refreshworkflow(String id, Workflow wf) {
-        val cache = this.cacheProvider.get();
-        cache.put(id, wf); //Remove old value
-        return cache.get(id);
-    }
-
     @Override
+    @MonitoredFunction
     public List<Workflow> list(Set<WorkflowState> desiredState) {
         return StreamSupport.stream(cacheProvider.get().spliterator(), false)
                 .map(Cache.Entry::getValue)
@@ -103,6 +101,7 @@ public class CachingWorkflowStore implements WorkflowStore {
     }
 
     @Override
+    @MonitoredFunction
     public boolean deleteWorkflow(String id) {
         val status = root.deleteWorkflow(id);
         if (status) {
@@ -137,12 +136,14 @@ public class CachingWorkflowStore implements WorkflowStore {
     }
 
     @Override
+    @MonitoredFunction
     public Optional<Workflow> deleteState(String workflowId, String stateId) {
         return root.deleteState(workflowId, stateId)
                 .map(wf -> refreshworkflow(wf.getId(), wf));
     }
 
     @Override
+    @MonitoredFunction
     public Optional<Workflow> createOrUpdateTransition(
             String workflowId,
             String transitionId,
@@ -163,6 +164,7 @@ public class CachingWorkflowStore implements WorkflowStore {
     }
 
     @Override
+    @MonitoredFunction
     public Optional<Workflow> updateTransition(
             String workflowId,
             String transitionId,
@@ -174,12 +176,14 @@ public class CachingWorkflowStore implements WorkflowStore {
     }
 
     @Override
+    @MonitoredFunction
     public Optional<Workflow> deleteTransition(String workflowId, String transitionId) {
         return root.deleteTransition(workflowId, transitionId)
                 .map(wf -> refreshworkflow(wf.getId(), wf));
     }
 
     @Override
+    @MonitoredFunction
     public Optional<Workflow> createOrUpdateSelectionRule(
             String workFlowId,
             String ruleId,
@@ -189,8 +193,15 @@ public class CachingWorkflowStore implements WorkflowStore {
     }
 
     @Override
+    @MonitoredFunction
     public Optional<Workflow> deleteSelectionRule(String workflowId, String ruleId) {
         return root.deleteSelectionRule(workflowId, ruleId)
                 .map(wf -> refreshworkflow(wf.getId(), wf));
+    }
+
+    private Workflow refreshworkflow(String id, Workflow wf) {
+        val cache = this.cacheProvider.get();
+        cache.put(id, wf); //Remove old value
+        return cache.get(id);
     }
 }

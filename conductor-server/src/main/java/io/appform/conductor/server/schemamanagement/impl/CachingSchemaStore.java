@@ -60,6 +60,7 @@ public class CachingSchemaStore implements SchemaStore {
     }
 
     @Override
+    @MonitoredFunction
     public Optional<Schema> create(String name, String description) {
         return root.create(name, description).map(this::refreshCache);
     }
@@ -83,39 +84,36 @@ public class CachingSchemaStore implements SchemaStore {
     }
 
     @Override
+    @MonitoredFunction
     public Optional<Schema> updateDescription(String schemaId, String description) {
         return root.updateDescription(schemaId, description)
                 .map(this::refreshCache);
     }
 
     @Override
+    @MonitoredFunction
     public Optional<Schema> updateState(String schemaId, SchemaState state) {
         return root.updateState(schemaId, state)
                 .map(this::refreshCache);
     }
 
     @Override
+    @MonitoredFunction
     public Optional<FieldSchema> addField(String schemaId, String fieldId, FieldSchema schema) {
         return root.addField(schemaId, fieldId, schema)
                 .map(f -> refreshCache(root.get(schemaId).orElse(null)))
                 .flatMap(s -> fieldFromSchema(fieldId, s));
     }
 
-    private static Optional<FieldSchema> fieldFromSchema(String fieldId, Schema s) {
-        return s.getFields()
-                .stream()
-                .filter(fld -> fld.getId().equals(fieldId))
-                .findAny();
-    }
-
-
     @Override
+    @MonitoredFunction
     public Optional<FieldSchema> getField(String schemaId, String fieldId) {
         return get(schemaId)
                 .flatMap(s -> fieldFromSchema(fieldId, s));
     }
 
     @Override
+    @MonitoredFunction
     public Optional<FieldSchema> updateField(String schemaId, String fieldId, FieldSchema updated) {
         return root.updateField(schemaId, fieldId, updated)
                 .map(f -> refreshCache(root.get(schemaId).orElse(null)))
@@ -123,6 +121,7 @@ public class CachingSchemaStore implements SchemaStore {
     }
 
     @Override
+    @MonitoredFunction
     public boolean deleteField(String schemaId, String fieldId) {
         val status = root.deleteField(schemaId, fieldId);
         if (status) {
@@ -138,5 +137,12 @@ public class CachingSchemaStore implements SchemaStore {
             return cache.get(schema.getId());
         }
         return null;
+    }
+
+    private static Optional<FieldSchema> fieldFromSchema(String fieldId, Schema s) {
+        return s.getFields()
+                .stream()
+                .filter(fld -> fld.getId().equals(fieldId))
+                .findAny();
     }
 }

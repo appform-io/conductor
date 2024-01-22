@@ -39,7 +39,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 /**
  * Implementation for {@link Group} that stores information on a DB
@@ -101,24 +101,23 @@ public class DBGroupStore implements GroupStore {
 
     @Override
     @MonitoredFunction
-    public Optional<Group> delete(String groupId) {
-        return update(groupId, groupDetails -> groupDetails.setDeleted(true));
+    public boolean delete(String groupId) {
+        return groupDao.delete(groupId);
     }
 
     @Override
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredGroup.GROUP_TABLE_NAME))
-    public Optional<Group> update(@Throws.RuntimeParam("id") String groupId, Consumer<Group> handler) {
+    public Optional<Group> update(@Throws.RuntimeParam("id") String groupId, UnaryOperator<Group> handler) {
         boolean status = groupDao.update(groupId, groupOpt -> {
             val group = groupOpt.orElse(null);
             if (null != group) {
-                val groupDetails = toWire(group);
-                handler.accept(groupDetails);
-                group.setDescription(groupDetails.getDescription())
-                        .setType(groupDetails.getType())
-                        .setRequiredSkills(groupDetails.getRequiredSkills())
-                        .setDeleted(groupDetails.isDeleted());
+                val updated = handler.apply(toWire(group));
+                group.setDescription(updated.getDescription())
+                        .setType(updated.getType())
+                        .setRequiredSkills(updated.getRequiredSkills())
+                        .setDeleted(updated.isDeleted());
                 return group;
             }
             return null;

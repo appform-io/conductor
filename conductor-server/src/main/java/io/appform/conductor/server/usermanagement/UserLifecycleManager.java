@@ -282,9 +282,9 @@ public class UserLifecycleManager {
             final Set<String> requiredSkills) {
         return groupStore.get()
                 .update(groupId,
-                        group -> group.setDescription(description)
-                                .setType(type)
-                                .setRequiredSkills(requiredSkills));
+                        group -> group.withDescription(description)
+                                .withType(type)
+                                .withRequiredSkills(requiredSkills));
     }
 
     /**
@@ -293,9 +293,8 @@ public class UserLifecycleManager {
      * @param groupId ID for the existing group
      * @return The updated group with {@link Group#isDeleted()} set to true
      */
-    public Optional<Group> deleteGroup(String groupId) {
-        return groupStore.get() //Check tickets
-                .delete(groupId);
+    public boolean deleteGroup(String groupId) {
+        return groupStore.get().delete(groupId);
     }
 
     /**
