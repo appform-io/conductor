@@ -75,7 +75,7 @@ class CachingGroupStoreTest {
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(Group::getId))
                 .toList();
-        assertEquals(numGroups, groupCallCount.get()); //For creates
+        assertEquals(2 * numGroups, groupCallCount.get()); //For creates and refreshes
         assertEquals(groups, groups.stream()
                 .map(Group::getId)
                 .map(gId -> store.read(gId).orElse(null))

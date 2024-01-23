@@ -96,7 +96,7 @@ public class CachingGroupStore implements GroupStore {
     @MonitoredFunction
     public Optional<Group> create(String name, String description, GroupType type, Set<String> requiredSkills) {
         return root.create(name, description, type, requiredSkills)
-                .map(this::purgeDataFromCache);
+                .flatMap(this::refreshData);
     }
 
 
@@ -117,6 +117,7 @@ public class CachingGroupStore implements GroupStore {
     public boolean delete(String groupId) {
         val status = root.delete(groupId);
         if (status) {
+            log.debug("Removing data for deleted group: {}", groupId);
             groupCacheProvider.get().remove(groupId);
         }
         return status;
@@ -126,7 +127,7 @@ public class CachingGroupStore implements GroupStore {
     @MonitoredFunction
     public Optional<Group> update(String groupId, UnaryOperator<Group> handler) {
         return root.update(groupId, handler)
-                .map(this::purgeDataFromCache);
+                .flatMap(this::refreshData);
     }
 
     @Override
@@ -167,11 +168,11 @@ public class CachingGroupStore implements GroupStore {
         return root.list(); //Let this go to DB. This is not called many times
     }
 
-    private Group purgeDataFromCache(Group group) {
+    private Optional<Group> refreshData(Group group) {
         Objects.requireNonNull(group.getId());
         val cache = groupCacheProvider.get();
         log.debug("Removing data for group: {}", group.getId());
         cache.remove(group.getId()); //Let it load organically
-        return group;
+        return read(group.getId());
     }
 }

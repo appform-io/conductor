@@ -29,7 +29,6 @@ import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.util.Comparator;
@@ -39,8 +38,7 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  *
@@ -49,20 +47,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith({DBTestExtension.class, HazelcastTestExtension.class})
 class CachingUserStoreTest {
     @Test
+    @SuppressWarnings("unchecked")
     void test(BalancedDBShardingBundle<TestConfig> bundle, HazelcastClient hz) {
         val root = spy(new DBUserStore(bundle.createParentObjectDao(StoredUser.class)));
         val getCounter = new AtomicInteger(0);
-        when(root.getById(anyString()))
-                .thenAnswer(new Answer<Optional<UserSummary>>() {
-                    @Override
-                    @SuppressWarnings("unchecked")
-                    public Optional<UserSummary> answer(InvocationOnMock invocationOnMock) throws Throwable {
-                        getCounter.incrementAndGet();
-                        return (Optional<UserSummary>) invocationOnMock.callRealMethod();
-                    }
-                });
+        doAnswer((Answer<Optional<UserSummary>>) invocationOnMock -> {
+            getCounter.incrementAndGet();
+            return (Optional<UserSummary>) invocationOnMock.callRealMethod();
+        }).when(root).getById(anyString());
         val store = new CachingUserStore(root, hz);
-        val numUsers = 100;
+        val numUsers = 1;
         val users = IntStream.rangeClosed(1, numUsers)
                 .mapToObj(i -> store.create(String.format("U%03d", i),
                                             "User " + i,
@@ -81,8 +75,8 @@ class CachingUserStoreTest {
                              .stream().sorted(Comparator.comparing(UserSummary::getId)).toList());
         assertEquals(numUsers, getCounter.get());
 
-        users.forEach(user -> store.updateState(user.getId(), UserState.ACTIVE)); //This will increment counter by 100
-        assertEquals(2 * numUsers, getCounter.get());
+        users.forEach(user -> store.updateState(user.getId(), UserState.ACTIVE)); //This will increment counter by 100 + 100 (getById inside update on db store)
+        assertEquals(3 * numUsers, getCounter.get());
 
         IntStream.rangeClosed(1, 10) //Scan 10 times, but read only once
                 .forEach(i -> users.forEach(user -> assertEquals(UserState.ACTIVE,

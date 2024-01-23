@@ -83,7 +83,8 @@ public class CachingUserStore implements UserStore {
     @Override
     @MonitoredFunction
     public Optional<UserSummary> create(String userId, String name, UserType type, String email) {
-        return root.create(userId, name, type, email);
+        return root.create(userId, name, type, email)
+                .flatMap(this::refreshCache);
     }
 
     @Override
@@ -107,10 +108,13 @@ public class CachingUserStore implements UserStore {
     @Override
     @MonitoredFunction
     public Optional<UserSummary> update(String userId, UnaryOperator<UserSummary> handler) {
-        val res = root.update(userId, handler);
-        if(res.isPresent()) {
-            cacheProvider.get().remove(userId); //Remove stale data from cache
-        }
-        return res;
+        return root.update(userId, handler)
+                .flatMap(this::refreshCache);
+    }
+
+    private Optional<UserSummary> refreshCache(final UserSummary summary) {
+        log.debug("Removing data for user {}", summary.getId());
+        cacheProvider.get().remove(summary.getId());
+        return getById(summary.getId());
     }
 }

@@ -14,8 +14,7 @@
     <logger name="org.hibernate">
         <level value="ERROR" />
     </logger>
-
-    <logger name="io.appform">
+    <logger name="io.appform.conductor">
         <level value="DEBUG" />
     </logger>
     <root level="info">

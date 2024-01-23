@@ -85,7 +85,7 @@ public class CachingSchemaStore implements SchemaStore {
     @MonitoredFunction
     public Optional<Schema> create(String name, String description) {
         return root.create(name, description)
-                .flatMap(this::purgeEntryFromCache);
+                .flatMap(this::refreshCache);
     }
 
     @Override
@@ -106,14 +106,14 @@ public class CachingSchemaStore implements SchemaStore {
     @MonitoredFunction
     public Optional<Schema> updateDescription(String schemaId, String description) {
         return root.updateDescription(schemaId, description)
-                .flatMap(this::purgeEntryFromCache);
+                .flatMap(this::refreshCache);
     }
 
     @Override
     @MonitoredFunction
     public Optional<Schema> updateState(String schemaId, SchemaState state) {
         return root.updateState(schemaId, state)
-                .flatMap(this::purgeEntryFromCache);
+                .flatMap(this::refreshCache);
     }
 
     @Override
@@ -156,7 +156,7 @@ public class CachingSchemaStore implements SchemaStore {
         return Optional.empty();
     }
 
-    private Optional<Schema> purgeEntryFromCache(Schema schema) {
+    private Optional<Schema> refreshCache(Schema schema) {
         if (null != schema) {
             val cache = this.cacheProvider.get();
             log.debug("Removing data for schema {}", schema.getId());

@@ -85,7 +85,7 @@ public class CachingRoleStore implements RoleStore {
             String description,
             Set<Permission> permissions) {
         return root.create(roleId, name, description, permissions)
-                .map(this::refreshCache);
+                .flatMap(this::refreshCache);
     }
 
     @Override
@@ -104,7 +104,7 @@ public class CachingRoleStore implements RoleStore {
     @MonitoredFunction
     public Optional<Role> update(String roleId, UnaryOperator<Role> handler) {
         return root.update(roleId, handler)
-                .map(this::refreshCache);
+                .flatMap(this::refreshCache);
     }
 
     @Override
@@ -112,15 +112,16 @@ public class CachingRoleStore implements RoleStore {
     public boolean delete(String roleId) {
         val status = root.delete(roleId);
         if(status) {
+            log.debug("Removing data for deleted role: {}", roleId);
             rolesCacheProvider.get().remove(roleId);
         }
         return status;
     }
 
-    private Role refreshCache(final Role role) {
+    private Optional<Role> refreshCache(final Role role) {
         val cache = rolesCacheProvider.get();
         log.debug("Removing role {} from cache", role.getId());
         cache.remove(role.getId()); //Delete from cache ... let it load organically when read
-        return role;
+        return read(role.getId());
     }
 }
