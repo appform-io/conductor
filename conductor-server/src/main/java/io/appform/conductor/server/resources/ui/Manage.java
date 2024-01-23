@@ -116,7 +116,7 @@ public class Manage {
     public Response renderSchemaDetails(
             @Auth ConductorUser user,
             @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId) {
-        return schemaStore.get(schemaId)
+        return schemaStore.read(schemaId)
                 .map(schema -> render(new SchemaView(user.getUserSession().getUser(), schema, null)))
                 .orElseThrow(() -> fail("Failed to find schema " + schemaId, "/manage/schema"));
     }
@@ -128,7 +128,7 @@ public class Manage {
             @Auth ConductorUser user,
             @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId,
             @PathParam("fieldId") @NotEmpty @Length(max = 91) final String fieldId) {
-        return schemaStore.get(schemaId)
+        return schemaStore.read(schemaId)
                 .map(schema -> render(new SchemaView(user.getUserSession().getUser(),
                                                      schema,
                                                      schema.getFields()
@@ -329,7 +329,7 @@ public class Manage {
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
         return workflowStore.read(workflowId)
-                .flatMap(workflow -> schemaStore.get(workflow.getSchemaId())
+                .flatMap(workflow -> schemaStore.read(workflow.getSchemaId())
                         .map(schema -> new WorkflowDetailsView(
                                 user.getUserSession().getUser(),
                                 workflow,
@@ -417,7 +417,7 @@ public class Manage {
         val workflow = workflowManager.read(workflowId);
         return workflow
                 .map(Workflow::getSchemaId)
-                .flatMap(schemaStore::get)
+                .flatMap(schemaStore::read)
                 .map(Schema::getFields)
                 .map(fields -> render(new WorkflowStateView(
                         user.getUserSession().getUser(),
@@ -446,7 +446,7 @@ public class Manage {
         }
         val fields = workflow
                 .map(Workflow::getSchemaId)
-                .flatMap(schemaStore::get)
+                .flatMap(schemaStore::read)
                 .map(Schema::getFields)
                 .orElse(List.of());
         return render(new WorkflowStateView(user.getUserSession().getUser(),
@@ -586,7 +586,7 @@ public class Manage {
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @PathParam("stateTransitionId") @NotEmpty @Length(max = 255) final String stateTransitionId) {
         return workflowStore.read(workflowId)
-                .flatMap(workflow -> schemaStore.get(workflow.getSchemaId())
+                .flatMap(workflow -> schemaStore.read(workflow.getSchemaId())
                         .map(schema -> new WorkflowDetailsView(
                                 user.getUserSession().getUser(),
                                 workflow,

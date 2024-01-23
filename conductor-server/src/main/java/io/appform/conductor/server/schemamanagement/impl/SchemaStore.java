@@ -29,7 +29,7 @@ import java.util.Optional;
 public interface SchemaStore {
     Optional<Schema> create(final String name, final String description);
 
-    Optional<Schema> get(final String schemaId);
+    Optional<Schema> read(final String schemaId);
 
     List<Schema> list();
 

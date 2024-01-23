@@ -27,14 +27,13 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import javax.cache.Cache;
+import javax.cache.integration.CacheLoader;
+import javax.cache.integration.CacheLoaderException;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -54,9 +53,28 @@ public class CachingRoleStore implements RoleStore {
             @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) final RoleStore root,
             HazelcastClient hazelcastClient) {
         this.root = root;
-        this.rolesCacheProvider = hazelcastClient.consistentCache(
+        this.rolesCacheProvider = hazelcastClient.loadingCache(
                 getClass().getSimpleName(),
-                cache -> cache.putAll(root.list().stream().collect(Collectors.toMap(Role::getId, Function.identity()))));
+                new CacheLoader<String, Role>() {
+                    @Override
+                    public Role load(String key) throws CacheLoaderException {
+                        log.debug("Loading role: {}", key);
+                        return root.read(key).orElse(null);
+                    }
+
+                    @Override
+                    public Map<String, Role> loadAll(Iterable<? extends String> keys) throws CacheLoaderException {
+
+                        val ids = StreamSupport.stream(keys.spliterator(), false)
+                                .map(String.class::cast)
+                                .collect(Collectors.toUnmodifiableSet());
+                        log.debug("Loading roles for {}", ids);
+                        return root.list()
+                                .stream()
+                                .filter(role -> ids.contains(role.getId()))
+                                .collect(Collectors.toUnmodifiableMap(Role::getId, Function.identity()));
+                    }
+                });
     }
 
     @Override
@@ -79,10 +97,7 @@ public class CachingRoleStore implements RoleStore {
     @Override
     @MonitoredFunction
     public List<Role> list() {
-        return StreamSupport.stream(rolesCacheProvider.get().spliterator(), false)
-                .map(Cache.Entry::getValue)
-                .sorted(Comparator.comparing(Role::getId))
-                .toList();
+        return root.list(); //Offload to db, this is not a general use-case
     }
 
     @Override
@@ -104,7 +119,8 @@ public class CachingRoleStore implements RoleStore {
 
     private Role refreshCache(final Role role) {
         val cache = rolesCacheProvider.get();
-        cache.put(role.getId(), role);
+        log.debug("Removing role {} from cache", role.getId());
+        cache.remove(role.getId()); //Delete from cache ... let it load organically when read
         return role;
     }
 }

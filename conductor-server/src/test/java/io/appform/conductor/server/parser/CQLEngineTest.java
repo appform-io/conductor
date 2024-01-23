@@ -85,7 +85,7 @@ class CQLEngineTest {
         val workflow = createWorkflow(schema);
         val workflowStore = mock(WorkflowStore.class);
         val schemaStore = mock(SchemaStore.class);
-        when(schemaStore.get(anyString())).thenReturn(Optional.of(schema));
+        when(schemaStore.read(anyString())).thenReturn(Optional.of(schema));
         when(workflowStore.read(anyString())).thenReturn(Optional.of(workflow));
         val parser = new CQLEngine(workflowStore, schemaStore, new CQLFilterFunctionRegistry());
         val output = parser.parse("select * from tickets.TWF" +

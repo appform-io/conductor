@@ -29,12 +29,17 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import javax.cache.Cache;
+import javax.cache.integration.CacheLoader;
+import javax.cache.integration.CacheLoaderException;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
@@ -52,63 +57,75 @@ public class CachingSchemaStore implements SchemaStore {
             HazelcastClient hazelcastClient) {
         this.root = root;
         val cacheName = getClass().getSimpleName();
-        this.cacheProvider = hazelcastClient.consistentCache(
+        this.cacheProvider = hazelcastClient.loadingCache(
                 cacheName,
-                cache -> root.list()
-                        .forEach(wf -> cache.put(wf.getId(), wf)));
+                new CacheLoader<>() {
+                    @Override
+                    public Schema load(String key) throws CacheLoaderException {
+                        log.debug("Reading schema for {}", key);
+                        return root.read(key).orElse(null);
+                    }
+
+                    @Override
+                    public Map<String, Schema> loadAll(Iterable<? extends String> keys) throws CacheLoaderException {
+                        val ids = StreamSupport.stream(keys.spliterator(), false)
+                                .map(String.class::cast)
+                                .collect(Collectors.toUnmodifiableSet());
+                        log.debug("Loading schema for {}", ids);
+                        return root.list()
+                                .stream()
+                                .filter(schema -> ids.contains(schema.getId()))
+                                .collect(Collectors.toUnmodifiableMap(Schema::getId, Function.identity()));
+                    }
+                });
 
     }
 
     @Override
     @MonitoredFunction
     public Optional<Schema> create(String name, String description) {
-        return root.create(name, description).map(this::refreshCache);
+        return root.create(name, description).map(this::purgeEntryFromCache);
     }
 
     @Override
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredSchemaSummary.SCHEMA_TABLE_NAME))
-    public Optional<Schema> get(@Throws.RuntimeParam("id") String schemaId) {
+    public Optional<Schema> read(@Throws.RuntimeParam("id") String schemaId) {
         return Optional.ofNullable(cacheProvider.get().get(schemaId));
     }
 
     @Override
     @MonitoredFunction
-    @Throws(value = ConductorErrorCode.STORE_LIST_ERROR,
-            fixedParams = @Throws.Param(name = "type", value = "cached-" + StoredSchemaSummary.SCHEMA_TABLE_NAME))
     public List<Schema> list() {
-        return StreamSupport.stream(cacheProvider.get().spliterator(), false)
-                .map(Cache.Entry::getValue)
-                .toList();
+        return root.list(); //Offload to DB
     }
 
     @Override
     @MonitoredFunction
     public Optional<Schema> updateDescription(String schemaId, String description) {
         return root.updateDescription(schemaId, description)
-                .map(this::refreshCache);
+                .map(this::purgeEntryFromCache);
     }
 
     @Override
     @MonitoredFunction
     public Optional<Schema> updateState(String schemaId, SchemaState state) {
         return root.updateState(schemaId, state)
-                .map(this::refreshCache);
+                .map(this::purgeEntryFromCache);
     }
 
     @Override
     @MonitoredFunction
     public Optional<FieldSchema> addField(String schemaId, String fieldId, FieldSchema schema) {
         return root.addField(schemaId, fieldId, schema)
-                .map(f -> refreshCache(root.get(schemaId).orElse(null)))
-                .flatMap(s -> fieldFromSchema(fieldId, s));
+                .map(fieldSchema -> updatedFieldSchema(schemaId, fieldId, fieldSchema));
     }
 
     @Override
     @MonitoredFunction
     public Optional<FieldSchema> getField(String schemaId, String fieldId) {
-        return get(schemaId)
+        return read(schemaId)
                 .flatMap(s -> fieldFromSchema(fieldId, s));
     }
 
@@ -116,8 +133,7 @@ public class CachingSchemaStore implements SchemaStore {
     @MonitoredFunction
     public Optional<FieldSchema> updateField(String schemaId, String fieldId, FieldSchema updated) {
         return root.updateField(schemaId, fieldId, updated)
-                .map(f -> refreshCache(root.get(schemaId).orElse(null)))
-                .flatMap(s -> fieldFromSchema(fieldId, s));
+                .map(fieldSchema -> updatedFieldSchema(schemaId, fieldId, fieldSchema));
     }
 
     @Override
@@ -125,18 +141,26 @@ public class CachingSchemaStore implements SchemaStore {
     public boolean deleteField(String schemaId, String fieldId) {
         val status = root.deleteField(schemaId, fieldId);
         if (status) {
-            refreshCache(root.get(schemaId).orElse(null));
+            cacheProvider.get().remove(schemaId);
         }
         return status;
     }
 
-    private Schema refreshCache(Schema schema) {
-        if (null != schema) {
-            val cache = this.cacheProvider.get();
-            cache.put(schema.getId(), schema);
-            return cache.get(schema.getId());
+    private FieldSchema updatedFieldSchema(String schemaId, String fieldId, FieldSchema fieldSchema) {
+        if (fieldSchema != null) {
+            cacheProvider.get().remove(schemaId);
+            return getField(schemaId, fieldId).orElse(null);
         }
         return null;
+    }
+
+    private Schema purgeEntryFromCache(Schema schema) {
+        if (null != schema) {
+            val cache = this.cacheProvider.get();
+            log.debug("Removing data for schema {}", schema.getId());
+            cache.remove(schema.getId()); //Let it load organically
+        }
+        return schema;
     }
 
     private static Optional<FieldSchema> fieldFromSchema(String fieldId, Schema s) {

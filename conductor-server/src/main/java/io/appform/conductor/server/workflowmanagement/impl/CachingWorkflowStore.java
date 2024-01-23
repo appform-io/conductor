@@ -25,15 +25,16 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import javax.cache.Cache;
+import javax.cache.integration.CacheLoader;
+import javax.cache.integration.CacheLoaderException;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
@@ -53,10 +54,26 @@ public class CachingWorkflowStore implements WorkflowStore {
             final HazelcastClient hazelcastClient) {
         this.root = root;
         val cacheName = getClass().getSimpleName();
-        this.cacheProvider = hazelcastClient.consistentCache(
+        this.cacheProvider = hazelcastClient.loadingCache(
                 cacheName,
-                cache -> root.list(EnumSet.allOf(WorkflowState.class))
-                        .forEach(wf -> cache.put(wf.getId(), wf)));
+                new CacheLoader<>() {
+                    @Override
+                    public Workflow load(String key) throws CacheLoaderException {
+                        log.debug("Loading data for workflow {}", key);
+                        return root.read(key).orElse(null);
+                    }
+
+                    @Override
+                    public Map<String, Workflow> loadAll(Iterable<? extends String> keys) throws CacheLoaderException {
+                        val ids = StreamSupport.stream(keys.spliterator(), false)
+                                .map(String.class::cast)
+                                .collect(Collectors.toUnmodifiableSet());
+                        log.debug("Loading schema for {}", ids);
+                        return root.list(EnumSet.allOf(WorkflowState.class))
+                                .stream()
+                                .filter(schema -> ids.contains(schema.getId()))
+                                .collect(Collectors.toUnmodifiableMap(Workflow::getId, Function.identity()));                    }
+                });
     }
 
     @Override
@@ -75,7 +92,7 @@ public class CachingWorkflowStore implements WorkflowStore {
                            titleTemplate,
                            descriptionTemplate,
                            subjectIdTemplate)
-                .map(wf -> refreshworkflow(wf.getId(), wf));
+                .flatMap(this::refreshWorkflow);
     }
 
     @Override
@@ -88,16 +105,13 @@ public class CachingWorkflowStore implements WorkflowStore {
     @MonitoredFunction
     public Optional<Workflow> update(String id, UnaryOperator<Workflow> updater) {
         return root.update(id, updater)
-                .map(wf -> refreshworkflow(wf.getId(), wf));
+                .flatMap(this::refreshWorkflow);
     }
 
     @Override
     @MonitoredFunction
     public List<Workflow> list(Set<WorkflowState> desiredState) {
-        return StreamSupport.stream(cacheProvider.get().spliterator(), false)
-                .map(Cache.Entry::getValue)
-                .filter(wf -> desiredState.contains(wf.getState()))
-                .toList();
+        return root.list(desiredState); //Offload to db
     }
 
     @Override
@@ -132,14 +146,14 @@ public class CachingWorkflowStore implements WorkflowStore {
                                         visibleFields,
                                         requiredFields,
                                         visibleActions)
-                .map(wf -> refreshworkflow(wf.getId(), wf));
+                .flatMap(this::refreshWorkflow);
     }
 
     @Override
     @MonitoredFunction
     public Optional<Workflow> deleteState(String workflowId, String stateId) {
         return root.deleteState(workflowId, stateId)
-                .map(wf -> refreshworkflow(wf.getId(), wf));
+                .flatMap(this::refreshWorkflow);
     }
 
     @Override
@@ -160,7 +174,7 @@ public class CachingWorkflowStore implements WorkflowStore {
                         type,
                         rule,
                         actionIds)
-                .map(wf -> refreshworkflow(wf.getId(), wf));
+                .flatMap(this::refreshWorkflow);
     }
 
     @Override
@@ -172,14 +186,14 @@ public class CachingWorkflowStore implements WorkflowStore {
             Rule rule,
             List<String> actionIds) {
         return root.updateTransition(workflowId, transitionId, type, rule, actionIds)
-                .map(wf -> refreshworkflow(wf.getId(), wf));
+                .flatMap(this::refreshWorkflow);
     }
 
     @Override
     @MonitoredFunction
     public Optional<Workflow> deleteTransition(String workflowId, String transitionId) {
         return root.deleteTransition(workflowId, transitionId)
-                .map(wf -> refreshworkflow(wf.getId(), wf));
+                .flatMap(this::refreshWorkflow);
     }
 
     @Override
@@ -189,19 +203,20 @@ public class CachingWorkflowStore implements WorkflowStore {
             String ruleId,
             Rule rule) {
         return root.createOrUpdateSelectionRule(workFlowId, ruleId, rule)
-                .map(wf -> refreshworkflow(wf.getId(), wf));
+                .flatMap(this::refreshWorkflow);
     }
 
     @Override
     @MonitoredFunction
     public Optional<Workflow> deleteSelectionRule(String workflowId, String ruleId) {
         return root.deleteSelectionRule(workflowId, ruleId)
-                .map(wf -> refreshworkflow(wf.getId(), wf));
+                .flatMap(this::refreshWorkflow);
     }
 
-    private Workflow refreshworkflow(String id, Workflow wf) {
+    private Optional<Workflow> refreshWorkflow(Workflow workflow) {
         val cache = this.cacheProvider.get();
-        cache.put(id, wf); //Remove old value
-        return cache.get(id);
+        log.debug("Removing data for {}", workflow.getId());
+        cache.remove(workflow.getId()); //Remove old value
+        return read(workflow.getId());
     }
 }

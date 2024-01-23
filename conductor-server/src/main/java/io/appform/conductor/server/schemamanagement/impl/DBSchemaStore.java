@@ -73,7 +73,7 @@ public class DBSchemaStore implements SchemaStore {
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_READ_ERROR,
             fixedParams = @Throws.Param(name = "type", value = "cached-" + StoredSchemaSummary.SCHEMA_TABLE_NAME))
-    public Optional<Schema> get(@Throws.RuntimeParam("id") String schemaId) {
+    public Optional<Schema> read(@Throws.RuntimeParam("id") String schemaId) {
         return schemaDao.readOnlyExecutor(schemaId)
                 .readAugmentParent(fieldDao,
                                    DetachedCriteria.forClass(StoredFieldSchema.class)

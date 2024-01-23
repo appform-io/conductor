@@ -51,6 +51,7 @@ import static org.mockito.Mockito.spy;
 class CachingGroupStoreTest {
 
     @Test
+    @SuppressWarnings("unchecked")
     void testFunctionality(BalancedDBShardingBundle<TestConfig> bundle, HazelcastClient hazelcastClient) {
         val groupCallCount = new AtomicInteger(0);
         val userGroupsCallCount = new AtomicInteger(0);
@@ -62,38 +63,34 @@ class CachingGroupStoreTest {
         doAnswer(doDBForwarding(groupCallCount)).when(dbDao).update(anyString(), any());
         doAnswer(callGrpAssocMethods(userGroupsCallCount)).when(dbDao).addUserToGroup(anyString(), anyString());
         doAnswer(callGrpAssocMethods(userGroupsCallCount)).when(dbDao).removeUserFromGroup(anyString(), anyString());
-        doAnswer(new Answer<List<Group>>() {
-            @Override
-            @SuppressWarnings("unchecked")
-            public List<Group> answer(InvocationOnMock invocationOnMock) throws Throwable {
-                groupCallCount.incrementAndGet();
-                return (List<Group>) invocationOnMock.callRealMethod();
-            }
+        doAnswer((Answer<List<Group>>) invocationOnMock -> {
+            groupCallCount.incrementAndGet();
+            return (List<Group>) invocationOnMock.callRealMethod();
         }).when(dbDao).findGroupsForUser(anyString());
 
         val numGroups = 100;
         val groups = IntStream.rangeClosed(1, numGroups)
-                .mapToObj(i ->
-                                  store.create("Test-" + i, "Test group " + i, GroupType.MANUALLY_ASSIGNED, Set.of())
-                                          .orElse(null))
+                .mapToObj(i -> store.create("Test-" + i, "Test group " + i, GroupType.MANUALLY_ASSIGNED, Set.of())
+                        .orElse(null))
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(Group::getId))
                 .toList();
-        assertEquals(numGroups, groupCallCount.get());
+        assertEquals(numGroups, groupCallCount.get()); //For creates
         assertEquals(groups, groups.stream()
                 .map(Group::getId)
                 .map(gId -> store.read(gId).orElse(null))
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(Group::getId))
-                .toList());
+                .toList()); //This will cause the first load
+        assertEquals(2 * numGroups, groupCallCount.get()); //create + read
         assertEquals(groups, store.read(groups.stream()
                                                 .map(Group::getId)
                                                 .toList())
                 .stream()
                 .sorted(Comparator.comparing(Group::getId))
                 .toList());
-        assertEquals(groups, store.list());
-        assertEquals(numGroups, groupCallCount.get()); //No extra reads are being done
+        assertEquals(2 * numGroups, groupCallCount.get()); //No extra reads are being done
+        assertEquals(groups, store.list().stream().sorted(Comparator.comparing(Group::getId)).toList());
         assertEquals(numGroups, groups.stream()
                 .map(grp -> store.update(grp.getId(), g -> g.withDescription("Updated")).orElse(null))
                 .filter(Objects::nonNull)
@@ -131,14 +128,11 @@ class CachingGroupStoreTest {
         };
     }
 
+    @SuppressWarnings("unchecked")
     private static Answer<Optional<Group>> doDBForwarding(AtomicInteger groupCallCount) {
-        return new Answer<Optional<Group>>() {
-            @Override
-            @SuppressWarnings("unchecked")
-            public Optional<Group> answer(InvocationOnMock invocationOnMock) throws Throwable {
-                groupCallCount.incrementAndGet();
-                return (Optional<Group>) invocationOnMock.callRealMethod();
-            }
+        return invocationOnMock -> {
+            groupCallCount.incrementAndGet();
+            return (Optional<Group>) invocationOnMock.callRealMethod();
         };
     }
 }

@@ -37,7 +37,6 @@ import javax.cache.configuration.Configuration;
 import javax.cache.configuration.Factory;
 import javax.cache.configuration.MutableConfiguration;
 import javax.cache.expiry.Duration;
-import javax.cache.expiry.EternalExpiryPolicy;
 import javax.cache.expiry.ExpiryPolicy;
 import javax.cache.expiry.TouchedExpiryPolicy;
 import javax.cache.integration.CacheLoader;
@@ -222,18 +221,6 @@ public class HazelcastClient implements Managed, ServerLifecycleListener {
             log.info("Skipped starting HZ as this was already started");
         }
         log.info("Started Hazelcast Instance");
-    }
-
-
-    public <K, V> Provider<Cache<K, V>> consistentCache(
-            String name, Consumer<Cache<K, V>> initializer) {
-        return configuredCache(name,
-                               new MutableConfiguration<K, V>()
-                                       .setExpiryPolicyFactory(EternalExpiryPolicy::new)
-                                       .setReadThrough(false)
-                                       .setWriteThrough(false)
-                                       .setStatisticsEnabled(true),
-                               initializer);
     }
 
     public <K, V> Provider<Cache<K, V>> loadingCache(

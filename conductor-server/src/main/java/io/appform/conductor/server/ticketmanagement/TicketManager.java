@@ -452,7 +452,7 @@ public class TicketManager {
                         .build());
 
         val schemaId = workflow.getSchemaId();
-        val schema = schemaStore.get(schemaId)
+        val schema = schemaStore.read(schemaId)
                 .orElseThrow(() -> ConductorException.builder()
                         .errorCode(ConductorErrorCode.TICKET_MGMT_NO_SCHEMA)
                         .context(Map.of(WORKFLOW_ID, workflowId,
@@ -934,7 +934,7 @@ public class TicketManager {
     private Schema schemaFromWorkflow(Workflow workflow) {
         val workflowId = workflow.getId();
         val schemaId = workflow.getSchemaId();
-        val schema = schemaStore.get(schemaId).orElse(null);
+        val schema = schemaStore.read(schemaId).orElse(null);
         ConductorServerUtils.ensureNonNull(schema, ConductorErrorCode.TICKET_MGMT_NO_SCHEMA,
                                            Map.of(WORKFLOW_ID, workflowId,
                                                   SCHEMA_ID, schemaId));
@@ -986,7 +986,7 @@ public class TicketManager {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(Workflow::getSchemaId)
-                .map(schemaStore::get)
+                .map(schemaStore::read)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(Schema::getFields)

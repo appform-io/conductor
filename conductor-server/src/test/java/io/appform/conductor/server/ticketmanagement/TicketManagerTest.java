@@ -130,7 +130,7 @@ class TicketManagerTest {
                                    bundle.createRelatedObjectDao(StoredRelatedTicket.class),
                                    mapper);
         val sStore = mock(SchemaStore.class);
-        when(sStore.get(anyString())).thenReturn(Optional.of(schema));
+        when(sStore.read(anyString())).thenReturn(Optional.of(schema));
         val uStore = mock(UserStore.class);
         when(uStore.getById(anyString())).thenReturn(Optional.of(creator));
         val gStore = mock(GroupStore.class);

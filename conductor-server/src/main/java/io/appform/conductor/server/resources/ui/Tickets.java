@@ -150,7 +150,7 @@ public class Tickets {
         if (null == wf) {
             throw fail("No workflow found for ticket id: " + ticketId + " and workflowID: " + wf, "/");
         }
-        val schema = schemaStore.get(wf.getSchemaId());
+        val schema = schemaStore.read(wf.getSchemaId());
         val fieldSchemas = schema
                 .map(Schema::getFields)
                 .orElse(List.of());

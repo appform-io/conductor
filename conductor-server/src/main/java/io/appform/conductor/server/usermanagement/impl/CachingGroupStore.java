@@ -54,12 +54,27 @@ public class CachingGroupStore implements GroupStore {
             @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) final GroupStore root,
             final HazelcastClient hazelcastClient) {
         this.root = root;
-        this.groupCacheProvider = hazelcastClient.consistentCache(
+        this.groupCacheProvider = hazelcastClient.loadingCache(
                 getClass().getSimpleName() + "-groups",
-                cache -> cache.putAll(root.list()
-                                              .stream()
-                                              .collect(Collectors.toUnmodifiableMap(Group::getId,
-                                                                                    Function.identity()))));
+                new CacheLoader<>() {
+                    @Override
+                    public Group load(String key) throws CacheLoaderException {
+                        log.debug("Loading data for group {}", key);
+                        return root.read(key).orElse(null);
+                    }
+
+                    @Override
+                    public Map<String, Group> loadAll(Iterable<? extends String> keys) throws CacheLoaderException {
+                        val gIds = StreamSupport.stream(keys.spliterator(), false)
+                                .map(String.class::cast)
+                                .toList();
+                        log.debug("Loading data for groups: {}", gIds);
+                        return root.read(gIds)
+                                .stream()
+                                .collect(Collectors.toUnmodifiableMap(Group::getId, Function.identity()));
+                    }
+                });
+
         userGroupsCacheProvider = hazelcastClient.loadingCache(
                 getClass().getSimpleName() + "-user-groups",
                 new CacheLoader<>() {
@@ -73,7 +88,7 @@ public class CachingGroupStore implements GroupStore {
                     public Map<String, List<Group>> loadAll(Iterable<? extends String> keys) throws CacheLoaderException {
                         throw new UnsupportedOperationException("Can't send load multiple data"); //TODO
                     }
-                }); //Can't pre-load all users
+                });
 
     }
 
@@ -81,7 +96,7 @@ public class CachingGroupStore implements GroupStore {
     @MonitoredFunction
     public Optional<Group> create(String name, String description, GroupType type, Set<String> requiredSkills) {
         return root.create(name, description, type, requiredSkills)
-                .map(this::replaceGroupInCache);
+                .map(this::purgeDataFromCache);
     }
 
 
@@ -111,7 +126,7 @@ public class CachingGroupStore implements GroupStore {
     @MonitoredFunction
     public Optional<Group> update(String groupId, UnaryOperator<Group> handler) {
         return root.update(groupId, handler)
-                .map(this::replaceGroupInCache);
+                .map(this::purgeDataFromCache);
     }
 
     @Override
@@ -149,16 +164,14 @@ public class CachingGroupStore implements GroupStore {
     @Override
     @MonitoredFunction
     public List<Group> list() {
-        return StreamSupport.stream(groupCacheProvider.get().spliterator(), false)
-                .map(Cache.Entry::getValue)
-                .sorted(Comparator.comparing(Group::getId))
-                .toList();
+        return root.list(); //Let this go to DB. This is not called many times
     }
 
-    private Group replaceGroupInCache(Group group) {
+    private Group purgeDataFromCache(Group group) {
         Objects.requireNonNull(group.getId());
         val cache = groupCacheProvider.get();
-        cache.put(group.getId(), group);
+        log.debug("Removing data for group: {}", group.getId());
+        cache.remove(group.getId()); //Let it load organically
         return group;
     }
 }

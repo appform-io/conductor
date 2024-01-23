@@ -11,6 +11,10 @@
     <logger name="org.eclipse.jetty">
         <level value="ERROR" />
     </logger>
+    <logger name="org.hibernate">
+        <level value="ERROR" />
+    </logger>
+
     <logger name="io.appform">
         <level value="DEBUG" />
     </logger>

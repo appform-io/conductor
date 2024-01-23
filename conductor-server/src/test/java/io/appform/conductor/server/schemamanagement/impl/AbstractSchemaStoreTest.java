@@ -53,7 +53,7 @@ abstract class AbstractSchemaStoreTest {
         val schemaSummary = store.create("Test", "Test Schema").orElse(null);
         assertNotNull(schemaSummary);
         val sId = schemaSummary.getId();
-        assertEquals(schemaSummary, store.get(sId).orElse(null));
+        assertEquals(schemaSummary, store.read(sId).orElse(null));
         assertNotNull(store.addField(sId, ConductorServerUtils.readableId(sId, "f1"), new StringFieldSchema("f1",
                                                                                                             "f1",
                                                                                                             "F1",
@@ -138,7 +138,7 @@ abstract class AbstractSchemaStoreTest {
                                                                                                             "cat"))
                               .orElse(null));
 
-        val schema = store.get(sId).orElse(null);
+        val schema = store.read(sId).orElse(null);
         assertNotNull(schema);
         assertEquals(6, schema.getFields().size());
         System.out.println(MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(schema));
@@ -380,7 +380,7 @@ abstract class AbstractSchemaStoreTest {
         assertEquals(SchemaState.ACTIVE,
                      store.updateState(sId, SchemaState.ACTIVE).map(Schema::getState).orElse(null));
         assertTrue(store.deleteField(sId, schema.getFields().get(0).getId()));
-        assertEquals(5, store.get(sId).map(r -> r.getFields().size()).orElse(-1));
+        assertEquals(5, store.read(sId).map(r -> r.getFields().size()).orElse(-1));
         assertEquals("Changed", store.updateField(sId,
                                                   ConductorServerUtils.readableId(sId, "f2"),
                                                   schema.getFields().get(1).setDescription("Changed"))
@@ -407,7 +407,6 @@ abstract class AbstractSchemaStoreTest {
                 .map(FieldSchema::getDescription)
                 .orElse(null));
         assertNotNull(store.getField(sId, schema.getFields().get(2).getId()).orElse(null));
-
         /* **** Check and confirm Scheme working ***** */
 
     }
@@ -417,7 +416,7 @@ abstract class AbstractSchemaStoreTest {
         val schemaSummary = store.create("Test", "Test Schema").orElse(null);
         assertNotNull(schemaSummary);
         val sId = schemaSummary.getId();
-        assertEquals(schemaSummary, store.get(sId).orElse(null));
+        assertEquals(schemaSummary, store.read(sId).orElse(null));
         assertNotNull(store.addField(sId, sId + "-f1", new StringFieldSchema("f1",
                                                                              "f1",
                                                                              "F1",
@@ -432,10 +431,10 @@ abstract class AbstractSchemaStoreTest {
                                                                              null,
                                                                              "Default FieldValue")).orElse(null));
         {
-            val fields = store.get(sId).map(Schema::getFields).orElse(List.of());
+            val fields = store.read(sId).map(Schema::getFields).orElse(List.of());
             assertEquals(1, fields.size());
             assertTrue(store.deleteField(sId, fields.get(0).getId()));
-            assertTrue(store.get(sId).map(Schema::getFields).orElse(List.of()).isEmpty());
+            assertTrue(store.read(sId).map(Schema::getFields).orElse(List.of()).isEmpty());
         }
         try {
             store.addField(sId, sId + "-f1", new BooleanFieldSchema("f1",
@@ -468,7 +467,7 @@ abstract class AbstractSchemaStoreTest {
                                                                              null,
                                                                              "Default FieldValue")).orElse(null));
         {
-            val fields = store.get(sId).map(Schema::getFields).orElse(List.of());
+            val fields = store.read(sId).map(Schema::getFields).orElse(List.of());
             assertEquals(1, fields.size());
         }
     }
@@ -492,8 +491,8 @@ abstract class AbstractSchemaStoreTest {
             val schemaSummary = store.create("Test", "Test Schema").orElse(null);
             assertNotNull(schemaSummary);
             val sId = schemaSummary.getId();
-            assertEquals(schemaSummary, store.get(sId).orElse(null));
-            val schema = store.get(sId).orElse(null);
+            assertEquals(schemaSummary, store.read(sId).orElse(null));
+            val schema = store.read(sId).orElse(null);
             assertNotNull(schema);
             assertEquals(0, schema.getFields().size());
             assertEquals(FieldType.STRING, schema.getFields().get(0).getType());
@@ -508,7 +507,7 @@ abstract class AbstractSchemaStoreTest {
     void testExceptionsGetSummarySchemaNullParams(SchemaStore store) {
 
         try {
-            store.get(null);
+            store.read(null);
             fail("Exception didn't occur - test failed");
         }
         catch (Exception e) {
@@ -520,7 +519,7 @@ abstract class AbstractSchemaStoreTest {
     void testExceptionsGetSchemaNullParams(SchemaStore store) {
 
         try {
-            store.get(null);
+            store.read(null);
             fail("Exception didn't occur - test failed");
         }
         catch (Exception e) {

@@ -83,7 +83,7 @@ class WorkflowManagerTest {
                                 null,
                                 null,
                                 null);
-        when(schemaStore.get(anyString())).thenReturn(Optional.of(schema));
+        when(schemaStore.read(anyString())).thenReturn(Optional.of(schema));
         val workflowStore = new DBWorkflowStore(bundle.createParentObjectDao(StoredWorkflow.class),
                                                 bundle.createRelatedObjectDao(StoredTicketState.class),
                                                 bundle.createRelatedObjectDao(StoredTicketStateTransition.class),

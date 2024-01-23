@@ -33,8 +33,8 @@ public class EventGeneratingSchemaStore implements SchemaStore {
     }
 
     @Override
-    public Optional<Schema> get(String schemaId) {
-        return schemaStore.get(schemaId);
+    public Optional<Schema> read(String schemaId) {
+        return schemaStore.read(schemaId);
     }
 
     @Override
