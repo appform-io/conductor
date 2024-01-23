@@ -84,7 +84,8 @@ public class CachingSchemaStore implements SchemaStore {
     @Override
     @MonitoredFunction
     public Optional<Schema> create(String name, String description) {
-        return root.create(name, description).map(this::purgeEntryFromCache);
+        return root.create(name, description)
+                .flatMap(this::purgeEntryFromCache);
     }
 
     @Override
@@ -105,21 +106,21 @@ public class CachingSchemaStore implements SchemaStore {
     @MonitoredFunction
     public Optional<Schema> updateDescription(String schemaId, String description) {
         return root.updateDescription(schemaId, description)
-                .map(this::purgeEntryFromCache);
+                .flatMap(this::purgeEntryFromCache);
     }
 
     @Override
     @MonitoredFunction
     public Optional<Schema> updateState(String schemaId, SchemaState state) {
         return root.updateState(schemaId, state)
-                .map(this::purgeEntryFromCache);
+                .flatMap(this::purgeEntryFromCache);
     }
 
     @Override
     @MonitoredFunction
     public Optional<FieldSchema> addField(String schemaId, String fieldId, FieldSchema schema) {
         return root.addField(schemaId, fieldId, schema)
-                .map(fieldSchema -> updatedFieldSchema(schemaId, fieldId, fieldSchema));
+                .flatMap(fieldSchema -> updatedFieldSchema(schemaId, fieldId, fieldSchema));
     }
 
     @Override
@@ -133,7 +134,7 @@ public class CachingSchemaStore implements SchemaStore {
     @MonitoredFunction
     public Optional<FieldSchema> updateField(String schemaId, String fieldId, FieldSchema updated) {
         return root.updateField(schemaId, fieldId, updated)
-                .map(fieldSchema -> updatedFieldSchema(schemaId, fieldId, fieldSchema));
+                .flatMap(fieldSchema -> updatedFieldSchema(schemaId, fieldId, fieldSchema));
     }
 
     @Override
@@ -146,21 +147,23 @@ public class CachingSchemaStore implements SchemaStore {
         return status;
     }
 
-    private FieldSchema updatedFieldSchema(String schemaId, String fieldId, FieldSchema fieldSchema) {
+    private Optional<FieldSchema> updatedFieldSchema(String schemaId, String fieldId, FieldSchema fieldSchema) {
         if (fieldSchema != null) {
+            log.debug("Removing data for schema due to field update {}", schemaId);
             cacheProvider.get().remove(schemaId);
-            return getField(schemaId, fieldId).orElse(null);
+            return getField(schemaId, fieldId);
         }
-        return null;
+        return Optional.empty();
     }
 
-    private Schema purgeEntryFromCache(Schema schema) {
+    private Optional<Schema> purgeEntryFromCache(Schema schema) {
         if (null != schema) {
             val cache = this.cacheProvider.get();
             log.debug("Removing data for schema {}", schema.getId());
             cache.remove(schema.getId()); //Let it load organically
+            return read(schema.getId());
         }
-        return schema;
+        return Optional.empty();
     }
 
     private static Optional<FieldSchema> fieldFromSchema(String fieldId, Schema s) {
