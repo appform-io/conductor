@@ -56,7 +56,7 @@ class CachingUserStoreTest {
             return (Optional<UserSummary>) invocationOnMock.callRealMethod();
         }).when(root).getById(anyString());
         val store = new CachingUserStore(root, hz);
-        val numUsers = 1;
+        val numUsers = 100;
         val users = IntStream.rangeClosed(1, numUsers)
                 .mapToObj(i -> store.create(String.format("U%03d", i),
                                             "User " + i,

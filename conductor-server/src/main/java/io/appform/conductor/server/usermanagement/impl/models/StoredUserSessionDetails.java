@@ -59,7 +59,7 @@ public class StoredUserSessionDetails {
     @Column
     private Date expiry;
 
-    @Column(name = "last_active", nullable = false)
+    @Column(name = "last_active")
     private Date lastActive;
 
     @Column(name = "partition_id", nullable = false)

@@ -18,7 +18,10 @@ package io.appform.conductor.model.usermgmt;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
+import lombok.With;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -26,13 +29,17 @@ import java.util.Date;
  */
 @Value
 @AllArgsConstructor
-public
-class UserSessionDetails {
+public class UserSessionDetails implements Serializable {
+    @Serial
+    private static final long serialVersionUID = -6817975982837058178L;
+
     String id;
     String userId;
+    @With
     SessionState state;
     SessionType type;
 
+    @With
     Date expiry;
 
     Date created;

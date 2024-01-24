@@ -22,7 +22,7 @@ public class EventGeneratingSessionStore implements SessionStore {
     private final SessionStore sessionStore;
 
     @Inject
-    public EventGeneratingSessionStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) SessionStore sessionStore) {
+    public EventGeneratingSessionStore(EventBus eventBus, @Named(ConductorModule.CACHED_IMPLEMENTATION_NAME) SessionStore sessionStore) {
         this.eventBus = eventBus;
         this.sessionStore = sessionStore;
     }
