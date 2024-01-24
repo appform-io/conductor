@@ -30,6 +30,7 @@ import io.appform.conductor.server.auth.EventGeneratingUserRoleMappingStore;
 import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserRoleMappingStore;
 import io.appform.conductor.server.auth.impl.CachingRoleStore;
+import io.appform.conductor.server.auth.impl.CachingUserRoleMappingStore;
 import io.appform.conductor.server.auth.impl.DBRoleStore;
 import io.appform.conductor.server.auth.impl.DBUserRoleMappingStore;
 import io.appform.conductor.server.auth.impl.models.StoredRole;
@@ -159,6 +160,8 @@ public class ConductorModule extends AbstractModule {
 
         bind(UserRoleMappingStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME))
                 .to(DBUserRoleMappingStore.class);
+        bind(UserRoleMappingStore.class).annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME))
+                .to(CachingUserRoleMappingStore.class);
         bind(UserRoleMappingStore.class).to(EventGeneratingUserRoleMappingStore.class);
 
         bind(SkillStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBSkillStore.class);

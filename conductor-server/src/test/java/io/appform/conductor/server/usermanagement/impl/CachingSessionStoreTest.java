@@ -21,6 +21,7 @@ import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.model.usermgmt.UserSessionDetails;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.HazelcastTestExtension;
+import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.hazelcast.HazelcastClient;
 import io.appform.conductor.server.usermanagement.impl.models.StoredUserSessionDetails;
@@ -45,6 +46,7 @@ import static org.mockito.Mockito.spy;
 /**
  *
  */
+@RelevantDBEntityPackages("io.appform.conductor.server.usermanagement.impl.models")
 @ExtendWith({DBTestExtension.class, HazelcastTestExtension.class})
 class CachingSessionStoreTest {
 
