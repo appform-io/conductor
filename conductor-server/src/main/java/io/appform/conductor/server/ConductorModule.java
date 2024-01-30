@@ -64,6 +64,7 @@ import io.appform.conductor.server.schemamanagement.impl.models.StoredFieldSchem
 import io.appform.conductor.server.schemamanagement.impl.models.StoredSchemaSummary;
 import io.appform.conductor.server.skillmanagement.EventGeneratingSkillStore;
 import io.appform.conductor.server.skillmanagement.SkillStore;
+import io.appform.conductor.server.skillmanagement.impl.CachingSkillStore;
 import io.appform.conductor.server.skillmanagement.impl.DBSkillStore;
 import io.appform.conductor.server.skillmanagement.impl.models.StoredSkillDefinition;
 import io.appform.conductor.server.skillmanagement.impl.models.StoredSkillValue;
@@ -165,6 +166,7 @@ public class ConductorModule extends AbstractModule {
         bind(UserRoleMappingStore.class).to(EventGeneratingUserRoleMappingStore.class);
 
         bind(SkillStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBSkillStore.class);
+        bind(SkillStore.class).annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME)).to(CachingSkillStore.class);
         bind(SkillStore.class).to(EventGeneratingSkillStore.class);
 
         bind(SubjectStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBSubjectStore.class);

@@ -427,4 +427,9 @@ public abstract class EventVisitorAdapter<T> implements EventVisitor<T> {
     public T visit(TaskUpdatedEvent taskUpdatedEvent) {
         return defaultValue;
     }
+
+    @Override
+    public T visit(TicketUserUnassignedEvent ticketUserUnassignedEvent) {
+        return defaultValue;
+    }
 }

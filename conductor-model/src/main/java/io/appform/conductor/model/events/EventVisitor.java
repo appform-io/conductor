@@ -195,4 +195,6 @@ public interface EventVisitor<T> {
     T visit(TaskDeletedEvent taskDeletedEvent);
 
     T visit(TaskUpdatedEvent taskUpdatedEvent);
+
+    T visit(TicketUserUnassignedEvent ticketUserUnassignedEvent);
 }

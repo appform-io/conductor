@@ -131,11 +131,11 @@ public class EventGeneratingTicketStore implements TicketStore {
     }
 
     @Override
-    public Optional<TicketSkeleton> assignToUser(String ticketId, @NonNull String userId) {
+    public Optional<TicketSkeleton> assignToUser(String ticketId, String userId) {
         val res = ticketStore.assignToUser(ticketId, userId);
-        res.filter(ticketSkeleton -> ticketSkeleton.getAssignedToUserId().equals(userId))
-                .ifPresent(ticketSkeleton -> eventBus.publish(new TicketUserAssignedEvent(
-                        ticketSkeleton.getTicketId(), userId)));
+        res.filter(ticketSkeleton -> Strings.isNullOrEmpty(ticketSkeleton.getAssignedToUserId()))
+                .ifPresent(ticketSkeleton -> eventBus.publish(new TicketUserUnassignedEvent(
+                        ticketSkeleton.getTicketId())));
         return res;
     }
 

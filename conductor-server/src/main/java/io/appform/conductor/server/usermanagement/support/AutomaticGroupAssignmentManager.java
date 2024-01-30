@@ -47,13 +47,13 @@ public class AutomaticGroupAssignmentManager implements EventHandler {
         event.accept(new EventVisitorAdapter<Void>() {
             @Override
             public Void visit(UserSkillAssociatedEvent userSkillAssociatedEvent) {
-                evaluateGroupAssignmentsForUser(userSkillAssociatedEvent.getUserId());
+                evaluateGroupAssignmentsForUser(userSkillAssociatedEvent.getObjectId());
                 return super.visit(userSkillAssociatedEvent);
             }
 
             @Override
             public Void visit(UserSkillDisasocciatedEvent userSkillDisasocciatedEvent) {
-                evaluateGroupAssignmentsForUser(userSkillDisasocciatedEvent.getUserId());
+                evaluateGroupAssignmentsForUser(userSkillDisasocciatedEvent.getObjectId());
                 return super.visit(userSkillDisasocciatedEvent);
             }
         });

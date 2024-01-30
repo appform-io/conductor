@@ -19,13 +19,18 @@ package io.appform.conductor.model.skills;
 import io.appform.conductor.model.usermgmt.User;
 import lombok.Value;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * Represents a particular skill. For example language proficiency. A {@link User} can have multiple skills.
  */
 @Value
-public class SkillValue {
+public class SkillValue implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 6844115832613522940L;
+
     String skillId;
     String skillValueId;
     String name;
