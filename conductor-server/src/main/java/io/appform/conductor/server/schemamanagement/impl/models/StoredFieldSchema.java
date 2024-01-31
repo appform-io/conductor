@@ -18,15 +18,17 @@ package io.appform.conductor.server.schemamanagement.impl.models;
 
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.workflow.Rule;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.utils.persistence.RuleConverter;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
-import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import java.util.Date;
 import java.util.Objects;
 
@@ -34,7 +36,9 @@ import java.util.Objects;
  * DB model for {@link io.appform.conductor.model.schema.FieldSchema}
  */
 @Entity
-@Table(name = "field_schemas")
+@Table(name = "field_schemas", indexes = {
+        @Index(name = "idx_schema_id", columnList = "schema_id"),
+})
 @DiscriminatorColumn(name = StoredFieldSchema.Fields.type)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Getter
@@ -46,34 +50,34 @@ import java.util.Objects;
 public abstract class StoredFieldSchema {
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false, insertable = false, updatable =false)
+    @Column(name = "type", nullable = false, insertable = false, updatable = false, length = 45)
     private final FieldType type;
 
-    @Column(name = "schema_id", nullable = false)
+    @Column(name = "schema_id", nullable = false, length = Constants.MAX_SCHEMA_ID_LENGTH)
     private String schemaId;
 
     @Id
-    @Column(name = "field_id", unique = true, nullable = false)
+    @Column(name = "field_id", unique = true, nullable = false, length = Constants.MAX_FIELD_ID_LENGTH)
     private String fieldId;
 
-    @Column(name = "name")
+    @Column(name = "name", length = Constants.MAX_FIELD_NAME_LENGTH)
     private String name;
 
-    @Column(name = "display_name")
+    @Column(name = "display_name", length = 45)
     private String displayName;
 
-    @Column(name = "description")
+    @Column(name = "description", length = 255)
     private String description;
 
-    @Column(name = "parent_id")
+    @Column(name = "parent_id", length = 255)
     private String parent;
 
     @Convert(converter = RuleConverter.class)
-    @Column(name = "visibility_condition")
+    @Column(name = "visibility_condition", columnDefinition = "longtext")
     private Rule visibilityCondition;
 
     @Convert(converter = RuleConverter.class)
-    @Column(name = "editable_condition")
+    @Column(name = "editable_condition", columnDefinition = "longtext")
     private Rule editableCondition;
 
     @Column(name = "allow_multiple")
@@ -82,13 +86,12 @@ public abstract class StoredFieldSchema {
     @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     public abstract <T> T accept(final StoredFieldSchemaVisitor<T> visitor);

@@ -443,7 +443,7 @@ public class DBTicketStore implements TicketStore {
             @Throws.RuntimeParam("id") String ticketId,
             @Throws.RuntimeParam("subId") String relatedToTicketId) {
         val relatedId = ConductorServerUtils.readableId(ticketId, relatedToTicketId);
-        return attachmentDao.update(ticketId,
+        return relatedTicketDao.update(ticketId,
                                     DetachedCriteria.forClass(StoredRelatedTicket.class)
                                             .add(Property.forName(StoredRelatedTicket.Fields.relatedId)
                                                          .eq(relatedId)),
@@ -758,7 +758,7 @@ public class DBTicketStore implements TicketStore {
                     case STRING -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.stringValue).eq(
                             equals.getValue()));
                     case CHOICE -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.choiceValue).eq(
-                            List.of(equals.getValue())));
+                            List.of(equals.getValue()))); //TODO: check with santanu...choice are list eq may not work ?
                     case BOOLEAN -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.booleanValue).eq(
                             equals.getValue()));
                     case NUMBER ->

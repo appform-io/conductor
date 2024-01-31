@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.workflowmanagement.impl.models;
 
+import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.utils.persistence.StringListConverter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,8 +24,8 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -38,8 +39,11 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = StoredTicketState.WF_STATE_TABLE_NAME,
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_ext_id", columnNames = "ext_id")
+        },
         indexes = {
-                @Index(name = "idx_wf_state", columnList = "workflow_id"),
+                @Index(name = "idx_workflow_id", columnList = "workflow_id"),
         }
 )
 @Getter
@@ -56,16 +60,16 @@ public class StoredTicketState implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "ext_id", unique = true)
+    @Column(name = "ext_id", nullable = false, unique = true, length = Constants.MAX_WORKFLOW_STATE_ID_LENGTH)
     private String extId;
 
-    @Column(name = "display_name")
+    @Column(name = "display_name", length = Constants.MAX_WORKFLOW_STATE_NAME_LENGTH)
     private String displayName;
 
-    @Column
+    @Column(name = "description", length = 255)
     private String description;
 
-    @Column
+    @Column(name = "terminal")
     private boolean terminal;
 
     @Column(name = "allowed_actions", columnDefinition = "blob")
@@ -84,23 +88,22 @@ public class StoredTicketState implements Serializable {
     @Convert(converter = StringListConverter.class)
     private List<String> requiredFields;
 
-    @Column(name = "visible_actions")
+    @Column(name = "visible_actions", columnDefinition = "blob")
     @Convert(converter = StringListConverter.class)
     private List<String> visibleActions;
 
-    @Column
+    @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "workflow_id")
+    @Column(name = "workflow_id", length = Constants.MAX_WORKFLOW_ID_LENGTH)
     private String workflowId;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override

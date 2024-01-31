@@ -24,7 +24,7 @@ public class StoredAddCommentAction extends StoredAction {
 
     @SuppressWarnings("java:S1948")
     @Convert(converter = TemplateConverter.class)
-    @Column(name = "content_template", length = 1023)
+    @Column(name = "content_template", columnDefinition = "longtext")
     private Template contentTemplate;
 
     public StoredAddCommentAction() {

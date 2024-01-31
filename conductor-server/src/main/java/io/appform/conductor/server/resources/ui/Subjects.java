@@ -139,7 +139,7 @@ public class Subjects {
             @Auth ConductorUser user,
             @PathParam("subjectId") @Length(max = 45) final String subjectId,
             @FormParam("subjectIdType") @NotNull final SubjectIDType type,
-            @FormParam("subIdSubType") final String subIdSubType,
+            @FormParam("subIdSubType") @Length(max = 45) final String subIdSubType,
             @FormParam("subIdValue") @NotNull @Length(max = 45) final String value,
             @FormParam("verificationStatus") @DefaultValue("UNVERIFIED") final SubjectIDVerificationStatus verificationStatus) {
         return subjectStore.saveIdentifier(subjectId,

@@ -21,6 +21,7 @@ import io.appform.conductor.model.workflow.Rule;
 import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.model.workflow.TicketStateTransition;
 import io.appform.conductor.model.workflow.WorkflowState;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.utils.persistence.StringListConverter;
 import io.appform.conductor.server.utils.persistence.TemplateConverter;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
@@ -30,8 +31,8 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -45,7 +46,10 @@ import java.util.Objects;
  * DB model for {@link io.appform.conductor.model.workflow.Workflow}
  */
 @Entity
-@Table(name = StoredWorkflow.WORKFLOW_TABLE_NAME)
+@Table(name = StoredWorkflow.WORKFLOW_TABLE_NAME,
+uniqueConstraints = {
+        @UniqueConstraint(name = "uk_workflow_id", columnNames = "workflow_id")
+})
 @Getter
 @Setter
 @FieldNameConstants
@@ -62,51 +66,50 @@ public class StoredWorkflow implements Serializable {
     private long id;
 
     @LookupKey
-    @Column(name = "workflow_id", unique = true)
+    @Column(name = "workflow_id", nullable = false, unique = true, length = Constants.MAX_WORKFLOW_ID_LENGTH)
     private String workflowId;
 
-    @Column(name = "display_name")
+    @Column(name = "display_name", length = Constants.MAX_WORKFLOW_ID_LENGTH)
     private String displayName;
 
-    @Column
+    @Column(name = "description", length = 255)
     private String description;
 
-    @Column(name = "schema_id")
+    @Column(name = "schema_id", length = Constants.MAX_SCHEMA_ID_LENGTH)
     private String schemaId;
 
     @Convert(converter = TemplateConverter.class)
-    @Column(name = "title_template")
+    @Column(name = "title_template", columnDefinition = "longtext")
     private Template titleTemplate;
 
     @Convert(converter = TemplateConverter.class)
-    @Column(name = "description_template")
+    @Column(name = "description_template", columnDefinition = "longtext")
     private Template descriptionTemplate;
 
     @Convert(converter = TemplateConverter.class)
-    @Column(name = "subject_id_template")
+    @Column(name = "subject_id_template",  columnDefinition = "longtext")
     private Template subjectIdTemplate;
 
-    @Column(name = "start_state_id")
+    @Column(name = "start_state_id", length = Constants.MAX_WORKFLOW_STATE_ID_LENGTH)
     private String startStateId;
 
-    @Column(name = "available_actions")
+    @Column(name = "available_actions", columnDefinition = "longtext")
     @Convert(converter = StringListConverter.class)
     private List<String> availableActions;
 
-    @Column
+    @Column(name = "state", length = 45)
     @Enumerated(EnumType.STRING)
     private WorkflowState state;
 
-    @Column
+    @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Transient

@@ -1,14 +1,15 @@
 package io.appform.conductor.server.ticketmanagement.impl.models;
 
 import io.appform.conductor.model.ticket.TicketRelationship;
+import io.appform.conductor.server.utils.Constants;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -33,29 +34,28 @@ public class StoredRelatedTicket implements Serializable {
     private static final long serialVersionUID = -1226578157641576480L;
 
     @Id
-    @Column(name = "related_id")
+    @Column(name = "related_id", length = Constants.MAX_TICKET_RELATED_ID_LENGTH)
     private String relatedId;
 
-    @Column(name = "ticket_id")
+    @Column(name = "ticket_id", length = Constants.MAX_TICKET_ID_LENGTH)
     private String ticketId;
 
-    @Column(name = "related_to_ticket_id")
+    @Column(name = "related_to_ticket_id", length = Constants.MAX_TICKET_ID_LENGTH)
     private String relatedToTicketId;
 
-    @Column(name = "relationship")
+    @Column(name = "relationship", length = 45)
     @Enumerated
     private TicketRelationship relationship;
 
     @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override

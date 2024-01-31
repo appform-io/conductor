@@ -19,11 +19,12 @@ package io.appform.conductor.server.usermanagement.impl.models;
 import io.appform.conductor.model.usermgmt.SessionState;
 import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.server.utils.Constants;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -33,7 +34,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name = StoredUserSessionDetails.SESSION_TABLE_NAME, uniqueConstraints = {
-        @UniqueConstraint(name = "uk_sessions", columnNames = {"partition_id", "user_id", "session_id"})
+        @UniqueConstraint(name = "uk_user_id_session_id", columnNames = {"user_id", "session_id", "partition_id"})
 })
 @Data
 @FieldNameConstants
@@ -42,21 +43,21 @@ public class StoredUserSessionDetails {
     public static final String SESSION_TABLE_NAME = "user_sessions";
 
     @Id
-    @Column(name = "session_id", nullable = false, length = 45)
+    @Column(name = "session_id", nullable = false, length = Constants.MAX_SESSION_ID_LENGTH)
     private String sessionId;
 
-    @Column(name = "user_id", nullable = false, length = 45)
+    @Column(name = "user_id", nullable = false, length = Constants.MAX_USER_ID_LENGTH)
     private String userId;
 
-    @Column
+    @Column(name = "state", length = 45)
     @Enumerated(EnumType.STRING)
     private SessionState state;
 
-    @Column
+    @Column(name = "type")
     @Enumerated(EnumType.STRING)
     private SessionType type;
 
-    @Column
+    @Column(name = "expiry")
     private Date expiry;
 
     @Column(name = "last_active", nullable = false)
@@ -65,13 +66,12 @@ public class StoredUserSessionDetails {
     @Column(name = "partition_id", nullable = false)
     private int partitionId;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     public StoredUserSessionDetails(

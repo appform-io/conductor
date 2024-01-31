@@ -35,7 +35,7 @@ public class StoredWebhookAction  extends StoredAction {
 
     @SuppressWarnings("java:S1948")
     @Convert(converter = TemplateConverter.class)
-    @Column(name = "url_template", length = 1023)
+    @Column(name = "url_template", columnDefinition = "longtext")
     private Template urlTemplate;
 
     @OneToMany(mappedBy = "action",  fetch = FetchType.EAGER, cascade = CascadeType.ALL)
@@ -43,7 +43,7 @@ public class StoredWebhookAction  extends StoredAction {
 
     @SuppressWarnings("java:S1948")
     @Convert(converter = TemplateConverter.class)
-    @Column(name = "payload_template", length = 2047)
+    @Column(name = "payload_template", columnDefinition = "longtext")
     private Template payloadTemplate;
 
     @Convert(converter = WebhookActionSuccessCodesConverter.class)

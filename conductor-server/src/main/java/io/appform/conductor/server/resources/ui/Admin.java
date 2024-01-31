@@ -30,6 +30,7 @@ import io.appform.conductor.server.ui.views.admin.UserAdminView;
 import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.usermanagement.UserLifecycleManager;
 import io.appform.conductor.server.usermanagement.UserStore;
+import io.appform.conductor.server.utils.Constants;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
@@ -90,7 +91,7 @@ public class Admin {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @RolesAllowed(Permission.Values.ADMIN)
     public Response createRole(
-            @FormParam("name") @Length(min = 1, max = 45) final String name,
+            @FormParam("name") @Length(min = 1, max = Constants.MAX_ROLE_ID_LENGTH) final String name,
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("permissions") @NotEmpty List<Permission> permissions) {
         return roleStore.create(lowerSnake(name), name, description, Set.copyOf(permissions))

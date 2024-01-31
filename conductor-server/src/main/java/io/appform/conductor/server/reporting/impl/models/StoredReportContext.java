@@ -16,14 +16,15 @@
 
 package io.appform.conductor.server.reporting.impl.models;
 
+import io.appform.conductor.server.utils.Constants;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
-import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
@@ -33,12 +34,7 @@ import java.util.Objects;
  *
  */
 @Entity
-@Table(name = StoredReportContext.REPORT_CONTEXT_TABLE_NAME,
-        indexes = {
-            @Index(name = "report_ctx_report_id_idx", columnList = "report_id"),
-        }
-
-)
+@Table(name = StoredReportContext.REPORT_CONTEXT_TABLE_NAME)
 @Getter
 @Setter
 @ToString
@@ -53,22 +49,21 @@ public class StoredReportContext implements Serializable {
     private static final long serialVersionUID = 8272445945763996787L;
 
     @Id
-    @Column(name = "report_id")
+    @Column(name = "report_id", length = Constants.MAX_REPORT_ID_LENGTH)
     private String reportId;
 
     @Column(name = "report_data", columnDefinition = "longtext")
     private String reportData;
 
-    @Column
+    @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp default current_timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp on update current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override

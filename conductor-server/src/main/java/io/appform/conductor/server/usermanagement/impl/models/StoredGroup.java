@@ -17,6 +17,7 @@
 package io.appform.conductor.server.usermanagement.impl.models;
 
 import io.appform.conductor.model.usermgmt.GroupType;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.utils.persistence.StringSetConverter;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Getter;
@@ -24,8 +25,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.proxy.HibernateProxy;
 
 import javax.persistence.*;
@@ -47,34 +48,33 @@ public class StoredGroup {
     public static final String GROUP_TABLE_NAME = "user_groups";
 
     @Id
-    @Column(name = "group_id", length = 45, nullable = false, unique = true)
+    @Column(name = "group_id", length = Constants.MAX_GROUP_ID_LENGTH, nullable = false, unique = true)
     @LookupKey
     private String groupId;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = Constants.MAX_GROUP_ID_LENGTH)
     private String name;
 
-    @Column
+    @Column(name = "description", length = 255)
     private String description;
 
-    @Column
+    @Column(name = "type", length = 45)
     @Enumerated(EnumType.STRING)
     private GroupType type;
 
     @Convert(converter = StringSetConverter.class)
-    @Column(name = "required_skills")
+    @Column(name = "required_skills", columnDefinition = "longtext")
     private Set<String> requiredSkills;
 
-    @Column
+    @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     public StoredGroup(String groupId, String name, String description, GroupType type, Set<String> requiredSkills) {

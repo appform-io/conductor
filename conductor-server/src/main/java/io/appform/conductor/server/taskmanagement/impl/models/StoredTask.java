@@ -20,12 +20,13 @@ import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
 import io.appform.conductor.server.taskmanagement.model.TaskState;
 import io.appform.conductor.server.taskmanagement.model.TaskType;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -37,7 +38,9 @@ import java.util.Objects;
  *
  */
 @Entity
-@Table(name = StoredTask.TASK_TABLE_NAME)
+@Table(name = StoredTask.TASK_TABLE_NAME, indexes = {
+        @Index(name = "idx_scope_reference_id", columnList = "scope_reference_id")
+})
 @Getter
 @Setter
 @ToString
@@ -52,36 +55,37 @@ public class StoredTask implements Serializable {
 
     @Id
     @LookupKey
-    @Column(nullable = false, name = "task_id")
+    @Column(nullable = false, name = "task_id", length = Constants.MAX_TASK_ID_LENGTH)
     private String taskId;
 
+    @Column(name = "type", length = 45)
     @Enumerated(EnumType.STRING)
     private TaskType type;
 
-    @Column
+    @Column(name = "name", length = Constants.MAX_TASK_ID_LENGTH)
     private String name;
 
-    @Column
+    @Column(name = "description", length = 255)
     private String description;
 
     @Column(name = "execution_interval_ms")
     private long interval;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "scope_type")
+    @Column(name = "scope_type", length = 45)
     private Scope.ScopeType scopeType;
 
-    @Column(name = "scope_reference_id")
+    @Column(name = "scope_reference_id", length = 255)
     private String scopeReferenceId;
 
     @Enumerated(EnumType.STRING)
-    @Column
+    @Column(name = "state", length = 45)
     private TaskState state;
 
     @Column(name = "last_execution_time")
     private Date lastExecutionCompletionTime;
 
-    @Column(name = "last_run_status")
+    @Column(name = "last_run_status", length = 45)
     private ConductorTaskScheduler.TaskStatus lastRunStatus;
 
     @Column(name = "task_data", columnDefinition = "longtext")
@@ -90,16 +94,15 @@ public class StoredTask implements Serializable {
     @Column(name = "task_meta", columnDefinition = "longtext")
     private String taskMeta;
 
-    @Column
+    @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp default current_timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp on update current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override

@@ -17,13 +17,15 @@
 package io.appform.conductor.server.ticketmanagement.impl.models.fields;
 
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
+import io.appform.conductor.server.utils.Constants;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -35,8 +37,11 @@ import java.util.Objects;
  *
  */
 @Entity
-@Table(name = StoredFieldValue.TICKET_FIELD_VALUE_TABLE_NAME/*,
-        uniqueConstraints = @UniqueConstraint(name = "uk_ticket_field", columnNames = {"ticket_id", "schema_field_id"})*/)
+@Table(name = StoredFieldValue.TICKET_FIELD_VALUE_TABLE_NAME,
+        uniqueConstraints = @UniqueConstraint(name = "uk_ticket_field", columnNames = {"ticket_id", "schema_field_id"}),
+        indexes = {
+                //TODO: Add relevant index
+        })
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @Getter
 @Setter
@@ -49,14 +54,14 @@ public class StoredFieldValue implements Serializable {
     private static final long serialVersionUID = 7147859251068889312L;
 
     @Id
-    @Column(name = "field_value_id", unique = true)
+    @Column(name = "field_value_id", nullable = false, unique = true, length = Constants.MAX_FIELD_VALUE_ID_LENGTH)
     private String fieldValueId;
 
     @ManyToOne
     @JoinColumn(name = "ticket_id", referencedColumnName="ticket_id")
     private StoredTicketSkeleton ticket;
 
-    @Column(name = "schema_field_id")
+    @Column(name = "schema_field_id", length = Constants.MAX_FIELD_SCHEMA_ID_LENGTH)
     private String schemaFieldId;
 
     @Embedded
@@ -65,13 +70,12 @@ public class StoredFieldValue implements Serializable {
     @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @org.hibernate.annotations.Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @org.hibernate.annotations.Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override

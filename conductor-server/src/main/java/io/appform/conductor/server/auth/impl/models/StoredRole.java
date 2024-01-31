@@ -17,6 +17,7 @@
 package io.appform.conductor.server.auth.impl.models;
 
 import io.appform.conductor.model.auth.Permission;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.utils.persistence.PermissionsConverter;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Getter;
@@ -25,8 +26,8 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -53,30 +54,29 @@ public class StoredRole implements Serializable {
 
     @Id
     @LookupKey
-    @Column(name = "role_id", nullable = false, unique = true)
+    @Column(name = "role_id", nullable = false, unique = true, length = Constants.MAX_ROLE_ID_LENGTH)
     private String roleId;
 
-    @Column
+    @Column(name = "name", length = Constants.MAX_ROLE_ID_LENGTH)
     String name;
 
-    @Column
+    @Column(name = "description", length = 255)
     String description;
 
     @SuppressWarnings("java:S1948")
-    @Column
+    @Column(name = "permissions", columnDefinition = "longtext")
     @Convert(converter = PermissionsConverter.class)
     Set<Permission> permissions;
 
     @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override

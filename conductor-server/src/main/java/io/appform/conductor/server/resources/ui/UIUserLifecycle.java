@@ -66,8 +66,8 @@ public class UIUserLifecycle {
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response registerAccount(
-            @FormParam("newName") @NotEmpty final String newName,
-            @FormParam("newEmail") @NotEmpty @Email final String newEmail,
+            @FormParam("newName") @NotEmpty @Length(max = 127) final String newName,
+            @FormParam("newEmail") @NotEmpty @Length(max = 127) @Email final String newEmail,
             @FormParam("newPassword") @NotEmpty final String newPassword) {
         return userLifecycleManager.createHumanUser(newName, newEmail, newPassword)
                 .map(UserSummary::getId)

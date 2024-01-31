@@ -29,6 +29,7 @@ import io.appform.conductor.server.dashboards.model.SpecVersion;
 import io.appform.conductor.server.ui.views.manage.DashboardListView;
 import io.appform.conductor.server.ui.views.manage.DashboardView;
 import io.appform.conductor.server.ui.views.manage.NewDashboardView;
+import io.appform.conductor.server.utils.Constants;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -78,7 +79,7 @@ public class Dashboards {
     @Path("/create")
     @RolesAllowed(Permission.Values.MANAGE_DASHBOARD)
     public Response createDashboard(
-            @FormParam("name") @NotEmpty @Length(max = 45) final String name,
+            @FormParam("name") @NotEmpty @Length(max = Constants.MAX_DASHBOARD_ID_LENGTH) final String name,
             @FormParam("description") @Length(max = 255) final String description) {
         val id = lowerSnake(name);
         return dashboardStore.create(id, name, description)

@@ -18,17 +18,19 @@ package io.appform.conductor.server.subjectmanagement.impl.models;
 
 import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.subject.SubjectIDVerificationStatus;
+import io.appform.conductor.server.utils.Constants;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import lombok.val;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
-import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import java.util.Date;
 import java.util.Objects;
 
@@ -54,39 +56,38 @@ public class StoredSubjectID {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "external_id", unique = true)
+    @Column(name = "external_id", unique = true, length = 255)
     private String extId;
 
-    @Column(name = "id_type", nullable = false)
+    @Column(name = "id_type", nullable = false, length = 45)
     @Enumerated(EnumType.STRING)
     private SubjectIDType type;
 
-    @Column(name = "sub_type")
+    @Column(name = "sub_type", length = 45)
     private String subType;
 
-    @Column(name = "id_value", nullable = false)
+    @Column(name = "id_value", nullable = false, length = 45)
     private String value;
 
-    @Column(name = "subject_global_id", nullable = false)
+    @Column(name = "subject_global_id", nullable = false, length = Constants.MAX_SUBJECT_GLOBAL_ID_LENGTH)
     private String subjectGlobalId;
 
     @Column(name = "is_primary")
     private boolean primary;
 
-    @Column(name = "verification_status")
+    @Column(name = "verification_status",length = 45)
     @Enumerated(EnumType.STRING)
     private SubjectIDVerificationStatus verificationStatus;
 
-    @Column
+    @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override

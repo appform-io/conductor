@@ -1,6 +1,7 @@
 package io.appform.conductor.server.actionmanagement.impl.models;
 
 import io.appform.conductor.model.actions.ActionType;
+import io.appform.conductor.server.utils.Constants;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
@@ -22,7 +23,7 @@ public class StoredAddTicketAction extends StoredAction {
     @Serial
     private static final long serialVersionUID = -282656827461451925L;
 
-    @Column(name = "ticket_action_id", length = 45)
+    @Column(name = "ticket_action_id", length = Constants.MAX_ACTION_ID_LENGTH)
     private String ticketActionId;
 
     public StoredAddTicketAction() {

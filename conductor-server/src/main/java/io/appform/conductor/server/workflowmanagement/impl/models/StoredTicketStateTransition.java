@@ -18,6 +18,7 @@ package io.appform.conductor.server.workflowmanagement.impl.models;
 
 import io.appform.conductor.model.workflow.Rule;
 import io.appform.conductor.model.workflow.TicketStateTransition;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.utils.persistence.RuleConverter;
 import io.appform.conductor.server.utils.persistence.StringListConverter;
 import lombok.Getter;
@@ -26,8 +27,8 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -40,7 +41,13 @@ import java.util.Objects;
  * DB representation for {@link io.appform.conductor.model.workflow.TicketStateTransition}
  */
 @Entity
-@Table(name = StoredTicketStateTransition.WF_TRANSITIONS_TABLE_NAME)
+@Table(name = StoredTicketStateTransition.WF_TRANSITIONS_TABLE_NAME,
+        uniqueConstraints = {
+            @UniqueConstraint(name = "uk_ext_id", columnNames = "ext_id")
+        },
+        indexes = {
+            @Index(name = "idx_workflow", columnList = "workflow_id")
+})
 @Getter
 @Setter
 @ToString
@@ -56,40 +63,40 @@ public class StoredTicketStateTransition implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "ext_id", unique = true)
+    @Column(name = "ext_id", nullable = false, unique = true, length = Constants.MAX_WORKFLOW_TRANSITION_ID_LENGTH)
     private String extId;
 
-    @Column(name = "from_state")
+    @Column(name = "from_state", length = Constants.MAX_WORKFLOW_STATE_ID_LENGTH)
     private String fromState;
 
-    @Column(name = "to_state")
+    @Column(name = "to_state", length = Constants.MAX_WORKFLOW_STATE_ID_LENGTH)
     private String toState;
 
-    @Column(name = "type")
+    @Column(name = "type", length = 45)
     @Enumerated(EnumType.STRING)
     private TicketStateTransition.TicketStateTransitionType type;
 
     @SuppressWarnings("java:S1948")
     @Convert(converter = RuleConverter.class)
-    @Column(name = "rule")
+    @Column(name = "rule", columnDefinition = "longtext")
     private Rule rule;
 
     @Convert(converter = StringListConverter.class)
-    @Column(name = "action_id")
+    @Column(name = "action_id", columnDefinition = "longtext")
     private List<String> actionIds;
 
     @Column
     private boolean deleted;
 
-    @Column(name = "workflow_id")
+    @Column(name = "workflow_id", length = Constants.MAX_WORKFLOW_ID_LENGTH)
     private String workflowId;
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override

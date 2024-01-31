@@ -25,7 +25,6 @@ import lombok.ToString;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.Table;
 
 /**
  *
@@ -39,10 +38,10 @@ public class StoredStringFieldSchema extends StoredFieldSchema {
     @Column(name = "max_length")
     private int maxLength;
 
-    @Column(name = "match_pattern")
+    @Column(name = "match_pattern", length = 255)
     private String matchPattern;
 
-    @Column(name = "default_string")
+    @Column(name = "default_string", length = 255)
     private String defaultString;
 
     public StoredStringFieldSchema() {
