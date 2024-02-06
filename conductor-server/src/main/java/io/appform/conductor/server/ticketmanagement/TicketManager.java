@@ -52,6 +52,7 @@ import io.appform.conductor.model.workflow.TicketStateTransition;
 import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.server.actionmanagement.ActionExecutor;
 import io.appform.conductor.server.actionmanagement.ActionStore;
+import io.appform.conductor.server.id.IdGenerator;
 import io.appform.conductor.server.ruleengines.RuleEngine;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.subjectmanagement.SubjectStore;
@@ -811,7 +812,7 @@ public class TicketManager {
                 ticketStateMachineContext.getFieldMappingResult().getData(),
                 List.<TicketFieldData>of());
         validateTicketFieldUpdate(startState, editedFields);
-        ticketStore.create(UUID.randomUUID().toString(),
+        ticketStore.create(IdGenerator.generate("T").getId(),
                            title(metaDataFetchStrategy, payload, ticketStateMachineContext),
                            description(metaDataFetchStrategy, payload, ticketStateMachineContext),
                            workflow.getId(),
