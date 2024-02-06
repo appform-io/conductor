@@ -24,14 +24,12 @@ import java.util.Date;
 /**
  * A representation of an ID
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+@Value
 @Builder
 @ToString
 public class Id {
-    private String id;
-    private Date generatedDate;
-    private int node;
-    private int exponent;
+    String id;
+    Date generatedDate;
+    int node;
+    int exponent;
 }

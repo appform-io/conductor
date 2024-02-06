@@ -146,10 +146,11 @@ public class ConductorTaskScheduler implements Managed {
             }
             if (task.getState().equals(TaskState.PAUSED)) {
                 log.info("Task {} skipped as it is paused", taskId);
+                return new TaskResult(TaskStatus.SKIPPED, task, task.getTaskMeta());
             }
             log.info("Running task: {}", taskId);
             return task.getSpec()
-                    .accept(new TaskSpecVisitor<TaskResult>() {
+                    .accept(new TaskSpecVisitor<>() {
                         @Override
                         public TaskResult visit(RunActionOnSelectedTicketsTaskSpec runActionOnSelectedTicketsTaskSpec) {
                             return scheduler.runActionOnSelectedTicketsExecutor
