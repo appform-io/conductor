@@ -191,7 +191,7 @@ public class ConductorModule extends AbstractModule {
 
         bind(ReportStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBReportStore.class);
         bind(ReportStore.class).to(EventGeneratingReportStore.class);
-        bind(DashboardStore.class).to(DBDashboardStore.class); //TODO::EVENTS
+        bind(DashboardStore.class).to(DBDashboardStore.class);
 
         bind(EventStore.class).to(DBEventStore.class);
 
