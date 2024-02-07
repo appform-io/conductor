@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 santanu
+ * Copyright (c) 2024 santanu
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,12 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.events.impl;
+package io.appform.conductor.model.attributes;
 
 /**
  *
  */
-public enum ReferredObjectType {
-    ACTION,
+public enum AttributeScopeType {
     SUBJECT,
-    TICKET,
-    GROUP,
-    ROLE,
-    SCHEMA,
-    SKILL,
-    USER,
-    WORKFLOW,
-
-    TASK,
-    DASHBOARD,
-    REPORT,
-
-    ATTRIBUTE_DEFINITION,
-    ATTRIBUTE_VALUE
+    USER
 }

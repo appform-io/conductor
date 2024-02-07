@@ -31,7 +31,6 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class DateAttributeValue extends AttributeValue {
-    @With
     Date value;
 
     @Builder
@@ -43,6 +42,13 @@ public class DateAttributeValue extends AttributeValue {
             Date value) {
         super(AttributeType.DATE, schemaId, created, updated);
         this.value = value;
+    }
+
+    public DateAttributeValue withValue(final Date value) {
+        return new DateAttributeValue(this.getSchemaId(),
+                                      this.getCreated(),
+                                      this.getUpdated(),
+                                      value);
     }
 
     @Override

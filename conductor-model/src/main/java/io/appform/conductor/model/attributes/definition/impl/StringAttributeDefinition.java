@@ -19,9 +19,13 @@ package io.appform.conductor.model.attributes.definition.impl;
 import io.appform.conductor.model.attributes.AttributeType;
 import io.appform.conductor.model.attributes.definition.AttributeDefinition;
 import io.appform.conductor.model.attributes.definition.AttributeDefinitionVisitor;
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
+import java.io.Serial;
 import java.util.Date;
 
 /**
@@ -32,9 +36,11 @@ import java.util.Date;
 @ToString(callSuper = true)
 public class StringAttributeDefinition extends AttributeDefinition {
 
-    @With
+    @Serial
+    private static final long serialVersionUID = -7386079080770866240L;
+
     int maxLength;
-    @With
+
     String pattern;
 
     @Jacksonized
@@ -80,5 +86,27 @@ public class StringAttributeDefinition extends AttributeDefinition {
                                              getUpdated(),
                                              getMaxLength(),
                                              getPattern());
+    }
+
+    public StringAttributeDefinition withMaxLength(final int maxLength) {
+        return new StringAttributeDefinition(getId(),
+                                             getName(),
+                                             getDisplayName(),
+                                             getDescription(),
+                                             getCreated(),
+                                             getUpdated(),
+                                             maxLength,
+                                             getPattern());
+    }
+
+    public StringAttributeDefinition withPattern(final String pattern) {
+        return new StringAttributeDefinition(getId(),
+                                             getName(),
+                                             getDisplayName(),
+                                             getDescription(),
+                                             getCreated(),
+                                             getUpdated(),
+                                             getMaxLength(),
+                                             pattern);
     }
 }

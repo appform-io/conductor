@@ -25,6 +25,11 @@ import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.actionmanagement.EventGeneratingActionStore;
 import io.appform.conductor.server.actionmanagement.impl.DBActionStore;
 import io.appform.conductor.server.actionmanagement.impl.models.StoredAction;
+import io.appform.conductor.server.attributes.definition.AttributeDefinitionStore;
+import io.appform.conductor.server.attributes.definition.impl.CachingAttributeDefinitionStore;
+import io.appform.conductor.server.attributes.definition.impl.DBAttributeDefinitionStore;
+import io.appform.conductor.server.attributes.definition.impl.EventGeneratingAttributeDefinitionStore;
+import io.appform.conductor.server.attributes.definition.impl.models.StoredAttributeDefinition;
 import io.appform.conductor.server.auth.EventGeneratingRoleStore;
 import io.appform.conductor.server.auth.EventGeneratingUserRoleMappingStore;
 import io.appform.conductor.server.auth.RoleStore;
@@ -192,6 +197,14 @@ public class ConductorModule extends AbstractModule {
         bind(ReportStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBReportStore.class);
         bind(ReportStore.class).to(EventGeneratingReportStore.class);
         bind(DashboardStore.class).to(DBDashboardStore.class);
+
+        bind(AttributeDefinitionStore.class)
+                .annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME))
+                .to(DBAttributeDefinitionStore.class);
+        bind(AttributeDefinitionStore.class)
+                .annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME))
+                .to(CachingAttributeDefinitionStore.class);
+        bind(AttributeDefinitionStore.class).to(EventGeneratingAttributeDefinitionStore.class);
 
         bind(EventStore.class).to(DBEventStore.class);
 
@@ -419,6 +432,12 @@ public class ConductorModule extends AbstractModule {
     @Singleton
     public RelationalDao<StoredReportContext> reportContextDao() {
         return dbBundle.createRelatedObjectDao(StoredReportContext.class);
+    }
+
+    @Provides
+    @Singleton
+    public RelationalDao<StoredAttributeDefinition> attributeDefinitionDao() {
+        return dbBundle.createRelatedObjectDao(StoredAttributeDefinition.class);
     }
 
     @Provides

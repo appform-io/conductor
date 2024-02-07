@@ -22,6 +22,7 @@ import io.appform.conductor.model.attributes.value.AttributeValueVisitor;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -32,7 +33,6 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class ChoiceAttributeValue extends AttributeValue {
-    @With
     List<String> value;
 
     @Builder
@@ -45,6 +45,21 @@ public class ChoiceAttributeValue extends AttributeValue {
         super(AttributeType.CHOICE, schemaId, created, updated);
         this.value = value;
     }
+
+    public ChoiceAttributeValue withValue(final String... value) {
+        return new ChoiceAttributeValue(this.getSchemaId(),
+                                        this.getCreated(),
+                                        this.getUpdated(),
+                                        Arrays.asList(value));
+    }
+
+    public ChoiceAttributeValue withValue(final List<String> value) {
+        return new ChoiceAttributeValue(this.getSchemaId(),
+                                        this.getCreated(),
+                                        this.getUpdated(),
+                                        value);
+    }
+
 
     @Override
     public <T> T accept(AttributeValueVisitor<T> visitor) {

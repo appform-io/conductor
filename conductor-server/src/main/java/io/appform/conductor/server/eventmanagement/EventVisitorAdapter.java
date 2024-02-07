@@ -20,6 +20,8 @@ import io.appform.conductor.model.events.EventVisitor;
 import io.appform.conductor.model.events.impl.actions.ActionCreatedEvent;
 import io.appform.conductor.model.events.impl.actions.ActionDeletedEvent;
 import io.appform.conductor.model.events.impl.actions.ActionUpdatedEvent;
+import io.appform.conductor.model.events.impl.attributes.AttributeDefinitionDeletedEvent;
+import io.appform.conductor.model.events.impl.attributes.AttributeDefinitionSavedEvent;
 import io.appform.conductor.model.events.impl.group.GroupCreatedEvent;
 import io.appform.conductor.model.events.impl.group.GroupDeletedEvent;
 import io.appform.conductor.model.events.impl.group.GroupUpdatedEvent;
@@ -430,6 +432,16 @@ public abstract class EventVisitorAdapter<T> implements EventVisitor<T> {
 
     @Override
     public T visit(TicketUserUnassignedEvent ticketUserUnassignedEvent) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(AttributeDefinitionSavedEvent attributeDefinitionSavedEvent) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(AttributeDefinitionDeletedEvent attributeDefinitionDeletedEvent) {
         return defaultValue;
     }
 }

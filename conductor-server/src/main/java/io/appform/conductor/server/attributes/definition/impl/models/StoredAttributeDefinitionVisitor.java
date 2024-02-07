@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 santanu
+ * Copyright (c) 2024 santanu
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,19 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.model.events.impl;
+package io.appform.conductor.server.attributes.definition.impl.models;
 
 /**
  *
  */
-public enum ReferredObjectType {
-    ACTION,
-    SUBJECT,
-    TICKET,
-    GROUP,
-    ROLE,
-    SCHEMA,
-    SKILL,
-    USER,
-    WORKFLOW,
+public interface StoredAttributeDefinitionVisitor<T> {
+    T visit(StoredStringAttributeDefinition stringAttributeDefinition);
 
-    TASK,
-    DASHBOARD,
-    REPORT,
+    T visit(StoredChoiceAttributeDefinition choiceAttributeDefinition);
 
-    ATTRIBUTE_DEFINITION,
-    ATTRIBUTE_VALUE
+    T visit(StoredNumberAttributeDefinition numberAttributeDefinition);
+
+    T visit(StoredDateAttributeDefinition dateAttributeDefinition);
+
+    T visit(StoredLinkAttributeDefinition linkAttributeDefinition);
 }

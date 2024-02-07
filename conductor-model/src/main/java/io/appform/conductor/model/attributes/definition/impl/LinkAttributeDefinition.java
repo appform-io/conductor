@@ -25,6 +25,7 @@ import lombok.ToString;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
+import java.io.Serial;
 import java.util.Date;
 
 /**
@@ -34,6 +35,10 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class LinkAttributeDefinition extends AttributeDefinition {
+
+    @Serial
+    private static final long serialVersionUID = 6380748054176519614L;
+
     @Jacksonized
     @Builder
     public LinkAttributeDefinition(

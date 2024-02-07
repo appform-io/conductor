@@ -16,13 +16,33 @@
 
 package io.appform.conductor.model.attributes;
 
+import lombok.Getter;
+import lombok.experimental.FieldNameConstants;
+
 /**
  *
  */
+@FieldNameConstants
+@Getter
 public enum AttributeType {
-    STRING,
-    CHOICE,
-    NUMBER,
-    DATE,
-    LINK,
+    STRING(Values.STRING_TYPE),
+    CHOICE(Values.CHOICE_TYPE),
+    NUMBER(Values.NUMBER_TYPE),
+    DATE(Values.DATE_TYPE),
+    LINK(Values.LINK_TYPE),
+    ;
+
+    private final String value;
+
+    AttributeType(String value) {
+        this.value = value;
+    }
+
+    public static final class Values {
+        public static final String STRING_TYPE="STRING";
+        public static final String CHOICE_TYPE="CHOICE";
+        public static final String NUMBER_TYPE="NUMBER";
+        public static final String DATE_TYPE="DATE";
+        public static final String LINK_TYPE="LINK";
+    }
 }

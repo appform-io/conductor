@@ -31,7 +31,6 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class StringAttributeValue extends AttributeValue {
-    @With
     String value;
 
     @Builder
@@ -43,6 +42,13 @@ public class StringAttributeValue extends AttributeValue {
             String value) {
         super(AttributeType.STRING, schemaId, created, updated);
         this.value = value;
+    }
+
+    public StringAttributeValue withValue(final String value) {
+        return new StringAttributeValue(this.getSchemaId(),
+                                        this.getCreated(),
+                                        this.getUpdated(),
+                                        value);
     }
 
     @Override

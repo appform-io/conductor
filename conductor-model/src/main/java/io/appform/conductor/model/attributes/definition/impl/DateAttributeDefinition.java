@@ -22,6 +22,7 @@ import io.appform.conductor.model.attributes.definition.AttributeDefinitionVisit
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
+import java.io.Serial;
 import java.util.Date;
 
 /**
@@ -31,6 +32,10 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class DateAttributeDefinition extends AttributeDefinition {
+
+    @Serial
+    private static final long serialVersionUID = 1793205484491368828L;
+
     @Jacksonized
     @Builder
     public DateAttributeDefinition(

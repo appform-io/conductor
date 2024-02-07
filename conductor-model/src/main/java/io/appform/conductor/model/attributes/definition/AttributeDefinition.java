@@ -23,6 +23,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.With;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -31,7 +33,11 @@ import java.util.Date;
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class AttributeDefinition {
+public abstract class AttributeDefinition implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = -1316667937364145922L;
+
     /**
      * Type of attribute
      */

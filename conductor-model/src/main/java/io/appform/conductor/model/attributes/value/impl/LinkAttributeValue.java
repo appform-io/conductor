@@ -19,10 +19,12 @@ package io.appform.conductor.model.attributes.value.impl;
 import io.appform.conductor.model.attributes.AttributeType;
 import io.appform.conductor.model.attributes.value.AttributeValue;
 import io.appform.conductor.model.attributes.value.AttributeValueVisitor;
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
-import java.net.URL;
 import java.util.Date;
 
 /**
@@ -32,10 +34,8 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class LinkAttributeValue extends AttributeValue {
-    @With
     String text;
 
-    @With
     @org.hibernate.validator.constraints.URL
     String value;
 
@@ -50,6 +50,22 @@ public class LinkAttributeValue extends AttributeValue {
         super(AttributeType.STRING, schemaId, created, updated);
         this.text = text;
         this.value = value;
+    }
+
+    public LinkAttributeValue withText(final String text) {
+        return new LinkAttributeValue(this.getSchemaId(),
+                                        this.getCreated(),
+                                        this.getUpdated(),
+                                        text,
+                                        getValue());
+    }
+
+    public LinkAttributeValue withValue(final String value) {
+        return new LinkAttributeValue(this.getSchemaId(),
+                                      this.getCreated(),
+                                      this.getUpdated(),
+                                      this.getText(),
+                                      value);
     }
 
     @Override

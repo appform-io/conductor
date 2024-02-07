@@ -22,6 +22,7 @@ import io.appform.conductor.model.attributes.definition.AttributeDefinitionVisit
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
+import java.io.Serial;
 import java.util.Date;
 
 /**
@@ -32,16 +33,11 @@ import java.util.Date;
 @ToString(callSuper = true)
 public class NumberAttributeDefinition extends AttributeDefinition {
 
-    /**
-     * Max bound (inclusive) for the input
-     */
-    @With
+    @Serial
+    private static final long serialVersionUID = -3415435555321930553L;
+
     double max;
 
-    /**
-     * Min bound (inclusive) for the input
-     */
-    @With
     double min;
 
 
@@ -88,5 +84,26 @@ public class NumberAttributeDefinition extends AttributeDefinition {
                                              getUpdated(),
                                              getMax(),
                                              getMin());
+    }
+
+    public AttributeDefinition withMax(double max) {
+        return new NumberAttributeDefinition(getId(),
+                                             getName(),
+                                             getDisplayName(),
+                                             getDescription(),
+                                             getCreated(),
+                                             getUpdated(),
+                                             max,
+                                             getMin());
+    }
+    public AttributeDefinition withMin(double min) {
+        return new NumberAttributeDefinition(getId(),
+                                             getName(),
+                                             getDisplayName(),
+                                             getDescription(),
+                                             getCreated(),
+                                             getUpdated(),
+                                             getMax(),
+                                             min);
     }
 }

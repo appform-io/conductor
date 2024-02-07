@@ -22,6 +22,7 @@ import io.appform.conductor.model.attributes.definition.AttributeDefinitionVisit
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
+import java.io.Serial;
 import java.util.Date;
 import java.util.Set;
 
@@ -33,9 +34,13 @@ import java.util.Set;
 @ToString(callSuper = true)
 public class ChoiceAttributeDefinition extends AttributeDefinition {
 
-    @With
+    @Serial
+    private static final long serialVersionUID = -5273354349593693029L;
+
     @Singular
     Set<String> options;
+
+    boolean allowMultiple;
 
     @Jacksonized
     @Builder
@@ -46,9 +51,10 @@ public class ChoiceAttributeDefinition extends AttributeDefinition {
             String description,
             Date created,
             Date updated,
-            Set<String> options) {
+            Set<String> options, boolean allowMultiple) {
         super(AttributeType.CHOICE, id, name, displayName, description, created, updated);
         this.options = options;
+        this.allowMultiple = allowMultiple;
     }
 
     @Override
@@ -64,7 +70,8 @@ public class ChoiceAttributeDefinition extends AttributeDefinition {
                                              getDescription(),
                                              getCreated(),
                                              getUpdated(),
-                                             getOptions());
+                                             getOptions(),
+                                             isAllowMultiple());
     }
 
     @Override
@@ -75,6 +82,29 @@ public class ChoiceAttributeDefinition extends AttributeDefinition {
                                              description,
                                              getCreated(),
                                              getUpdated(),
-                                             getOptions());
+                                             getOptions(),
+                                             isAllowMultiple());
+    }
+
+    public AttributeDefinition withOptions(Set<String> options) {
+        return new ChoiceAttributeDefinition(getId(),
+                                             getName(),
+                                             getDisplayName(),
+                                             getDescription(),
+                                             getCreated(),
+                                             getUpdated(),
+                                             options,
+                                             isAllowMultiple());
+    }
+
+    public AttributeDefinition withAllowMultiple(boolean allowMultiple) {
+        return new ChoiceAttributeDefinition(getId(),
+                                             getName(),
+                                             getDisplayName(),
+                                             getDescription(),
+                                             getCreated(),
+                                             getUpdated(),
+                                             getOptions(),
+                                             allowMultiple);
     }
 }

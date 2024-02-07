@@ -16,10 +16,7 @@
 
 package io.appform.conductor.model.attributes.value;
 
-import io.appform.conductor.model.attributes.value.impl.ChoiceAttributeValue;
-import io.appform.conductor.model.attributes.value.impl.DateAttributeValue;
-import io.appform.conductor.model.attributes.value.impl.NumberAttributeValue;
-import io.appform.conductor.model.attributes.value.impl.StringAttributeValue;
+import io.appform.conductor.model.attributes.value.impl.*;
 
 /**
  *
@@ -33,4 +30,6 @@ public interface AttributeValueVisitor<T> {
     T visit(ChoiceAttributeValue choiceAttributeValue);
 
     T visit(DateAttributeValue dateAttributeValue);
+
+    T visit(LinkAttributeValue linkAttributeValue);
 }
