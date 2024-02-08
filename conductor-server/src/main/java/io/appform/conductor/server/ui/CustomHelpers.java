@@ -20,6 +20,9 @@ import com.github.jknack.handlebars.Options;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import io.appform.conductor.model.actions.ActionType;
+import io.appform.conductor.model.attributes.AttributeType;
+import io.appform.conductor.model.attributes.definition.AttributeDefinition;
+import io.appform.conductor.model.attributes.definition.impl.ChoiceAttributeDefinition;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.schema.fields.ChoiceFieldSchema;
@@ -92,6 +95,13 @@ public class CustomHelpers {
     }
 
     @SneakyThrows
+    public CharSequence attrTypeEquals(AttributeType lhs, String value, Options options) {
+        return AttributeType.valueOf(value).equals(lhs)
+               ? options.fn()
+               : options.inverse();
+    }
+
+    @SneakyThrows
     public <E extends Enum<E>> CharSequence eqEnum(final E lhs, final Object rhs, Options options) {
         return lhs != null && lhs.name().equals(rhs)
                ? options.fn()
@@ -124,6 +134,13 @@ public class CustomHelpers {
                 .stream()
                 .map(ChoiceFieldSchema.Option::getValue)
                 .collect(Collectors.joining(","));
+    }
+
+    public CharSequence choiceAttrValues(final AttributeDefinition choiceAttrDef) {
+        if(null == choiceAttrDef || choiceAttrDef.getType() != AttributeType.CHOICE) {
+            return null;
+        }
+        return Joiner.on(",").join(((ChoiceAttributeDefinition)choiceAttrDef).getOptions());
     }
 
     public String actionFragment(final ActionType type) {

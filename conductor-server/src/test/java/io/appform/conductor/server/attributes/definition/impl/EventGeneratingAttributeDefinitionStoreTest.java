@@ -77,7 +77,7 @@ class EventGeneratingAttributeDefinitionStoreTest {
                                strAttrDef)
                 .orElse(null);
         assertNotNull(saved);
-        assertTrue(saved instanceof StringAttributeDefinition);
+        assertInstanceOf(StringAttributeDefinition.class, saved);
         assertEquals(strAttrDef.getName(), saved.getName());
         assertEquals(strAttrDef.getMaxLength(), ((StringAttributeDefinition) saved).getMaxLength());
         assertEquals(strAttrDef.getPattern(), ((StringAttributeDefinition) saved).getPattern());

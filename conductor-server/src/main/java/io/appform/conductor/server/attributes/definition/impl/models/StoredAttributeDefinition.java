@@ -35,7 +35,10 @@ import java.util.Objects;
  *
  */
 @Entity
-@Table(name = StoredAttributeDefinition.ATTRIBUTE_DEFINITIONS_TABLE)
+@Table(name = StoredAttributeDefinition.ATTRIBUTE_DEFINITIONS_TABLE,
+    indexes = {
+        @Index(name = "idx_attr_def_scope_type", columnList = "scope_type")
+    })
 @DiscriminatorColumn(name = StoredAttributeDefinition.Fields.type)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Getter

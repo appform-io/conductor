@@ -120,7 +120,8 @@ public class DBAttributeDefinitionStore implements AttributeDefinitionStore {
                     public StoredAttributeDefinition visit(
                             StoredStringAttributeDefinition stringAttributeDefinition) {
                         if (definition instanceof StringAttributeDefinition strDef) {
-                            return stringAttributeDefinition.setPattern(strDef.getPattern())
+                            return stringAttributeDefinition
+                                    .setPattern(strDef.getPattern())
                                     .setMaxLength(strDef.getMaxLength());
                         }
                         throw new IllegalArgumentException(String.format(
@@ -135,7 +136,8 @@ public class DBAttributeDefinitionStore implements AttributeDefinitionStore {
                     public StoredAttributeDefinition visit(
                             StoredChoiceAttributeDefinition choiceAttributeDefinition) {
                         if (definition instanceof ChoiceAttributeDefinition choice) {
-                            return choiceAttributeDefinition.setOptions(choice.getOptions())
+                            return choiceAttributeDefinition
+                                    .setOptions(choice.getOptions())
                                     .setAllowMultiple(choice.isAllowMultiple());
                         }
                         throw new IllegalArgumentException(String.format(
@@ -150,7 +152,8 @@ public class DBAttributeDefinitionStore implements AttributeDefinitionStore {
                     public StoredAttributeDefinition visit(
                             StoredNumberAttributeDefinition numberAttributeDefinition) {
                         if (definition instanceof NumberAttributeDefinition numDef) {
-                            return numberAttributeDefinition.setMax(numDef.getMax())
+                            return numberAttributeDefinition
+                                    .setMax(numDef.getMax())
                                     .setMin(numDef.getMin());
                         }
                         throw new IllegalArgumentException(String.format(
@@ -227,7 +230,8 @@ public class DBAttributeDefinitionStore implements AttributeDefinitionStore {
                 })
                 .setId(definition.getId())
                 .setName(definition.getName())
-                .setDisplayName(definition.getDisplayName());
+                .setDisplayName(definition.getDisplayName())
+                .setDescription(definition.getDescription());
     }
 
     public static AttributeDefinition toWire(final StoredAttributeDefinition definition) {
