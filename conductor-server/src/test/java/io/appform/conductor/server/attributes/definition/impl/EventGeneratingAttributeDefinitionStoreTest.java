@@ -19,18 +19,23 @@ package io.appform.conductor.server.attributes.definition.impl;
 import com.google.common.collect.Sets;
 import io.appform.conductor.model.attributes.definition.AttributeDefinition;
 import io.appform.conductor.model.attributes.definition.impl.StringAttributeDefinition;
+import io.appform.conductor.model.events.EventType;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.HazelcastTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.attributes.definition.impl.models.StoredAttributeDefinition;
+import io.appform.conductor.server.eventmanagement.bus.SignalDrivenEventBus;
 import io.appform.conductor.server.hazelcast.HazelcastClient;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Comparator;
 import java.util.Objects;
+import java.util.TreeSet;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -43,15 +48,22 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @RelevantDBEntityPackages("io.appform.conductor.server.attributes.definition.impl.models")
 @ExtendWith({DBTestExtension.class, HazelcastTestExtension.class})
-class CachingAttributeDefinitionStoreTest {
+class EventGeneratingAttributeDefinitionStoreTest {
 
     @Test
     void testCRUD(
             final BalancedDBShardingBundle<TestConfig> bundle,
             final HazelcastClient hazelcastClient) {
-        val store = new CachingAttributeDefinitionStore(
-                new DBAttributeDefinitionStore(bundle.createRelatedObjectDao(StoredAttributeDefinition.class)),
-                hazelcastClient);
+        val eventBus = new SignalDrivenEventBus(Executors.newSingleThreadExecutor());
+        record EventData(EventType eventType, String referredObjectId) {}
+        val events = new TreeSet<EventData>(Comparator.comparing(EventData::eventType)
+                                                    .thenComparing(EventData::referredObjectId));
+        eventBus.register(event -> events.add(new EventData(event.getType(), event.getObjectId())));
+        val store = new EventGeneratingAttributeDefinitionStore(
+                eventBus,
+                new CachingAttributeDefinitionStore(
+                        new DBAttributeDefinitionStore(bundle.createRelatedObjectDao(StoredAttributeDefinition.class)),
+                        hazelcastClient));
         val strAttrDef = new StringAttributeDefinition("S1",
                                                        "StrAttr",
                                                        "String Attribute",
@@ -79,8 +91,8 @@ class CachingAttributeDefinitionStoreTest {
         assertEquals(updated, store.read(USER, updated.getId()).orElse(null));
         assertTrue(store.delete(USER, updated.getId()));
         assertNull(store.read(USER, updated.getId()).orElse(null));
-
-        val userAttrIds = IntStream.rangeClosed(1, 100)
+        assertTrue(events.contains(new EventData(EventType.ATTRIBUTE_DEFINITION_SAVED, "S1")));
+                val userAttrIds = IntStream.rangeClosed(1, 100)
                 .mapToObj(i -> new StringAttributeDefinition("USA" + i,
                                                              "StrAttr" + i,
                                                              "String Attribute " + i,
