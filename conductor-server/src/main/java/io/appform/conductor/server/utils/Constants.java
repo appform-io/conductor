@@ -24,7 +24,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class Constants {
 
-    public static final String CREATED_DATE_DEFINITION = "datetime(3) NOT NULL DEFAULT current_timestamp(3)";
+    public static final String CREATED_DATE_DEFINITION = "datetime(3) DEFAULT current_timestamp(3)";
     public static final String UPDATED_DATE_DEFINITION = "datetime(3) DEFAULT current_timestamp(3) ON UPDATE current_timestamp(3)";
     public static final int MAX_USER_ID_LENGTH = 127; // Derived from email
     public static final int MAX_GROUP_ID_LENGTH = 45; // Derived from name
