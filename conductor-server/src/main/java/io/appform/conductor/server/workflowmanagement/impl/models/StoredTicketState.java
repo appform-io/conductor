@@ -39,9 +39,6 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = StoredTicketState.WF_STATE_TABLE_NAME,
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_ext_id", columnNames = "ext_id")
-        },
         indexes = {
                 @Index(name = "idx_workflow_id", columnList = "workflow_id"),
         }
@@ -57,11 +54,8 @@ public class StoredTicketState implements Serializable {
     private static final long serialVersionUID = -4729081581755725993L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
-    @Column(name = "ext_id", nullable = false, unique = true, length = Constants.MAX_WORKFLOW_STATE_ID_LENGTH)
-    private String extId;
+    @Column(name = "state_id", nullable = false, unique = true, length = Constants.MAX_WORKFLOW_STATE_ID_LENGTH)
+    private String stateId;
 
     @Column(name = "display_name", length = Constants.MAX_WORKFLOW_STATE_NAME_LENGTH)
     private String displayName;
@@ -115,7 +109,7 @@ public class StoredTicketState implements Serializable {
             return false;
         }
         StoredTicketState that = (StoredTicketState) o;
-        return Objects.equals(getId(), that.getId());
+        return Objects.equals(getStateId(), that.getStateId());
     }
 
     @Override

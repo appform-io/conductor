@@ -39,9 +39,6 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = StoredSubjectID.SUBJECT_ID_TABLE_NAME,
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_external_id", columnNames = "external_id")
-        },
         indexes = {
                 @Index(name = "idx_sub_id", columnList = "id_type, id_value"),
                 @Index(name = "idx_sub_subtype_id", columnList = "id_type, sub_type, id_value"),
@@ -56,10 +53,7 @@ public class StoredSubjectID {
     public static final String SUBJECT_ID_TABLE_NAME = "subject_ids";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
-    @Column(name = "external_id", length = 255)
+    @Column(name = "external_id", unique = true, length = Constants.MAX_EXT_SUB_ID_LENGTH)
     private String extId;
 
     @Column(name = "id_type", nullable = false, length = 45)
@@ -102,7 +96,7 @@ public class StoredSubjectID {
             return false;
         }
         val that = (StoredSubjectID) o;
-        return Objects.equals(id, that.id);
+        return Objects.equals(extId, that.extId);
     }
 
     @Override

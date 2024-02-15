@@ -29,9 +29,9 @@ public class Constants {
     public static final int MAX_USER_ID_LENGTH = 127; // Derived from email
     public static final int MAX_GROUP_ID_LENGTH = 45; // Derived from name
     public static final int MAX_SESSION_ID_LENGTH = 45; //Generated ID
-    public static final int MAX_TICKET_ID_LENGTH = 45; //Generated ID
     public static final int MAX_ACTION_ID_LENGTH = 45; //Generated ID
-    public static final int MAX_ROLE_ID_LENGTH = 45; //Derived from name
+    public static final int MAX_TICKET_ID_LENGTH = 30; //Generated ID and used in other index as composite key
+    public static final int MAX_ROLE_ID_LENGTH = 30; //Generated ID and used in other index as composite key
     public static final int MAX_USER_ROLE_MAPPING_ID_LENGTH = MAX_ROLE_ID_LENGTH + MAX_USER_ID_LENGTH + 2 ; //Derived from userId, roleId
     public static final int MAX_DASHBOARD_ID_LENGTH = 45; //Derived from name
     public static final int MAX_REPORT_ID_LENGTH = 45;  //Derived from name
@@ -50,6 +50,7 @@ public class Constants {
     public static final int MAX_SKILL_VALUE_ID_LENGTH = MAX_SKILL_ID_LENGTH + MAX_SKILL_VALUE_LENGTH + 2; //Derived from skillId,value
     public static final int MAX_SKILL_ASSOCIATION_ID_LENGTH = MAX_USER_ID_LENGTH + MAX_SKILL_ID_LENGTH + MAX_SKILL_VALUE_ID_LENGTH + 3; //Derived from userId,skillId,valueId"
     public static final int MAX_SUBJECT_GLOBAL_ID_LENGTH = 45; // Generated ID
+    public static final int MAX_EXT_SUB_ID_LENGTH = 45; // Generated ID
     public static final int MAX_TASK_ID_LENGTH = 45; //Derived from name
     public static final int MAX_CQL_LENGTH = 4096;
     public static final int MAX_CRON_LENGTH = 45;

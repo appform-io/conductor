@@ -46,10 +46,7 @@ import java.util.Objects;
  * DB model for {@link io.appform.conductor.model.workflow.Workflow}
  */
 @Entity
-@Table(name = StoredWorkflow.WORKFLOW_TABLE_NAME,
-uniqueConstraints = {
-        @UniqueConstraint(name = "uk_workflow_id", columnNames = "workflow_id")
-})
+@Table(name = StoredWorkflow.WORKFLOW_TABLE_NAME)
 @Getter
 @Setter
 @FieldNameConstants
@@ -62,9 +59,6 @@ public class StoredWorkflow implements Serializable {
     private static final long serialVersionUID = 7284973411073899897L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
     @LookupKey
     @Column(name = "workflow_id", nullable = false, unique = true, length = Constants.MAX_WORKFLOW_ID_LENGTH)
     private String workflowId;
@@ -130,7 +124,7 @@ public class StoredWorkflow implements Serializable {
             return false;
         }
         StoredWorkflow that = (StoredWorkflow) o;
-        return Objects.equals(getId(), that.getId());
+        return Objects.equals(getWorkflowId(), that.getWorkflowId());
     }
 
     @Override

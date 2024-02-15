@@ -37,9 +37,6 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = StoredWorkflowSelectionRule.WF_SELECTION_RULE_TABLE_NAME,
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_ext_id", columnNames = "ext_id")
-        },
         indexes = {
                 @Index(name = "idx_workflow_id", columnList = "workflow_id"),
         }
@@ -54,11 +51,8 @@ public class StoredWorkflowSelectionRule implements Serializable {
     private static final long serialVersionUID = -4729081581755725993L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
-    @Column(name = "ext_id", nullable = false, unique = true, length = Constants.MAX_WORKFLOW_RULE_ID_LENGTH)
-    private String extId;
+    @Column(name = "workflow_rule_id", nullable = false, unique = true, length = Constants.MAX_WORKFLOW_RULE_ID_LENGTH)
+    private String workflowRuleId;
 
     @Column(name = "rule_type", length = 45)
     @Enumerated(EnumType.STRING)
@@ -90,7 +84,7 @@ public class StoredWorkflowSelectionRule implements Serializable {
             return false;
         }
         StoredWorkflowSelectionRule that = (StoredWorkflowSelectionRule) o;
-        return Objects.equals(getId(), that.getId());
+        return Objects.equals(getWorkflowRuleId(), that.getWorkflowRuleId());
     }
 
     @Override

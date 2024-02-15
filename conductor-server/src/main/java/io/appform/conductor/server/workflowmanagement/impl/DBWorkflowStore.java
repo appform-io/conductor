@@ -97,7 +97,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                    Integer.MAX_VALUE,
                                    (wf, states) -> wf.setStates(
                                            states.stream()
-                                                   .collect(Collectors.toMap(StoredTicketState::getExtId,
+                                                   .collect(Collectors.toMap(StoredTicketState::getStateId,
                                                                              DBWorkflowStore::toWire))))
                 .readAugmentParent(tstrnDao,
                                    createCriteria(StoredTicketStateTransition.class, workflowId),
@@ -114,7 +114,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                    Integer.MAX_VALUE,
                                    (wf, states) -> wf.setRules(
                                            states.stream()
-                                                   .collect(Collectors.toMap(StoredWorkflowSelectionRule::getExtId,
+                                                   .collect(Collectors.toMap(StoredWorkflowSelectionRule::getWorkflowRuleId,
                                                                              r -> new Rule(r.getRuleType(),
                                                                                            r.getRule())))))
                 .execute()
@@ -199,7 +199,7 @@ public class DBWorkflowStore implements WorkflowStore {
         val updated = wfDao.lockAndGetExecutor(workflowId)
                 .createOrUpdate(tsDao,
                                 createCriteria(StoredTicketState.class, workflowId, false)
-                                        .add(Property.forName(StoredTicketState.Fields.extId).eq(stateId)),
+                                        .add(Property.forName(StoredTicketState.Fields.stateId).eq(stateId)),
                                 existing -> existing
                                         .setDescription(description)
                                         .setTerminal(terminal)
@@ -211,7 +211,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                         .setDeleted(false),
                                 () -> new StoredTicketState()
                                         .setWorkflowId(workflowId)
-                                        .setExtId(stateId)
+                                        .setStateId(stateId)
                                         .setDisplayName(displayName)
                                         .setDescription(description)
                                         .setTerminal(terminal)
@@ -259,7 +259,7 @@ public class DBWorkflowStore implements WorkflowStore {
         val updated = wfDao.lockAndGetExecutor(workflowId)
                 .createOrUpdate(tstrnDao,
                                 createCriteria(StoredTicketStateTransition.class, workflowId, false)
-                                        .add(Property.forName(StoredTicketStateTransition.Fields.extId)
+                                        .add(Property.forName(StoredTicketStateTransition.Fields.transitionId)
                                                      .eq(transitionId)),
                                 existing -> existing
                                         .setType(type)
@@ -268,7 +268,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                         .setDeleted(false),
                                 () -> new StoredTicketStateTransition()
                                         .setWorkflowId(workflowId)
-                                        .setExtId(transitionId)
+                                        .setTransitionId(transitionId)
                                         .setFromState(from)
                                         .setToState(to)
                                         .setType(type)
@@ -290,7 +290,7 @@ public class DBWorkflowStore implements WorkflowStore {
                 .update(tstrnDao,
                         DetachedCriteria.forClass(StoredTicketStateTransition.class)
                                 .add(Property.forName(StoredTicketStateTransition.Fields.workflowId).eq(workflowId))
-                                .add(Property.forName(StoredTicketStateTransition.Fields.extId).eq(transitionId)),
+                                .add(Property.forName(StoredTicketStateTransition.Fields.transitionId).eq(transitionId)),
                         existing -> existing.setType(type)
                                 .setRule(rule)
                                 .setActionIds(actionIds),
@@ -336,7 +336,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                         .setRule(rule.getRule()),
                                 () -> new StoredWorkflowSelectionRule()
                                         .setWorkflowId(workflowId)
-                                        .setExtId(ruleId)
+                                        .setWorkflowRuleId(ruleId)
                                         .setRuleType(rule.getType())
                                         .setRule(rule.getRule()))
                 .execute() != null;
@@ -397,7 +397,7 @@ public class DBWorkflowStore implements WorkflowStore {
 
     private static TicketState toWire(final StoredTicketState state) {
         return new TicketState(
-                state.getExtId(),
+                state.getStateId(),
                 state.getDisplayName(),
                 state.getDescription(),
                 state.isTerminal(),
@@ -412,7 +412,7 @@ public class DBWorkflowStore implements WorkflowStore {
 
     private static TicketStateTransition toWire(final StoredTicketStateTransition transition) {
         return new TicketStateTransition(
-                transition.getExtId(),
+                transition.getTransitionId(),
                 transition.getFromState(),
                 transition.getToState(),
                 transition.getType(),
