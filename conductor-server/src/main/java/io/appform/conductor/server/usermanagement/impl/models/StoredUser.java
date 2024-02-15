@@ -57,7 +57,7 @@ public class StoredUser {
     @Column(name = "name", nullable = false, length = 127)
     private String name;
 
-    @Column(name = "email", unique = true, nullable = false, length = Constants.MAX_USER_ID_LENGTH)
+    @Column(name = "email", nullable = false, length = Constants.MAX_USER_ID_LENGTH)
     private String email;
 
     @Column(name = "state", length = 45)

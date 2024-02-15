@@ -39,6 +39,9 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = StoredSubjectID.SUBJECT_ID_TABLE_NAME,
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_external_id", columnNames = "external_id")
+        },
         indexes = {
                 @Index(name = "idx_sub_id", columnList = "id_type, id_value"),
                 @Index(name = "idx_sub_subtype_id", columnList = "id_type, sub_type, id_value"),
@@ -56,7 +59,7 @@ public class StoredSubjectID {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "external_id", unique = true, length = 255)
+    @Column(name = "external_id", length = 255)
     private String extId;
 
     @Column(name = "id_type", nullable = false, length = 45)
