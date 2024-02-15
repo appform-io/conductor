@@ -18,6 +18,8 @@ package io.appform.conductor.model.workflow;
 
 import lombok.Value;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -25,7 +27,10 @@ import java.util.List;
  * A defined state transition in a workflow
  */
 @Value
-public class TicketStateTransition {
+public class TicketStateTransition implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = -2915350815991345740L;
 
     /**
      * Behaviour of the state machine executor when it reaches this transition

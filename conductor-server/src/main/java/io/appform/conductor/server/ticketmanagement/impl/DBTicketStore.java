@@ -582,7 +582,7 @@ public class DBTicketStore implements TicketStore {
                     }
                     else {
                         criteria.add(
-                                Property.forName(StoredTicketSkeleton.Fields.assignedToGroupId).eq(
+                                Property.forName(StoredTicketSkeleton.Fields.assignedToUserId).eq(
                                         assignedToUser.getAssignedUserId()));
                     }
                 }

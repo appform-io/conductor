@@ -23,7 +23,7 @@ import io.appform.conductor.model.usermgmt.GroupType;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 /**
  * Storage layer for {@link Group} objects
@@ -34,8 +34,8 @@ public interface GroupStore {
     Optional<Group> read(String groupId);
 
     List<Group> read(List<String> groupIds);
-    Optional<Group> delete(String groupId);
-    Optional<Group> update(String groupId, Consumer<Group> handler);
+    boolean delete(String groupId);
+    Optional<Group> update(String groupId, UnaryOperator<Group> handler);
     boolean addUserToGroup(String groupId, String userId);
 
     boolean removeUserFromGroup(String groupId, String userId);

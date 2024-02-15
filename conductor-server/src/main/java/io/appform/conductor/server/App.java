@@ -17,7 +17,10 @@
 package io.appform.conductor.server;
 
 import com.google.inject.Stage;
+import io.appform.conductor.model.error.ConductorErrorCode;
+import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.server.config.AppConfig;
+import io.appform.conductor.server.id.IdGenerator;
 import io.appform.conductor.server.ui.HandlebarsViewRenderer;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
@@ -29,14 +32,18 @@ import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.server.AbstractServerFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import ru.vyarus.dropwizard.guice.GuiceBundle;
 import ru.vyarus.dropwizard.guice.module.installer.feature.health.HealthCheckInstaller;
 import ru.vyarus.guicey.gsp.ServerPagesBundle;
 
+import java.security.SecureRandom;
+
 /**
  * Main app for conductor
  */
+@Slf4j
 public class App extends Application<AppConfig> {
 
     @Override
@@ -76,11 +83,24 @@ public class App extends Application<AppConfig> {
         val serverFactory = (AbstractServerFactory) configuration.getServerFactory();
         serverFactory.setJerseyRootPath("/apis/*");
         serverFactory.setRegisterDefaultExceptionMappers(false);
+        IdGenerator.initialize(nodeId());
         FunctionMetricsManager.initialize("io.appform.conductor", environment.metrics());
     }
 
     public static void main(String[] args) throws Exception {
         val app = new App();
         app.run(args);
+    }
+
+    private int nodeId() {
+        try {
+            val nodeId = SecureRandom.getInstanceStrong().nextInt(1, 9999);
+            log.info("Node ID: {}", nodeId);
+            return nodeId;
+        } catch (Exception e) {
+            throw ConductorException.builder()
+                    .errorCode(ConductorErrorCode.UNHANDLED_SERVER_ERROR)
+                    .build();
+        }
     }
 }

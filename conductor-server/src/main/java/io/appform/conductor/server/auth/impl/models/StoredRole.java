@@ -28,6 +28,7 @@ import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.SQLDelete;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -46,6 +47,7 @@ import java.util.Set;
 @ToString
 @FieldNameConstants
 @NoArgsConstructor
+@SQLDelete(sql = "update roles set deleted=true where role_id=?")
 public class StoredRole implements Serializable {
     public static final String ROLES_TABLE_NAME = "roles";
 

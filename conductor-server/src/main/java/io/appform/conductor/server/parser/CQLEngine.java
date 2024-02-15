@@ -293,7 +293,7 @@ public class CQLEngine {
         val wf = workflowStore.read(workflowId).orElse(null);
         Preconditions.checkNotNull(wf, "Invalid workflow id");
         log.debug("Will proceed with workflow: {}", wf.getDisplayName());
-        val schema = schemaStore.get(wf.getSchemaId()).orElse(null);
+        val schema = schemaStore.read(wf.getSchemaId()).orElse(null);
         Preconditions.checkNotNull(schema, "Invalid schema for workflow " + workflowId);
         val fieldSchema = Objects.requireNonNullElse(schema.getFields(), List.<FieldSchema>of())
                 .stream()

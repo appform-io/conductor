@@ -17,23 +17,33 @@
 package io.appform.conductor.model.usermgmt;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Value;
+import lombok.With;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
 /**
  * A group of users in the system. Ticket routing will be done to groups or users.
  */
-@Data
+@Value
 @AllArgsConstructor
-public class Group {
-    private final String id;
-    private final String name;
-    private String description;
-    private GroupType type;
-    private Set<String> requiredSkills;
-    private boolean deleted;
-    private final Date created;
-    private final Date updated;
+public class Group implements Serializable {
+    @Serial
+    private static final long serialVersionUID = -7955764341889247005L;
+
+    String id;
+    String name;
+    @With
+    String description;
+    @With
+    GroupType type;
+    @With
+    Set<String> requiredSkills;
+    @With
+    boolean deleted;
+    Date created;
+    Date updated;
 }

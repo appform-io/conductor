@@ -35,13 +35,7 @@ public interface SessionStore {
 
     default boolean complete(String userId, String sessionId) {
         return update(userId, sessionId,
-                      userSessionDetails -> new UserSessionDetails(userSessionDetails.getId(),
-                                                                   userSessionDetails.getUserId(),
-                                                                   SessionState.COMPLETED,
-                                                                   userSessionDetails.getType(),
-                                                                   userSessionDetails.getExpiry(),
-                                                                   userSessionDetails.getCreated(),
-                                                                   userSessionDetails.getLastActive()))
+                      userSessionDetails -> userSessionDetails.withState(SessionState.COMPLETED))
                 .map(userSessionDetails -> userSessionDetails.getState().equals(SessionState.COMPLETED))
                 .orElse(false);
     }

@@ -1,9 +1,9 @@
 package io.appform.conductor.server.auth;
 
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.model.events.impl.user.UserRoleAssignedEvent;
 import io.appform.conductor.model.events.impl.user.UserRoleRevokedEvent;
+import io.appform.conductor.server.ConductorModule;
+import io.appform.conductor.server.eventmanagement.EventBus;
 import lombok.val;
 
 import javax.inject.Inject;
@@ -14,10 +14,12 @@ import java.util.Optional;
 @Singleton
 public class EventGeneratingUserRoleMappingStore implements UserRoleMappingStore {
     private final EventBus eventBus;
-    private final UserRoleMappingStore  userRoleMappingStore;
+    private final UserRoleMappingStore userRoleMappingStore;
 
     @Inject
-    public EventGeneratingUserRoleMappingStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) UserRoleMappingStore  userRoleMappingStore) {
+    public EventGeneratingUserRoleMappingStore(
+            EventBus eventBus,
+            @Named(ConductorModule.CACHED_IMPLEMENTATION_NAME) UserRoleMappingStore userRoleMappingStore) {
         this.eventBus = eventBus;
         this.userRoleMappingStore = userRoleMappingStore;
     }
@@ -25,7 +27,7 @@ public class EventGeneratingUserRoleMappingStore implements UserRoleMappingStore
     @Override
     public boolean assignRoleToUser(String userId, String roleId) {
         val res = userRoleMappingStore.assignRoleToUser(userId, roleId);
-        if(res) {
+        if (res) {
             eventBus.publish(new UserRoleAssignedEvent(userId, roleId));
         }
         return res;
@@ -34,7 +36,7 @@ public class EventGeneratingUserRoleMappingStore implements UserRoleMappingStore
     @Override
     public boolean revokeRoleFromUser(String userId, String roleId) {
         val res = userRoleMappingStore.revokeRoleFromUser(userId, roleId);
-        if(res) {
+        if (res) {
             eventBus.publish(new UserRoleRevokedEvent(userId, roleId));
         }
         return res;

@@ -18,6 +18,8 @@ package io.appform.conductor.model.schema;
 
 import lombok.Value;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -25,8 +27,10 @@ import java.util.List;
  * A representation for a ticket state
  */
 @Value
-public class TicketState {
+public class TicketState implements Serializable {
 
+    @Serial
+    private static final long serialVersionUID = 1588808322863041623L;
     /**
      * Global ID for the state
      */

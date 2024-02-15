@@ -40,7 +40,7 @@ public class EventGeneratingSkillStore implements SkillStore {
     private final SkillStore skillStore;
 
     @Inject
-    public EventGeneratingSkillStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) SkillStore skillStore) {
+    public EventGeneratingSkillStore(EventBus eventBus, @Named(ConductorModule.CACHED_IMPLEMENTATION_NAME) SkillStore skillStore) {
         this.eventBus = eventBus;
         this.skillStore = skillStore;
     }

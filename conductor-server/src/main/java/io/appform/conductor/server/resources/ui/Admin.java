@@ -17,7 +17,6 @@
 package io.appform.conductor.server.resources.ui;
 
 import io.appform.conductor.model.auth.Permission;
-import io.appform.conductor.model.auth.Role;
 import io.appform.conductor.model.usermgmt.GroupType;
 import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.server.auth.ConductorUser;
@@ -127,12 +126,8 @@ public class Admin {
             @FormParam("description") @Length(max = 255) final String description,
             @FormParam("permissions") @NotEmpty Set<Permission> permissions) {
         return roleStore.update(roleId,
-                                role -> new Role(roleId,
-                                                 role.getName(),
-                                                 description,
-                                                 permissions,
-                                                 role.getCreated(),
-                                                 role.getUpdated()))
+                                role -> role.withDescription(description)
+                                        .withPermissions(permissions))
                 .map(role -> redirect(ROLES_LIST_PATH))
                 .orElseThrow(() -> fail("Could not update role: " + roleId, ROLES_LIST_PATH));
     }

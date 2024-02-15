@@ -1,0 +1,289 @@
+{{#partial "page_css_includes"}}
+    <link href="/css/bootstrap-select.min.css" rel="stylesheet">
+{{/partial}}
+{{#partial "page_js_includes"}}
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+{{/partial}}
+{{#partial "content"}}
+    <section>
+        <div class="row mb-3">
+            <div class="col-auto"><h4>Manage attributes for: <b>{{readable scopeType}}s</b></h4></div>
+        </div>
+        <div class="row">
+            <div class="col-12 col-md-4">
+                <div class="row">
+                    <form method="post"
+                        {{#empty current}}
+                          action="/manage/attributes/{{scopeType}}"
+                        {{else}}
+                          action="/manage/attributes/{{scopeType}}/{{current.id}}"
+                        {{/empty}}>
+                        <div class="mb-3">
+                            <label for="name" class="col-form-label fw-bold">Attribute Name</label>
+                            <input type="text" id="name" name="name"
+                                   class="form-control border border-dark"
+                                   maxlength="45" placeholder="A name for the attribute"
+                                   pattern="[a-zA-Z0-9_]+"
+                                   aria-describedby="nameHelp" value="{{current.name}}"
+                                {{#empty current}}
+                                   required
+                                {{else}}
+                                   disabled
+                                {{/empty}}>
+                            <div id="nameHelp" class="form-text">Attribute Name to be used internally in queries etc.
+                                This is fixed once saved. Max length: 45.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="displayName" class="col-form-label fw-bold">Attribute Display Name</label>
+                            <input type="text" id="displayName" name="displayName"
+                                   class="form-control border border-dark"
+                                   maxlength="45" placeholder="Attribute Display Label"
+                                   aria-describedby="displayNameHelp" value="{{current.displayName}}">
+                            <div id="displayNameHelp" class="form-text">
+                                Attribute Name to be displayed on the form. If not set, this is automatically set to
+                                the name provided above. Max length: 45.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description"
+                                   class="col-form-label fw-bold">Description</label>
+                            <textarea id="description" name="description"
+                                      class="form-control border border-dark"
+                                      placeholder="A description for the attribute"
+                                      aria-describedby="descriptionHelp">{{current.description}}</textarea>
+                            <div id="descriptionHelp" class="form-text">Optional description for the attribute.
+                                Will be used as tooltip. Max length: 255.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="type"
+                                   class="col-form-label fw-bold">Type</label>
+                            {{#empty current}}
+                                <select class="form-control  border border-dark attr-type"
+                                        id="type" name="type" aria-describedby="typeHelp" required>
+                                    <option value="" disabled selected>Select data type</option>
+                                    {{#each attributeTypes}}
+                                        <option value="{{this}}"
+                                                {{#eq this current.type}}selected{{/eq}}>
+                                            {{readable this}}
+                                        </option>
+                                    {{/each}}
+                                </select>
+                                <div id="typeHelp" class="form-text">Select data type of attribute.</div>
+                            {{else}}
+                                <input type="text" class="form-control  border border-dark attr-type"
+                                       id="type" value="{{readable current.type}}"
+                                       aria-describedby="typeHelp" disabled>
+                                <div id="typeHelp" class="form-text">Data type of attribute. This can not be changed.</div>
+                            {{/empty}}
+                        </div>
+                        <div class="mb-3 attr-extra string-meta
+                                            {{#empty current}}
+                                                d-none
+                                            {{else}}
+                                                {{#attrTypeEquals current.type "STRING"}}
+                                                {{else}}
+                                                    d-none
+                                                {{/attrTypeEquals}}
+                                            {{/empty}}">
+                            <label for="stringMaxLength"
+                                   class="col-form-label fw-bold">Max Length</label>
+                            <input type="range"
+                                   id="stringMaxLength" name="stringMaxLength"
+                                   class="form-range pt-2" min="1" max="255" step="1"
+                                    {{#empty current}}
+                                       value="50"
+                                    {{else}}
+                                       value="{{current.maxLength}}"
+                                    {{/empty}}
+                                   style="width: 85%" aria-describedby="stringMaxLengthHelp"
+                                   oninput="this.nextElementSibling.value = this.value">
+                            <output class="ms-2">{{#empty current}}50{{else}}{{current.maxLength}}{{/empty}}</output>
+                            <div id="stringMaxLengthHelp" class="form-text">
+                                Maximum length of data in the string attribute
+                            </div>
+                        </div>
+                        <div class="mb-3 attr-extra string-meta
+                                            {{#empty current}}
+                                                d-none
+                                            {{else}}
+                                                {{#attrTypeEquals current.type "STRING"}}
+                                                {{else}}
+                                                    d-none
+                                                {{/attrTypeEquals}}
+                                            {{/empty}}">
+                            <label for="stringRegex"
+                                   class="col-form-label fw-bold">Regex</label>
+                            <input type="text"
+                                   id="stringRegex" name="stringRegex"
+                                   class="form-control border border-dark"
+                                   placeholder="Regular expression to be matched"
+                                   aria-describedby="stringRegexHelp"
+                                   value="{{current.pattern}}"
+                            >
+                            <div id="stringRegexHelp" class="form-text">
+                                HTML 5 regular expression for matching string attribute
+                            </div>
+                        </div>
+                        <div class="mb-3 attr-extra choice-meta
+                                        {{#empty current}}
+                                             d-none
+                                        {{else}}
+                                            {{#attrTypeEquals current.type "CHOICE"}}
+                                            {{else}}
+                                                d-none
+                                            {{/attrTypeEquals}}
+                                        {{/empty}}">
+                            <label for="choiceChoices"
+                                   class="col-form-label fw-bold">Choices</label>
+                            <input type="text"
+                                   id="choiceChoices" name="choiceChoices"
+                                   class="form-control border border-dark"
+                                   placeholder="Comma separated list of choices"
+                                   aria-describedby="choiceChoicesHelp"
+                                   value="{{choiceAttrValues current}}"
+                            >
+                            <div id="choiceChoicesHelp" class="form-text">
+                                Choice values that can be selected
+                            </div>
+                        </div>
+                        <div class="mb-3 attr-extra choice-meta form-check form-switch
+                                            {{#empty current}}
+                                                d-none
+                                            {{else}}
+                                                {{#attrTypeEquals current.type "CHOICE"}}
+                                                {{else}}
+                                                    d-none
+                                                {{/attrTypeEquals}}
+                                            {{/empty}}">
+                            <label for="choiceMulti"
+                                   class="form-check-label fw-bold">Allow selection of multiple values</label>
+                            <input id="choiceMulti" name="choiceMulti"
+                                   class="form-check-input border border-dark"
+                                   type="checkbox" role="switch"
+                                   value="true"
+                                {{#empty current}}
+                                {{else}}
+                                    {{#eq current.allowMultiple true}}checked{{/eq}}
+                                {{/empty}}>
+                        </div>
+                        <div class="mb-3 attr-extra number-meta
+                                            {{#empty current}}
+                                                d-none
+                                            {{else}}
+                                                {{#attrTypeEquals current.type "NUMBER"}}
+                                                {{else}}
+                                                    d-none
+                                                {{/attrTypeEquals}}
+                                            {{/empty}}">
+                            <label class="col-form-label fw-bold">Range</label>
+                            <input type="number"
+                                   id="numberMin" name="numberMin"
+                                   class="form-control col-6 border border-dark"
+                                   placeholder="Min" value="{{current.min}}"
+                                   aria-describedby="numberRangeHelp">
+                            <input type="number"
+                                   id="numberMax" name="numberMax"
+                                   class="form-control col-6 border border-dark"
+                                   placeholder="Max" value="{{current.max}}"
+                                   aria-describedby="numberRangeHelp">
+                            <div id="numberRangeHelp" class="form-text">
+                                Allowed range for number attribute
+                            </div>
+                        </div>
+                        <div class="mb-3 d-flex justify-content-center">
+                            <button type="submit" class="btn btn-outline-success mb-3">
+                                {{#empty current}}
+                                    <i class="bi bi-plus-lg"></i> Add Attribute
+                                {{else}}
+                                    <i class="bi bi-save"></i> Update Attribute
+                                {{/empty}}
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+            <div class="col-12 col-md-8">
+                <div class="row mb-1">
+                    <div class="col-6 col-md-10">
+                        <h5>Existing attributes</h5>
+                    </div>
+                    <div class="col-6 col-md-2 d-flex text-end justify-content-end">
+                        <a href="/manage/attributes/{{scopeType}}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-plus-lg">Create</i>
+                        </a>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 table-responsive">
+                        <table class="table table-bordered border-dark">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Display Name</th>
+                                <th>Description</th>
+                                <th>Type</th>
+                                <th>Multiple Allowed</th>
+                                <th>Last Updated</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{#each attrDefs}}
+                                <tr>
+                                    <td><a href="/manage/attributes/{{../scopeType}}/{{id}}">{{name}}</a></td>
+                                    <td>{{displayName}}</td>
+                                    <td>{{description}}</td>
+                                    <td
+                                        {{#eqEnum type "STRING"}}
+                                        title="Max Length: {{maxLength}}. Regex: {{matchPattern}}"
+                                        {{/eqEnum}}
+                                        {{#eqEnum type "NUMBER"}}
+                                        title="Max: {{max}}. Min: {{min}}"
+                                        {{/eqEnum}}
+                                        {{#eqEnum type "CHOICE"}}
+                                        title="Choices: {{#each options}}{{this.value}} {{/each}} Multi Select: {{allowMultiple}}"
+                                        {{/eqEnum}}
+                                    >{{readable type}}</td>
+                                    <td>
+                                        {{#if allowMultiple eq true}}
+                                            <span class="badge bg-info ms-2">Multiple</span>
+                                        {{else}}
+                                            <span class="badge bg-secondary ms-2">NA</span>
+                                        {{/if}}</td>
+                                    <td>{{updated}}</td>
+                                    <td>
+                                        <form class="confirmed-form" method="post"
+                                              action="/manage/attributes/{{../scopeType}}/{{id}}/delete"
+                                              data-cnf-title="Deleting attribute {{name}}"
+                                              data-cnf-text="Are you sure you want to delete this attribute?">
+                                            <button type="submit" class="btn btn-link p-0 text-danger"><i
+                                                    class="bi bi-trash-fill"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{{/partial}}
+
+{{#partial "page_js"}}
+    $('#type').change(function() {
+        const type = $(this).val().toLowerCase();
+        $('.attr-extra').each(function() {
+            $(this).addClass('d-none');
+        });
+
+        $('.' + type + '-meta').each(function() {
+            $(this).removeClass('d-none');
+        });
+    });
+{{/partial}}
+{{> common/base}}

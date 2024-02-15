@@ -32,5 +32,8 @@ public enum ReferredObjectType {
 
     TASK,
     DASHBOARD,
-    REPORT
+    REPORT,
+
+    ATTRIBUTE_DEFINITION,
+    ATTRIBUTE_VALUE
 }

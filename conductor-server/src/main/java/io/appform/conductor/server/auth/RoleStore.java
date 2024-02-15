@@ -38,8 +38,6 @@ public interface RoleStore {
 
     List<Role> list();
 
-    Set<Permission> permissionsForRoles(Collection<String> roleIds);
-
     Optional<Role> update(String roleId, UnaryOperator<Role> handler);
 
     boolean delete(String roleId);

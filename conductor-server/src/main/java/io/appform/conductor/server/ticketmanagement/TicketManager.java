@@ -52,6 +52,7 @@ import io.appform.conductor.model.workflow.TicketStateTransition;
 import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.server.actionmanagement.ActionExecutor;
 import io.appform.conductor.server.actionmanagement.ActionStore;
+import io.appform.conductor.server.id.IdGenerator;
 import io.appform.conductor.server.ruleengines.RuleEngine;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.subjectmanagement.SubjectStore;
@@ -452,7 +453,7 @@ public class TicketManager {
                         .build());
 
         val schemaId = workflow.getSchemaId();
-        val schema = schemaStore.get(schemaId)
+        val schema = schemaStore.read(schemaId)
                 .orElseThrow(() -> ConductorException.builder()
                         .errorCode(ConductorErrorCode.TICKET_MGMT_NO_SCHEMA)
                         .context(Map.of(WORKFLOW_ID, workflowId,
@@ -462,7 +463,7 @@ public class TicketManager {
         val ticketDetails = ticketDetails(ticket, workflow, subject.getSummary());
 
         //validate action
-        /*val ticketState = ticketDetails.getSummary().getTicketState();
+        /*val ticketState = ticketDetails.get().getTicketState();
         if (ticketState.getVisibleActions().stream()
                 .noneMatch(eligibleAction -> eligibleAction.equals(actionId))) {
             throw ConductorException.builder()
@@ -811,7 +812,7 @@ public class TicketManager {
                 ticketStateMachineContext.getFieldMappingResult().getData(),
                 List.<TicketFieldData>of());
         validateTicketFieldUpdate(startState, editedFields);
-        ticketStore.create(UUID.randomUUID().toString(),
+        ticketStore.create(IdGenerator.generate("T").getId(),
                            title(metaDataFetchStrategy, payload, ticketStateMachineContext),
                            description(metaDataFetchStrategy, payload, ticketStateMachineContext),
                            workflow.getId(),
@@ -934,7 +935,7 @@ public class TicketManager {
     private Schema schemaFromWorkflow(Workflow workflow) {
         val workflowId = workflow.getId();
         val schemaId = workflow.getSchemaId();
-        val schema = schemaStore.get(schemaId).orElse(null);
+        val schema = schemaStore.read(schemaId).orElse(null);
         ConductorServerUtils.ensureNonNull(schema, ConductorErrorCode.TICKET_MGMT_NO_SCHEMA,
                                            Map.of(WORKFLOW_ID, workflowId,
                                                   SCHEMA_ID, schemaId));
@@ -986,7 +987,7 @@ public class TicketManager {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(Workflow::getSchemaId)
-                .map(schemaStore::get)
+                .map(schemaStore::read)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(Schema::getFields)

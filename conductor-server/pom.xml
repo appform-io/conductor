@@ -41,6 +41,7 @@
 
         <commons-csv.version>1.10.0</commons-csv.version>
         <cronutils.version>9.2.0</cronutils.version>
+        <hazelcast.version>5.3.6</hazelcast.version>
     </properties>
 
     <dependencies>
@@ -192,6 +193,16 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
             <version>${commons-csv.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+            <version>${hazelcast.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.cache</groupId>
+            <artifactId>cache-api</artifactId>
+            <version>1.1.1</version>
         </dependency>
         <dependency>
             <groupId>com.cronutils</groupId>

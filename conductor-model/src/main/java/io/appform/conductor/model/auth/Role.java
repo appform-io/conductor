@@ -17,7 +17,10 @@
 package io.appform.conductor.model.auth;
 
 import lombok.Value;
+import lombok.With;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
@@ -25,10 +28,15 @@ import java.util.Set;
  * A role is a logical collection of permissions that can be assigned to a user
  */
 @Value
-public class Role {
+public class Role implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 8350544020286268127L;
+
     String id;
     String name;
+    @With
     String description;
+    @With
     Set<Permission> permissions;
     Date created;
     Date updated;

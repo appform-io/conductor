@@ -85,6 +85,7 @@ public enum EventType {
     TICKET_CREATED,
     TICKET_UPDATED,
     TICKET_USER_ASSIGNED,
+    TICKET_USER_UNASSIGNED,
     TICKET_GROUP_ASSIGNED,
     TICKET_EXTERNAL_REFERENCE_ID_UPDATED,
     TICKET_FIELDS_UPDATED,
@@ -98,6 +99,11 @@ public enum EventType {
     REPORT_DELETED,
     TASK_CREATED,
     TASK_UPDATED,
-    TASK_DELETED;
+    TASK_DELETED,
+
+    ATTRIBUTE_DEFINITION_SAVED,
+    ATTRIBUTE_DEFINITION_DELETED,
+
+    ;
     public static final Set<EventType> ALL = EnumSet.allOf(EventType.class);
 }

@@ -61,7 +61,7 @@ public class WorkflowManager {
             final Template titleTemplate,
             final Template descriptionTemplate,
             final Template subjectIdTemplate) {
-        val schema = schemaStore.get(schemaId)
+        val schema = schemaStore.read(schemaId)
                 .filter(s -> s.getState().equals(SchemaState.ACTIVE))
                 .orElse(null);
         ConductorServerUtils.notNull(schema,
@@ -401,7 +401,7 @@ public class WorkflowManager {
                         .context(Map.of("id", workflowId))
                         .build());
         val schemaId = workflow.getSchemaId();
-        val schema = schemaStore.get(schemaId)
+        val schema = schemaStore.read(schemaId)
                 .orElseThrow(() -> ConductorException.builder()
                         .errorCode(ConductorErrorCode.SCHEMA_ERROR_INVALID_ID)
                         .context(Map.of("id", schemaId))
@@ -476,7 +476,7 @@ public class WorkflowManager {
 
     private ImportResult<Schema> importSchema(Schema inSchema) {
         val schemaId = inSchema.getId();
-        val existingSchema = schemaStore.get(schemaId);
+        val existingSchema = schemaStore.read(schemaId);
 
         //Check schema, if already active
         if(existingSchema.filter(schema -> schema.getState() == SchemaState.ACTIVE).isPresent()) {
@@ -501,7 +501,7 @@ public class WorkflowManager {
                                     .orElseThrow());
                     return schemaSummary;
                 })
-                .flatMap(schemaSummary -> schemaStore.get(schemaSummary.getId()))
+                .flatMap(schemaSummary -> schemaStore.read(schemaSummary.getId()))
                 .map(schema -> new ImportResult<>(schema, true, null))
                 .orElse(new ImportResult<>(inSchema, false, ConductorErrorCode.STORE_WRITE_ERROR.name()));
     }

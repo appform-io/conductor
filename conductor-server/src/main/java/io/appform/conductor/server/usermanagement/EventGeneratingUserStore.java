@@ -23,7 +23,7 @@ public class EventGeneratingUserStore implements UserStore {
     private final UserStore userStore;
 
     @Inject
-    public EventGeneratingUserStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) UserStore userStore) {
+    public EventGeneratingUserStore(EventBus eventBus, @Named(ConductorModule.CACHED_IMPLEMENTATION_NAME) UserStore userStore) {
         this.eventBus = eventBus;
         this.userStore = userStore;
     }

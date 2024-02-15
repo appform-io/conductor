@@ -25,10 +25,17 @@ import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.actionmanagement.EventGeneratingActionStore;
 import io.appform.conductor.server.actionmanagement.impl.DBActionStore;
 import io.appform.conductor.server.actionmanagement.impl.models.StoredAction;
+import io.appform.conductor.server.attributes.definition.AttributeDefinitionStore;
+import io.appform.conductor.server.attributes.definition.impl.CachingAttributeDefinitionStore;
+import io.appform.conductor.server.attributes.definition.impl.DBAttributeDefinitionStore;
+import io.appform.conductor.server.attributes.definition.impl.EventGeneratingAttributeDefinitionStore;
+import io.appform.conductor.server.attributes.definition.impl.models.StoredAttributeDefinition;
 import io.appform.conductor.server.auth.EventGeneratingRoleStore;
 import io.appform.conductor.server.auth.EventGeneratingUserRoleMappingStore;
 import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserRoleMappingStore;
+import io.appform.conductor.server.auth.impl.CachingRoleStore;
+import io.appform.conductor.server.auth.impl.CachingUserRoleMappingStore;
 import io.appform.conductor.server.auth.impl.DBRoleStore;
 import io.appform.conductor.server.auth.impl.DBUserRoleMappingStore;
 import io.appform.conductor.server.auth.impl.models.StoredRole;
@@ -36,6 +43,8 @@ import io.appform.conductor.server.auth.impl.models.StoredUserRoleMapping;
 import io.appform.conductor.server.config.AppConfig;
 import io.appform.conductor.server.config.AuthConfig;
 import io.appform.conductor.server.config.MailConfig;
+import io.appform.conductor.server.config.hz.ClusterConfig;
+import io.appform.conductor.server.config.hz.SimpleClusterDiscoveryConfig;
 import io.appform.conductor.server.dashboards.DashboardStore;
 import io.appform.conductor.server.dashboards.impl.DBDashboardStore;
 import io.appform.conductor.server.dashboards.impl.model.StoredDashboard;
@@ -52,6 +61,7 @@ import io.appform.conductor.server.reporting.impl.DBReportStore;
 import io.appform.conductor.server.reporting.impl.models.StoredReport;
 import io.appform.conductor.server.reporting.impl.models.StoredReportContext;
 import io.appform.conductor.server.reporting.impl.models.StoredReportRun;
+import io.appform.conductor.server.schemamanagement.impl.CachingSchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.DBSchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.EventGeneratingSchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
@@ -59,6 +69,7 @@ import io.appform.conductor.server.schemamanagement.impl.models.StoredFieldSchem
 import io.appform.conductor.server.schemamanagement.impl.models.StoredSchemaSummary;
 import io.appform.conductor.server.skillmanagement.EventGeneratingSkillStore;
 import io.appform.conductor.server.skillmanagement.SkillStore;
+import io.appform.conductor.server.skillmanagement.impl.CachingSkillStore;
 import io.appform.conductor.server.skillmanagement.impl.DBSkillStore;
 import io.appform.conductor.server.skillmanagement.impl.models.StoredSkillDefinition;
 import io.appform.conductor.server.skillmanagement.impl.models.StoredSkillValue;
@@ -86,7 +97,8 @@ import io.appform.conductor.server.usermanagement.impl.*;
 import io.appform.conductor.server.usermanagement.impl.models.*;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.utils.dev.IgnoreGenerated;
-import io.appform.conductor.server.workflowmanagement.EventGeneratingWorkflowStore;
+import io.appform.conductor.server.workflowmanagement.impl.CachingWorkflowStore;
+import io.appform.conductor.server.workflowmanagement.impl.EventGeneratingWorkflowStore;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.appform.conductor.server.workflowmanagement.impl.DBWorkflowStore;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketState;
@@ -105,6 +117,9 @@ import org.reflections.Reflections;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import java.net.Inet4Address;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
 import static org.reflections.Reflections.log;
@@ -117,6 +132,7 @@ import static org.reflections.Reflections.log;
 @SuppressWarnings("unused")
 public class ConductorModule extends AbstractModule {
     public static final String ROOT_IMPLEMENTATION_NAME = "root";
+    public static final String CACHED_IMPLEMENTATION_NAME = "cached";
     public static final String BACKGROUND_JOBS_POOL_NAME = "backgroundJobsPool";
 
     private final BalancedDBShardingBundle<AppConfig> dbBundle;
@@ -125,27 +141,37 @@ public class ConductorModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(UserStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBUserStore.class);
+        bind(UserStore.class).annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME)).to(CachingUserStore.class);
         bind(UserStore.class).to(EventGeneratingUserStore.class);
 
         bind(GroupStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBGroupStore.class);
+        bind(GroupStore.class).annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME)).to(CachingGroupStore.class);
         bind(GroupStore.class).to(EventGeneratingGroupStore.class);
 
         bind(SessionStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBSessionStore.class);
+        bind(SessionStore.class).annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME)).to(CachingSessionStore.class);
         bind(SessionStore.class).to(EventGeneratingSessionStore.class);
 
-        bind(UserActivationTokenStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBUserActivationTokenStore.class);
+        bind(UserActivationTokenStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(
+                DBUserActivationTokenStore.class);
         bind(UserActivationTokenStore.class).to(EventGeneratingUserActivationTokenStore.class);
 
-        bind(UserPasswordAuthStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBUserPasswordAuthStore.class);
+        bind(UserPasswordAuthStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(
+                DBUserPasswordAuthStore.class);
         bind(UserPasswordAuthStore.class).to(EventGeneratingUserPasswordAuthStore.class);
 
         bind(RoleStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBRoleStore.class);
+        bind(RoleStore.class).annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME)).to(CachingRoleStore.class);
         bind(RoleStore.class).to(EventGeneratingRoleStore.class);
 
-        bind(UserRoleMappingStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBUserRoleMappingStore.class);
+        bind(UserRoleMappingStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME))
+                .to(DBUserRoleMappingStore.class);
+        bind(UserRoleMappingStore.class).annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME))
+                .to(CachingUserRoleMappingStore.class);
         bind(UserRoleMappingStore.class).to(EventGeneratingUserRoleMappingStore.class);
 
         bind(SkillStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBSkillStore.class);
+        bind(SkillStore.class).annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME)).to(CachingSkillStore.class);
         bind(SkillStore.class).to(EventGeneratingSkillStore.class);
 
         bind(SubjectStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBSubjectStore.class);
@@ -155,9 +181,11 @@ public class ConductorModule extends AbstractModule {
         bind(ActionStore.class).to(EventGeneratingActionStore.class);
 
         bind(SchemaStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBSchemaStore.class);
+        bind(SchemaStore.class).annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME)).to(CachingSchemaStore.class);
         bind(SchemaStore.class).to(EventGeneratingSchemaStore.class);
 
         bind(WorkflowStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBWorkflowStore.class);
+        bind(WorkflowStore.class).annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME)).to(CachingWorkflowStore.class);
         bind(WorkflowStore.class).to(EventGeneratingWorkflowStore.class);
 
         bind(TicketStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBTicketStore.class);
@@ -168,7 +196,15 @@ public class ConductorModule extends AbstractModule {
 
         bind(ReportStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBReportStore.class);
         bind(ReportStore.class).to(EventGeneratingReportStore.class);
-        bind(DashboardStore.class).to(DBDashboardStore.class); //TODO::EVENTS
+        bind(DashboardStore.class).to(DBDashboardStore.class);
+
+        bind(AttributeDefinitionStore.class)
+                .annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME))
+                .to(DBAttributeDefinitionStore.class);
+        bind(AttributeDefinitionStore.class)
+                .annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME))
+                .to(CachingAttributeDefinitionStore.class);
+        bind(AttributeDefinitionStore.class).to(EventGeneratingAttributeDefinitionStore.class);
 
         bind(EventStore.class).to(DBEventStore.class);
 
@@ -400,6 +436,12 @@ public class ConductorModule extends AbstractModule {
 
     @Provides
     @Singleton
+    public RelationalDao<StoredAttributeDefinition> attributeDefinitionDao() {
+        return dbBundle.createRelatedObjectDao(StoredAttributeDefinition.class);
+    }
+
+    @Provides
+    @Singleton
     public RelationalDao<StoredEvent> eventDao() {
         return dbBundle.createRelatedObjectDao(StoredEvent.class);
     }
@@ -416,10 +458,21 @@ public class ConductorModule extends AbstractModule {
         val handlers = reflections.getTypesAnnotatedWith(EventHandlerImplementation.class);
         val eventBus = injector.getInstance(SignalDrivenEventBus.class);
         handlers.forEach(handlerClass -> {
-            val handler = (EventHandler)injector.getInstance(handlerClass);
+            val handler = (EventHandler) injector.getInstance(handlerClass);
             eventBus.register(handler);
             log.info("Registered event handler: {}", handlerClass.getSimpleName());
         });
         return eventBus;
+    }
+
+    @Provides
+    @Singleton
+    public ClusterConfig clusterConfig(final AppConfig appConfig) {
+        val config = Objects.requireNonNullElse(appConfig.getCluster(), new ClusterConfig().setName("conductor"));
+        val discoveryConfig = Objects.requireNonNullElse(config.getDiscovery(),
+                                                         new SimpleClusterDiscoveryConfig()
+                                                                 .setMembers(List.of(Inet4Address.getLoopbackAddress()
+                                                                                             .getHostName())));
+        return config.setDiscovery(discoveryConfig);
     }
 }

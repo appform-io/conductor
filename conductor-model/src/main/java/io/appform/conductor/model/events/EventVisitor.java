@@ -16,6 +16,8 @@
 
 package io.appform.conductor.model.events;
 
+import io.appform.conductor.model.events.impl.attributes.AttributeDefinitionDeletedEvent;
+import io.appform.conductor.model.events.impl.attributes.AttributeDefinitionSavedEvent;
 import io.appform.conductor.model.events.impl.reporting.ReportCreatedEvent;
 import io.appform.conductor.model.events.impl.reporting.ReportDeletedEvent;
 import io.appform.conductor.model.events.impl.reporting.ReportStateUpdatedEvent;
@@ -195,4 +197,10 @@ public interface EventVisitor<T> {
     T visit(TaskDeletedEvent taskDeletedEvent);
 
     T visit(TaskUpdatedEvent taskUpdatedEvent);
+
+    T visit(TicketUserUnassignedEvent ticketUserUnassignedEvent);
+
+    T visit(AttributeDefinitionSavedEvent attributeDefinitionSavedEvent);
+
+    T visit(AttributeDefinitionDeletedEvent attributeDefinitionDeletedEvent);
 }

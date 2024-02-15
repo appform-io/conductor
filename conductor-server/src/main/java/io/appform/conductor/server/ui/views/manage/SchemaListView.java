@@ -16,10 +16,10 @@
 
 package io.appform.conductor.server.ui.views.manage;
 
-import io.appform.conductor.model.schema.SchemaSummary;
-import io.appform.conductor.model.usermgmt.User;
-import io.appform.conductor.model.events.impl.ReferredObjectType;
 import io.appform.conductor.model.events.analytics.ObjectReference;
+import io.appform.conductor.model.events.impl.ReferredObjectType;
+import io.appform.conductor.model.schema.Schema;
+import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -34,9 +34,9 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class SchemaListView extends BaseLoggedInView {
-    List<SchemaSummary> schemas;
+    List<Schema> schemas;
 
-    public SchemaListView(User currentUser, List<SchemaSummary> schemas) {
+    public SchemaListView(User currentUser, List<Schema> schemas) {
         super("templates/manage/schema-list.hbs", currentUser, new ObjectReference(ReferredObjectType.SCHEMA, null));
         this.schemas = schemas;
     }

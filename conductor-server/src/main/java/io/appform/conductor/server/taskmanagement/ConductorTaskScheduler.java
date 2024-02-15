@@ -27,6 +27,7 @@ import io.appform.kaal.KaalTaskRunIdGenerator;
 import io.dropwizard.lifecycle.Managed;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -41,6 +42,7 @@ import java.util.function.UnaryOperator;
  */
 @Slf4j
 @Singleton
+@Order(100)
 public class ConductorTaskScheduler implements Managed {
 
     private final RunActionOnSelectedTicketsExecutor runActionOnSelectedTicketsExecutor;
@@ -144,10 +146,11 @@ public class ConductorTaskScheduler implements Managed {
             }
             if (task.getState().equals(TaskState.PAUSED)) {
                 log.info("Task {} skipped as it is paused", taskId);
+                return new TaskResult(TaskStatus.SKIPPED, task, task.getTaskMeta());
             }
             log.info("Running task: {}", taskId);
             return task.getSpec()
-                    .accept(new TaskSpecVisitor<TaskResult>() {
+                    .accept(new TaskSpecVisitor<>() {
                         @Override
                         public TaskResult visit(RunActionOnSelectedTicketsTaskSpec runActionOnSelectedTicketsTaskSpec) {
                             return scheduler.runActionOnSelectedTicketsExecutor

@@ -16,7 +16,7 @@
 
 package io.appform.conductor.server.ui.views.manage;
 
-import io.appform.conductor.model.schema.SchemaSummary;
+import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
@@ -32,9 +32,9 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class WorkflowCreateView extends BaseLoggedInView {
-    List<SchemaSummary> schemas;
+    List<Schema> schemas;
 
-    public WorkflowCreateView(User currentUser, List<SchemaSummary> schemas) {
+    public WorkflowCreateView(User currentUser, List<Schema> schemas) {
         super("templates/manage/workflow-create.hbs", currentUser);
         this.schemas = schemas;
     }

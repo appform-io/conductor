@@ -27,6 +27,7 @@ import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.proxy.HibernateProxy;
 
 import javax.persistence.*;
@@ -44,6 +45,7 @@ import java.util.Set;
 @ToString
 @NoArgsConstructor
 @FieldNameConstants
+@SQLDelete(sql = "update user_groups set deleted=true where group_id=?")
 public class StoredGroup {
     public static final String GROUP_TABLE_NAME = "user_groups";
 

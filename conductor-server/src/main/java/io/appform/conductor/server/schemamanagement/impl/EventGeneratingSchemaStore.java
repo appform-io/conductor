@@ -3,7 +3,6 @@ package io.appform.conductor.server.schemamanagement.impl;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
-import io.appform.conductor.model.schema.SchemaSummary;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.model.events.impl.schema.*;
@@ -21,35 +20,30 @@ public class EventGeneratingSchemaStore implements SchemaStore {
     private final SchemaStore schemaStore;
 
     @Inject
-    public EventGeneratingSchemaStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) SchemaStore schemaStore) {
+    public EventGeneratingSchemaStore(EventBus eventBus, @Named(ConductorModule.CACHED_IMPLEMENTATION_NAME) SchemaStore schemaStore) {
         this.eventBus = eventBus;
         this.schemaStore = schemaStore;
     }
 
     @Override
-    public Optional<SchemaSummary> create(String name, String description) {
+    public Optional<Schema> create(String name, String description) {
         val res = schemaStore.create(name, description);
         res.ifPresent(schemaSummary -> eventBus.publish(new SchemaCreatedEvent(schemaSummary.getId())));
         return res;
     }
 
     @Override
-    public Optional<SchemaSummary> getSummary(String schemaId) {
-        return schemaStore.getSummary(schemaId);
+    public Optional<Schema> read(String schemaId) {
+        return schemaStore.read(schemaId);
     }
 
     @Override
-    public Optional<Schema> get(String schemaId) {
-        return schemaStore.get(schemaId);
-    }
-
-    @Override
-    public List<SchemaSummary> list() {
+    public List<Schema> list() {
         return schemaStore.list();
     }
 
     @Override
-    public Optional<SchemaSummary> updateDescription(String schemaId, String description) {
+    public Optional<Schema> updateDescription(String schemaId, String description) {
         val res = schemaStore.updateDescription(schemaId, description);
         res.filter(schemaSummary -> schemaSummary.getDescription().equals(description))
                 .ifPresent(schemaSummary -> eventBus.publish(new SchemaDescriptionUpdatedEvent(schemaSummary.getId(),
@@ -58,7 +52,7 @@ public class EventGeneratingSchemaStore implements SchemaStore {
     }
 
     @Override
-    public Optional<SchemaSummary> updateState(String schemaId, SchemaState state) {
+    public Optional<Schema> updateState(String schemaId, SchemaState state) {
         val res = schemaStore.updateState(schemaId, state);
         res.filter(schemaSummary -> schemaSummary.getState() == state)
                 .ifPresent(schemaSummary -> eventBus.publish(new SchemaStateUpdatedEvent(schemaSummary.getId(),

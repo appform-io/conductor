@@ -18,6 +18,8 @@ package io.appform.conductor.model.schema;
 
 import lombok.Value;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -25,7 +27,10 @@ import java.util.List;
  * Schema details for a ticket workflow
  */
 @Value
-public class Schema {
+public class Schema implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 5928157545700626066L;
     /**
      * Globally unique id of the schema
      */

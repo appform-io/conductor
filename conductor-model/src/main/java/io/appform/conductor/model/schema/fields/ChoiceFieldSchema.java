@@ -23,6 +23,8 @@ import io.appform.conductor.model.workflow.Rule;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -39,7 +41,9 @@ public class ChoiceFieldSchema extends FieldSchema {
      * List of available choices
      */
     @Value
-    public static class Option {
+    public static class Option implements Serializable {
+        @Serial
+        private static final long serialVersionUID = 2096749592038840336L;
         String value;
         String displayText;
     }

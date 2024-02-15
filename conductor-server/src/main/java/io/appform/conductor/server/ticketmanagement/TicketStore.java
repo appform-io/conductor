@@ -111,7 +111,7 @@ public interface TicketStore {
 
     default Optional<TicketSkeleton> assignToUser(
             final String ticketId,
-            @NonNull final String userId) {
+            final String userId) {
         return update(ticketId,
                       ticket -> ticket.setAssignedToUserId(userId),
                         List.of());

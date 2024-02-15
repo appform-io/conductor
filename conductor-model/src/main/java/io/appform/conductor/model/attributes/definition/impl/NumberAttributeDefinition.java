@@ -1,0 +1,109 @@
+/*
+ * Copyright (c) 2024 santanu
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package io.appform.conductor.model.attributes.definition.impl;
+
+import io.appform.conductor.model.attributes.AttributeType;
+import io.appform.conductor.model.attributes.definition.AttributeDefinition;
+import io.appform.conductor.model.attributes.definition.AttributeDefinitionVisitor;
+import lombok.*;
+import lombok.extern.jackson.Jacksonized;
+
+import java.io.Serial;
+import java.util.Date;
+
+/**
+ *
+ */
+@Value
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class NumberAttributeDefinition extends AttributeDefinition {
+
+    @Serial
+    private static final long serialVersionUID = -3415435555321930553L;
+
+    double max;
+
+    double min;
+
+
+    @Jacksonized
+    @Builder
+    public NumberAttributeDefinition(
+            String id,
+            String name,
+            String displayName,
+            String description,
+            Date created,
+            Date updated,
+            double max,
+            double min) {
+        super(AttributeType.NUMBER, id, name, displayName, description, created, updated);
+        this.max = max;
+        this.min = min;
+    }
+
+    @Override
+    public <T> T accept(AttributeDefinitionVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
+    @Override
+    public NumberAttributeDefinition withDisplayName(String displayName) {
+        return new NumberAttributeDefinition(getId(),
+                                             getName(),
+                                             displayName,
+                                             getDescription(),
+                                             getCreated(),
+                                             getUpdated(),
+                                             getMax(),
+                                             getMin());
+    }
+
+    @Override
+    public AttributeDefinition withDescription(String description) {
+        return new NumberAttributeDefinition(getId(),
+                                             getName(),
+                                             getDisplayName(),
+                                             description,
+                                             getCreated(),
+                                             getUpdated(),
+                                             getMax(),
+                                             getMin());
+    }
+
+    public AttributeDefinition withMax(double max) {
+        return new NumberAttributeDefinition(getId(),
+                                             getName(),
+                                             getDisplayName(),
+                                             getDescription(),
+                                             getCreated(),
+                                             getUpdated(),
+                                             max,
+                                             getMin());
+    }
+    public AttributeDefinition withMin(double min) {
+        return new NumberAttributeDefinition(getId(),
+                                             getName(),
+                                             getDisplayName(),
+                                             getDescription(),
+                                             getCreated(),
+                                             getUpdated(),
+                                             getMax(),
+                                             min);
+    }
+}

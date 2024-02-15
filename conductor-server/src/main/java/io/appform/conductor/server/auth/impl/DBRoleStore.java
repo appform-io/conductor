@@ -28,16 +28,13 @@ import lombok.SneakyThrows;
 import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Property;
-import org.hibernate.criterion.Restrictions;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.*;
 
@@ -93,16 +90,6 @@ public class DBRoleStore implements RoleStore {
     }
 
     @Override
-    public Set<Permission> permissionsForRoles(Collection<String> roleIds) {
-        return roleDao.scatterGather(DetachedCriteria.forClass(StoredRole.class)
-                                             .add(Property.forName(StoredRole.Fields.deleted).eq(false))
-                                             .add(Restrictions.in(StoredRole.Fields.roleId, roleIds)))
-                .stream()
-                .flatMap(role -> role.getPermissions().stream())
-                .collect(Collectors.toUnmodifiableSet());
-    }
-
-    @Override
     @MonitoredFunction
     @SneakyThrows
     @Throws(value = STORE_UPDATE_ERROR,
@@ -126,7 +113,7 @@ public class DBRoleStore implements RoleStore {
     @Throws(value = STORE_UPDATE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredRole.ROLES_TABLE_NAME))
     public boolean delete(@Throws.RuntimeParam("id") String roleId) {
-        return roleDao.update(roleId, storedRole -> storedRole.map(stored -> stored.setDeleted(true)).orElse(null));
+        return roleDao.delete(roleId);
     }
 
     private static Role toRole(StoredRole storedRole) {

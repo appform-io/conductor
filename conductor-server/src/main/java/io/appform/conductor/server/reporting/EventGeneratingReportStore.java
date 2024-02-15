@@ -79,7 +79,7 @@ public class EventGeneratingReportStore implements ReportStore {
 
     @Override
     public List<ReportRun> relevantRuns(String reportId, Date maxDate, Collection<ReportRun.State> states, int size) {
-        return relevantRuns(reportId, maxDate, states, size);
+        return reportStore.relevantRuns(reportId, maxDate, states, size);
     }
 
     @Override

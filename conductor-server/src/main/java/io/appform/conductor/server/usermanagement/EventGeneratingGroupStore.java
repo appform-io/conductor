@@ -1,14 +1,14 @@
 package io.appform.conductor.server.usermanagement;
 
-import io.appform.conductor.model.usermgmt.Group;
-import io.appform.conductor.model.usermgmt.GroupType;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.eventmanagement.EventBus;
 import io.appform.conductor.model.events.impl.group.GroupCreatedEvent;
 import io.appform.conductor.model.events.impl.group.GroupDeletedEvent;
 import io.appform.conductor.model.events.impl.group.GroupUpdatedEvent;
 import io.appform.conductor.model.events.impl.user.UserGroupAssignedEvent;
 import io.appform.conductor.model.events.impl.user.UserGroupUnassignedEvent;
+import io.appform.conductor.model.usermgmt.Group;
+import io.appform.conductor.model.usermgmt.GroupType;
+import io.appform.conductor.server.ConductorModule;
+import io.appform.conductor.server.eventmanagement.EventBus;
 import lombok.val;
 
 import javax.inject.Inject;
@@ -17,7 +17,7 @@ import javax.inject.Singleton;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 @Singleton
 public class EventGeneratingGroupStore implements GroupStore {
@@ -25,7 +25,7 @@ public class EventGeneratingGroupStore implements GroupStore {
     private final GroupStore groupStore;
 
     @Inject
-    public EventGeneratingGroupStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) GroupStore groupStore) {
+    public EventGeneratingGroupStore(EventBus eventBus, @Named(ConductorModule.CACHED_IMPLEMENTATION_NAME) GroupStore groupStore) {
         this.eventBus = eventBus;
         this.groupStore = groupStore;
     }
@@ -48,15 +48,16 @@ public class EventGeneratingGroupStore implements GroupStore {
     }
 
     @Override
-    public Optional<Group> delete(String groupId) {
-        val res = groupStore.delete(groupId);
-        res.filter(Group::isDeleted)
-                .ifPresent(group -> eventBus.publish(new GroupDeletedEvent(group.getId())));
-        return res;
+    public boolean delete(String groupId) {
+        val status = groupStore.delete(groupId);
+        if(status) {
+            eventBus.publish(new GroupDeletedEvent(groupId));
+        }
+        return status;
     }
 
     @Override
-    public Optional<Group> update(String groupId, Consumer<Group> handler) {
+    public Optional<Group> update(String groupId, UnaryOperator<Group> handler) {
         val res = groupStore.update(groupId, handler);
         res.ifPresent(group -> eventBus.publish(new GroupUpdatedEvent(group.getId())));
         return res;

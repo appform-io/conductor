@@ -24,6 +24,8 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -40,7 +42,10 @@ import java.util.Date;
         @JsonSubTypes.Type(name = "DATE", value = DateFieldSchema.class),
         @JsonSubTypes.Type(name = "NUMBER", value = NumberFieldSchema.class),
 })
-public abstract class FieldSchema {
+public abstract class FieldSchema implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = -634965675669357625L;
     /**
      * Type of field
      */

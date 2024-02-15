@@ -108,8 +108,8 @@ public class DBTestExtension implements BeforeEachCallback, AfterEachCallback, P
         Map<String, String> properties = Maps.newHashMap();
         properties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
         properties.put("hibernate.hbm2ddl.auto", "create");
-        properties.put("hibernate.show_sql", "true");
-        properties.put("hibernate.format_sql", "true");
+//        properties.put("hibernate.show_sql", "true");
+//        properties.put("hibernate.format_sql", "true");
 
         DataSourceFactory shard = new DataSourceFactory();
         shard.setDriverClass("org.h2.Driver");
