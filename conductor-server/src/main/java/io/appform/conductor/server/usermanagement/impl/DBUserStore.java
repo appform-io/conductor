@@ -99,7 +99,7 @@ public class DBUserStore implements UserStore {
                     @Throws.Param(name = "paramType", value = "email"),
             })
     public Optional<UserSummary> getByEmail(@Throws.RuntimeParam("value") String email) {
-        return userDao.scatterGather(
+        return userDao.scatterGather( //TODO::Move to shard query as userId & email has same shard
                         DetachedCriteria.forClass(StoredUser.class)
                                 .add(Property.forName(StoredUser.Fields.email).eq(email)))
                 .stream()

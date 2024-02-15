@@ -23,6 +23,7 @@ import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.ui.views.ActivationView;
 import io.appform.conductor.server.ui.views.user.UserAccountView;
 import io.appform.conductor.server.usermanagement.UserLifecycleManager;
+import io.appform.conductor.server.utils.Constants;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -98,8 +99,8 @@ public class UIUserLifecycle {
     @Path("/login")
     @POST
     public Response login(
-            @FormParam("email") @Email @NotEmpty @Length(max = 255) final String email,
-            @FormParam("password") @NotEmpty @Length(max = 255) final String password) {
+            @FormParam("email") @Email @NotEmpty @Length(max = Constants.MAX_EMAIL_ID_LENGTH) final String email,
+            @FormParam("password") @NotEmpty @Length(max = Constants.MAX_PASSWORD_LENGTH) final String password) {
         return userLifecycleManager.loginUser(email, password)
                 .map(UIUserLifecycle::newSessionResponse)
                 .orElseThrow(() -> fail("Login Failure", "/"));

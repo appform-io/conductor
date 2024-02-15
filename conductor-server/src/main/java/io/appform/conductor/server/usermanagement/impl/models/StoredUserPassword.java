@@ -46,7 +46,7 @@ public class StoredUserPassword {
     @Column(name = "user_id", unique = true, nullable = false, length = Constants.MAX_USER_ID_LENGTH)
     private String userId;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "password", nullable = false, length = Constants.MAX_PASSWORD_LENGTH)
     private String password;
 
     @Column(name = "failed_password_attempt")

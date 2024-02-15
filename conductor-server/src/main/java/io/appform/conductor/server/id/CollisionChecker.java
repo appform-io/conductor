@@ -28,7 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @Slf4j
 public class CollisionChecker {
-    private final BitSet bitSet = new BitSet(Constants.MAX_ID_PER_MS);
+    private final BitSet bitSet = new BitSet(IdConstants.MAX_ID_PER_MS);
     private long currentInstant = 0;
 
     private final Lock dataLock = new ReentrantLock();

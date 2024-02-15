@@ -170,7 +170,7 @@ public class Admin {
     @Path("/users/userid")
     public Response searchUserByUserId(
             @Auth ConductorUser user,
-            @FormParam("searchUserId") @NotEmpty @Length(max = 255) final String userId) {
+            @FormParam("searchUserId") @NotEmpty @Length(max = Constants.MAX_USER_ID_LENGTH) final String userId) {
         return userStore.getById(userId)
                 .map(userSummary -> redirect("/admin/users/" + userSummary.getId()))
                 .orElseThrow(() -> fail("No user found for " + userId, USER_SEARCH_PATH));
