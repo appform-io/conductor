@@ -22,6 +22,7 @@ import io.appform.conductor.model.usermgmt.UserActivationToken;
 import io.appform.conductor.model.usermgmt.UserActivationTokenState;
 import io.appform.conductor.server.usermanagement.UserActivationTokenStore;
 import io.appform.conductor.server.usermanagement.impl.models.StoredUserActivationToken;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +55,7 @@ public class DBUserActivationTokenStore implements UserActivationTokenStore {
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredUserActivationToken.ACTIVATION_TOKEN_TABLE_NAME))
     public Optional<UserActivationToken> generate(@Throws.RuntimeParam("id") String userId, Date validTill) {
-        val token = UUID.randomUUID().toString();
+        val token = ConductorServerUtils.generateToken();
         return tokenDao.save(new StoredUserActivationToken(token,
                                                            userId,
                                                            validTill,

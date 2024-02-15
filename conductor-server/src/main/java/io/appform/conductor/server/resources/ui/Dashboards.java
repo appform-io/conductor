@@ -29,6 +29,7 @@ import io.appform.conductor.server.dashboards.model.SpecVersion;
 import io.appform.conductor.server.ui.views.manage.DashboardListView;
 import io.appform.conductor.server.ui.views.manage.DashboardView;
 import io.appform.conductor.server.ui.views.manage.NewDashboardView;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.utils.Constants;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
@@ -138,7 +139,7 @@ public class Dashboards {
         if(null == existing) {
             throw fail("Could not find dashboard " + dashboardId, "/dashboards");
         }
-        val widget = new DashboardWidget(UUID.randomUUID().toString(),
+        val widget = new DashboardWidget(ConductorServerUtils.generateDashboardWidgetId(),
                                          widgetTitle,
                                          DashboardWidget.QueryType.CQL,
                                          widgetCql,
