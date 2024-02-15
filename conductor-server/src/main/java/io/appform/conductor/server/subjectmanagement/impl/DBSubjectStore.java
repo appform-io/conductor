@@ -452,7 +452,7 @@ public class DBSubjectStore implements SubjectStore {
     private Optional<SubjectID> readSubjectId(String globalSubjectId, @Throws.RuntimeParam("id") String extId) {
         return subjectIdDao.select(globalSubjectId,
                                    criteriaForSubject(globalSubjectId, StoredSubjectID.class)
-                                           .add(Property.forName("extId").eq(extId)),
+                                           .add(Property.forName(StoredSubjectID.Fields.extId).eq(extId)),
                                    0, 1)
                 .stream()
                 .findAny()

@@ -22,6 +22,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -44,6 +45,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
+@FieldNameConstants
 @NoArgsConstructor
 public class StoredWorkflowSelectionRule implements Serializable {
     public static final String WF_SELECTION_RULE_TABLE_NAME = "workflow_selection_rules";
@@ -51,8 +53,8 @@ public class StoredWorkflowSelectionRule implements Serializable {
     private static final long serialVersionUID = -4729081581755725993L;
 
     @Id
-    @Column(name = "workflow_rule_id", nullable = false, unique = true, length = Constants.MAX_WORKFLOW_RULE_ID_LENGTH)
-    private String workflowRuleId;
+    @Column(name = "rule_id", nullable = false, unique = true, length = Constants.MAX_WORKFLOW_RULE_ID_LENGTH)
+    private String ruleId;
 
     @Column(name = "rule_type", length = 45)
     @Enumerated(EnumType.STRING)
@@ -84,7 +86,7 @@ public class StoredWorkflowSelectionRule implements Serializable {
             return false;
         }
         StoredWorkflowSelectionRule that = (StoredWorkflowSelectionRule) o;
-        return Objects.equals(getWorkflowRuleId(), that.getWorkflowRuleId());
+        return Objects.equals(getRuleId(), that.getRuleId());
     }
 
     @Override

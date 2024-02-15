@@ -114,7 +114,7 @@ public class DBWorkflowStore implements WorkflowStore {
                                    Integer.MAX_VALUE,
                                    (wf, states) -> wf.setRules(
                                            states.stream()
-                                                   .collect(Collectors.toMap(StoredWorkflowSelectionRule::getWorkflowRuleId,
+                                                   .collect(Collectors.toMap(StoredWorkflowSelectionRule::getRuleId,
                                                                              r -> new Rule(r.getRuleType(),
                                                                                            r.getRule())))))
                 .execute()
@@ -235,7 +235,7 @@ public class DBWorkflowStore implements WorkflowStore {
         val updated = wfDao.lockAndGetExecutor(workflowId)
                 .update(tsDao,
                         createCriteria(StoredTicketState.class, workflowId)
-                                .add(Property.forName("extId").eq(stateId)),
+                                .add(Property.forName(StoredTicketState.Fields.stateId).eq(stateId)),
                         state -> state.setDeleted(true),
                         () -> false)
                 .execute();
@@ -310,7 +310,7 @@ public class DBWorkflowStore implements WorkflowStore {
         val updated = wfDao.lockAndGetExecutor(workflowId)
                 .update(tstrnDao,
                         createCriteria(StoredTicketStateTransition.class, workflowId)
-                                .add(Property.forName("extId").eq(transitionId)),
+                                .add(Property.forName(StoredTicketStateTransition.Fields.transitionId).eq(transitionId)),
                         transition -> transition.setDeleted(true),
                         () -> false)
                 .execute();
@@ -330,13 +330,13 @@ public class DBWorkflowStore implements WorkflowStore {
         val updated = wfDao.lockAndGetExecutor(workflowId)
                 .createOrUpdate(wfselDao,
                                 createCriteria(StoredWorkflowSelectionRule.class, workflowId)
-                                        .add(Property.forName("extId").eq(ruleId)),
+                                        .add(Property.forName(StoredWorkflowSelectionRule.Fields.ruleId).eq(ruleId)),
                                 existing -> existing
                                         .setRuleType(rule.getType())
                                         .setRule(rule.getRule()),
                                 () -> new StoredWorkflowSelectionRule()
                                         .setWorkflowId(workflowId)
-                                        .setWorkflowRuleId(ruleId)
+                                        .setRuleId(ruleId)
                                         .setRuleType(rule.getType())
                                         .setRule(rule.getRule()))
                 .execute() != null;
@@ -355,7 +355,7 @@ public class DBWorkflowStore implements WorkflowStore {
         val updated = wfDao.lockAndGetExecutor(workflowId)
                 .update(wfselDao,
                         createCriteria(StoredWorkflowSelectionRule.class, workflowId)
-                                .add(Property.forName("extId").eq(ruleId)),
+                                .add(Property.forName(StoredWorkflowSelectionRule.Fields.ruleId).eq(ruleId)),
                         state -> state.setDeleted(true),
                         () -> false)
                 .execute();
