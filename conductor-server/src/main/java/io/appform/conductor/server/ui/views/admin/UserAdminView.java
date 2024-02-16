@@ -17,11 +17,12 @@
 package io.appform.conductor.server.ui.views.admin;
 
 import io.appform.conductor.model.auth.Role;
+import io.appform.conductor.model.events.analytics.ObjectReference;
+import io.appform.conductor.model.events.impl.ReferredObjectType;
 import io.appform.conductor.model.skills.SkillValue;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.User;
-import io.appform.conductor.model.events.impl.ReferredObjectType;
-import io.appform.conductor.model.events.analytics.ObjectReference;
+import io.appform.conductor.server.attributes.values.AttributeManager.MaterializedAttributeValue;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -40,10 +41,10 @@ public class UserAdminView extends BaseLoggedInView {
     List<Role> availableRoles;
     List<Group> availableGroups;
     List<SkillValue> availableSkills;
-
+    List<MaterializedAttributeValue> attributes;
     public UserAdminView(
             User currentUser, User userDetails, List<Role> availableRoles, List<Group> availableGroups,
-            List<SkillValue> availableSkills) {
+            List<SkillValue> availableSkills, List<MaterializedAttributeValue> attributes) {
         super("templates/admin/user-admin.hbs",
               currentUser,
               null != userDetails
@@ -53,5 +54,6 @@ public class UserAdminView extends BaseLoggedInView {
         this.availableRoles = availableRoles;
         this.availableGroups = availableGroups;
         this.availableSkills = availableSkills;
+        this.attributes = attributes;
     }
 }

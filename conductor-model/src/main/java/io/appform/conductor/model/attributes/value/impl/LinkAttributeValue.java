@@ -39,6 +39,13 @@ public class LinkAttributeValue extends AttributeValue {
     @org.hibernate.validator.constraints.URL
     String value;
 
+    public LinkAttributeValue(
+            String schemaId,
+            String text,
+            String value) {
+        this(schemaId, null, null, text, value);
+    }
+
     @Builder
     @Jacksonized
     public LinkAttributeValue(
@@ -47,7 +54,7 @@ public class LinkAttributeValue extends AttributeValue {
             Date updated,
             String text,
             String value) {
-        super(AttributeType.STRING, schemaId, created, updated);
+        super(AttributeType.LINK, schemaId, created, updated);
         this.text = text;
         this.value = value;
     }

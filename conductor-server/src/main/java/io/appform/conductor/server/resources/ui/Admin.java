@@ -16,9 +16,11 @@
 
 package io.appform.conductor.server.resources.ui;
 
+import io.appform.conductor.model.attributes.AttributeScopeType;
 import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.usermgmt.GroupType;
 import io.appform.conductor.model.usermgmt.UserState;
+import io.appform.conductor.server.attributes.values.AttributeManager;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserRoleMappingStore;
@@ -43,6 +45,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -70,6 +73,7 @@ public class Admin {
     private final UserRoleMappingStore roleMappingStore;
     private final UserLifecycleManager userLifecycleManager;
     private final AuthConfig authConfig;
+    private final AttributeManager attributeManager;
 
     @GET
     @Path("/roles")
@@ -146,7 +150,12 @@ public class Admin {
     @GET
     @Path("/users/search")
     public Response renderUserSearchScreen(@Auth ConductorUser user) {
-        return render(new UserAdminView(user.getUserSession().getUser(), null, List.of(), List.of(), List.of()));
+        return render(new UserAdminView(user.getUserSession().getUser(),
+                                        null,
+                                        List.of(),
+                                        List.of(),
+                                        List.of(),
+                                        List.of()));
     }
 
     @GET
@@ -185,9 +194,11 @@ public class Admin {
                                                              userDetails,
                                                              roleStore.list(),
                                                              groupStore.list().stream()
-                                                                     .filter(group -> GroupType.MANUALLY_ASSIGNED.equals(group.getType()))
+                                                                     .filter(group -> GroupType.MANUALLY_ASSIGNED.equals(
+                                                                             group.getType()))
                                                                      .toList(),
-                                                             skillStore.listSkillValues())))
+                                                             skillStore.listSkillValues(),
+                                                             attributeManager.read(AttributeScopeType.USER, userDetails.getSummary().getId()))))
                 .orElseThrow(() -> fail("No user found for " + userId, USER_SEARCH_PATH));
     }
 
@@ -219,5 +230,26 @@ public class Admin {
             return redirect("/admin/users/" + userId);
         }
         throw fail("Could not update state for " + userId, USER_SEARCH_PATH);
+    }
+
+    @POST
+    @Path("/users/{userId}/attributes")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.ADMIN)
+    public Response updateUserAttributes(
+            @Auth ConductorUser user,
+            @PathParam("userId") @NotEmpty final String userId,
+            final MultivaluedMap<String, String> form) {
+        val res = attributeManager.save(AttributeScopeType.USER, userId, form);
+        val failures = res.getValidationResults()
+                .values()
+                .stream()
+                .filter(vr -> vr.getStatus().equals(AttributeManager.AttributeValidationStatus.Status.FAILURE))
+                .map(AttributeManager.AttributeValidationStatus.AttributeValidationResult::getMessage)
+                .toList();
+        if(failures.isEmpty()) {
+            return redirect("/admin/users/" + userId);
+        }
+        throw fail("Failed to validate attributes: " + failures, "/admin/users/" + userId);
     }
 }

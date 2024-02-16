@@ -30,6 +30,9 @@ import io.appform.conductor.server.attributes.definition.impl.CachingAttributeDe
 import io.appform.conductor.server.attributes.definition.impl.DBAttributeDefinitionStore;
 import io.appform.conductor.server.attributes.definition.impl.EventGeneratingAttributeDefinitionStore;
 import io.appform.conductor.server.attributes.definition.impl.models.StoredAttributeDefinition;
+import io.appform.conductor.server.attributes.values.AttributeValueStore;
+import io.appform.conductor.server.attributes.values.impl.DBAttributeValueStore;
+import io.appform.conductor.server.attributes.values.impl.models.StoredAttributeValue;
 import io.appform.conductor.server.auth.EventGeneratingRoleStore;
 import io.appform.conductor.server.auth.EventGeneratingUserRoleMappingStore;
 import io.appform.conductor.server.auth.RoleStore;
@@ -205,6 +208,8 @@ public class ConductorModule extends AbstractModule {
                 .annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME))
                 .to(CachingAttributeDefinitionStore.class);
         bind(AttributeDefinitionStore.class).to(EventGeneratingAttributeDefinitionStore.class);
+
+        bind(AttributeValueStore.class).to(DBAttributeValueStore.class);
 
         bind(EventStore.class).to(DBEventStore.class);
 
@@ -438,6 +443,12 @@ public class ConductorModule extends AbstractModule {
     @Singleton
     public RelationalDao<StoredAttributeDefinition> attributeDefinitionDao() {
         return dbBundle.createRelatedObjectDao(StoredAttributeDefinition.class);
+    }
+
+    @Provides
+    @Singleton
+    public RelationalDao<StoredAttributeValue> attributeValueDao() {
+        return dbBundle.createRelatedObjectDao(StoredAttributeValue.class);
     }
 
     @Provides

@@ -103,6 +103,7 @@ public enum EventType {
 
     ATTRIBUTE_DEFINITION_SAVED,
     ATTRIBUTE_DEFINITION_DELETED,
+    ATTRIBUTE_VALUES_SAVED,
 
     ;
     public static final Set<EventType> ALL = EnumSet.allOf(EventType.class);
