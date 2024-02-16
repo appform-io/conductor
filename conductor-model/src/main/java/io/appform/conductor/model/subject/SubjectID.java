@@ -24,7 +24,7 @@ import java.util.Date;
 /**
  * Identification coordinates for a subject. For example email etc.
  */
-@Data
+@Value
 @Builder
 @FieldNameConstants
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
@@ -58,6 +58,7 @@ public class SubjectID {
     /**
      * Verification status for  this ID
      */
+    @With
     SubjectIDVerificationStatus verificationStatus;
 
     /**

@@ -16,7 +16,9 @@
 
 package io.appform.conductor.server.resources.ui;
 
+import io.appform.conductor.model.attributes.AttributeScopeType;
 import io.appform.conductor.model.subject.*;
+import io.appform.conductor.server.attributes.values.AttributeManager;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.subjectmanagement.SubjectStore;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
@@ -33,6 +35,7 @@ import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.UUID;
@@ -53,6 +56,8 @@ public class Subjects {
     private final SubjectStore subjectStore;
 
     private final TicketManager ticketManager;
+
+    private final AttributeManager attributeManager;
 
     @GET
     @Path("/search")
@@ -95,10 +100,13 @@ public class Subjects {
             @Auth ConductorUser user,
             @PathParam("subjectId") @Length(max = 45) final String subjectId) {
         return subjectStore.getSubject(subjectId)
-                .map(subject -> render(new SubjectDetailsView(user.getUserSession().getUser(),
-                                                              subject,
-                                                              ticketManager.ticketsForSubject(subjectId, null, 10)
-                                                                      .getResults())))
+                .map(subject -> render(
+                        new SubjectDetailsView(user.getUserSession().getUser(),
+                                               subject,
+                                               ticketManager.ticketsForSubject(subjectId, null, 10)
+                                                       .getResults(),
+                                               attributeManager.read(AttributeScopeType.SUBJECT, subjectId))
+                                      ))
                 .orElseThrow(() -> fail("No such subject", SUBJECTS_LIST_PAGE));
     }
 
@@ -170,7 +178,7 @@ public class Subjects {
             @PathParam("subIdId") @Length(max = 45) final String subIdId) {
         return subjectStore.updateIdentifier(subjectId,
                                              subIdId,
-                                             id -> id.setVerificationStatus(SubjectIDVerificationStatus.MANUALLY_VERIFIED))
+                                             id -> id.withVerificationStatus(SubjectIDVerificationStatus.MANUALLY_VERIFIED))
                 .map(s -> redirect("/subjects/" + subjectId + "/details"))
                 .orElseThrow(() -> fail("Could not add ID", "/subjects/" + subjectId + "/details"));
     }
@@ -185,5 +193,25 @@ public class Subjects {
             return redirect("/subjects/" + subjectId + "/details");
         }
         throw fail("Could not delete ID", "/subjects/" + subjectId + "/details");
+    }
+
+    @POST
+    @Path("/{subjectId}/attributes")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response updateSubjectAttributes(
+            @Auth ConductorUser user,
+            @PathParam("subjectId") @Length(max = 45) final String subjectId,
+            final MultivaluedMap<String, String> form) {
+        val res = attributeManager.save(AttributeScopeType.SUBJECT, subjectId, form);
+        val failures = res.getValidationResults()
+                .values()
+                .stream()
+                .filter(vr -> vr.getStatus().equals(AttributeManager.AttributeValidationStatus.Status.FAILURE))
+                .map(AttributeManager.AttributeValidationStatus.AttributeValidationResult::getMessage)
+                .toList();
+        if(failures.isEmpty()) {
+            return redirect("/subjects/" + subjectId + "/details");
+        }
+        throw fail("Failed to validate attributes: " + failures, "/subjects/" + subjectId + "/details");
     }
 }

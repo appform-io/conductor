@@ -1,4 +1,9 @@
-<form method="post" action="/admin/users/{{userDetails/summary/id}}/attributes">
+<div class="row">
+    <div class="col-12">
+        <h4>Additional Information</h4>
+    </div>
+</div>
+<form method="post" action="{{attributeUrl}}">
     {{#each attributes}}
     <div class="row mb-3">
         <div class="col-12 col-md-3">

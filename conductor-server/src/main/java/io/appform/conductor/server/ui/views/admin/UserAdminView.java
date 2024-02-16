@@ -42,6 +42,8 @@ public class UserAdminView extends BaseLoggedInView {
     List<Group> availableGroups;
     List<SkillValue> availableSkills;
     List<MaterializedAttributeValue> attributes;
+    String attributeUrl;
+
     public UserAdminView(
             User currentUser, User userDetails, List<Role> availableRoles, List<Group> availableGroups,
             List<SkillValue> availableSkills, List<MaterializedAttributeValue> attributes) {
@@ -55,5 +57,6 @@ public class UserAdminView extends BaseLoggedInView {
         this.availableGroups = availableGroups;
         this.availableSkills = availableSkills;
         this.attributes = attributes;
+        attributeUrl = "/admin/users/" + userDetails.getSummary().getId() + "/attributes";
     }
 }
