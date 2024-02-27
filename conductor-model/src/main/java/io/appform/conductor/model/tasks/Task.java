@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Santanu Sinha
+ * Copyright (c) 2024 santanu
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.taskmanagement.model;
+package io.appform.conductor.model.tasks;
 
 import io.appform.conductor.model.actions.Scope;
-import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
 import lombok.*;
 
 import java.time.Duration;
@@ -41,7 +40,7 @@ public class Task {
     TaskState state;
     TaskSpec spec;
     Date lastExecutionCompletionTime;
-    ConductorTaskScheduler.TaskStatus lastRunStatus;
+    TaskRunStatus lastRunStatus;
     Map<String, Object> taskMeta;
     Date created;
     Date updated;

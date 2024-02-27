@@ -17,8 +17,9 @@
 package io.appform.conductor.server.taskmanagement.impl;
 
 import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
-import io.appform.conductor.server.taskmanagement.model.RunActionOnSelectedTicketsTaskSpec;
-import io.appform.conductor.server.taskmanagement.model.Task;
+import io.appform.conductor.model.tasks.RunActionOnSelectedTicketsTaskSpec;
+import io.appform.conductor.model.tasks.Task;
+import io.appform.conductor.model.tasks.TaskRunStatus;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,7 +62,7 @@ public class RunActionOnSelectedTicketsExecutor {
                             }));
         } while (hasMore);
         return new ConductorTaskScheduler.TaskResult(
-                ConductorTaskScheduler.TaskStatus.SUCCESS,
+                TaskRunStatus.SUCCESS,
                 task,
                 Map.of(TASK_META_CURSOR, nextPtr));
     }

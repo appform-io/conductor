@@ -22,8 +22,9 @@ import io.appform.conductor.model.ticket.analytics.TicketQueryResponseVisitor;
 import io.appform.conductor.server.eventmanagement.EventStore;
 import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
-import io.appform.conductor.server.taskmanagement.model.RunActionOnCQLSelectTaskSpec;
-import io.appform.conductor.server.taskmanagement.model.Task;
+import io.appform.conductor.model.tasks.RunActionOnCQLSelectTaskSpec;
+import io.appform.conductor.model.tasks.Task;
+import io.appform.conductor.model.tasks.TaskRunStatus;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +60,7 @@ public class RunActionOnCQLSelectExecutor {
         if (null == parserOutput) {
             log.warn("Error parsing task CQL for task: {}, CQL: {}", task.getId(), taskSpec.getQuery());
             return new ConductorTaskScheduler.TaskResult(
-                    ConductorTaskScheduler.TaskStatus.FAILURE,
+                    TaskRunStatus.FAILURE,
                     task,
                     Map.of(TASK_META_CURSOR, nextPtr));
         }
@@ -101,7 +102,7 @@ public class RunActionOnCQLSelectExecutor {
             }
         } while (hasMore.get());
         return new ConductorTaskScheduler.TaskResult(
-                ConductorTaskScheduler.TaskStatus.SUCCESS,
+                TaskRunStatus.SUCCESS,
                 task,
                 Map.of(TASK_META_CURSOR, nextPtr));
     }

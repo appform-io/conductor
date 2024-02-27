@@ -1,268 +1,179 @@
 {
-  "workflow": {
-    "id": "testworkflow",
-    "displayName": "TestWorkflow",
-    "description": "Description",
-    "schemaId": "testingschema",
-    "states": {
-      "TESTWORKFLOW_FIRST_STATE": {
-        "id": "TESTWORKFLOW_FIRST_STATE",
-        "displayName": "First state",
-        "description": "First state",
-        "terminal": false,
-        "allowedActions": [
-          "c7ffe49a-3327-4fc5-84b4-a13f6fe6e616"
-        ],
-        "editableFields": [
-          "TESTINGSCHEMA_FEILD1",
-          "TESTINGSCHEMA_FEILD2",
-          "TESTINGSCHEMA_FEILD3",
-          "TESTINGSCHEMA_FEILD4"
-        ],
-        "visibleFields": [
-          "TESTINGSCHEMA_FEILD1",
-          "TESTINGSCHEMA_FEILD2",
-          "TESTINGSCHEMA_FEILD3",
-          "TESTINGSCHEMA_FEILD4"
-        ],
-        "requiredFields": [],
-        "visibleActions": [
-          "1a0b127e-5337-47c7-a22f-8950824365f0",
-          "c7ffe49a-3327-4fc5-84b4-a13f6fe6e616",
-          "cec52d5c-734e-458a-a345-753a799f07c8"
-        ],
-        "updated": 1701856640000
+  "workflow" : {
+    "id" : "testworkflow",
+    "displayName" : "TestWorkflow",
+    "description" : "Description",
+    "schemaId" : "testingschema",
+    "states" : {
+      "TESTWORKFLOW_FIRST_STATE" : {
+        "id" : "TESTWORKFLOW_FIRST_STATE",
+        "displayName" : "First state",
+        "description" : "First state",
+        "terminal" : false,
+        "allowedActions" : [ "c7ffe49a-3327-4fc5-84b4-a13f6fe6e616" ],
+        "editableFields" : [ "TESTINGSCHEMA_FEILD1", "TESTINGSCHEMA_FEILD2", "TESTINGSCHEMA_FEILD3", "TESTINGSCHEMA_FEILD4" ],
+        "visibleFields" : [ "TESTINGSCHEMA_FEILD1", "TESTINGSCHEMA_FEILD2", "TESTINGSCHEMA_FEILD3", "TESTINGSCHEMA_FEILD4" ],
+        "requiredFields" : [ ],
+        "visibleActions" : [ "1a0b127e-5337-47c7-a22f-8950824365f0", "c7ffe49a-3327-4fc5-84b4-a13f6fe6e616", "cec52d5c-734e-458a-a345-753a799f07c8" ],
+        "updated" : 1709012612414
       },
-      "TESTWORKFLOW_SECOND_STATE": {
-        "id": "TESTWORKFLOW_SECOND_STATE",
-        "displayName": "Second state",
-        "description": "",
-        "terminal": false,
-        "allowedActions": [],
-        "editableFields": [],
-        "visibleFields": [
-          "TESTINGSCHEMA_FEILD1",
-          "TESTINGSCHEMA_FEILD2",
-          "TESTINGSCHEMA_FEILD3",
-          "TESTINGSCHEMA_FEILD4"
-        ],
-        "requiredFields": [],
-        "visibleActions": [
-          "1a0b127e-5337-47c7-a22f-8950824365f0"
-        ],
-        "updated": 1701856663000
+      "TESTWORKFLOW_SECOND_STATE" : {
+        "id" : "TESTWORKFLOW_SECOND_STATE",
+        "displayName" : "Second state",
+        "description" : "",
+        "terminal" : false,
+        "allowedActions" : [ ],
+        "editableFields" : [ ],
+        "visibleFields" : [ "TESTINGSCHEMA_FEILD1", "TESTINGSCHEMA_FEILD2", "TESTINGSCHEMA_FEILD3", "TESTINGSCHEMA_FEILD4" ],
+        "requiredFields" : [ ],
+        "visibleActions" : [ "1a0b127e-5337-47c7-a22f-8950824365f0" ],
+        "updated" : 1709012612421
       },
-      "TESTWORKFLOW_THIRDSTATE": {
-        "id": "TESTWORKFLOW_THIRDSTATE",
-        "displayName": "Thirdstate",
-        "description": "Descripotions",
-        "terminal": true,
-        "allowedActions": [],
-        "editableFields": [],
-        "visibleFields": [
-          "TESTINGSCHEMA_FEILD1",
-          "TESTINGSCHEMA_FEILD2",
-          "TESTINGSCHEMA_FEILD3",
-          "TESTINGSCHEMA_FEILD4"
-        ],
-        "requiredFields": [],
-        "visibleActions": [
-          "1a0b127e-5337-47c7-a22f-8950824365f0",
-          "c7ffe49a-3327-4fc5-84b4-a13f6fe6e616",
-          "cec52d5c-734e-458a-a345-753a799f07c8"
-        ],
-        "updated": 1701856690000
+      "TESTWORKFLOW_THIRDSTATE" : {
+        "id" : "TESTWORKFLOW_THIRDSTATE",
+        "displayName" : "Thirdstate",
+        "description" : "Descripotions",
+        "terminal" : true,
+        "allowedActions" : [ ],
+        "editableFields" : [ ],
+        "visibleFields" : [ "TESTINGSCHEMA_FEILD1", "TESTINGSCHEMA_FEILD2", "TESTINGSCHEMA_FEILD3", "TESTINGSCHEMA_FEILD4" ],
+        "requiredFields" : [ ],
+        "visibleActions" : [ "1a0b127e-5337-47c7-a22f-8950824365f0", "c7ffe49a-3327-4fc5-84b4-a13f6fe6e616", "cec52d5c-734e-458a-a345-753a799f07c8" ],
+        "updated" : 1709012612427
       }
     },
-    "ticketStateTransitions": {
-      "TESTWORKFLOW_FIRST_STATE": [
-        {
-          "id": "TESTWORKFLOW_TESTWORKFLOW_FIRST_STATE_TESTWORKFLOW_SECOND_STATE_1701856725432",
-          "from": "TESTWORKFLOW_FIRST_STATE",
-          "to": "TESTWORKFLOW_SECOND_STATE",
-          "type": "EVALUATED",
-          "rule": {
-            "type": "HOPE",
-            "rule": "1 == 1"
-          },
-          "actionIds": [
-            "37b84b56-2166-477c-92a9-dd89c32b06ad"
-          ],
-          "workflowId": "testworkflow",
-          "updated": 1701856725000
-        }
-      ],
-      "TESTWORKFLOW_SECOND_STATE": [
-        {
-          "id": "TESTWORKFLOW_TESTWORKFLOW_SECOND_STATE_TESTWORKFLOW_THIRDSTATE_1701856739339",
-          "from": "TESTWORKFLOW_SECOND_STATE",
-          "to": "TESTWORKFLOW_THIRDSTATE",
-          "type": "DEFAULT",
-          "actionIds": [
-            "1a0b127e-5337-47c7-a22f-8950824365f0"
-          ],
-          "workflowId": "testworkflow",
-          "updated": 1701856739000
-        }
-      ]
+    "ticketStateTransitions" : {
+      "TESTWORKFLOW_FIRST_STATE" : [ {
+        "id" : "TESTWORKFLOW_TESTWORKFLOW_FIRST_STATE_TESTWORKFLOW_SECOND_STATE_1709012612550",
+        "from" : "TESTWORKFLOW_FIRST_STATE",
+        "to" : "TESTWORKFLOW_SECOND_STATE",
+        "type" : "EVALUATED",
+        "rule" : {
+          "type" : "HOPE",
+          "rule" : "1 == 1"
+        },
+        "actionIds" : [ "37b84b56-2166-477c-92a9-dd89c32b06ad" ],
+        "workflowId" : "testworkflow",
+        "updated" : 1709012612552
+      } ],
+      "TESTWORKFLOW_SECOND_STATE" : [ {
+        "id" : "TESTWORKFLOW_TESTWORKFLOW_SECOND_STATE_TESTWORKFLOW_THIRDSTATE_1709012612555",
+        "from" : "TESTWORKFLOW_SECOND_STATE",
+        "to" : "TESTWORKFLOW_THIRDSTATE",
+        "type" : "DEFAULT",
+        "actionIds" : [ "1a0b127e-5337-47c7-a22f-8950824365f0" ],
+        "workflowId" : "testworkflow",
+        "updated" : 1709012612556
+      } ]
     },
-    "availableActions": [
-      "1a0b127e-5337-47c7-a22f-8950824365f0",
-      "cec52d5c-734e-458a-a345-753a799f07c8",
-      "c7ffe49a-3327-4fc5-84b4-a13f6fe6e616"
-    ],
-    "startStateId": "TESTWORKFLOW_FIRST_STATE",
-    "selectionRules": {},
-    "state": "ACTIVE",
-    "updated": 1701856493000
+    "availableActions" : [ ],
+    "startStateId" : "TESTWORKFLOW_FIRST_STATE",
+    "selectionRules" : { },
+    "state" : "INACTIVE",
+    "updated" : 1709012612364
   },
-  "schema": {
-    "id": "testingschema",
-    "name": "TestingSchema",
-    "description": "Description",
-    "version": 0,
-    "state": "ACTIVE",
-    "stateChangedBy": "tushar_phonepe_com",
-    "fields": [
-      {
-        "type": "STRING",
-        "id": "TESTINGSCHEMA_FEILD1",
-        "name": "Feild1",
-        "displayName": "Label",
-        "description": "Description",
-        "allowMultiple": false,
-        "updated": 1701856238000,
-        "maxLength": 50,
-        "matchPattern": ""
-      },
-      {
-        "type": "CHOICE",
-        "id": "TESTINGSCHEMA_FEILD2",
-        "name": "Feild2",
-        "displayName": "Label2",
-        "description": "Description2",
-        "allowMultiple": true,
-        "updated": 1701856265000,
-        "choices": [
-          {
-            "value": "1",
-            "displayText": "1"
-          },
-          {
-            "value": "2",
-            "displayText": "2"
-          },
-          {
-            "value": "3",
-            "displayText": "3"
-          },
-          {
-            "value": "4",
-            "displayText": "4"
-          }
-        ]
-      },
-      {
-        "type": "NUMBER",
-        "id": "TESTINGSCHEMA_FEILD3",
-        "name": "Feild3",
-        "displayName": "Label3",
-        "description": "Description3",
-        "allowMultiple": false,
-        "updated": 1701856292000,
-        "max": 234,
-        "min": 2,
-        "defaultValue": 0
-      },
-      {
-        "type": "BOOLEAN",
-        "id": "TESTINGSCHEMA_FEILD4",
-        "name": "Feild4",
-        "displayName": "Label4",
-        "description": "DEscription4",
-        "allowMultiple": false,
-        "updated": 1701856316000,
-        "defaultValue": false
-      }
-    ],
-    "created": 1701856215000,
-    "updated": 1701856215000
+  "schema" : {
+    "id" : "testingschema",
+    "name" : "TestingSchema",
+    "description" : "Description",
+    "version" : 0,
+    "state" : "INACTIVE",
+    "fields" : [ {
+      "type" : "STRING",
+      "id" : "TESTINGSCHEMA_FEILD1",
+      "name" : "Feild1",
+      "displayName" : "Label",
+      "description" : "Description",
+      "allowMultiple" : false,
+      "updated" : 1709012612329,
+      "maxLength" : 50,
+      "matchPattern" : ""
+    }, {
+      "type" : "CHOICE",
+      "id" : "TESTINGSCHEMA_FEILD2",
+      "name" : "Feild2",
+      "displayName" : "Label2",
+      "description" : "Description2",
+      "allowMultiple" : true,
+      "updated" : 1709012612344,
+      "choices" : [ {
+        "value" : "1",
+        "displayText" : "1"
+      }, {
+        "value" : "2",
+        "displayText" : "2"
+      }, {
+        "value" : "3",
+        "displayText" : "3"
+      }, {
+        "value" : "4",
+        "displayText" : "4"
+      } ]
+    }, {
+      "type" : "NUMBER",
+      "id" : "TESTINGSCHEMA_FEILD3",
+      "name" : "Feild3",
+      "displayName" : "Label3",
+      "description" : "Description3",
+      "allowMultiple" : false,
+      "updated" : 1709012612350,
+      "max" : 234.0,
+      "min" : 2.0,
+      "defaultValue" : 0.0
+    }, {
+      "type" : "BOOLEAN",
+      "id" : "TESTINGSCHEMA_FEILD4",
+      "name" : "Feild4",
+      "displayName" : "Label4",
+      "description" : "DEscription4",
+      "allowMultiple" : false,
+      "updated" : 1709012612354,
+      "defaultValue" : false
+    } ],
+    "created" : 1709012612319,
+    "updated" : 1709012612319
   },
-  "actions": [
-    {
-      "type": "ADD_TICKET_ACTION",
-      "id": "1a0b127e-5337-47c7-a22f-8950824365f0",
-      "name": "Action2",
-      "description": "Description2",
-      "scope": {
-        "type": "GLOBAL",
-        "referenceId": "__GLOBAL__"
-      },
-      "created": 1701856430000,
-      "updated": 1701856430000,
-      "actionId": "cec52d5c-734e-458a-a345-753a799f07c8"
+  "actions" : [ {
+    "type" : "ADD_TICKET_ACTION",
+    "id" : "1a0b127e-5337-47c7-a22f-8950824365f0",
+    "name" : "Action2",
+    "description" : "Description2",
+    "scope" : {
+      "type" : "GLOBAL",
+      "referenceId" : "__GLOBAL__"
     },
-    {
-      "type": "CHANGE_PRIORITY",
-      "id": "37b84b56-2166-477c-92a9-dd89c32b06ad",
-      "name": "Action4",
-      "description": "Description4",
-      "scope": {
-        "type": "WORKFLOW",
-        "referenceId": "testworkflow"
-      },
-      "created": 1701856531000,
-      "updated": 1701856531000,
-      "priority": "LOW"
+    "updated" : 1709012612450,
+    "actionId" : "cec52d5c-734e-458a-a345-753a799f07c8"
+  }, {
+    "type" : "CHANGE_PRIORITY",
+    "id" : "37b84b56-2166-477c-92a9-dd89c32b06ad",
+    "name" : "Action4",
+    "description" : "Description4",
+    "scope" : {
+      "type" : "WORKFLOW",
+      "referenceId" : "testworkflow"
     },
-    {
-      "type": "CHANGE_PRIORITY",
-      "id": "c7ffe49a-3327-4fc5-84b4-a13f6fe6e616",
-      "name": "Action3",
-      "description": "Description3",
-      "scope": {
-        "type": "GLOBAL",
-        "referenceId": "__GLOBAL__"
-      },
-      "created": 1701856448000,
-      "updated": 1701856448000,
-      "priority": "HIGH"
+    "updated" : 1709012612456,
+    "priority" : "LOW"
+  } ],
+  "tasks" : [ {
+    "id" : "test_task",
+    "type" : "RUN_ACTION_ON_CQL_SELECT",
+    "name" : "Test Task",
+    "description" : "",
+    "interval" : 3600.000000000,
+    "scope" : {
+      "type" : "WORKFLOW",
+      "referenceId" : "testworkflow"
     },
-    {
-      "type": "WEBHOOK",
-      "id": "cec52d5c-734e-458a-a345-753a799f07c8",
-      "name": "Action1",
-      "description": "Description1",
-      "scope": {
-        "type": "GLOBAL",
-        "referenceId": "__GLOBAL__"
-      },
-      "created": 1701856382000,
-      "updated": 1701856382000,
-      "urlTemplate": {
-        "type": "HANDLEBARS",
-        "template": "https://google.com"
-      },
-      "callType": "GET",
-      "payloadTemplate": {
-        "type": "HANDLEBARS",
-        "template": "{}"
-      },
-      "mimeType": "JSON",
-      "headerTemplates": {
-        "Authorization": {
-          "type": "HANDLEBARS",
-          "template": "123"
-        }
-      },
-      "successCodes": [
-        200,
-        201
-      ],
-      "callMode": "ASYNC",
-      "timeoutMs": 3000,
-      "retryStrategy": "FIXED_INTERVAL",
-      "numRetries": 3
-    }
-  ]
+    "state" : "ACTIVE",
+    "spec" : {
+      "type" : "RUN_ACTION_ON_CQL_SELECT",
+      "query" : "select * from testworkflow",
+      "actionIds" : [ "37b84b56-2166-477c-92a9-dd89c32b06ad" ]
+    },
+    "taskMeta" : { },
+    "created" : 1709012612564,
+    "updated" : 1709012612564
+  } ]
 }

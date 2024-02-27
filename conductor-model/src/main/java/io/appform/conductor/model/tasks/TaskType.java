@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Santanu Sinha
+ * Copyright (c) 2024 santanu
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.taskmanagement.model;
+package io.appform.conductor.model.tasks;
 
 /**
  *
  */
-public interface TaskSpecVisitor<T> {
-    T visit(RunActionOnSelectedTicketsTaskSpec runActionOnSelectedTicketsTaskSpec);
-
-    T visit(RunActionOnCQLSelectTaskSpec runActionOnCQLSelectTaskSpec);
+public enum TaskType {
+//    AGE_BASED_ESCALATION, //TODO
+    RUN_ACTION_ON_SELECTED_TICKETS,
+    RUN_ACTION_ON_CQL_SELECT
 }

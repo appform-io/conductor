@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Santanu Sinha
+ * Copyright (c) 2024 santanu
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.taskmanagement.model;
+package io.appform.conductor.model.tasks;
 
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;

@@ -17,13 +17,13 @@
 package io.appform.conductor.server.workflowmanagement;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.appform.conductor.model.workflow.ImportWorkflowResult;
-import io.appform.conductor.model.workflow.WorkflowDetails;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
+import io.appform.conductor.model.workflow.ImportResult;
 import io.appform.conductor.model.workflow.Template;
+import io.appform.conductor.model.workflow.WorkflowDetails;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
@@ -34,9 +34,16 @@ import io.appform.conductor.server.schemamanagement.impl.DBSchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.schemamanagement.impl.models.StoredFieldSchema;
 import io.appform.conductor.server.schemamanagement.impl.models.StoredSchemaSummary;
+import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
+import io.appform.conductor.server.taskmanagement.TaskStore;
+import io.appform.conductor.server.taskmanagement.impl.DBTaskStore;
+import io.appform.conductor.server.taskmanagement.impl.RunActionOnCQLSelectExecutor;
+import io.appform.conductor.server.taskmanagement.impl.RunActionOnSelectedTicketsExecutor;
+import io.appform.conductor.server.taskmanagement.impl.models.StoredTask;
 import io.appform.conductor.server.ticketmanagement.TicketStore;
 import io.appform.conductor.server.ticketmanagement.impl.DBTicketStore;
 import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.workflowmanagement.impl.DBWorkflowStore;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketState;
 import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketStateTransition;
@@ -64,7 +71,9 @@ import static org.mockito.Mockito.when;
 @RelevantDBEntityPackages({"io.appform.conductor.server.workflowmanagement.impl.models",
         "io.appform.conductor.server.schemamanagement.impl.models",
         "io.appform.conductor.server.actionmanagement.impl.models",
-        "io.appform.conductor.server.ticketmanagement.impl.models"})
+        "io.appform.conductor.server.ticketmanagement.impl.models",
+        "io.appform.conductor.server.taskmanagement.impl.models",
+})
 @ExtendWith(DBTestExtension.class)
 class WorkflowManagerTest {
 
@@ -73,6 +82,8 @@ class WorkflowManagerTest {
         val schemaStore = mock(SchemaStore.class);
         val actionStore = mock(ActionStore.class);
         val ticketStore = mock(TicketStore.class);
+        val taskStore = mock(TaskStore.class);
+        val taskScheduler = mock(ConductorTaskScheduler.class);
         val schema = new Schema("S1",
                                 "S1",
                                 null,
@@ -88,7 +99,7 @@ class WorkflowManagerTest {
                                                 bundle.createRelatedObjectDao(StoredTicketState.class),
                                                 bundle.createRelatedObjectDao(StoredTicketStateTransition.class),
                                                 bundle.createRelatedObjectDao(StoredWorkflowSelectionRule.class));
-        val wfm = new WorkflowManager(workflowStore, schemaStore, actionStore, ticketStore);
+        val wfm = new WorkflowManager(workflowStore, schemaStore, actionStore, taskStore, taskScheduler, ticketStore);
 
         val wf = wfm.create("Test",
                             "Test workflow",
@@ -112,31 +123,52 @@ class WorkflowManagerTest {
     }
 
     @Test
-    void testWorkflowExport(BalancedDBShardingBundle<TestConfig> bundle)  throws Exception {
+    void testWorkflowExport(BalancedDBShardingBundle<TestConfig> bundle) throws Exception {
         val mapper = new ObjectMapper();
-        val workflowDetails = mapper.readValue(fixture("fixtures/workflow_details.json" ),
-                WorkflowDetails.class);
+        ConductorServerUtils.configureMapper(mapper);
+        val workflowDetails = mapper.readValue(fixture("fixtures/workflow_details.json"),
+                                               WorkflowDetails.class);
         val workflowStore = new DBWorkflowStore(bundle.createParentObjectDao(StoredWorkflow.class),
-                bundle.createRelatedObjectDao(StoredTicketState.class),
-                bundle.createRelatedObjectDao(StoredTicketStateTransition.class),
-                bundle.createRelatedObjectDao(StoredWorkflowSelectionRule.class));
+                                                bundle.createRelatedObjectDao(StoredTicketState.class),
+                                                bundle.createRelatedObjectDao(StoredTicketStateTransition.class),
+                                                bundle.createRelatedObjectDao(StoredWorkflowSelectionRule.class));
         val schemaStore = new DBSchemaStore(bundle.createParentObjectDao(StoredSchemaSummary.class),
-                bundle.createRelatedObjectDao(StoredFieldSchema.class), mapper);
+                                            bundle.createRelatedObjectDao(StoredFieldSchema.class), mapper);
         val actionStore = new DBActionStore(bundle.createParentObjectDao(StoredAction.class));
         val ticketStore = new DBTicketStore(bundle.createParentObjectDao(StoredTicketSkeleton.class), null,
-                null, null, null, mapper);
-        val wfm = new WorkflowManager(workflowStore, schemaStore, actionStore, ticketStore);
-        ImportWorkflowResult result =  wfm.importWorkflow(workflowDetails);
+                                            null, null, null, mapper);
+        val taskStore = new DBTaskStore(bundle.createParentObjectDao(StoredTask.class), mapper);
+        val scheduler = new ConductorTaskScheduler(
+                mock(RunActionOnSelectedTicketsExecutor.class),
+                mock(RunActionOnCQLSelectExecutor.class),
+                taskStore);
+        val wfm = new WorkflowManager(workflowStore, schemaStore, actionStore, taskStore, scheduler, ticketStore);
+        val result = wfm.importWorkflow(workflowDetails, false, false);
         assertTrue(result.getWorkflow().isSuccess());
         assertTrue(result.getSchema().isSuccess());
         assertFalse(result.getActions().stream()
-                .anyMatch(actionImportResult -> !actionImportResult.isSuccess()));
+                            .anyMatch(actionImportResult -> !actionImportResult.isSuccess()));
+        assertFalse(result.getActions().stream()
+                            .anyMatch(actionImportResult -> !actionImportResult.isSuccess()));
 
-        ImportWorkflowResult idempotentResult =  wfm.importWorkflow(workflowDetails);
-        assertTrue(idempotentResult.getWorkflow().isSuccess());
-        assertTrue(idempotentResult.getSchema().isSuccess());
-        assertFalse(idempotentResult.getActions().stream()
-                .anyMatch(actionImportResult -> !actionImportResult.isSuccess()));
+        {
+            val idempotentResult = wfm.importWorkflow(workflowDetails, false, false);
+            assertTrue(idempotentResult.getWorkflow().isSuccess());
+            assertTrue(idempotentResult.getSchema().isSuccess());
+            assertTrue(idempotentResult.getActions().stream()
+                                .noneMatch(ImportResult::isSuccess)); //Actions can't be overwritten
+            assertTrue(idempotentResult.getTasks().stream()
+                                .noneMatch(ImportResult::isSuccess)); //Tasks can't be overwritten
+        }
+        {
+            val idempotentResult = wfm.importWorkflow(workflowDetails, true, true);
+            assertTrue(idempotentResult.getWorkflow().isSuccess());
+            assertTrue(idempotentResult.getSchema().isSuccess());
+            assertTrue(idempotentResult.getActions().stream()
+                                .allMatch(ImportResult::isSuccess)); //Actions overwritten
+            assertTrue(idempotentResult.getTasks().stream()
+                                .allMatch(ImportResult::isSuccess)); //Tasks overwritten
+        }
     }
 
 
@@ -144,7 +176,8 @@ class WorkflowManagerTest {
         URL resource = Resources.getResource(filename);
         try {
             return Resources.toString(resource, StandardCharsets.UTF_8).trim();
-        } catch (IOException var4) {
+        }
+        catch (IOException var4) {
             throw new IllegalArgumentException(var4);
         }
     }

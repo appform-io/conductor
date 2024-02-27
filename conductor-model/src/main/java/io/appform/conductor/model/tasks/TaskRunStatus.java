@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Santanu Sinha
+ * Copyright (c) 2024 santanu
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.utils.persistence;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.appform.conductor.model.tasks.TaskSpec;
-
-import javax.inject.Inject;
+package io.appform.conductor.model.tasks;
 
 /**
  *
  */
-public class TaskSpecConverter extends JsonConverter<TaskSpec> {
-
-    @Inject
-    public TaskSpecConverter(ObjectMapper mapper) {
-        super(mapper);
-    }
+public enum TaskRunStatus {
+    SUCCESS,
+    SKIPPED,
+    FAILURE
 }
