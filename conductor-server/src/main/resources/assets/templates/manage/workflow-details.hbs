@@ -8,7 +8,12 @@
     {{#with workflow}}
         <section>
             <div class="row">
-                <div class="col-auto"><h4>Details for Workflow: <b>{{displayName}}</b></h4></div>
+                <div class="col-10"><h4>Details for Workflow: <b>{{displayName}}</b></h4></div>
+                <div class="col-2 d-flex justify-content-end">
+                    <a class="btn btn-sm btn-outline-primary" href="/manage/workflow/{{id}}/export">
+                        <b class="bi bi-cloud-arrow-down me-1"></b> Export
+                    </a>
+                </div>
             </div>
             <form method="post" action="/manage/workflow/{{id}}" id="workflow-update">
                 <div class="row">

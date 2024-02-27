@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.resources.ui;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.Scope;
@@ -50,6 +51,9 @@ import javax.validation.constraints.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
@@ -69,6 +73,7 @@ public class Manage {
     private final UserLifecycleManager userLifecycleManager;
     private final ActionStore actionStore;
     private final AuthConfig authConfig;
+    private final ObjectMapper mapper;
 
     @GET
     @Path("/schema")
@@ -339,6 +344,22 @@ public class Manage {
                                 workflowActions(workflow))))
                 .map(ConductorServerUtils::render)
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
+    }
+
+    @GET
+    @Path("/workflow/{workflowId}/export")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response exportWorkflow(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
+        val workflow = workflowManager.workflowDetails(workflowId);
+        val fileName = String.format("%s-%s.json", workflowId,
+                                     new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date()));
+        return Response.ok((StreamingOutput)output -> output.write(mapper.writerWithDefaultPrettyPrinter()
+                             .writeValueAsString(workflow)
+                             .getBytes(StandardCharsets.UTF_8)))
+                .header("content-disposition","attachment; filename = " + fileName)
+                .build();
     }
 
     private List<Action> workflowActions(Workflow workflow) {
