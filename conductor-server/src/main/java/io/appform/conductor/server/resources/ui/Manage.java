@@ -25,10 +25,7 @@ import io.appform.conductor.model.schema.*;
 import io.appform.conductor.model.schema.fields.*;
 import io.appform.conductor.model.usermgmt.GroupType;
 import io.appform.conductor.model.usermgmt.Skill;
-import io.appform.conductor.model.workflow.Rule;
-import io.appform.conductor.model.workflow.TicketStateTransition;
-import io.appform.conductor.model.workflow.Workflow;
-import io.appform.conductor.model.workflow.WorkflowState;
+import io.appform.conductor.model.workflow.*;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.config.AuthConfig;
@@ -40,7 +37,10 @@ import io.appform.conductor.server.workflowmanagement.WorkflowManager;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.val;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.hibernate.validator.constraints.Length;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
@@ -52,6 +52,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -362,14 +363,26 @@ public class Manage {
                 .build();
     }
 
-    private List<Action> workflowActions(Workflow workflow) {
-        return actionStore.listActionsForIds(workflow.getAvailableActions());
+    @GET
+    @Path("/workflow/import")
+    public Response renderImportScreen(@Auth ConductorUser user) {
+        return render(new WorkflowImportView(user.getUserSession().getUser(), null));
     }
 
-    private List<Action> relevantActionsList(String workflowId) {
-        return actionStore.listActionsForScopes(List.of(Scope.GLOBAL,
-                                                        Scope.create(Scope.ScopeType.WORKFLOW,
-                                                                     workflowId)));
+    @POST
+    @Path("/workflow/import")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @SneakyThrows
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
+    public Response uploadFile(
+            @Auth ConductorUser user,
+            @FormDataParam("workflowFile") InputStream input,
+            @FormDataParam("workflowFile") FormDataContentDisposition fileDetail) {
+        val workflow = mapper.readValue(input, WorkflowDetails.class);
+        return render(new WorkflowImportView(user.getUserSession().getUser(),
+                                             workflowManager.importWorkflow(workflow,
+                                                                            false,
+                                                                            false)));
     }
 
     @POST
@@ -895,6 +908,16 @@ public class Manage {
         return userLifecycleManager.removeSkillValue(skillId, skillValueId)
                 .map(skill -> redirect("/manage/skills/" + skill.getId()))
                 .orElseThrow(() -> fail("Could not create skill", "/manage/skills"));
+    }
+
+    private List<Action> workflowActions(Workflow workflow) {
+        return actionStore.listActionsForIds(workflow.getAvailableActions());
+    }
+
+    private List<Action> relevantActionsList(String workflowId) {
+        return actionStore.listActionsForScopes(List.of(Scope.GLOBAL,
+                                                        Scope.create(Scope.ScopeType.WORKFLOW,
+                                                                     workflowId)));
     }
 
     private static io.appform.conductor.model.workflow.Template template(String templateValue) {

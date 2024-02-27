@@ -1,0 +1,92 @@
+{{#partial "content"}}
+    <section class="mb-3">
+        <form method="post" action="/manage/workflow/import" enctype='multipart/form-data'>
+
+            <div class="row">
+                <div class="col-12 col-md-1">
+                    <label for="workflowFile" class="form-label"><b>Upload JSON file</b></label>
+                </div>
+                <div class="col-12 col-md-9">
+                    <input class="form-control" type="file" id="workflowFile" name="workflowFile"
+                           aria-describedby="workflowFileHelp" required>
+                    <div id="workflowFileHelp" class="form-text">Select file exported from another conductor instance to
+                        upload from your device
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <button class="btn btn-success" type="submit">
+                        <b class="bi bi-cloud-arrow-up me-1"></b>Upload
+                    </button>
+                </div>
+            </div>
+        </form>
+    </section>
+    {{#with result}}
+        <section>
+            <div class="row">
+                <div class="col-12">
+                    <h5>Import status</h5>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <b>Workflow</b>:
+                    {{#eq workflow/success true}}
+                        <span class="text-success-emphasis">Successful</span>
+                    {{else}}
+                        <span class="text-danger-emphasis">Failed</span> ({{readable workflow/error}})
+
+                    {{/eq}}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <b>Schema</b>:
+                    {{#eq schema/success true}}
+                        <span class="text-success-emphasis">Successful</span>
+                    {{else}}
+                        <span class="text-danger-emphasis">Failed</span> ({{readable schema/error}})
+                    {{/eq}}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <b>Actions</b>:
+                    <ul>
+                        {{#each actions}}
+                            <li>
+                                <b>{{data/name}}</b>:
+                                {{#eq success true}}
+                                    <span class="text-success-emphasis">Successful</span>
+                                {{else}}
+                                    <span class="text-danger-emphasis">Failed</span> ({{readable error}})
+                                {{/eq}}
+                            </li>
+                        {{/each}}
+                    </ul>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <b>Tasks</b>:
+                    <ul>
+                        {{#each tasks}}
+                            <li>
+                                <b>{{data/name}}</b>:
+                                {{#eq success true}}
+                                    <span class="text-success-emphasis">Successful</span>
+                                {{else}}
+                                    <span class="text-danger-emphasis">Failed</span> ({{readable error}})
+                                {{/eq}}
+                            </li>
+                        {{/each}}
+                    </ul>
+                </div>
+            </div>
+        </section>
+    {{/with}}
+{{/partial}}
+
+{{> common/base}}

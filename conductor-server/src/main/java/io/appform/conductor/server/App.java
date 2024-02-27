@@ -29,6 +29,7 @@ import io.appform.functionmetrics.FunctionMetricsManager;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
+import io.dropwizard.forms.MultiPartBundle;
 import io.dropwizard.server.AbstractServerFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -59,7 +60,7 @@ public class App extends Application<AppConfig> {
             }
         };
         bootstrap.addBundle(dbShardingBundle);
-
+        bootstrap.addBundle(new MultiPartBundle());
         bootstrap.addBundle(
                 GuiceBundle.builder()
                         .enableAutoConfig("io.appform.conductor.server")
