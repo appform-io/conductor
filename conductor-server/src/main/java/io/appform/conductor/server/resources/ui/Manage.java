@@ -376,13 +376,15 @@ public class Manage {
     @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response uploadFile(
             @Auth ConductorUser user,
+            @FormDataParam("forceOverwriteActions") @DefaultValue("false") boolean forceOverwriteActions,
+            @FormDataParam("forceOverwriteTasks") @DefaultValue("false") boolean forceOverwriteTasks,
             @FormDataParam("workflowFile") InputStream input,
             @FormDataParam("workflowFile") FormDataContentDisposition fileDetail) {
         val workflow = mapper.readValue(input, WorkflowDetails.class);
         return render(new WorkflowImportView(user.getUserSession().getUser(),
                                              workflowManager.importWorkflow(workflow,
-                                                                            false,
-                                                                            false)));
+                                                                            forceOverwriteActions,
+                                                                            forceOverwriteTasks)));
     }
 
     @POST

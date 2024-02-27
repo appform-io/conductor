@@ -3,14 +3,32 @@
         <form method="post" action="/manage/workflow/import" enctype='multipart/form-data'>
 
             <div class="row">
-                <div class="col-12 col-md-1">
+                <div class="col-12 col-md-1 mb-3">
                     <label for="workflowFile" class="form-label"><b>Upload JSON file</b></label>
                 </div>
-                <div class="col-12 col-md-9">
+                <div class="col-12 col-md-7 mb-3">
                     <input class="form-control" type="file" id="workflowFile" name="workflowFile"
                            aria-describedby="workflowFileHelp" required>
                     <div id="workflowFileHelp" class="form-text">Select file exported from another conductor instance to
                         upload from your device
+                    </div>
+                </div>
+                <div class="col-12 col-md-2 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                               name="forceOverwriteActions" id="forceOverwriteActions" value="true">
+                        <label class="form-check-label" for="forceOverwriteActions">
+                            <b>Force override actions</b>
+                        </label>
+                    </div>
+                </div>
+                <div class="col-12 col-md-2 mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                               name="forceOverwriteTasks" id="forceOverwriteTasks" value="true">
+                        <label class="form-check-label" for="forceOverwriteTasks">
+                            <b>Force override tasks</b>
+                        </label>
                     </div>
                 </div>
             </div>
