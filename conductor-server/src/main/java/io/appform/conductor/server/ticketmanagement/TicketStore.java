@@ -20,10 +20,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.net.MediaType;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.TicketState;
-import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.ExternalReferenceID;
+import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.TicketRelationship;
-import io.appform.conductor.model.ticket.analytics.*;
+import io.appform.conductor.model.ticket.analytics.GroupingElement;
+import io.appform.conductor.model.ticket.analytics.TicketGroupResponse;
 import io.appform.conductor.model.ticket.comments.Attachment;
 import io.appform.conductor.model.ticket.comments.Comment;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
@@ -31,7 +32,10 @@ import io.appform.conductor.model.ticket.filter.TicketFilter;
 import lombok.NonNull;
 
 import java.net.URL;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 /**
@@ -205,6 +209,8 @@ public interface TicketStore {
     Optional<RelatedTicket> addRelatedTicket(final String ticketId,
                                              final String relatedToTicketId,
                                              final TicketRelationship relationship);
+
+    List<RelatedTicketSummary> listRelatedTicketSummaries(String ticketId, int from, int size);
 
     List<RelatedTicket> listRelatedTickets(final String ticketId,
                                            int from,

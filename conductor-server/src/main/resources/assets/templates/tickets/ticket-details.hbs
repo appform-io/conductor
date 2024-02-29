@@ -66,6 +66,63 @@
                             </div>
                         </form>
                     {{/with}}
+                    <section class="mb-2">
+                        <div class="row mb-2">
+                            <div class="col-12 col-md-7">
+                                <h5>Related Tickets</h5>
+                            </div>
+                            <div class="col-12 col-md-5 d-flex justify-content-end">
+
+                                <form class="row row-cols-md-auto g-3 align-items-center" method="post"
+                                    action="/tickets/{{summary.id}}/reference/create">
+                                    <div class="col-10">
+                                        <label for="relTicketId" class="col-form-label fw-bold visually-hidden">Name</label>
+                                        <input type="text" id="relTicketId" name="relTicketId" class="form-control border border-dark"
+                                               maxlength="45" placeholder="Ticket id to relate to" required>
+                                    </div>
+                                    <div class="col-2">
+                                        <button type="submit" title="Link to ticket" class="btn btn-primary"><b class="bi bi-link-45deg"></b></button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 table-responsive">
+                                <table class="table table-bordered datatable">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Title</th>
+                                            <th>Relation</th>
+                                            <th>Created</th>
+                                            <th>Updated</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {{#each ../relatedTickets}}
+                                        <tr>
+                                            <td><a href="/tickets/{{ticketId}}/details">{{ticketId}}</a></td>
+                                            <td>{{title}}</td>
+                                            <td>{{readable relationship}}</td>
+                                            <td>{{htmlDate created true}}</td>
+                                            <td>{{htmlDate updated true}}</td>
+                                            <td>
+                                                <form class="confirmed-form" method="post"
+                                                      action="/tickets/{{../ticket/summary/id}}/reference/{{ticketId}}/delete"
+                                                      data-cnf-title="Deleting reference"
+                                                      data-cnf-text="Are you sure you want to delete this ticket reference?">
+                                                    <button type="submit" class="btn btn-link p-0 text-danger"><i
+                                                            class="bi bi-trash-fill"></i></button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {{/each}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
                     <div class="row">
                         <div class="col-12">
                             <ul class="nav nav-tabs" id="ticketExtra" role="tablist">

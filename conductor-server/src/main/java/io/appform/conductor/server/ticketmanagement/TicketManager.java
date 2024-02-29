@@ -157,8 +157,13 @@ public class TicketManager {
         ticketStore.addRelatedTicket(relatedToTicketId, ticketId, TicketRelationship.REFERENCED);
     }
 
-    public List<RelatedTicket> listRelatedTickets(final String ticketId, final int from, final int size) {
-        return ticketStore.listRelatedTickets(ticketId, from, size);
+    public void deleteReferenceRelation(final String ticketId, final String relatedToTicketId) {
+        ticketStore.deleteRelatedTicket(ticketId, relatedToTicketId);
+        ticketStore.deleteRelatedTicket(relatedToTicketId, ticketId);
+    }
+
+    public List<RelatedTicketSummary> listRelatedTickets(final String ticketId, final int from, final int size) {
+        return ticketStore.listRelatedTicketSummaries(ticketId, from, size);
     }
 
 

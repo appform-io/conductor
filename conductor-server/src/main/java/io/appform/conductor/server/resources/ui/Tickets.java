@@ -169,11 +169,35 @@ public class Tickets {
         return render(new TicketDetailsView(user.getUserSession().getUser(),
                                             ticket,
                                             wf,
-                                            schema.get(),
+                                            schema.orElse(null),
                                             ticketState,
                                             fields,
                                             groupStore.list(),
-                                            actionStore.listActionsForIds(ticketState.getVisibleActions())));
+                                            actionStore.listActionsForIds(ticketState.getVisibleActions()),
+                                            ticketManager.listRelatedTickets(ticketId, 0, Integer.MAX_VALUE)));
+    }
+
+    @POST
+    @Path("/{ticketId}/reference/create")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.TICKET_WRITE)
+    public Response relateTicket(
+            @Auth final ConductorUser user,
+            @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
+            @FormParam("relTicketId") @NotEmpty @Length(max = 45) final String relTicketId) {
+        ticketManager.addReferenceRelation(ticketId, relTicketId);
+        return redirect("/tickets/" + ticketId + "/details");
+    }
+
+    @POST
+    @Path("/{ticketId}/reference/{relTicketId}/delete")
+    @RolesAllowed(Permission.Values.TICKET_WRITE)
+    public Response removeTicketRelationship(
+            @Auth final ConductorUser user,
+            @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
+            @PathParam("relTicketId") @NotEmpty @Length(max = 45) final String relTicketId) {
+        ticketManager.deleteReferenceRelation(ticketId, relTicketId);
+        return redirect("/tickets/" + ticketId + "/details");
     }
 
     @POST
