@@ -60,7 +60,7 @@ public class StoredWorkflowSelectionRule implements Serializable {
     @Enumerated(EnumType.STRING)
     private Rule.RuleType ruleType;
 
-    @Column(name = "rule", columnDefinition = "longtext", length = 5012)
+    @Column(name = "rule", columnDefinition = "text", length = 10240)
     private String rule;
 
     @Column(name = "workflow_id", length = Constants.MAX_WORKFLOW_STATE_ID_LENGTH)

@@ -95,7 +95,7 @@ public class Dashboards {
     public Response updateDashboard(
             @PathParam("dashboardId") @NotEmpty @Length(max = Constants.MAX_DASHBOARD_ID_LENGTH) final String dashboardId,
             @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
-            @FormParam("spec") @NotEmpty @Length(max = 4096) final String specRepresentation) {
+            @FormParam("spec") @NotEmpty @Length(max = Constants.MAX_SPEC_LENGTH ) final String specRepresentation) {
         return dashboardStore.update(
                         dashboardId,
                         description,

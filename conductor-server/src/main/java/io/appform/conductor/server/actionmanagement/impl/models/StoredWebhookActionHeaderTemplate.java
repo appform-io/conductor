@@ -48,7 +48,7 @@ public class StoredWebhookActionHeaderTemplate implements Serializable {
 
     @SuppressWarnings("java:S1948")
     @Convert(converter = TemplateConverter.class)
-    @Column(name = "template" , columnDefinition = "longtext")
+    @Column(name = "template" , columnDefinition = "text", length = Constants.MAX_TEMPLATE_LENGTH)
     private Template template;
 
     @Column(name = "active")

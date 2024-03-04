@@ -52,7 +52,7 @@ public class StoredReportContext implements Serializable {
     @Column(name = "report_id", length = Constants.MAX_REPORT_ID_LENGTH)
     private String reportId;
 
-    @Column(name = "report_data", columnDefinition = "longtext")
+    @Column(name = "report_data", columnDefinition = "longtext", length = 65535)
     private String reportData;
 
     @Column(name = "deleted")

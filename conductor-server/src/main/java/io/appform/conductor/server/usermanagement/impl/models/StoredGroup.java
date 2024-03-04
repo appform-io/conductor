@@ -65,7 +65,7 @@ public class StoredGroup {
     private GroupType type;
 
     @Convert(converter = StringSetConverter.class)
-    @Column(name = "required_skills", columnDefinition = "longtext")
+    @Column(name = "required_skills", columnDefinition = "text", length = 10240)
     private Set<String> requiredSkills;
 
     @Column(name = "deleted")

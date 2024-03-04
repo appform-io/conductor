@@ -38,7 +38,7 @@ public class StoredChoiceFieldSchema extends StoredFieldSchema {
     @Column(name = "default_selection", length = 255)
     private String defaultSelection;
 
-    @Column(name = "options_data", columnDefinition = "longtext")
+    @Column(name = "options_data", columnDefinition = "text", length = 10240)
     private byte[] optionsData;
 
     public StoredChoiceFieldSchema() {

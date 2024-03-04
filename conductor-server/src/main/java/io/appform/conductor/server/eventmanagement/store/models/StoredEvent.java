@@ -79,7 +79,7 @@ public class StoredEvent {
     @Column(name = "date", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date date;
 
-    @Column(columnDefinition = "longtext")
+    @Column(columnDefinition = "longtext", length = 65535)
     private String source;
 
     @Column(columnDefinition = "char(3)", name = "source_fmt")

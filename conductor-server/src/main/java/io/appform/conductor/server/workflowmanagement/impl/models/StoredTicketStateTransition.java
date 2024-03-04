@@ -72,11 +72,11 @@ public class StoredTicketStateTransition implements Serializable {
 
     @SuppressWarnings("java:S1948")
     @Convert(converter = RuleConverter.class)
-    @Column(name = "rule", columnDefinition = "longtext")
+    @Column(name = "rule", columnDefinition = "text", length = 10240)
     private Rule rule;
 
     @Convert(converter = StringListConverter.class)
-    @Column(name = "action_id", columnDefinition = "longtext")
+    @Column(name = "action_id", columnDefinition =  "text", length = 10240)
     private List<String> actionIds;
 
     @Column

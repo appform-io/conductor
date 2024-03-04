@@ -66,7 +66,7 @@ public class StoredRole implements Serializable {
     String description;
 
     @SuppressWarnings("java:S1948")
-    @Column(name = "permissions", columnDefinition = "longtext")
+    @Column(name = "permissions", columnDefinition = "text", length = 10240)
     @Convert(converter = PermissionsConverter.class)
     Set<Permission> permissions;
 

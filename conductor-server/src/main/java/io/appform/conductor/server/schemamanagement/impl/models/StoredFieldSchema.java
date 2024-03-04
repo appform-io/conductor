@@ -73,11 +73,11 @@ public abstract class StoredFieldSchema {
     private String parent;
 
     @Convert(converter = RuleConverter.class)
-    @Column(name = "visibility_condition", columnDefinition = "longtext")
+    @Column(name = "visibility_condition", columnDefinition = "text", length = 10240)
     private Rule visibilityCondition;
 
     @Convert(converter = RuleConverter.class)
-    @Column(name = "editable_condition", columnDefinition = "longtext")
+    @Column(name = "editable_condition", columnDefinition =  "text", length = 10240)
     private Rule editableCondition;
 
     @Column(name = "allow_multiple")

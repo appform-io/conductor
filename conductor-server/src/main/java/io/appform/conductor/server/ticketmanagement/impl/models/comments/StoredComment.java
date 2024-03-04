@@ -61,7 +61,7 @@ public class StoredComment implements Serializable {
     @Column(name = "author", length = Constants.MAX_USER_ID_LENGTH)
     private String author;
 
-    @Column(name = "content", columnDefinition = "longtext")
+    @Column(name = "content", columnDefinition = "text", length = Constants.MAX_COMMENT_LENGTH)
     private String content;
 
     @Column(name = "reply_to_id", length = Constants.MAX_TICKET_ID_LENGTH)

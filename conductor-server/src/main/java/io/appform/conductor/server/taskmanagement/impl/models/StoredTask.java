@@ -88,10 +88,10 @@ public class StoredTask implements Serializable {
     @Column(name = "last_run_status", length = 45)
     private ConductorTaskScheduler.TaskStatus lastRunStatus;
 
-    @Column(name = "task_data", columnDefinition = "longtext")
+    @Column(name = "task_data", columnDefinition = "text", length = 10240)
     private String spec;
 
-    @Column(name = "task_meta", columnDefinition = "longtext")
+    @Column(name = "task_meta", columnDefinition = "text", length = 10240)
     private String taskMeta;
 
     @Column(name = "deleted")

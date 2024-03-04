@@ -73,21 +73,21 @@ public class StoredWorkflow implements Serializable {
     private String schemaId;
 
     @Convert(converter = TemplateConverter.class)
-    @Column(name = "title_template", columnDefinition = "longtext")
+    @Column(name = "title_template", columnDefinition =  "text", length = Constants.MAX_TEMPLATE_LENGTH)
     private Template titleTemplate;
 
     @Convert(converter = TemplateConverter.class)
-    @Column(name = "description_template", columnDefinition = "longtext")
+    @Column(name = "description_template", columnDefinition =  "text", length = Constants.MAX_TEMPLATE_LENGTH)
     private Template descriptionTemplate;
 
     @Convert(converter = TemplateConverter.class)
-    @Column(name = "subject_id_template",  columnDefinition = "longtext")
+    @Column(name = "subject_id_template",  columnDefinition =  "text", length = Constants.MAX_TEMPLATE_LENGTH)
     private Template subjectIdTemplate;
 
     @Column(name = "start_state_id", length = Constants.MAX_WORKFLOW_STATE_ID_LENGTH)
     private String startStateId;
 
-    @Column(name = "available_actions", columnDefinition = "longtext")
+    @Column(name = "available_actions", columnDefinition = "text", length = 10240)
     @Convert(converter = StringListConverter.class)
     private List<String> availableActions;
 

@@ -27,6 +27,9 @@ public class Constants {
     public static final String CREATED_DATE_DEFINITION = "datetime(3) DEFAULT current_timestamp(3)";
     public static final String UPDATED_DATE_DEFINITION = "datetime(3) DEFAULT current_timestamp(3) ON UPDATE current_timestamp(3)";
     public static final int MAX_DESCRIPTION_LENGTH = 512;
+    public static final int MAX_SPEC_LENGTH = 5120;
+    public static final int MAX_COMMENT_LENGTH = 5120;
+    public static final int MAX_TEMPLATE_LENGTH = 10240;
     public static final int MAX_FIELD_NAME_LENGTH = 45;
     public static final int MAX_WORKFLOW_STATE_NAME_LENGTH = 45;
     public static final int MAX_WORKFLOW_ID_LENGTH = 45;

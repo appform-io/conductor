@@ -54,7 +54,7 @@ public class StoredDashboard {
     @Column(name = "description", length = Constants.MAX_DESCRIPTION_LENGTH)
     private String description;
 
-    @Column(name = "spec", columnDefinition = "longtext")
+    @Column(name = "spec", columnDefinition = "text", length = Constants.MAX_SPEC_LENGTH)
     private String spec;
 
     @Column(name = "spec_version", length = 45)
