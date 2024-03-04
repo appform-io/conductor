@@ -40,7 +40,13 @@ import java.util.Objects;
 @Table(name = StoredFieldValue.TICKET_FIELD_VALUE_TABLE_NAME,
         uniqueConstraints = @UniqueConstraint(name = "uk_ticket_field", columnNames = {"ticket_id", "schema_field_id"}),
         indexes = {
-                //TODO: Add relevant index
+                @Index(name = "idx_string_value", columnList = "string_value"),
+                @Index(name = "idx_boolean_value", columnList = "boolean_value"),
+                @Index(name = "idx_number_value", columnList = "number_value"),
+                @Index(name = "idx_location_lat_value", columnList = "location_lat_value"),
+                @Index(name = "idx_location_lon_value", columnList = "location_lon_value"),
+                @Index(name = "idx_choices_value", columnList = "choices_value"),
+                @Index(name = "idx_date_value", columnList = "date_value"),
         })
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @Getter

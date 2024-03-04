@@ -51,7 +51,7 @@ public class StoredSchemaSummary {
     private long id;
 
     @LookupKey
-    @Column(name = "schema_id", nullable = false, length = Constants.MAX_SCHEMA_ID_LENGTH, unique = true)
+    @Column(name = "schema_id", nullable = false, length = Constants.MAX_SCHEMA_ID_LENGTH)
     private String schemaId;
 
     @Column(name = "name", nullable = false, length = Constants.MAX_SCHEMA_ID_LENGTH)

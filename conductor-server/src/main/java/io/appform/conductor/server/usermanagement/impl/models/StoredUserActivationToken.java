@@ -54,7 +54,7 @@ public class StoredUserActivationToken {
     private long id;
 
     @LookupKey
-    @Column(name = "token", unique = true, nullable = false, length = Constants.MAX_ACTIVATION_TOKEN_LENGTH)
+    @Column(name = "token", nullable = false, length = Constants.MAX_ACTIVATION_TOKEN_LENGTH)
     private String token;
 
     @Column(name = "user_id", nullable = false, length = Constants.MAX_USER_ID_LENGTH)

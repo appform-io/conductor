@@ -34,7 +34,7 @@ public class StoredEmbeddedFieldValue implements Serializable {
     @Enumerated(EnumType.STRING)
     private FieldType type;
 
-    @Column(name = "string_value", length = 1027)
+    @Column(name = "string_value", length = 512)
     private String stringValue;
 
     @Column(name = "boolean_value")
@@ -49,7 +49,7 @@ public class StoredEmbeddedFieldValue implements Serializable {
     @Column(name = "location_lon_value")
     private double locationLonValue;
 
-    @Column(name = "choices_value", columnDefinition = "text", length = 10240)
+    @Column(name = "choices_value", length = 512)
     @Convert(converter = StringListConverter.class)
     private List<String> choiceValue;
 
