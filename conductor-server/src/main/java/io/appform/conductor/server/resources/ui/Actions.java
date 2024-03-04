@@ -32,6 +32,7 @@ import io.appform.conductor.server.ui.views.actions.fragments.RouteToGroupAction
 import io.appform.conductor.server.ui.views.actions.fragments.WebHookActionFragment;
 import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.utils.Pair;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
@@ -147,7 +148,7 @@ public class Actions {
             @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
         val scope = Scope.create(scopeType, referenceId);
         return actionStore.save(new RouteToGroupAction(ConductorServerUtils.generateActionId(),
@@ -170,7 +171,7 @@ public class Actions {
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @PathParam("actionId") @Length(max = 45) final String actionId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("groupId") @NotEmpty @Length(max = 45) final String groupId) {
         val scope = Scope.create(scopeType, referenceId);
         if (actionStore.update(actionId,
@@ -195,7 +196,7 @@ public class Actions {
             @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("ticketActionId") @NotEmpty @Length(max = 45) final String ticketActionId) {
         val scope = Scope.create(scopeType, referenceId);
         return actionStore.save(new AddTicketAction(ConductorServerUtils.generateActionId(),
@@ -218,7 +219,7 @@ public class Actions {
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @PathParam("actionId") @Length(max = 45) final String actionId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("ticketActionId") @NotEmpty @Length(max = 45) final String ticketActionId) {
         val scope = Scope.create(scopeType, referenceId);
         if (actionStore.update(actionId,
@@ -243,7 +244,7 @@ public class Actions {
             @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("priority") @NotNull TicketPriority priority) {
         val scope = Scope.create(scopeType, referenceId);
         return actionStore.save(new ChangePriorityAction(ConductorServerUtils.generateActionId(),
@@ -266,7 +267,7 @@ public class Actions {
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @PathParam("actionId") @Length(max = 45) final String actionId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("priority") @NotNull TicketPriority priority) {
         val scope = Scope.create(scopeType, referenceId);
         if (actionStore.update(actionId,
@@ -291,7 +292,7 @@ public class Actions {
             @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("callType") @NotNull WebhookAction.CallType callType,
             @FormParam("urlTemplate") @NotEmpty @Length(max = 1024) String urlTemplate,
             @FormParam("mimeType") WebhookAction.MimeType mimeType,
@@ -328,7 +329,7 @@ public class Actions {
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @PathParam("actionId") @Length(max = 45) final String actionId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("callType") @NotNull WebhookAction.CallType callType,
             @FormParam("urlTemplate") @NotEmpty @Length(max = 1024) String urlTemplate,
             @FormParam("mimeType") WebhookAction.MimeType mimeType,

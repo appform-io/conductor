@@ -57,7 +57,7 @@ public class StoredGroup {
     @Column(name = "name", nullable = false, length = Constants.MAX_GROUP_ID_LENGTH)
     private String name;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", length = Constants.MAX_DESCRIPTION_LENGTH)
     private String description;
 
     @Column(name = "type", length = 45)

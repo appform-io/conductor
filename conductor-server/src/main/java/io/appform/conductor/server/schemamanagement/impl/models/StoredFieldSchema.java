@@ -66,7 +66,7 @@ public abstract class StoredFieldSchema {
     @Column(name = "display_name", length = 45)
     private String displayName;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", length = Constants.MAX_DESCRIPTION_LENGTH)
     private String description;
 
     @Column(name = "parent_id", length = 255)

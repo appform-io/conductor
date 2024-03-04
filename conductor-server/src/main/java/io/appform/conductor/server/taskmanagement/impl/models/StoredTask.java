@@ -65,7 +65,7 @@ public class StoredTask implements Serializable {
     @Column(name = "name", length = Constants.MAX_TASK_ID_LENGTH)
     private String name;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", length = Constants.MAX_DESCRIPTION_LENGTH)
     private String description;
 
     @Column(name = "execution_interval_ms")

@@ -91,7 +91,7 @@ public class Admin {
     @RolesAllowed(Permission.Values.ADMIN)
     public Response createRole(
             @FormParam("name") @Length(min = 1, max = Constants.MAX_ROLE_ID_LENGTH) final String name,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("permissions") @NotEmpty List<Permission> permissions) {
         return roleStore.create(lowerSnake(name), name, description, Set.copyOf(permissions))
                 .map(role -> redirect(ROLES_LIST_PATH))
@@ -123,7 +123,7 @@ public class Admin {
     @RolesAllowed(Permission.Values.ADMIN)
     public Response updateRole(
             @PathParam("roleId") @Length(min = 1, max = 45) final String roleId,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("permissions") @NotEmpty Set<Permission> permissions) {
         return roleStore.update(roleId,
                                 role -> role.withDescription(description)

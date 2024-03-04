@@ -60,7 +60,7 @@ public class StoredTicketState implements Serializable {
     @Column(name = "display_name", length = Constants.MAX_WORKFLOW_STATE_NAME_LENGTH)
     private String displayName;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", length = Constants.MAX_DESCRIPTION_LENGTH)
     private String description;
 
     @Column(name = "terminal")

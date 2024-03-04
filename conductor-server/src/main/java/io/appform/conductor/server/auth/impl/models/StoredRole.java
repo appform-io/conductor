@@ -62,7 +62,7 @@ public class StoredRole implements Serializable {
     @Column(name = "name", length = Constants.MAX_ROLE_ID_LENGTH)
     String name;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", length = Constants.MAX_DESCRIPTION_LENGTH)
     String description;
 
     @SuppressWarnings("java:S1948")

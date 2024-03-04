@@ -76,7 +76,7 @@ public class StoredTicketSkeleton implements Serializable {
     @Column(name = "title", length = 255)
     private String title;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", length = Constants.MAX_DESCRIPTION_LENGTH)
     private String description;
 
     @Column(name = "workflow_id", nullable = false, length = Constants.MAX_WORKFLOW_ID_LENGTH)

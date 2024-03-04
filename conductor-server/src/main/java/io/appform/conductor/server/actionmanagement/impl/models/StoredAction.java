@@ -45,7 +45,7 @@ public abstract class StoredAction implements Serializable {
     @Column(name = "name", nullable = false, length = 45)
     private String name;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", length = Constants.MAX_DESCRIPTION_LENGTH)
     private String description;
 
     @Enumerated(EnumType.STRING)

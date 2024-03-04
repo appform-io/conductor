@@ -81,7 +81,7 @@ public class Dashboards {
     @RolesAllowed(Permission.Values.MANAGE_DASHBOARD)
     public Response createDashboard(
             @FormParam("name") @NotEmpty @Length(max = Constants.MAX_DASHBOARD_ID_LENGTH) final String name,
-            @FormParam("description") @Length(max = 255) final String description) {
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description) {
         val id = lowerSnake(name);
         return dashboardStore.create(id, name, description)
                 .map(dashboard -> redirect("/dashboards/" + dashboard.getId()))
@@ -93,8 +93,8 @@ public class Dashboards {
     @RolesAllowed(Permission.Values.MANAGE_DASHBOARD)
     @SneakyThrows
     public Response updateDashboard(
-            @PathParam("dashboardId") @NotEmpty @Length(max = 45) final String dashboardId,
-            @FormParam("description") @Length(max = 255) final String description,
+            @PathParam("dashboardId") @NotEmpty @Length(max = Constants.MAX_DASHBOARD_ID_LENGTH) final String dashboardId,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("spec") @NotEmpty @Length(max = 4096) final String specRepresentation) {
         return dashboardStore.update(
                         dashboardId,

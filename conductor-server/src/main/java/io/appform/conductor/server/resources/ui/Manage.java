@@ -91,7 +91,7 @@ public class Manage {
     public Response createSchema(
             @Auth ConductorUser user,
             @FormParam("name") @NotEmpty @Length(max = Constants.MAX_SCHEMA_ID_LENGTH) final String name,
-            @FormParam("description") @Length(max = 255) final String description) {
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description) {
         return schemaStore.create(name, description)
                 .flatMap(schemaSummary -> schemaStore.updateState(schemaSummary.getId(), SchemaState.ACTIVE))
                 .map(schemaSummary -> redirect("/manage/schema/" + schemaSummary.getId()))
@@ -106,7 +106,7 @@ public class Manage {
     public Response updateSchemaDescription(
             @Auth ConductorUser user,
             @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId,
-            @FormParam("description") @Length(max = 255) final String description) {
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description) {
         return schemaStore.updateDescription(schemaId, description)
                 .map(schemaSummary -> redirect("/manage/schema/" + schemaSummary.getId()))
                 .orElseThrow(() -> fail("Failed to update schema " + schemaId, "/manage/schema"));
@@ -310,7 +310,7 @@ public class Manage {
     public Response createWorkflow(
             @Auth ConductorUser user,
             @FormParam("name") @NotEmpty @Length(max = Constants.MAX_WORKFLOW_ID_LENGTH) final String name,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("schemaId") @NotEmpty @Length(max = Constants.MAX_SCHEMA_ID_LENGTH) final String schemaId) {
         return workflowStore.create(lowerSnake(name),
                                     name,
@@ -359,7 +359,7 @@ public class Manage {
     public Response updateWorkflowDescription(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
-            @FormParam("description") @Length(max = 255) final String description) {
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description) {
         return workflowManager.updateDescription(workflowId, description)
                 .map(wf -> redirect("/manage/workflow/" + wf.getId()))
                 .orElseThrow(() -> fail("Failed to update workflow " + workflowId, "/manage/workflow"));
@@ -683,7 +683,7 @@ public class Manage {
     public Response createGroups(
             @Auth ConductorUser user,
             @FormParam("name") @NotEmpty @Length(max = Constants.MAX_GROUP_ID_LENGTH) final String name,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("type") @DefaultValue("MANUALLY_ASSIGNED") @NotNull final GroupType type,
             @FormParam("skillValueId") @Size(max = 8) final Set<String> skillValueId) {
         return userLifecycleManager.createGroup(name, description, type, skillValueId)
@@ -710,7 +710,7 @@ public class Manage {
     public Response updateGroup(
             @Auth ConductorUser user,
             @PathParam("groupId") @NotEmpty @Length(max = 45) final String groupId,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("type") @DefaultValue("MANUALLY_ASSIGNED") @NotNull final GroupType type,
             @FormParam("skillValueId") @Size(max = 8) final Set<String> skillValueId) {
         return userLifecycleManager.updateGroup(groupId,

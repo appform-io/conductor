@@ -57,7 +57,7 @@ public class StoredSchemaSummary {
     @Column(name = "name", nullable = false, length = Constants.MAX_SCHEMA_ID_LENGTH)
     private String name;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", length = Constants.MAX_DESCRIPTION_LENGTH)
     private String description;
 
     @Column(name = "state", length = 45)

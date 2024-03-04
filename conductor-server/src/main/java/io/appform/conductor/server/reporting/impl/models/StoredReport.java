@@ -61,7 +61,7 @@ public class StoredReport implements Serializable {
     @Column(name = "name", length = Constants.MAX_REPORT_ID_LENGTH)
     private String name;
 
-    @Column(name = "description", length = 255)
+    @Column(name = "description", length = Constants.MAX_DESCRIPTION_LENGTH)
     private String description;
 
     @Column(name = "cql_query", length = Constants.MAX_CQL_LENGTH)
