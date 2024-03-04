@@ -35,6 +35,12 @@ import java.util.List;
 public class ChoiceAttributeValue extends AttributeValue {
     List<String> value;
 
+    public ChoiceAttributeValue(
+            String schemaId,
+            List<String> value) {
+        this(schemaId, null, null, value);
+    }
+
     @Builder
     @Jacksonized
     public ChoiceAttributeValue(

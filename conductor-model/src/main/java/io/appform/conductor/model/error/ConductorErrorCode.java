@@ -73,6 +73,7 @@ public enum ConductorErrorCode {
     REPORT_UPDATE_ERROR(7001, "Error creating or updating report with name: ${name}"),
 
     ACTION_ALREADY_EXISTS(8001, "Cannot create action as it already exists: ${actionId}"),
+    TASK_ALREADY_EXISTS(8002, "Cannot create task as it already exists: ${taskId}"),
 
     UNHANDLED_SERVER_ERROR(9999, "Unhandled exception. Log code: ${logCode}. Message: ${message}");
 

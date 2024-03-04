@@ -17,6 +17,8 @@
 package io.appform.conductor.server.ui.views.tickets;
 
 import io.appform.conductor.model.actions.Action;
+import io.appform.conductor.model.events.analytics.ObjectReference;
+import io.appform.conductor.model.events.impl.ReferredObjectType;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.ticket.TicketDetails;
@@ -24,8 +26,7 @@ import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.workflow.Workflow;
-import io.appform.conductor.model.events.impl.ReferredObjectType;
-import io.appform.conductor.model.events.analytics.ObjectReference;
+import io.appform.conductor.server.ticketmanagement.RelatedTicketSummary;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -49,6 +50,7 @@ public class TicketDetailsView extends BaseLoggedInView {
     List<TicketFieldView> fields;
     List<Group> availableGroups;
     List<Action> visibleActions;
+    List<RelatedTicketSummary> relatedTickets;
     Set<TicketPriority> priorities = EnumSet.allOf(TicketPriority.class);
     public TicketDetailsView(
             User currentUser,
@@ -58,7 +60,8 @@ public class TicketDetailsView extends BaseLoggedInView {
             TicketState state,
             List<TicketFieldView> fields,
             List<Group> availableGroups,
-            List<Action> visibleActions) {
+            List<Action> visibleActions,
+            List<RelatedTicketSummary> relatedTickets) {
         super("templates/tickets/ticket-details.hbs", currentUser,
               new ObjectReference(ReferredObjectType.TICKET, ticket.getSummary().getId()));
         this.ticket = ticket;
@@ -68,5 +71,6 @@ public class TicketDetailsView extends BaseLoggedInView {
         this.fields = fields;
         this.availableGroups = availableGroups;
         this.visibleActions = visibleActions;
+        this.relatedTickets = relatedTickets;
     }
 }

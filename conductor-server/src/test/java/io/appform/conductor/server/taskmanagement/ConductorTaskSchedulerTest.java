@@ -18,6 +18,7 @@ package io.appform.conductor.server.taskmanagement;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.actions.Scope;
+import io.appform.conductor.model.tasks.*;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
@@ -26,10 +27,6 @@ import io.appform.conductor.server.taskmanagement.impl.DBTaskStore;
 import io.appform.conductor.server.taskmanagement.impl.RunActionOnCQLSelectExecutor;
 import io.appform.conductor.server.taskmanagement.impl.RunActionOnSelectedTicketsExecutor;
 import io.appform.conductor.server.taskmanagement.impl.models.StoredTask;
-import io.appform.conductor.server.taskmanagement.model.RunActionOnSelectedTicketsTaskSpec;
-import io.appform.conductor.server.taskmanagement.model.Task;
-import io.appform.conductor.server.taskmanagement.model.TaskState;
-import io.appform.conductor.server.taskmanagement.model.TaskType;
 import io.appform.conductor.model.ticket.analytics.TicketGist;
 import io.appform.conductor.model.ticket.analytics.TicketListResponse;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
@@ -90,7 +87,7 @@ class ConductorTaskSchedulerTest {
                                                         any(RunActionOnSelectedTicketsTaskSpec.class)))
                 .thenAnswer(invocationOnMock -> {
                     callCounter.incrementAndGet();
-                    return new ConductorTaskScheduler.TaskResult(ConductorTaskScheduler.TaskStatus.SUCCESS,
+                    return new ConductorTaskScheduler.TaskResult(TaskRunStatus.SUCCESS,
                                                                  task,
                                                                  Map.of());
                 });
@@ -110,7 +107,7 @@ class ConductorTaskSchedulerTest {
                                                    runActionOnCQLSelectExecutor,
                                                    tstore);
         scheduler.start();
-        scheduler.scheduleNewTask(task);
+        assertNotNull(scheduler.scheduleNewTask(task));
         await()
                 .atMost(Duration.ofSeconds(6))
                 .until(() -> callCounter.get() == 5)

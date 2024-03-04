@@ -17,10 +17,10 @@
 package io.appform.conductor.server.taskmanagement.impl.models;
 
 import io.appform.conductor.model.actions.Scope;
-import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
-import io.appform.conductor.server.taskmanagement.model.TaskState;
-import io.appform.conductor.server.taskmanagement.model.TaskType;
 import io.appform.conductor.server.utils.Constants;
+import io.appform.conductor.model.tasks.TaskState;
+import io.appform.conductor.model.tasks.TaskType;
+import io.appform.conductor.model.tasks.TaskRunStatus;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
@@ -86,7 +86,7 @@ public class StoredTask implements Serializable {
     private Date lastExecutionCompletionTime;
 
     @Column(name = "last_run_status", length = 45)
-    private ConductorTaskScheduler.TaskStatus lastRunStatus;
+    private TaskRunStatus lastRunStatus;
 
     @Column(name = "task_data", columnDefinition = "text", length = 10240)
     private String spec;

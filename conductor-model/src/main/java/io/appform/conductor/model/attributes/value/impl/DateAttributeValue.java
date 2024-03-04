@@ -33,6 +33,12 @@ import java.util.Date;
 public class DateAttributeValue extends AttributeValue {
     Date value;
 
+    public DateAttributeValue(
+            String schemaId,
+            Date value) {
+        this(schemaId, null, null, value);
+    }
+
     @Builder
     @Jacksonized
     public DateAttributeValue(

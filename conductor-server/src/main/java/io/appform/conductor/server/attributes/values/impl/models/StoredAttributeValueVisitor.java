@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Santanu Sinha
+ * Copyright (c) 2024 santanu
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.taskmanagement.model;
+package io.appform.conductor.server.attributes.values.impl.models;
 
 /**
  *
  */
-public interface TaskSpecVisitor<T> {
-    T visit(RunActionOnSelectedTicketsTaskSpec runActionOnSelectedTicketsTaskSpec);
+public interface StoredAttributeValueVisitor<T> {
+    T visit(StoredStringAttributeValue stringAttributeValue);
 
-    T visit(RunActionOnCQLSelectTaskSpec runActionOnCQLSelectTaskSpec);
+    T visit(StoredNumberAttributeValue numberAttributeValue);
+
+    T visit(StoredChoiceAttributeValue choiceAttributeValue);
+
+    T visit(StoredDateAttributeValue dateAttributeValue);
+
+    T visit(StoredLinkAttributeValue linkAttributeValue);
 }

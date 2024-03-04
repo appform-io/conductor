@@ -23,10 +23,11 @@ import com.google.common.net.MediaType;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
-import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.ExternalReferenceID;
+import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.TicketRelationship;
-import io.appform.conductor.model.ticket.analytics.*;
+import io.appform.conductor.model.ticket.analytics.GroupingElement;
+import io.appform.conductor.model.ticket.analytics.TicketGroupResponse;
 import io.appform.conductor.model.ticket.comments.Attachment;
 import io.appform.conductor.model.ticket.comments.Comment;
 import io.appform.conductor.model.ticket.fields.TicketField;
@@ -67,7 +68,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.*;
 import static org.hibernate.criterion.CriteriaSpecification.DISTINCT_ROOT_ENTITY;
@@ -416,6 +419,45 @@ public class DBTicketStore implements TicketStore {
                 .map(DBTicketStore::toRelatedTicket);
     }
 
+    @Override
+    @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = STORE_LIST_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredTicketSkeleton.TICKET_SKELETON_TABLE_NAME))
+    public List<RelatedTicketSummary> listRelatedTicketSummaries(String ticketId, int from, int size) {
+        val relTickets = relatedTicketDao.select(
+                        ticketId,
+                        DetachedCriteria.forClass(StoredRelatedTicket.class)
+                                .add(Property.forName(StoredRelatedTicket.Fields.ticketId).eq(ticketId))
+                                .add(Property.forName(StoredRelatedTicket.Fields.deleted).eq(false)),
+                        from,
+                        size)
+                .stream()
+                .toList();
+        if (relTickets.isEmpty()) {
+            return List.of();
+        }
+        val relIds = relTickets.stream()
+                .map(StoredRelatedTicket::getRelatedToTicketId)
+                .toList();
+        val tickets = ticketDao.scatterGather(
+                        DetachedCriteria.forClass(StoredTicketSkeleton.class)
+                                .add(Property.forName(StoredTicketSkeleton.Fields.ticketId).in(relIds))
+                                .add(Property.forName(StoredTicketSkeleton.Fields.deleted).eq(false)))
+                .stream()
+                .collect(Collectors.toMap(StoredTicketSkeleton::getTicketId, Function.identity()));
+        return relTickets.stream()
+                .filter(storedRelatedTicket -> tickets.containsKey(storedRelatedTicket.getRelatedToTicketId()))
+                .map(storedRelatedTicket -> {
+                    val ticketSkeleton = tickets.get(storedRelatedTicket.getRelatedToTicketId());
+                    return new RelatedTicketSummary(storedRelatedTicket.getRelatedToTicketId(),
+                                                    ticketSkeleton.getTitle(),
+                                                    storedRelatedTicket.getRelationship(),
+                                                    ticketSkeleton.getCreated(),
+                                                    ticketSkeleton.getUpdated());
+                })
+                .toList();
+    }
 
     @Override
     @MonitoredFunction

@@ -17,7 +17,7 @@
 package io.appform.conductor.server.taskmanagement;
 
 import io.appform.conductor.model.actions.Scope;
-import io.appform.conductor.server.taskmanagement.model.Task;
+import io.appform.conductor.model.tasks.Task;
 
 import java.util.List;
 import java.util.Optional;

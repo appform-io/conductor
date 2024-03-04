@@ -44,7 +44,7 @@ public class StoredRelatedTicket implements Serializable {
     private String relatedToTicketId;
 
     @Column(name = "relationship", length = 45)
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private TicketRelationship relationship;
 
     @Column(name = "deleted")

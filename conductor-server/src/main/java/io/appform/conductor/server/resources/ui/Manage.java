@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.resources.ui;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.Scope;
@@ -24,10 +25,7 @@ import io.appform.conductor.model.schema.*;
 import io.appform.conductor.model.schema.fields.*;
 import io.appform.conductor.model.usermgmt.GroupType;
 import io.appform.conductor.model.usermgmt.Skill;
-import io.appform.conductor.model.workflow.Rule;
-import io.appform.conductor.model.workflow.TicketStateTransition;
-import io.appform.conductor.model.workflow.Workflow;
-import io.appform.conductor.model.workflow.WorkflowState;
+import io.appform.conductor.model.workflow.*;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.config.AuthConfig;
@@ -40,7 +38,10 @@ import io.appform.conductor.server.workflowmanagement.WorkflowManager;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.val;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.hibernate.validator.constraints.Length;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
@@ -51,6 +52,10 @@ import javax.validation.constraints.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
@@ -70,6 +75,7 @@ public class Manage {
     private final UserLifecycleManager userLifecycleManager;
     private final ActionStore actionStore;
     private final AuthConfig authConfig;
+    private final ObjectMapper mapper;
 
     @GET
     @Path("/schema")
@@ -342,14 +348,44 @@ public class Manage {
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
     }
 
-    private List<Action> workflowActions(Workflow workflow) {
-        return actionStore.listActionsForIds(workflow.getAvailableActions());
+    @GET
+    @Path("/workflow/{workflowId}/export")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response exportWorkflow(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
+        val workflow = workflowManager.workflowDetails(workflowId);
+        val fileName = String.format("%s-%s.json", workflowId,
+                                     new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date()));
+        return Response.ok((StreamingOutput)output -> output.write(mapper.writerWithDefaultPrettyPrinter()
+                             .writeValueAsString(workflow)
+                             .getBytes(StandardCharsets.UTF_8)))
+                .header("content-disposition","attachment; filename = " + fileName)
+                .build();
     }
 
-    private List<Action> relevantActionsList(String workflowId) {
-        return actionStore.listActionsForScopes(List.of(Scope.GLOBAL,
-                                                        Scope.create(Scope.ScopeType.WORKFLOW,
-                                                                     workflowId)));
+    @GET
+    @Path("/workflow/import")
+    public Response renderImportScreen(@Auth ConductorUser user) {
+        return render(new WorkflowImportView(user.getUserSession().getUser(), null));
+    }
+
+    @POST
+    @Path("/workflow/import")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @SneakyThrows
+    @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
+    public Response uploadFile(
+            @Auth ConductorUser user,
+            @FormDataParam("forceOverwriteActions") @DefaultValue("false") boolean forceOverwriteActions,
+            @FormDataParam("forceOverwriteTasks") @DefaultValue("false") boolean forceOverwriteTasks,
+            @FormDataParam("workflowFile") InputStream input,
+            @FormDataParam("workflowFile") FormDataContentDisposition fileDetail) {
+        val workflow = mapper.readValue(input, WorkflowDetails.class);
+        return render(new WorkflowImportView(user.getUserSession().getUser(),
+                                             workflowManager.importWorkflow(workflow,
+                                                                            forceOverwriteActions,
+                                                                            forceOverwriteTasks)));
     }
 
     @POST
@@ -875,6 +911,16 @@ public class Manage {
         return userLifecycleManager.removeSkillValue(skillId, skillValueId)
                 .map(skill -> redirect("/manage/skills/" + skill.getId()))
                 .orElseThrow(() -> fail("Could not create skill", "/manage/skills"));
+    }
+
+    private List<Action> workflowActions(Workflow workflow) {
+        return actionStore.listActionsForIds(workflow.getAvailableActions());
+    }
+
+    private List<Action> relevantActionsList(String workflowId) {
+        return actionStore.listActionsForScopes(List.of(Scope.GLOBAL,
+                                                        Scope.create(Scope.ScopeType.WORKFLOW,
+                                                                     workflowId)));
     }
 
     private static io.appform.conductor.model.workflow.Template template(String templateValue) {

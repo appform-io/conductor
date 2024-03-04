@@ -6,7 +6,7 @@ import io.appform.conductor.model.events.impl.task.TaskDeletedEvent;
 import io.appform.conductor.model.events.impl.task.TaskUpdatedEvent;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.taskmanagement.model.Task;
+import io.appform.conductor.model.tasks.Task;
 import lombok.val;
 
 import javax.inject.Inject;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Santanu Sinha
+ * Copyright (c) 2024 santanu
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,35 +14,21 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.taskmanagement.model;
+package io.appform.conductor.server.ticketmanagement;
 
-import io.appform.conductor.model.actions.Scope;
-import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
-import lombok.*;
+import io.appform.conductor.model.ticket.TicketRelationship;
+import lombok.Value;
 
-import java.time.Duration;
 import java.util.Date;
-import java.util.Map;
 
 /**
  *
  */
 @Value
-@With
-@Builder
-@AllArgsConstructor(access = AccessLevel.PUBLIC)
-public class Task {
-    String id;
-    TaskType type;
-    String name;
-    String description;
-    Duration interval;
-    Scope scope;
-    TaskState state;
-    TaskSpec spec;
-    Date lastExecutionCompletionTime;
-    ConductorTaskScheduler.TaskStatus lastRunStatus;
-    Map<String, Object> taskMeta;
+public class RelatedTicketSummary {
+    String ticketId;
+    String title;
+    TicketRelationship relationship;
     Date created;
     Date updated;
 }

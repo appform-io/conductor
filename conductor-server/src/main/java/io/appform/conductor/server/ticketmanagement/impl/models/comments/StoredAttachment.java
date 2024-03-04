@@ -36,7 +36,7 @@ import java.util.Date;
 import java.util.Objects;
 
 /**
- * DB representation for {@link org.hibernate.annotations.Comment}
+ * DB representation for {@link io.appform.conductor.model.ticket.comments.Attachment}
  */
 @Entity
 @Table(name = StoredAttachment.TICKET_ATTACHMENTS_TABLE_NAME,

@@ -16,9 +16,9 @@
 
 package io.appform.conductor.server.taskmanagement;
 
+import io.appform.conductor.model.tasks.*;
 import io.appform.conductor.server.taskmanagement.impl.RunActionOnCQLSelectExecutor;
 import io.appform.conductor.server.taskmanagement.impl.RunActionOnSelectedTicketsExecutor;
-import io.appform.conductor.server.taskmanagement.model.*;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.kaal.KaalScheduler;
 import io.appform.kaal.KaalTask;
@@ -80,7 +80,8 @@ public class ConductorTaskScheduler implements Managed {
     }
 
     public String scheduleNewTask(final Task task) {
-        val taskId = ConductorServerUtils.lowerSnake(task.getName());
+        val taskId = Objects.requireNonNullElseGet(task.getId(),
+                                                   () -> ConductorServerUtils.lowerSnake(task.getName()));
         return taskStore.createOrUpdate(taskId, task.withId(taskId))
                 .flatMap(savedTask -> {
                     val status = scheduler.schedule(new RunnableTask(this, taskId));
@@ -110,13 +111,7 @@ public class ConductorTaskScheduler implements Managed {
         return status;
     }
 
-    public enum TaskStatus {
-        SUCCESS,
-        SKIPPED,
-        FAILURE
-    }
-
-    public record TaskResult(TaskStatus status, Task task, Map<String, Object> taskMeta) {
+    public record TaskResult(TaskRunStatus status, Task task, Map<String, Object> taskMeta) {
     }
 
     public static final class RunnableTask implements KaalTask<RunnableTask, TaskResult> {
@@ -142,11 +137,11 @@ public class ConductorTaskScheduler implements Managed {
         public TaskResult apply(Date date, KaalTaskData<RunnableTask, TaskResult> runnable) {
             val task = scheduler.taskStore.listByIds(List.of(taskId)).stream().findFirst().orElse(null);
             if (null == task) {
-                return new TaskResult(TaskStatus.FAILURE, null, Map.of());
+                return new TaskResult(TaskRunStatus.FAILURE, null, Map.of());
             }
             if (task.getState().equals(TaskState.PAUSED)) {
                 log.info("Task {} skipped as it is paused", taskId);
-                return new TaskResult(TaskStatus.SKIPPED, task, task.getTaskMeta());
+                return new TaskResult(TaskRunStatus.SKIPPED, task, task.getTaskMeta());
             }
             log.info("Running task: {}", taskId);
             return task.getSpec()

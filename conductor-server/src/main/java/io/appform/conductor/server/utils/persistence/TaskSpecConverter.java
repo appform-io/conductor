@@ -17,7 +17,7 @@
 package io.appform.conductor.server.utils.persistence;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.appform.conductor.server.taskmanagement.model.TaskSpec;
+import io.appform.conductor.model.tasks.TaskSpec;
 
 import javax.inject.Inject;
 

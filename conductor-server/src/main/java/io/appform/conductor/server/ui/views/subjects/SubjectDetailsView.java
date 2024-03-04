@@ -16,13 +16,14 @@
 
 package io.appform.conductor.server.ui.views.subjects;
 
+import io.appform.conductor.model.events.analytics.ObjectReference;
+import io.appform.conductor.model.events.impl.ReferredObjectType;
 import io.appform.conductor.model.subject.Gender;
 import io.appform.conductor.model.subject.Subject;
 import io.appform.conductor.model.subject.SubjectIDType;
-import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.ticket.analytics.TicketGist;
-import io.appform.conductor.model.events.impl.ReferredObjectType;
-import io.appform.conductor.model.events.analytics.ObjectReference;
+import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.attributes.values.AttributeManager;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -43,13 +44,18 @@ public class SubjectDetailsView extends BaseLoggedInView {
     List<TicketGist> tickets;
     Set<Gender> gender = EnumSet.allOf(Gender.class);
     Set<SubjectIDType> subIdTypes = EnumSet.allOf(SubjectIDType.class);
+    List<AttributeManager.MaterializedAttributeValue> attributes;
+    String attributeUrl;
 
-    public SubjectDetailsView(User currentUser, Subject subject, List<TicketGist> tickets) {
+    public SubjectDetailsView(User currentUser, Subject subject, List<TicketGist> tickets,
+                              List<AttributeManager.MaterializedAttributeValue> attributes) {
         super("templates/subjects/subject-details.hbs", currentUser,
               null != subject
               ? new ObjectReference(ReferredObjectType.SUBJECT, subject.getSummary().getGlobalId())
               : null);
         this.subject = subject;
         this.tickets = tickets;
+        this.attributes = attributes;
+        attributeUrl = "/subjects/" + subject.getSummary().getGlobalId() + "/attributes";
     }
 }

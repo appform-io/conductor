@@ -240,6 +240,11 @@ public class EventGeneratingTicketStore implements TicketStore {
     }
 
     @Override
+    public List<RelatedTicketSummary> listRelatedTicketSummaries(String ticketId, int from, int size) {
+        return ticketStore.listRelatedTicketSummaries(ticketId, from, size);
+    }
+
+    @Override
     public List<RelatedTicket> listRelatedTickets(String ticketId, int from, int size) {
         return ticketStore.listRelatedTickets(ticketId, from, size);
     }
