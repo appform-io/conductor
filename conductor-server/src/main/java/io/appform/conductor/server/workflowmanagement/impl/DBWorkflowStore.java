@@ -18,6 +18,7 @@ package io.appform.conductor.server.workflowmanagement.impl;
 
 import com.google.common.base.Strings;
 import io.appform.conductor.model.error.ConductorErrorCode;
+import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.workflow.*;
@@ -73,6 +74,12 @@ public class DBWorkflowStore implements WorkflowStore {
             Template titleTemplate,
             Template descriptionTemplate,
             Template subjectIdTemplate) {
+        wfDao.get(workflowId).ifPresent( w -> {
+            log.error("CreateWorkflow failed as already exists:{}"+ workflowId);
+            throw new ConductorException(ConductorErrorCode.STORE_WRITE_ERROR,
+                    Map.of("type", StoredWorkflow.WORKFLOW_TABLE_NAME, "id", workflowId),
+                    null );
+        });
         return wfDao.save(new StoredWorkflow()
                                   .setWorkflowId(workflowId)
                                   .setDisplayName(name)
