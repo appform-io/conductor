@@ -800,7 +800,7 @@ public class DBTicketStore implements TicketStore {
                     case STRING -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.stringValue).eq(
                             equals.getValue()));
                     case CHOICE -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.choiceValue).eq(
-                            List.of(equals.getValue())));
+                            List.of(equals.getValue()))); //TODO: check with santanu...choice are list eq may not work ?
                     case BOOLEAN -> finalTop.add(fieldConstraint(StoredEmbeddedFieldValue.Fields.booleanValue).eq(
                             equals.getValue()));
                     case NUMBER ->

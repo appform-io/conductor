@@ -24,6 +24,7 @@ import io.appform.conductor.server.attributes.definition.AttributeDefinitionStor
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.ui.views.manage.AttributeDefMgmtView;
 import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.server.utils.Constants;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
@@ -76,7 +77,7 @@ public class ManageAttributeDefinitions {
             @PathParam("scopeType") @NotNull final AttributeScopeType scopeType,
             @FormParam("name") @NotEmpty @Length(max = 45) final String name,
             @FormParam("displayName") @Length(max = 45) final String displayName,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("type") @NotNull final AttributeType type,
             @FormParam("stringMaxLength") @Min(1) @Max(255) final int stringMaxLength,
             @FormParam("stringRegex") final String stringRegex,
@@ -120,7 +121,7 @@ public class ManageAttributeDefinitions {
             @PathParam("scopeType") @NotNull final AttributeScopeType scopeType,
             @PathParam("attrDefId") @NotEmpty @Length(max = 255) final String attrDefId,
             @FormParam("displayName") @Length(max = 45) final String displayName,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("stringMaxLength") @Min(1) @Max(255) final int stringMaxLength,
             @FormParam("stringRegex") final String stringRegex,
             @FormParam("choiceChoices") final String choiceChoices,

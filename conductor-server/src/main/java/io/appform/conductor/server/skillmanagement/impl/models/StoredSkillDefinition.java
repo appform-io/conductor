@@ -16,11 +16,12 @@
 
 package io.appform.conductor.server.skillmanagement.impl.models;
 
+import io.appform.conductor.server.utils.Constants;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.proxy.HibernateProxy;
 
 import javax.persistence.*;
@@ -47,26 +48,25 @@ public class StoredSkillDefinition implements Serializable {
     private static final long serialVersionUID = 7473115434950219055L;
 
     @Id
-    @Column(name = "skill_id", length = 45, nullable = false, unique = true)
+    @Column(name = "skill_id", length = Constants.MAX_SKILL_ID_LENGTH, nullable = false, unique = true)
     @LookupKey
     private String skillId;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = Constants.MAX_SKILL_ID_LENGTH)
     private String name;
 
     @Transient
     private List<StoredSkillValue> values;
 
-    @Column
+    @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override

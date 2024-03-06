@@ -17,14 +17,15 @@
 package io.appform.conductor.server.schemamanagement.impl.models;
 
 import io.appform.conductor.model.schema.SchemaState;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -34,7 +35,9 @@ import java.util.List;
  *
  */
 @Entity
-@Table(name = StoredSchemaSummary.SCHEMA_TABLE_NAME)
+@Table(name = StoredSchemaSummary.SCHEMA_TABLE_NAME, uniqueConstraints = {
+        @UniqueConstraint( name = "uk_schema_id", columnNames = "schema_id")
+})
 @Getter
 @Setter
 @ToString
@@ -48,32 +51,31 @@ public class StoredSchemaSummary {
     private long id;
 
     @LookupKey
-    @Column(name = "schema_id", nullable = false, length = 45, unique = true)
+    @Column(name = "schema_id", nullable = false, length = Constants.MAX_SCHEMA_ID_LENGTH)
     private String schemaId;
 
-    @Column(name = "name", nullable = false, length = 45)
+    @Column(name = "name", nullable = false, length = Constants.MAX_SCHEMA_ID_LENGTH)
     private String name;
 
-    @Column(name = "description")
+    @Column(name = "description", length = Constants.MAX_DESCRIPTION_LENGTH)
     private String description;
 
-    @Column
+    @Column(name = "state", length = 45)
     @Enumerated(EnumType.STRING)
     private SchemaState state;
 
-    @Column(name = "created_by", length = 45)
+    @Column(name = "created_by", length = Constants.MAX_USER_ID_LENGTH)
     private String createdBy;
 
-    @Column(name = "state_changed_by", length = 45)
+    @Column(name = "state_changed_by", length = Constants.MAX_USER_ID_LENGTH)
     private String stateChangedBy;
 
-    @Column(name = "created", columnDefinition = "timestamp default current_timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp on update current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Transient

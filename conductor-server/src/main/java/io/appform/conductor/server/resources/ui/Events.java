@@ -29,6 +29,7 @@ import io.appform.conductor.model.events.analytics.EventFilters;
 import io.appform.conductor.model.events.analytics.impl.EventListResponse;
 import io.appform.conductor.model.events.analytics.ObjectReference;
 import io.appform.conductor.server.ui.views.common.EventsListFragment;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.utils.Pair;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
@@ -79,7 +80,7 @@ public class Events {
         val filters = EventFilters.builder()
                 .referenceType(type)
                 .build();
-        return eventStore.query(new EventListRequest(UUID.randomUUID().toString(),
+        return eventStore.query(new EventListRequest(ConductorServerUtils.generateEventRequestId(),
                                                      filters,
                                                      next,
                                                      10))
@@ -108,7 +109,7 @@ public class Events {
         val filters = EventFilters.builder()
                 .reference(new ObjectReference(type, objectId))
                 .build();
-        return eventStore.query(new EventListRequest(UUID.randomUUID().toString(),
+        return eventStore.query(new EventListRequest(ConductorServerUtils.generateEventRequestId(),
                                                      filters,
                                                      next,
                                                      10))

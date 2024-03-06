@@ -1,6 +1,7 @@
 package io.appform.conductor.server.actionmanagement.impl.models;
 
 import io.appform.conductor.model.actions.ActionType;
+import io.appform.conductor.server.utils.Constants;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
@@ -22,7 +23,7 @@ public class StoredRouteToGroupAction extends StoredAction {
     @Serial
     private static final long serialVersionUID = 1128463869091495127L;
 
-    @Column(name = "group_id", length = 127)
+    @Column(name = "group_id", length = Constants.MAX_GROUP_ID_LENGTH)
     private String groupId;
 
     @Builder

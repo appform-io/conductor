@@ -23,6 +23,7 @@ import io.appform.conductor.server.subjectmanagement.SubjectStore;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredAddress;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectID;
 import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectSummary;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.functionmetrics.MonitoredFunction;
@@ -71,7 +72,7 @@ public class DBSubjectStore implements SubjectStore {
                                  .map(subId -> new StoredSubjectID()
                                          .setType(subId.getType())
                                          .setSubType(subId.getSubType())
-                                         .setExtId(UUID.randomUUID().toString())
+                                         .setExtId(ConductorServerUtils.generateSubjectExtId())
                                          .setValue(subId.getValue())
                                          .setSubjectGlobalId(summary.getGlobalId())
                                          .setPrimary(subId.isPrimary())
@@ -306,7 +307,7 @@ public class DBSubjectStore implements SubjectStore {
             String pinCode) {
         return addressDao.save(globalSubjectId,
                                new StoredAddress()
-                                       .setAddressId(UUID.randomUUID().toString())
+                                       .setAddressId(ConductorServerUtils.generateAddressId())
                                        .setType(type)
                                        .setHouseNumber(houseNumber)
                                        .setStreet(street)
@@ -451,7 +452,7 @@ public class DBSubjectStore implements SubjectStore {
     private Optional<SubjectID> readSubjectId(String globalSubjectId, @Throws.RuntimeParam("id") String extId) {
         return subjectIdDao.select(globalSubjectId,
                                    criteriaForSubject(globalSubjectId, StoredSubjectID.class)
-                                           .add(Property.forName("extId").eq(extId)),
+                                           .add(Property.forName(StoredSubjectID.Fields.extId).eq(extId)),
                                    0, 1)
                 .stream()
                 .findAny()

@@ -18,13 +18,13 @@ package io.appform.conductor.server.eventmanagement.store.models;
 
 import io.appform.conductor.model.events.EventType;
 import io.appform.conductor.model.events.impl.ReferredObjectType;
+import io.appform.conductor.server.utils.Constants;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import java.time.Instant;
@@ -38,12 +38,12 @@ import java.util.Date;
 @Entity
 @Table(name = StoredEvent.EVENTS_TABLE_NAME,
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_event_id_partition", columnNames = {"id", "partition_id"})
+                @UniqueConstraint(name = "uk_id_partition", columnNames = {"id", "partition_id"})
         },
         indexes = {
-                @Index(name = "idx_events_reference", columnList = "referred_object_type, referred_object_id"),
-                @Index(name = "idx_events_user", columnList = "user_id"),
-                @Index(name = "idx_events_date", columnList = "date"),
+                @Index(name = "idx_reference_type_reference_id", columnList = "referred_object_type, referred_object_id"),
+                @Index(name = "idx_user_id", columnList = "user_id"),
+                @Index(name = "idx_date", columnList = "date"),
         })
 @Getter
 @Setter
@@ -58,27 +58,28 @@ public class StoredEvent {
     }
 
     @Id
+    @Column(length = 255)
     private String id;
 
+    @Column(name = "type", length = 45)
     @Enumerated(EnumType.STRING)
     private EventType type;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "referred_object_type")
+    @Column(name = "referred_object_type", length = 45)
     private ReferredObjectType objectType;
 
-    @Column(name = "referred_object_id")
+    @Column(name = "referred_object_id", length = 255)
     private String objectId;
 
-    @Column(name = "user_id")
+    @Column(name = "user_id", length = Constants.MAX_USER_ID_LENGTH)
     private String userId;
 
-    @Column(name = "date", columnDefinition = "timestamp default current_timestamp", updatable = false,
-            insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "date", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date date;
 
-    @Column(columnDefinition = "longtext")
+    @Column(columnDefinition = "longtext", length = 65535)
     private String source;
 
     @Column(columnDefinition = "char(3)", name = "source_fmt")

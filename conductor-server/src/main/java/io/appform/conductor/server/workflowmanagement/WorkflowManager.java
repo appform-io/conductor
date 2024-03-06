@@ -350,7 +350,7 @@ public class WorkflowManager {
     }
 
     public Optional<Workflow> addSelectionRule(final String workflowId, final Rule rule) {
-        val ruleId = UUID.randomUUID().toString(); //TODO: Move to rule name for consistency ?
+        val ruleId = ConductorServerUtils.generateRuleId();
         return addSelectionRule(workflowId, ruleId, rule);
     }
 

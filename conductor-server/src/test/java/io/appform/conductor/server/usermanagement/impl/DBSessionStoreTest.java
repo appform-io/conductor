@@ -27,6 +27,7 @@ import io.appform.conductor.server.usermanagement.impl.models.StoredUserSessionD
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +42,7 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for {@link DBSessionStore}
  */
+@Slf4j
 @RelevantDBEntityPackages("io.appform.conductor.server.usermanagement.impl.models")
 @ExtendWith(DBTestExtension.class)
 class DBSessionStoreTest {
@@ -67,6 +69,8 @@ class DBSessionStoreTest {
             fail("Should have thrown exception");
         }
         catch (Exception e) {
+            e.printStackTrace();
+            log.error("Error,:", e);
             assertTrue(e instanceof ConductorException);
             assertEquals(ConductorErrorCode.STORE_WRITE_ERROR, ((ConductorException) e).getErrorCode());
         }

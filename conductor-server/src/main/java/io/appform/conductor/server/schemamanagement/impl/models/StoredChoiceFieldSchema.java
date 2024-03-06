@@ -35,10 +35,10 @@ import javax.persistence.Entity;
 @ToString
 @DiscriminatorValue(value = FieldType.CHOICE_TEXT)
 public class StoredChoiceFieldSchema extends StoredFieldSchema {
-    @Column(name = "default_selection")
+    @Column(name = "default_selection", length = 255)
     private String defaultSelection;
 
-    @Column
+    @Column(name = "options_data", columnDefinition = "text", length = 10240)
     private byte[] optionsData;
 
     public StoredChoiceFieldSchema() {

@@ -17,6 +17,7 @@
 package io.appform.conductor.server.ticketmanagement.impl.models.comments;
 
 import com.google.common.net.MediaType;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.utils.persistence.MediaTypeConverter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,8 +25,8 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -40,7 +41,7 @@ import java.util.Objects;
 @Entity
 @Table(name = StoredAttachment.TICKET_ATTACHMENTS_TABLE_NAME,
     indexes = {
-        @Index(name = "idx_attachment_for_ticket", columnList = "ticket_id, deleted"),
+        @Index(name = "idx_ticket_id", columnList = "ticket_id"),
     })
 @Getter
 @Setter
@@ -54,39 +55,38 @@ public class StoredAttachment implements Serializable {
     private static final long serialVersionUID = -5698876015229760326L;
 
     @Id
-    @Column(name = "attachment_id", unique = true)
+    @Column(name = "attachment_id", nullable = false, unique = true, length = Constants.MAX_ATTACHMENT_ID_LENGTH)
     private String attachmentId;
 
-    @Column(name = "ticket_id", nullable = false)
+    @Column(name = "ticket_id", nullable = false, length = Constants.MAX_TICKET_ID_LENGTH)
     private String ticketId;
 
-    @Column
+    @Column(name = "creator", length = Constants.MAX_USER_ID_LENGTH)
     private String creator;
 
     @SuppressWarnings("java:S1948")
     @Convert(converter = MediaTypeConverter.class)
-    @Column
+    @Column(name = "media_type", length = 45)
     private MediaType mediaType;
 
-    @Column
+    @Column(name = "url", length = 1027)
     private URL url;
 
     @Column(name = "size_in_bytes")
     private long sizeInBytes;
 
-    @Column
+    @Column(name = "encrypted")
     boolean encrypted;
 
     @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override

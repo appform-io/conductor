@@ -19,12 +19,13 @@ package io.appform.conductor.server.usermanagement.impl.models;
 import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.usermgmt.UserType;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -34,7 +35,9 @@ import java.util.Objects;
  * DB model object corresponding to {@link UserSummary}
  */
 @Entity
-@Table(name = StoredUser.USER_TABLE_NAME)
+@Table(name = StoredUser.USER_TABLE_NAME, uniqueConstraints = {
+        @UniqueConstraint(name = "uk_email", columnNames = "email")
+})
 @Getter
 @Setter
 @ToString
@@ -45,29 +48,28 @@ public class StoredUser {
 
     @Id
     @LookupKey
-    @Column(name = "user_id", unique = true, nullable = false, length = 45)
+    @Column(name = "user_id", unique = true, nullable = false, length = Constants.MAX_USER_ID_LENGTH)
     private String userId;
 
     @Column(name = "user_type", nullable = false, length = 45)
     private UserType userType;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, length = 127)
     private String name;
 
-    @Column(name = "email", unique = true, nullable = false)
+    @Column(name = "email", nullable = false, length = Constants.MAX_USER_ID_LENGTH)
     private String email;
 
-    @Column
+    @Column(name = "state", length = 45)
     @Enumerated(EnumType.STRING)
     private UserState state;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     public StoredUser(

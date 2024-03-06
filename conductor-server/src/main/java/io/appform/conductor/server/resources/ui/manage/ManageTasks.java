@@ -36,6 +36,7 @@ import io.appform.conductor.server.ui.views.tasks.RunActionOnCQLSelectView;
 import io.appform.conductor.server.ui.views.tasks.RunActionOnSelectedTicketsView;
 import io.appform.conductor.server.ui.views.tasks.TaskListView;
 import io.appform.conductor.server.usermanagement.GroupStore;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
@@ -261,7 +262,7 @@ public class ManageTasks {
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @FormParam("name") @NotEmpty @Length(max = 45) final String name,
-            @FormParam("description") @NotEmpty @Length(max = 255) final String description,
+            @FormParam("description") @NotEmpty @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("interval") @Min(0) final int interval,
             @FormParam("stateIds") Set<String> stateIds,
             @FormParam("groupIds") Set<String> groupIds,
@@ -295,7 +296,7 @@ public class ManageTasks {
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @PathParam("taskId") @NotEmpty @Length(max = 45) final String taskId,
-            @FormParam("description") @NotEmpty @Length(max = 255) final String description,
+            @FormParam("description") @NotEmpty @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("interval") @Min(0) final int interval,
             @FormParam("stateIds") Set<String> stateIds,
             @FormParam("groupIds") Set<String> groupIds,
@@ -323,7 +324,7 @@ public class ManageTasks {
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @FormParam("name") @NotEmpty @Length(max = 45) final String name,
-            @FormParam("description") @NotEmpty @Length(max = 255) final String description,
+            @FormParam("description") @NotEmpty @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("interval") @Min(0) final int interval,
             @FormParam("query") @NotEmpty @Length(max = 1024) final String query,
             @FormParam("selectedActions") List<String> actionIds) {
@@ -355,7 +356,7 @@ public class ManageTasks {
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @PathParam("taskId") @NotEmpty @Length(max = 45) final String taskId,
-            @FormParam("description") @NotEmpty @Length(max = 255) final String description,
+            @FormParam("description") @NotEmpty @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("interval") @Min(0) final int interval,
             @FormParam("query") @NotEmpty @Length(max = 1024) final String query,
             @FormParam("selectedActions") List<String> actionIds) {

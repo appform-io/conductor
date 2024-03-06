@@ -35,6 +35,7 @@ import io.appform.conductor.server.ticketmanagement.TicketSkeletonListResult;
 import io.appform.conductor.server.ui.views.tickets.*;
 import io.appform.conductor.server.ui.views.tickets.fragments.CommentsFragment;
 import io.appform.conductor.server.usermanagement.GroupStore;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
@@ -96,7 +97,7 @@ public class Tickets {
             @Auth ConductorUser user,
             @FormParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @FormParam("title") @NotEmpty @Length(max = 255) final String title,
-            @FormParam("description") @DefaultValue("") @Length(max = 4096) final String description,
+            @FormParam("description") @DefaultValue("") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("subjectIdType") @NotNull final SubjectIDType subjectIdType,
             @FormParam("subIdSubType") @DefaultValue("") @Length(max = 255) final String subIdSubType,
             @FormParam("subIdValue") @NotEmpty @Length(max = 45) final String subIdValue) {
@@ -206,8 +207,8 @@ public class Tickets {
     @RolesAllowed(Permission.Values.TICKET_WRITE)
     public Response addComment(
             @Auth final ConductorUser user,
-            @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
-            @FormParam("newComment") @NotEmpty @Length(max = 4000) final String content) {
+            @PathParam("ticketId") @NotEmpty @Length(max = Constants.MAX_TICKET_ID_LENGTH) final String ticketId,
+            @FormParam("newComment") @NotEmpty @Length(max = Constants.MAX_COMMENT_LENGTH) final String content) {
         val ticket = ticketManager.readTicket(ticketId).orElse(null);
         if (null == ticket) {
             throw fail("No ticket found for ticket id: " + ticketId, "/");
@@ -240,7 +241,7 @@ public class Tickets {
             @Auth final ConductorUser user,
             @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
             @FormParam("title") @NotEmpty @Length(max = 255) final String title,
-            @FormParam("description") @DefaultValue("") @Length(max = 4096) final String description) {
+            @FormParam("description") @DefaultValue("") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description) {
         return ticketManager.processFormSummaryUpdate(ticketId, title, description)
                 .map(t -> Response.seeOther(URI.create("/tickets/" + ticketId + "/details")).build())
                 .orElse(Response.seeOther(URI.create("/")).build());

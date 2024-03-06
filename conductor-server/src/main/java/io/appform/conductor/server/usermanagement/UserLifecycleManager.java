@@ -26,6 +26,7 @@ import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserAuthValidator;
 import io.appform.conductor.server.auth.UserRoleMappingStore;
 import io.appform.conductor.server.comms.MailSender;
+import io.appform.conductor.server.id.IdUtils;
 import io.appform.conductor.server.internalmodels.auth.PasswordAuthData;
 import io.appform.conductor.server.internalmodels.auth.UserTokenAuthData;
 import io.appform.conductor.server.skillmanagement.SkillStore;
@@ -36,10 +37,7 @@ import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.lowerSnake;
 
@@ -74,6 +72,7 @@ public class UserLifecycleManager {
     private final UserAuthValidator userAuthValidator;
     private final Provider<GroupStore> groupStore;
     private final Provider<SkillStore> skillStore;
+    private final Provider<IdUtils> idUtils;
     private final MailSender mailSender;
 
     public Optional<User> userDetails(@NonNull final String userId) {
@@ -103,7 +102,7 @@ public class UserLifecycleManager {
      */
     public Optional<UserSummary> createHumanUser(String name, String email, String password) {
         val userDetails = userStore.get()
-                .create(lowerSnake(email), name, UserType.HUMAN, email);
+                .create(idUtils.get().createUserInSameShard(email), name, UserType.HUMAN, email);
         userDetails.ifPresent(user -> {
             passwordAuthStore.get().set(user.getId(), hash(password));
             createToken(user);

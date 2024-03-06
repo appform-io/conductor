@@ -2,6 +2,7 @@ package io.appform.conductor.server.actionmanagement.impl.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.appform.conductor.model.workflow.Template;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.utils.persistence.TemplateConverter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,23 +43,23 @@ public class StoredWebhookActionHeaderTemplate implements Serializable {
     @JoinColumn(name = "action_id")
     private StoredWebhookAction action;
 
-    @Column(name = "name")
+    @Column(name = "name", length = 45)
     private String name;
 
     @SuppressWarnings("java:S1948")
     @Convert(converter = TemplateConverter.class)
-    @Column(name = "template" , length = 2047)
+    @Column(name = "template" , columnDefinition = "text", length = Constants.MAX_TEMPLATE_LENGTH)
     private Template template;
 
     @Column(name = "active")
     private boolean active;
 
     @CreationTimestamp
-    @Column(name = "created", columnDefinition = "timestamp")
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
     @UpdateTimestamp
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp")
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override

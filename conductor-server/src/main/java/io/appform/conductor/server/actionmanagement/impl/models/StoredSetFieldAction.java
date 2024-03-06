@@ -2,6 +2,7 @@ package io.appform.conductor.server.actionmanagement.impl.models;
 
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredEmbeddedFieldValue;
+import io.appform.conductor.server.utils.Constants;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
@@ -21,7 +22,7 @@ public class StoredSetFieldAction extends StoredAction {
     @Serial
     private static final long serialVersionUID = 3846412829595254898L;
 
-    @Column(name = "field_schema_id", length = 45)
+    @Column(name = "field_schema_id", length = Constants.MAX_FIELD_SCHEMA_ID_LENGTH)
     private String fieldSchemaId;
 
     @Embedded

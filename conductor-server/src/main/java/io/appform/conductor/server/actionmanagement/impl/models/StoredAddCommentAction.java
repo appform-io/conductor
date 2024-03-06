@@ -2,6 +2,7 @@ package io.appform.conductor.server.actionmanagement.impl.models;
 
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.workflow.Template;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.utils.persistence.TemplateConverter;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
@@ -24,7 +25,7 @@ public class StoredAddCommentAction extends StoredAction {
 
     @SuppressWarnings("java:S1948")
     @Convert(converter = TemplateConverter.class)
-    @Column(name = "content_template", length = 1023)
+    @Column(name = "content_template", columnDefinition = "text", length = Constants.MAX_TEMPLATE_LENGTH)
     private Template contentTemplate;
 
     public StoredAddCommentAction() {

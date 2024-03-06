@@ -17,13 +17,15 @@
 package io.appform.conductor.server.workflowmanagement.impl.models;
 
 import io.appform.conductor.model.workflow.Rule;
+import io.appform.conductor.server.utils.Constants;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -37,12 +39,13 @@ import java.util.Objects;
 @Entity
 @Table(name = StoredWorkflowSelectionRule.WF_SELECTION_RULE_TABLE_NAME,
         indexes = {
-                @Index(name = "idx_wf_selection_rule_wf_id", columnList = "workflow_id"),
+                @Index(name = "idx_workflow_id", columnList = "workflow_id"),
         }
 )
 @Getter
 @Setter
 @ToString
+@FieldNameConstants
 @NoArgsConstructor
 public class StoredWorkflowSelectionRule implements Serializable {
     public static final String WF_SELECTION_RULE_TABLE_NAME = "workflow_selection_rules";
@@ -50,32 +53,28 @@ public class StoredWorkflowSelectionRule implements Serializable {
     private static final long serialVersionUID = -4729081581755725993L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    @Column(name = "rule_id", nullable = false, unique = true, length = Constants.MAX_WORKFLOW_RULE_ID_LENGTH)
+    private String ruleId;
 
-    @Column(name = "ext_id", unique = true)
-    private String extId;
-
-    @Column(name = "rule_type")
+    @Column(name = "rule_type", length = 45)
     @Enumerated(EnumType.STRING)
     private Rule.RuleType ruleType;
 
-    @Column(name = "rule")
+    @Column(name = "rule", columnDefinition = "text", length = 10240)
     private String rule;
 
-    @Column(name = "workflow_id")
+    @Column(name = "workflow_id", length = Constants.MAX_WORKFLOW_STATE_ID_LENGTH)
     private String workflowId;
 
-    @Column
+    @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override
@@ -87,7 +86,7 @@ public class StoredWorkflowSelectionRule implements Serializable {
             return false;
         }
         StoredWorkflowSelectionRule that = (StoredWorkflowSelectionRule) o;
-        return Objects.equals(getId(), that.getId());
+        return Objects.equals(getRuleId(), that.getRuleId());
     }
 
     @Override
