@@ -37,8 +37,8 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = StoredUserRoleMapping.USER_ROLE_MAPPING_TABLE_NAME,
-        indexes = {
-                @Index(name = "idx_user_id", columnList = "user_id"),
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_user_id", columnNames = "user_id"),
         })
 @Getter
 @Setter
