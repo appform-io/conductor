@@ -86,7 +86,16 @@ public class WorkflowManager {
     }
 
     public Optional<Workflow> activate(final String workflowId) {
-        return workflowStore.update(workflowId, wf -> wf.setState(WorkflowState.ACTIVE));
+        final var updated = workflowStore.update(workflowId, wf -> wf.setState(WorkflowState.ACTIVE));
+        if(updated.isPresent()) {
+            val schemaId = updated.map(Workflow::getSchemaId).orElse(null);
+            schemaStore.updateState(schemaId, SchemaState.ACTIVE);
+        }
+        return updated;
+    }
+
+    public Optional<Workflow> deactivate(final String workflowId) {
+        return workflowStore.update(workflowId, wf -> wf.setState(WorkflowState.INACTIVE));
     }
 
     public Optional<Workflow> updateDescription(final String workflowId, final String description) {
@@ -423,10 +432,6 @@ public class WorkflowManager {
                                    taskStore.listByScopes(List.of(Scope.create(Scope.ScopeType.WORKFLOW, workflowId))));
     }
 
-    public ImportWorkflowResult importWorkflow(WorkflowDetails workflowDetails) {
-        return importWorkflow(workflowDetails, false, false);
-    }
-
     public ImportWorkflowResult importWorkflow(WorkflowDetails workflowDetails,
                                                boolean forceOverwriteActions,
                                                boolean forceOverwriteTasks) {
@@ -435,6 +440,111 @@ public class WorkflowManager {
         val schema = importSchema(workflowDetails.getSchema());
         val workflow = importWorkflow(workflowDetails.getWorkflow());
         return new ImportWorkflowResult(workflow, schema, actions, tasks);
+    }
+
+
+    private Optional<Workflow> handleTransition(
+            String workflowId,
+            String transitionId,
+            BiFunction<Workflow, TicketStateTransition, Optional<Workflow>> handler) {
+        val wf = workflowStore.read(workflowId).orElse(null);
+        ensureNotNull(workflowId, wf);
+        val existing = wf.getTicketStateTransitions()
+                .values()
+                .stream()
+                .flatMap(List::stream)
+                .filter(transition -> transition.getId().equals(transitionId))
+                .findFirst()
+                .orElse(null);
+        ensure(null != existing,
+               ConductorErrorCode.WORKFLOW_ERROR,
+               "No transition found for " + workflowId + "/" + transitionId);
+
+        return handler.apply(wf, existing);
+    }
+
+    private static void ensureNotNull(String workflowId, Workflow wf) {
+        if (null == wf) {
+            throw ConductorException.builder()
+                    .errorCode(ConductorErrorCode.WORKFLOW_ERROR_INVALID_ID)
+                    .context(Map.of("id", workflowId))
+                    .build();
+        }
+    }
+
+    private ImportResult<Workflow> importWorkflow(Workflow inWorkflow) {
+        val workflowId = inWorkflow.getId();
+        val existingWorkflow = workflowStore.read(workflowId);
+
+        //Check schema, if already active
+        if (existingWorkflow.filter(workflow -> workflow.getState() == WorkflowState.ACTIVE).isPresent()) {
+            return new ImportResult<>(inWorkflow, false,
+                                      ConductorErrorCode.WORKFLOW_ERROR_ID_ALREADY_EXISTS.name());
+        }
+
+        if (existingWorkflow.isPresent()) {
+            if (ticketStore.ticketExists(workflowId)
+                    || !existingWorkflow.get().getSchemaId().equals(inWorkflow.getSchemaId())) {
+                return new ImportResult<>(inWorkflow, false,
+                                          ConductorErrorCode.WORKFLOW_ERROR_ID_ALREADY_EXISTS.name());
+            }
+        }
+
+        //Deleting existing rules, state & transitions
+        existingWorkflow.ifPresent(workflow -> {
+            workflow.getSelectionRules().keySet()
+                    .forEach(ruleId -> workflowStore.deleteSelectionRule(workflowId, ruleId));
+            workflow.getStates().keySet()
+                    .forEach(stateId -> workflowStore.deleteState(workflowId, stateId));
+            workflow.getTicketStateTransitions().values().stream()
+                    .flatMap(Collection::stream)
+                    .forEach(transition -> workflowStore.deleteTransition(workflowId, transition.getId()));
+        });
+
+        //Create INACTIVE workflow state && upsert all rules, state & transitions
+        return existingWorkflow.flatMap(existing ->
+                                                workflowStore.update(existing.getId(),
+                                                                     workflow -> workflow.setState(WorkflowState.INACTIVE)
+                                                                             .setDescription(inWorkflow.getDescription())
+                                                                             .setTitleTemplate(inWorkflow.getTitleTemplate())
+                                                                             .setSubjectIdTemplate(inWorkflow.getSubjectIdTemplate())
+                                                                             .setStartStateId(inWorkflow.getStartStateId())
+                                                                             .setDescriptionTemplate(inWorkflow.getDescriptionTemplate())))
+                .or(() -> workflowStore.create(inWorkflow.getId(),
+                                               inWorkflow.getDisplayName(),
+                                               inWorkflow.getDescription(),
+                                               inWorkflow.getSchemaId(),
+                                               inWorkflow.getTitleTemplate(),
+                                               inWorkflow.getSubjectIdTemplate(),
+                                               inWorkflow.getDescriptionTemplate())
+                        .flatMap(wf -> workflowStore.update(wf.getId(),
+                                                            existing -> existing.setStartStateId(inWorkflow.getStartStateId()))))
+                .map(workflow -> {
+                    inWorkflow.getSelectionRules()
+                            .forEach((ruleId, rule) -> addSelectionRule(workflowId, ruleId, rule));
+                    inWorkflow.getStates()
+                            .forEach((stateId, state) -> createState(workflowId,
+                                                                     state.getDisplayName(),
+                                                                     state.getDescription(),
+                                                                     state.isTerminal(),
+                                                                     state.getAllowedActions(),
+                                                                     state.getEditableFields(),
+                                                                     state.getVisibleFields(),
+                                                                     state.getRequiredFields(),
+                                                                     state.getVisibleActions()));
+                    inWorkflow.getTicketStateTransitions()
+                            .forEach((stateId, transitions) ->
+                                             transitions.forEach(transition
+                                                                         -> createOrUpdateTransition(workflowId,
+                                                                                                     transition.getFrom(),
+                                                                                                     transition.getTo(),
+                                                                                                     transition.getType(),
+                                                                                                     transition.getRule(),
+                                                                                                     transition.getActionIds())));
+                    return inWorkflow;
+                })
+                .map(workflow -> new ImportResult<>(workflow, true, null))
+                .orElse(new ImportResult<>(inWorkflow, false, ConductorErrorCode.STORE_WRITE_ERROR.name()));
     }
 
     private Optional<Workflow> addSelectionRule(String workflowId, String ruleId, Rule rule) {
@@ -456,7 +566,7 @@ public class WorkflowManager {
                 .map(action -> {
                     if (existingActions.containsKey(action.getId()) && !forceOverwriteActions) {
                         return new ImportResult<>(action, false,
-                                           ConductorErrorCode.ACTION_ALREADY_EXISTS.name());
+                                                  ConductorErrorCode.ACTION_ALREADY_EXISTS.name());
                     }
                     return actionStore.save(action)
                             .map(saved -> new ImportResult<>(saved, true, null))
@@ -515,107 +625,5 @@ public class WorkflowManager {
                 .flatMap(schemaSummary -> schemaStore.read(schemaSummary.getId()))
                 .map(schema -> new ImportResult<>(schema, true, null))
                 .orElse(new ImportResult<>(inSchema, false, ConductorErrorCode.STORE_WRITE_ERROR.name()));
-    }
-
-    public ImportResult<Workflow> importWorkflow(Workflow inWorkflow) {
-        val workflowId = inWorkflow.getId();
-        val existingWorkflow = workflowStore.read(workflowId);
-
-        //Check schema, if already active
-        if (existingWorkflow.filter(workflow -> workflow.getState() == WorkflowState.ACTIVE).isPresent()) {
-            return new ImportResult<>(inWorkflow, false,
-                                      ConductorErrorCode.WORKFLOW_ERROR_ID_ALREADY_EXISTS.name());
-        }
-
-        if (existingWorkflow.isPresent()) {
-            if (ticketStore.ticketExists(workflowId)
-                    || !existingWorkflow.get().getSchemaId().equals(inWorkflow.getSchemaId())) {
-                return new ImportResult<>(inWorkflow, false,
-                                          ConductorErrorCode.WORKFLOW_ERROR_ID_ALREADY_EXISTS.name());
-            }
-        }
-
-        //Deleting existing rules, state & transitions
-        existingWorkflow.ifPresent(workflow -> {
-            workflow.getSelectionRules().keySet()
-                    .forEach(ruleId -> workflowStore.deleteSelectionRule(workflowId, ruleId));
-            workflow.getStates().keySet()
-                    .forEach(stateId -> workflowStore.deleteState(workflowId, stateId));
-            workflow.getTicketStateTransitions().values().stream()
-                    .flatMap(Collection::stream)
-                    .forEach(transition -> workflowStore.deleteTransition(workflowId, transition.getId()));
-        });
-
-        //Create INACTIVE workflow state && upsert all rules, state & transitions
-        return existingWorkflow.flatMap(existing ->
-                                                workflowStore.update(existing.getId(),
-                                                                     workflow -> workflow.setState(WorkflowState.INACTIVE)
-                                                                             .setDescription(inWorkflow.getDescription())
-                                                                             .setTitleTemplate(inWorkflow.getTitleTemplate())
-                                                                             .setSubjectIdTemplate(inWorkflow.getSubjectIdTemplate())
-                                                                             .setStartStateId(inWorkflow.getStartStateId())
-                                                                             .setDescriptionTemplate(inWorkflow.getDescriptionTemplate())))
-                .or(() -> workflowStore.create(inWorkflow.getId(),
-                                               inWorkflow.getDisplayName(),
-                                               inWorkflow.getDescription(),
-                                               inWorkflow.getSchemaId(),
-                                               inWorkflow.getTitleTemplate(),
-                                               inWorkflow.getSubjectIdTemplate(),
-                                               inWorkflow.getDescriptionTemplate()))
-                .map(workflow -> {
-                    inWorkflow.getSelectionRules()
-                            .forEach((ruleId, rule) -> addSelectionRule(workflowId, ruleId, rule));
-                    inWorkflow.getStates()
-                            .forEach((stateId, state) -> createState(workflowId,
-                                                                     state.getDisplayName(),
-                                                                     state.getDescription(),
-                                                                     state.isTerminal(),
-                                                                     state.getAllowedActions(),
-                                                                     state.getEditableFields(),
-                                                                     state.getVisibleFields(),
-                                                                     state.getRequiredFields(),
-                                                                     state.getVisibleActions()));
-                    inWorkflow.getTicketStateTransitions()
-                            .forEach((stateId, transitions) ->
-                                             transitions.forEach(transition
-                                                                         -> createOrUpdateTransition(workflowId,
-                                                                                                     transition.getFrom(),
-                                                                                                     transition.getTo(),
-                                                                                                     transition.getType(),
-                                                                                                     transition.getRule(),
-                                                                                                     transition.getActionIds())));
-                    return inWorkflow;
-                })
-                .map(workflow -> new ImportResult<>(workflow, true, null))
-                .orElse(new ImportResult<>(inWorkflow, false, ConductorErrorCode.STORE_WRITE_ERROR.name()));
-    }
-
-    private Optional<Workflow> handleTransition(
-            String workflowId,
-            String transitionId,
-            BiFunction<Workflow, TicketStateTransition, Optional<Workflow>> handler) {
-        val wf = workflowStore.read(workflowId).orElse(null);
-        ensureNotNull(workflowId, wf);
-        val existing = wf.getTicketStateTransitions()
-                .values()
-                .stream()
-                .flatMap(List::stream)
-                .filter(transition -> transition.getId().equals(transitionId))
-                .findFirst()
-                .orElse(null);
-        ensure(null != existing,
-               ConductorErrorCode.WORKFLOW_ERROR,
-               "No transition found for " + workflowId + "/" + transitionId);
-
-        return handler.apply(wf, existing);
-    }
-
-    private static void ensureNotNull(String workflowId, Workflow wf) {
-        if (null == wf) {
-            throw ConductorException.builder()
-                    .errorCode(ConductorErrorCode.WORKFLOW_ERROR_INVALID_ID)
-                    .context(Map.of("id", workflowId))
-                    .build();
-        }
     }
 }

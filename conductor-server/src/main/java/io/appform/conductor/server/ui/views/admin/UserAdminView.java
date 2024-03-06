@@ -50,13 +50,15 @@ public class UserAdminView extends BaseLoggedInView {
         super("templates/admin/user-admin.hbs",
               currentUser,
               null != userDetails
-                    ? new ObjectReference(ReferredObjectType.USER, userDetails.getSummary().getId())
-                    : null);
+              ? new ObjectReference(ReferredObjectType.USER, userDetails.getSummary().getId())
+              : null);
         this.userDetails = userDetails;
         this.availableRoles = availableRoles;
         this.availableGroups = availableGroups;
         this.availableSkills = availableSkills;
         this.attributes = attributes;
-        attributeUrl = "/admin/users/" + userDetails.getSummary().getId() + "/attributes";
+        attributeUrl = null != userDetails
+                       ? "/admin/users/" + userDetails.getSummary().getId() + "/attributes"
+                       : "";
     }
 }

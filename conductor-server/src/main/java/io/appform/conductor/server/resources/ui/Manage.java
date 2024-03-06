@@ -348,6 +348,26 @@ public class Manage {
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
     }
 
+    @POST
+    @Path("/workflow/{workflowId}/activate")
+    public Response activateWorkflow(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
+        return workflowManager.activate(workflowId)
+                .map(wf -> redirect("/manage/workflow"))
+                .orElseThrow(() -> fail("Failed to update workflow " + workflowId, "/manage/workflow"));
+    }
+
+    @POST
+    @Path("/workflow/{workflowId}/deactivate")
+    public Response deactivateWorkflow(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
+        return workflowManager.deactivate(workflowId)
+                .map(wf -> redirect("/manage/workflow"))
+                .orElseThrow(() -> fail("Failed to update workflow " + workflowId, "/manage/workflow"));
+    }
+
     @GET
     @Path("/workflow/{workflowId}/export")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)

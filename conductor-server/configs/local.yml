@@ -27,7 +27,7 @@ db:
     - driverClass: org.mariadb.jdbc.Driver
       user: root
       password: password
-      url: jdbc:mariadb://localhost/cs_1?createDatabaseIfNotExist=true
+      url: jdbc:mariadb://localhost/c_stage_db_1?createDatabaseIfNotExist=true
       properties:
         charSet: UTF-8
         hibernate.dialect: org.hibernate.dialect.MariaDBDialect
@@ -44,7 +44,7 @@ db:
     - driverClass: org.mariadb.jdbc.Driver
       user: root
       password: password
-      url: jdbc:mariadb://localhost/cs_2?createDatabaseIfNotExist=true
+      url: jdbc:mariadb://localhost/c_stage_db_2?createDatabaseIfNotExist=true
       properties:
         charSet: UTF-8
         hibernate.dialect: org.hibernate.dialect.MariaDBDialect
