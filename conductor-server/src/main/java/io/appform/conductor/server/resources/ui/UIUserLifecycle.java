@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.hibernate.validator.constraints.Length;
+import ru.vyarus.guicey.gsp.views.template.ManualErrorHandling;
 import ru.vyarus.guicey.gsp.views.template.Template;
 import ru.vyarus.guicey.gsp.views.template.TemplateView;
 
@@ -53,6 +54,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 @Template
 @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
+@ManualErrorHandling
 public class UIUserLifecycle {
 
     private final UserLifecycleManager userLifecycleManager;

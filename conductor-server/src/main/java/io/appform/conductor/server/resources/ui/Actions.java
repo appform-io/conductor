@@ -39,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.hibernate.validator.constraints.Length;
+import ru.vyarus.guicey.gsp.views.template.ManualErrorHandling;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
@@ -62,6 +63,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
 @PermitAll
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
+@ManualErrorHandling
 public class Actions {
     private final ActionStore actionStore;
     private final GroupStore groupStore;

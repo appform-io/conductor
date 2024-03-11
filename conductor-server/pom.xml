@@ -291,7 +291,7 @@
                                         implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>io.appform.idman.server.App</mainClass>
+                                    <mainClass>io.appform.conductor.server.App</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
@@ -301,6 +301,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.0</version>
                 <configuration>
                     <source>17</source>
                     <target>17</target>
@@ -308,4 +309,46 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>docker</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.spotify</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>1.2.0</version>
+                        <configuration>
+                            <imageName>quay.io/projectstepone/conductor:${project.version}</imageName>
+                            <dockerDirectory>${project.basedir}</dockerDirectory>
+                            <registryUrl>quay.io/projectstepone/conductor</registryUrl>
+                            <buildArgs>
+                                <VERSION>${project.version}</VERSION>
+                            </buildArgs>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>push-image</id>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>push</goal>
+                                </goals>
+                                <configuration>
+                                    <imageName>quay.io/projectstepone/conductor:${project.version}
+                                    </imageName>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
 </project>

@@ -29,6 +29,7 @@ import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.hibernate.validator.constraints.Length;
+import ru.vyarus.guicey.gsp.views.template.ManualErrorHandling;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
@@ -50,6 +51,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 @Produces(MediaType.TEXT_HTML)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 @PermitAll
+@ManualErrorHandling
 public class Subjects {
     private static final String SUBJECTS_LIST_PAGE = "/subjects/search";
 

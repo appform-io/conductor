@@ -37,9 +37,10 @@ import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.util.*;
-
-import static io.appform.conductor.server.utils.ConductorServerUtils.lowerSnake;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * User lifecycle manager
@@ -429,7 +430,7 @@ public class UserLifecycleManager {
             log.error("No token generated for user: {}", user);
         }
         else {
-            mailSender.send(new MailSender.Mail(List.of(user.getEmail()),
+            mailSender.sendAsync(new MailSender.Mail(List.of(user.getEmail()),
                                                 "Activate your Conductor Account",
                                                 "Activation Token: " + token.getToken(),
                                                 List.of()));

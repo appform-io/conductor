@@ -18,6 +18,7 @@ package io.appform.conductor.server.config;
 
 import io.dropwizard.util.Duration;
 import lombok.Data;
+import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.NotEmpty;
 
@@ -33,4 +34,7 @@ public class AuthConfig {
     private Duration sessionDuration;
 
     private boolean disableRoleCheck;
+
+    @URL
+    private String publicEndpoint;
 }

@@ -16,6 +16,8 @@
 
 package io.appform.conductor.server.auth;
 
+import com.google.common.base.Strings;
+import io.appform.conductor.server.config.AuthConfig;
 import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.auth.AuthValueFactoryProvider;
 import io.dropwizard.auth.UnauthorizedHandler;
@@ -33,25 +35,31 @@ import java.net.URI;
 public class OAuthDynamicFeature extends AuthDynamicFeature {
 
     @Inject
-    public OAuthDynamicFeature(ConductorAuthenticator authenticator,
-                                ConductorAuthorizer authorizer,
-                                Environment environment) {
+    public OAuthDynamicFeature(
+            ConductorAuthenticator authenticator,
+            ConductorAuthorizer authorizer,
+            Environment environment,
+            AuthConfig authConfig) {
         super(new ConductorAuthFilter.Builder()
-                .setAuthenticator(authenticator)
-                .setAuthorizer(authorizer)
-                .setPrefix(ConductorAuthFilter.DEFAULT_PREFIX)
+                      .setAuthenticator(authenticator)
+                      .setAuthorizer(authorizer)
+                      .setPrefix(ConductorAuthFilter.DEFAULT_PREFIX)
                       .setUnauthorizedHandler(new UnauthorizedHandler() {
                           @Nullable
                           @Override
                           public Response buildResponse(String prefix, String realm) {
                               val source = AuthSource.valueOf(realm);
                               return switch (source) {
-                                  case UI -> Response.seeOther(URI.create("/user/login")).build();
+                                  case UI -> Response.seeOther(
+                                                  URI.create((Strings.isNullOrEmpty(authConfig.getPublicEndpoint()) ? ""
+                                                                                                                    :
+                                                              authConfig.getPublicEndpoint()) + "/user/login"))
+                                          .build();
                                   case API -> Response.status(Response.Status.UNAUTHORIZED).build();
                               };
                           }
                       })
-                .buildAuthFilter());
+                      .buildAuthFilter());
 
         environment.jersey().register(new AuthValueFactoryProvider.Binder<>(ConductorUser.class));
         environment.jersey().register(RolesAllowedDynamicFeature.class);

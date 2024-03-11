@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
+import ru.vyarus.guicey.gsp.views.template.ManualErrorHandling;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.RolesAllowed;
@@ -73,6 +74,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 @Slf4j
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 @RolesAllowed(Permission.Values.TICKET_READ)
+@ManualErrorHandling
 public class Tickets {
     private final WorkflowStore workflowStore;
     private final SchemaStore schemaStore;
