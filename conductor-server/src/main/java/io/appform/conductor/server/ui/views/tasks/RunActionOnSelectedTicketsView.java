@@ -48,6 +48,7 @@ public class RunActionOnSelectedTicketsView extends BaseLoggedInView {
     Set<TicketPriority> priorities = EnumSet.allOf(TicketPriority.class);
     Task task;
     List<String> selectedStates;
+    long updatedBeforeInMins;
     List<String> selectedGroups;
     List<TicketPriority> selectedPriorities;
 
@@ -56,8 +57,10 @@ public class RunActionOnSelectedTicketsView extends BaseLoggedInView {
             String workflowId,
             Collection<TicketState> states,
             List<Group> groups,
-            List<Action> availableActions, Task task,
+            List<Action> availableActions,
+            Task task,
             List<String> selectedStates,
+            Long updatedBeforeInMins,
             List<String> selectedGroups,
             List<TicketPriority> selectedPriorities) {
         super("templates/tasks/run-action-on-tickets.hbs", currentUser,
@@ -70,6 +73,7 @@ public class RunActionOnSelectedTicketsView extends BaseLoggedInView {
         this.availableActions = availableActions;
         this.task = task;
         this.selectedStates = selectedStates;
+        this.updatedBeforeInMins = updatedBeforeInMins;
         this.selectedGroups = selectedGroups;
         this.selectedPriorities = selectedPriorities;
     }

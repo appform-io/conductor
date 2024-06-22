@@ -66,6 +66,7 @@ public enum ConductorErrorCode {
     DATA_FORMAT_ERROR(5001, "Error reading data. Format error. Conversion to: ${type}. Content: ${content}"),
     INVALID_RULE_TYPE(5002, "Unsupported rule type ${ruleType}"),
     INVALID_TEMPLATE_TYPE(5003, "Unsupported template type ${templateType}"),
+    INVALID_CRON_EXPRESSION(5004, "Invalid Cron expression for  ${id}"),
 
     CQL_PARSING_ERROR(6001, "Error parsing CQL. Errors: ${cqlError}"),
     CQL_INVALID_FUNCTION_PARAMETER(6002, "Invalid arguments for function: ${functionName}"),

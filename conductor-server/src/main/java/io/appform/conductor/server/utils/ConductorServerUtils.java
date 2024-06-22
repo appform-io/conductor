@@ -520,6 +520,19 @@ public class ConductorServerUtils {
         });
     }
 
+    public static void validateCron(String id, String cronExpression) {
+        try {
+            val cronDefinition = CronDefinitionBuilder.instanceDefinitionFor(QUARTZ);
+            val parser = new CronParser(cronDefinition);
+            parser.parse(cronExpression).validate();
+        } catch (Exception e) {
+            throw ConductorException.builder()
+                    .errorCode(ConductorErrorCode.INVALID_CRON_EXPRESSION)
+                    .context(Map.of("id", id))
+                    .build();
+        }
+    }
+
     public static Date nextExecutionTimeForCron(String id, String cronExpression, Date currTime) {
         val cronDefinition = CronDefinitionBuilder.instanceDefinitionFor(QUARTZ);
         val parser = new CronParser(cronDefinition);

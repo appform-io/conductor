@@ -82,6 +82,7 @@ public class ConductorTaskScheduler implements Managed {
     public String scheduleNewTask(final Task task) {
         val taskId = Objects.requireNonNullElseGet(task.getId(),
                                                    () -> ConductorServerUtils.lowerSnake(task.getName()));
+        ConductorServerUtils.validateCron(taskId, task.getCron());
         return taskStore.createOrUpdate(taskId, task.withId(taskId))
                 .flatMap(savedTask -> {
                     val status = scheduler.schedule(new RunnableTask(this, taskId));
@@ -130,7 +131,11 @@ public class ConductorTaskScheduler implements Managed {
 
         @Override
         public long delayToNextRun(Date currentTime) {
-            return scheduler.taskStore.read(taskId).map(task -> task.getInterval().toMillis()).orElse(-1L);
+            return scheduler.taskStore.read(taskId)
+                    .map(task -> ConductorServerUtils.nextExecutionTimeForCron(task.getId(),
+                                    task.getCron(), new Date()))
+                    .map(runDate -> runDate.getTime() - currentTime.getTime())
+                    .orElse(-1L);
         }
 
         @Override

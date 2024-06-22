@@ -34,6 +34,7 @@ public enum TicketFilterType {
     PRIORITY_IN("Ticket has given priority"),
     CREATED_TIME_WINDOW("Tickets created in this window"),
     UPDATED_TIME_WINDOW("Tickets updated in this window"),
+    UPDATED_BEFORE_TIME_WINDOW("Tikets not updated in this time window"),
     EXTERNAL_REFERENCE_EQUALS("Ticket external reference matches"),
             ;
 

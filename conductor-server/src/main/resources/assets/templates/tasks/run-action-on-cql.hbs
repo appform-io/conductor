@@ -45,13 +45,16 @@
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label for="interval" class="col-form-label fw-bold">Execution Interval</label>
-                                <input id="interval" name="interval" type="number"
-                                       class="form-control border border-dark"
-                                       min="1" max="525600" step="5" required
-                                       aria-describedby="intervalHelp"
-                                       placeholder="interval between task runs" value="{{minutes task.interval}}">
-                                <div id="intervalHelp" class="form-text">Minute interval between task runs</div>
+                                <label for="cron" class="col-form-label fw-bold">Execution Cron Expression</label>
+                                <input type="text" class="form-control  border border-dark" id="cron" name="cron" value="{{task.cron}}"
+                                       placeholder="Quartz Cron Expression" aria-describedby="cronHelp"
+                                       maxlength="45" required>
+                                <div id="cronHelp" class="form-text">Cron pattern to specify when the task gets triggered.
+                                    <a href="https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html"
+                                       target="_blank">
+                                        Follows Quartz cron syntax.
+                                    </a>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label for="query" class="col-form-label fw-bold">CQL Query</label>
