@@ -49,8 +49,11 @@
                                 <input type="text" class="form-control  border border-dark" id="cron" name="cron" value="{{currentReport.cron}}"
                                        placeholder="Quartz Cron Expression" aria-describedby="cronHelp"
                                        maxlength="45" required>
-                                <div id="cqlQueryHelp" class="form-text">Cron pattern to specify when the report gets triggered.
-                                    Follows Quartz cron syntax.
+                                <div id="cronHelp" class="form-text">Cron pattern to specify when the report gets triggered.
+                                    <a href="https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html"
+                                       target="_blank">
+                                        Follows Quartz cron syntax.
+                                    </a>
                                 </div>
                             </div>
                             <div class="mb-3">

@@ -41,14 +41,18 @@
                         <div id="descriptionHelp" class="form-text">Optional, can be upto 255 characters long</div>
                     </div>
                     <div class="mb-3">
-                        <label for="interval" class="col-form-label fw-bold">Execution Interval</label>
-                        <input id="interval" name="interval" type="number"
-                                  class="form-control border border-dark"
-                                min="1" max="525600" step="5" required
-                                  aria-describedby="intervalHelp"
-                                  placeholder="interval between task runs" value="{{minutes task.interval}}">
-                        <div id="intervalHelp" class="form-text">Minute interval between task runs</div>
+                        <label for="cron" class="col-form-label fw-bold">Execution Cron Expression</label>
+                        <input type="text" class="form-control  border border-dark" id="cron" name="cron" value="{{task.cron}}"
+                               placeholder="Quartz Cron Expression" aria-describedby="cronHelp"
+                               maxlength="45" required>
+                        <div id="cronHelp" class="form-text">Cron pattern to specify when the task gets triggered.
+                            <a href="https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html"
+                               target="_blank">
+                                Follows Quartz cron syntax.
+                            </a>
+                        </div>
                     </div>
+
                 </div>
             </div>
             <div class="row">
@@ -74,8 +78,16 @@
                                 </select>
                             </div>
                             <div class="mb-3">
+                                <label for="updatedBeforeInMins" class="col-form-label fw-bold">Updated Before (Minutes)</label>
+                            <input id="updatedBeforeInMins" name="updatedBeforeInMins" type="number"
+                                   class="form-control border border-dark"
+                                {{#neq updatedBeforeInMins 0}}
+                                   value="{{updatedBeforeInMins}}"
+                                {{/neq}}>
+                            </div>
+                            <div class="mb-3">
                                 <label for="groupIds" class="col-form-label fw-bold">Group</label>
-                                <select id="groupId" name="groupIds"
+                                <select id="groupIds" name="groupIds"
                                         class="form-control selectpicker border border-dark" multiple
                                         data-live-search="true"  data-selected-text-format="count > 2">
                                     <option value="">None</option>

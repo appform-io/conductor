@@ -35,7 +35,7 @@ public class Task {
     TaskType type;
     String name;
     String description;
-    Duration interval;
+    String cron;
     Scope scope;
     TaskState state;
     TaskSpec spec;

@@ -57,7 +57,7 @@ public class RunActionOnSelectedTicketsExecutor {
                     .forEach(gist -> taskSpec.getActionIds()
                             .forEach(actionId -> {
                                 log.info("Applying action {} on ticket {}",
-                                         actionId, gist.getTicketId());
+                                        actionId, gist.getTicketId());
                                 ticketManager.triggerTicketAction(gist.getTicketId(), actionId);
                             }));
         } while (hasMore);

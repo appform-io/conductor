@@ -41,7 +41,7 @@
                         <th>Type</th>
                         <th>Scope</th>
                         <th>Scope Reference</th>
-                        <th>Execution Interval</th>
+                        <th>Execution Cron Expression</th>
                         <th>State</th>
                         <th>Last Execution Time</th>
                         <th>Last Run Status</th>
@@ -58,7 +58,7 @@
                         <td>{{readable type}}</td>
                         <td>{{readable scope.type}}</td>
                         <td>{{readable scope.referenceId}}</td>
-                        <td>{{interval}}</td>
+                        <td>{{cron}}</td>
                         <td>
                             {{#eqEnum state "ACTIVE"}}
                                 <span class="badge bg-primary ms-2">Active</span>

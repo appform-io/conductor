@@ -46,4 +46,5 @@ public interface TicketFilterVisitor<T> {
 
     T visit(TicketExternalReferenceEquals ticketExternalReferenceEquals);
 
+    T visit(TicketsUpdatedBeforeTimeWindow ticketsUpdatedBeforeTimeWindow);
 }

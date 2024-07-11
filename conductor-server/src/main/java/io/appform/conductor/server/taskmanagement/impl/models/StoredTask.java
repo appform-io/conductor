@@ -68,8 +68,8 @@ public class StoredTask implements Serializable {
     @Column(name = "description", length = Constants.MAX_DESCRIPTION_LENGTH)
     private String description;
 
-    @Column(name = "execution_interval_ms")
-    private long interval;
+    @Column(name = "cron", nullable = false)
+    private String cron;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "scope_type", length = 45)

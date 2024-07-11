@@ -25,6 +25,7 @@ import io.appform.conductor.server.taskmanagement.TaskStore;
 import io.appform.conductor.server.taskmanagement.impl.models.StoredTask;
 import io.appform.conductor.model.tasks.Task;
 import io.appform.conductor.model.tasks.TaskSpec;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -129,20 +130,20 @@ public class DBTaskStore implements TaskStore {
 
     @SneakyThrows
     public StoredTask copyAttributes(final StoredTask storedTask, final Task task) {
+        ConductorServerUtils.validateCron(task.getId(), task.getCron());
         return storedTask
                 .setTaskId(task.getId())
                 .setType(task.getType())
                 .setName(task.getName())
                 .setDescription(task.getDescription())
-                .setInterval(task.getInterval().toMillis())
+                .setCron(task.getCron())
                 .setScopeType(task.getScope().getType())
                 .setScopeReferenceId(task.getScope().getReferenceId())
                 .setState(task.getState())
                 .setSpec(mapper.writeValueAsString(task.getSpec()))
                 .setLastExecutionCompletionTime(task.getLastExecutionCompletionTime())
                 .setLastRunStatus(task.getLastRunStatus())
-                .setTaskMeta(mapper.writeValueAsString(task.getTaskMeta()))
-                ;
+                .setTaskMeta(mapper.writeValueAsString(task.getTaskMeta()));
     }
 
     @SneakyThrows
@@ -152,7 +153,7 @@ public class DBTaskStore implements TaskStore {
                 task.getType(),
                 task.getName(),
                 task.getDescription(),
-                Duration.ofMillis(task.getInterval()),
+                task.getCron(),
                 Scope.create(task.getScopeType(), task.getScopeReferenceId()),
                 task.getState(),
                 mapper.readValue(task.getSpec(), TaskSpec.class),

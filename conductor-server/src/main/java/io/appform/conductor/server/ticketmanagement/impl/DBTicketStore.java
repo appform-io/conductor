@@ -671,17 +671,31 @@ public class DBTicketStore implements TicketStore {
 
             @Override
             public Void visit(TicketsCreatedTimeWindow createdTimeWindow) {
-                criteria.add(Property.forName(StoredTicketSkeleton.Fields.created)
-                                     .gt(new Date(createdTimeWindow.getFrom().getTime()
-                                                          - createdTimeWindow.getDuration().toMilliseconds())));
+                if(createdTimeWindow.getDuration() != null) {
+                    criteria.add(Property.forName(StoredTicketSkeleton.Fields.created)
+                            .between(new Date(createdTimeWindow.getFrom().getTime()),
+                                    new Date(createdTimeWindow.getFrom().getTime()
+                                            + createdTimeWindow.getDuration().toMilliseconds())));
+                }
+                else {
+                    criteria.add(Property.forName(StoredTicketSkeleton.Fields.created)
+                            .gt(new Date(createdTimeWindow.getFrom().getTime())));
+                }
                 return null;
             }
 
             @Override
             public Void visit(TicketsUpdatedTimeWindow updatedTimeWindow) {
-                criteria.add(Property.forName(StoredTicketSkeleton.Fields.updated)
-                                     .gt(new Date(updatedTimeWindow.getFrom().getTime()
-                                                          - updatedTimeWindow.getDuration().toMilliseconds())));
+                if(updatedTimeWindow.getDuration() != null) {
+                    criteria.add(Property.forName(StoredTicketSkeleton.Fields.updated)
+                            .between(new Date(updatedTimeWindow.getFrom().getTime()),
+                                    new Date(updatedTimeWindow.getFrom().getTime()
+                                            + updatedTimeWindow.getDuration().toMilliseconds())));
+                }
+                else {
+                    criteria.add(Property.forName(StoredTicketSkeleton.Fields.updated)
+                            .gt(new Date(updatedTimeWindow.getFrom().getTime())));
+                }
                 return null;
             }
 
@@ -691,6 +705,16 @@ public class DBTicketStore implements TicketStore {
                                      .eq(ticketExternalReferenceEquals.getSource()));
                 criteria.add(Property.forName(StoredTicketSkeleton.Fields.externalReferenceId)
                                      .eq(ticketExternalReferenceEquals.getValue()));
+                return null;
+            }
+
+            @Override
+            public Void visit(TicketsUpdatedBeforeTimeWindow ticketsUpdatedBeforeTimeWindow) {
+                criteria.add(Property.forName(StoredTicketSkeleton.Fields.updated)
+                        .lt(new Date(
+                                Optional.ofNullable(ticketsUpdatedBeforeTimeWindow.getStart())
+                                        .orElse(new Date())
+                                        .getTime() - ticketsUpdatedBeforeTimeWindow.getDuration().toMilliseconds())));
                 return null;
             }
         }));

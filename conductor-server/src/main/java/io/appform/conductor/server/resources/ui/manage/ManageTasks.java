@@ -24,10 +24,7 @@ import io.appform.conductor.model.tasks.*;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilterType;
-import io.appform.conductor.model.ticket.filter.ticketfilters.TicketAssignedToGroup;
-import io.appform.conductor.model.ticket.filter.ticketfilters.TicketPriorityIn;
-import io.appform.conductor.model.ticket.filter.ticketfilters.TicketStateIn;
-import io.appform.conductor.model.ticket.filter.ticketfilters.TicketWorkflowEquals;
+import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
@@ -39,6 +36,7 @@ import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
+import io.dropwizard.util.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.hibernate.validator.constraints.Length;
@@ -48,13 +46,12 @@ import ru.vyarus.guicey.gsp.views.template.Template;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
-import javax.validation.constraints.Min;
+import javax.validation.constraints.Max;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -111,7 +108,9 @@ public class ManageTasks {
                                                                                                                  workflowId))),
                                                                 null,
                                                                 List.of(),
-                                                                List.of(), null));
+                                                                0L,
+                                                                List.of(),
+                                                   null));
             }
             case RUN_ACTION_ON_CQL_SELECT -> {
                 val workFlow = workflowStore.read(workflowId).orElse(null);
@@ -176,6 +175,14 @@ public class ManageTasks {
                                                                         .map(TicketStateIn.class::cast)
                                                                         .flatMap(tsi -> tsi.getStateIds().stream())
                                                                         .toList(),
+                                                                spec.getTicketFilters()
+                                                                        .stream()
+                                                                        .filter(tf -> tf.getType().equals(
+                                                                                TicketFilterType.UPDATED_BEFORE_TIME_WINDOW))
+                                                                        .map(TicketsUpdatedBeforeTimeWindow.class::cast)
+                                                                        .mapToLong(ticketsUpdatedBeforeTimeWindow -> ticketsUpdatedBeforeTimeWindow.getDuration().toMinutes())
+                                                                        .findAny()
+                                                                        .orElse(0L),
                                                                 spec.getTicketFilters()
                                                                         .stream()
                                                                         .filter(tf -> tf.getType().equals(
@@ -265,8 +272,9 @@ public class ManageTasks {
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @FormParam("name") @NotEmpty @Length(max = 45) final String name,
             @FormParam("description") @NotEmpty @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
-            @FormParam("interval") @Min(0) final int interval,
+            @FormParam("cron") @NotEmpty @Length(max = 255) final String cron,
             @FormParam("stateIds") Set<String> stateIds,
+            @FormParam("updatedBeforeInMins") @Max(50000) long updatedBeforeInMins,
             @FormParam("groupIds") Set<String> groupIds,
             @FormParam("priorities") Set<TicketPriority> priorities,
             @FormParam("selectedActions") List<String> actionIds) {
@@ -274,11 +282,11 @@ public class ManageTasks {
         if (null == workFlow) {
             throw fail("No such workflow found: " + workflowId, "/manage/tasks/" + workflowId);
         }
-        val spec = buildSpec(workflowId, stateIds, groupIds, priorities, actionIds);
+        val spec = buildSpec(workflowId, stateIds, updatedBeforeInMins, groupIds, priorities, actionIds);
         val task = Task.builder()
                 .name(name)
                 .description(description)
-                .interval(Duration.ofMinutes(interval))
+                .cron(cron)
                 .type(spec.getType())
                 .scope(Scope.create(Scope.ScopeType.WORKFLOW, workflowId))
                 .state(TaskState.ACTIVE)
@@ -299,8 +307,9 @@ public class ManageTasks {
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @PathParam("taskId") @NotEmpty @Length(max = 45) final String taskId,
             @FormParam("description") @NotEmpty @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
-            @FormParam("interval") @Min(0) final int interval,
+            @FormParam("cron") @NotEmpty @Length(max = 255) final String cron,
             @FormParam("stateIds") Set<String> stateIds,
+            @FormParam("updatedBeforeInMins") @Max(50000) long updatedBeforeInMins,
             @FormParam("groupIds") Set<String> groupIds,
             @FormParam("priorities") Set<TicketPriority> priorities,
             @FormParam("selectedActions") List<String> actionIds) {
@@ -308,10 +317,10 @@ public class ManageTasks {
         if (null == workFlow) {
             throw fail("No such workflow found: " + workflowId, "/manage/tasks/" + workflowId);
         }
-        val spec = buildSpec(workflowId, stateIds, groupIds, priorities, actionIds);
+        val spec = buildSpec(workflowId, stateIds, updatedBeforeInMins, groupIds, priorities, actionIds);
         val updated = scheduler.updateTask(taskId,
                                            task -> task.withDescription(description)
-                                                   .withInterval(Duration.ofMinutes(interval))
+                                                   .withCron(cron)
                                                    .withSpec(spec));
         if (!updated) {
             throw fail("Unable to save task " + taskId, "/manage/tasks/" + workflowId);
@@ -327,7 +336,7 @@ public class ManageTasks {
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @FormParam("name") @NotEmpty @Length(max = 45) final String name,
             @FormParam("description") @NotEmpty @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
-            @FormParam("interval") @Min(0) final int interval,
+            @FormParam("cron") @NotEmpty @Length(max = 255) final String cron,
             @FormParam("query") @NotEmpty @Length(max = 1024) final String query,
             @FormParam("selectedActions") List<String> actionIds) {
         val workFlow = workflowStore.read(workflowId).orElse(null);
@@ -338,7 +347,7 @@ public class ManageTasks {
         val task = Task.builder()
                 .name(name)
                 .description(description)
-                .interval(Duration.ofMinutes(interval))
+                .cron(cron)
                 .type(spec.getType())
                 .scope(Scope.create(Scope.ScopeType.WORKFLOW, workflowId))
                 .state(TaskState.ACTIVE)
@@ -359,7 +368,7 @@ public class ManageTasks {
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @PathParam("taskId") @NotEmpty @Length(max = 45) final String taskId,
             @FormParam("description") @NotEmpty @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
-            @FormParam("interval") @Min(0) final int interval,
+            @FormParam("cron")@NotEmpty @Length(max = 255) final String cron,
             @FormParam("query") @NotEmpty @Length(max = 1024) final String query,
             @FormParam("selectedActions") List<String> actionIds) {
         val workFlow = workflowStore.read(workflowId).orElse(null);
@@ -369,7 +378,7 @@ public class ManageTasks {
         val spec = new RunActionOnCQLSelectTaskSpec(query, actionIds);
         val updated = scheduler.updateTask(taskId,
                                            task -> task.withDescription(description)
-                                                   .withInterval(Duration.ofMinutes(interval))
+                                                   .withCron(cron)
                                                    .withSpec(spec));
         if (!updated) {
             throw fail("Unable to save task " + taskId, "/manage/tasks/" + workflowId);
@@ -380,6 +389,7 @@ public class ManageTasks {
     private static RunActionOnSelectedTicketsTaskSpec buildSpec(
             String workflowId,
             Set<String> stateIds,
+            long updatedBeforeInMins,
             Set<String> groupIds,
             Set<TicketPriority> priorities,
             List<String> actionIds) {
@@ -388,6 +398,9 @@ public class ManageTasks {
         tfs.add(new TicketWorkflowEquals(workflowId));
         if (null != stateIds && !stateIds.isEmpty()) {
             tfs.add(new TicketStateIn(stateIds, false));
+        }
+        if( updatedBeforeInMins > 0 ) {
+            tfs.add(new TicketsUpdatedBeforeTimeWindow(Duration.minutes(updatedBeforeInMins), null));
         }
         if (null != groupIds && !groupIds.isEmpty()) {
             tfs.add(new TicketAssignedToGroup(groupIds, false));

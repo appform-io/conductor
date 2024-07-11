@@ -161,7 +161,7 @@
     "type" : "RUN_ACTION_ON_CQL_SELECT",
     "name" : "Test Task",
     "description" : "",
-    "interval" : 3600.000000000,
+    "cron" : "* * * ? * *",
     "scope" : {
       "type" : "WORKFLOW",
       "referenceId" : "testworkflow"
