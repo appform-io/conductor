@@ -34,6 +34,7 @@
                         <th>State</th>
                         <th>Created</th>
                         <th>Last Updated</th>
+                        <th></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -42,9 +43,25 @@
                             <td><a href="/manage/workflow/{{id}}">{{displayName}}</td>
                             <td>{{description}}</td>
                             <td><a href="/manage/schema/{{schemaId}}" target="_blank">{{schemaId}}</a></td>
-                            <td>{{readable state}}</td>
+                            <td>
+                                {{readable state}}
+                            </td>
                             <td>{{created}}</td>
                             <td>{{updated}}</td>
+                            <td>
+                                <form class="confirmed-form" method="post"
+                                      action="/manage/workflow/{{id}}/{{#eqEnum state "ACTIVE"}}deactivate{{else}}activate{{/eqEnum}}"
+                                      data-cnf-title="Change workflow state for {{displayName}}?"
+                                      data-cnf-text="Are you sure you want to Change state?">
+                                    <button type="submit" class="btn btn-link">
+                                        {{#eqEnum state "ACTIVE"}}
+                                            Deactivate
+                                        {{else}}
+                                            Activate
+                                        {{/eqEnum}}
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                     {{/each}}
                     </tbody>

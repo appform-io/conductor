@@ -16,16 +16,14 @@
 
 package io.appform.conductor.server.skillmanagement.impl.models;
 
+import io.appform.conductor.server.utils.Constants;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.proxy.HibernateProxy;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
@@ -35,7 +33,9 @@ import java.util.Objects;
  *
  */
 @Entity
-@Table(name = StoredSkillValue.SKILL_VALUE_TABLE_NAME)
+@Table(name = StoredSkillValue.SKILL_VALUE_TABLE_NAME, indexes = {
+        @Index(name = "idx_skill_id", columnList = "skill_id" )
+})
 @Getter
 @Setter
 @ToString
@@ -48,25 +48,24 @@ public class StoredSkillValue implements Serializable {
     private static final long serialVersionUID = -4529613046616172870L;
 
     @Id
-    @Column(name = "value_id", length = 45, nullable = false, unique = true)
+    @Column(name = "value_id", length = Constants.MAX_SKILL_VALUE_ID_LENGTH, nullable = false, unique = true)
     private String valueId;
 
-    @Column(name = "skill_id", length = 45, nullable = false)
+    @Column(name = "skill_id", length = Constants.MAX_SKILL_ID_LENGTH, nullable = false)
     private String skillId;
 
-    @Column(name = "skill_value", nullable = false)
+    @Column(name = "skill_value", nullable = false, length = Constants.MAX_SKILL_VALUE_LENGTH)
     private String value;
 
-    @Column
+    @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override

@@ -18,13 +18,15 @@ package io.appform.conductor.server.reporting.impl.models;
 
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.reporting.ReportState;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.utils.persistence.StringListConverter;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -52,51 +54,50 @@ public class StoredReport implements Serializable {
     private static final long serialVersionUID = -1739422964464502132L;
 
     @Id
-    @Column(nullable = false, name =  "report_id")
+    @Column(nullable = false, name =  "report_id", length = Constants.MAX_REPORT_ID_LENGTH)
     @LookupKey
     private String reportId;
 
-    @Column
+    @Column(name = "name", length = Constants.MAX_REPORT_ID_LENGTH)
     private String name;
 
-    @Column
+    @Column(name = "description", length = Constants.MAX_DESCRIPTION_LENGTH)
     private String description;
 
-    @Column(name = "cql_query")
+    @Column(name = "cql_query", length = Constants.MAX_CQL_LENGTH)
     String cqlQuery;
 
-    @Column(name = "recipients")
+    @Column(name = "recipients", length = Constants.MAX_RECIPIENTS_LENGTH)
     @Convert(converter = StringListConverter.class)
     @SuppressWarnings("java:S1948")
     List<String> recipients;
 
-    @Column(name = "cron", nullable = false)
+    @Column(name = "cron", nullable = false, length = Constants.MAX_CRON_LENGTH)
     private String cron;
 
     @Enumerated(EnumType.STRING)
-    @Column
+    @Column(name = "state", length = 45)
     ReportState state;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "scope_type")
+    @Column(name = "scope_type", length = 45)
     private Scope.ScopeType scopeType;
 
-    @Column(name = "scope_reference_id")
+    @Column(name = "scope_reference_id", length = 255)
     private String scopeReferenceId;
 
-    @Column(name = "provisioned_by")
+    @Column(name = "provisioned_by", length = Constants.MAX_USER_ID_LENGTH)
     String provisionedBy;
 
-    @Column
+    @Column(name = "deleted")
     boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp default current_timestamp", updatable = false, insertable = false)
-    @org.hibernate.annotations.Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp on update current_timestamp",
-            updatable = false, insertable = false)
-    @org.hibernate.annotations.Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override

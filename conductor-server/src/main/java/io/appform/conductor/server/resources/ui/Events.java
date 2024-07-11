@@ -18,17 +18,18 @@ package io.appform.conductor.server.resources.ui;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.appform.conductor.model.events.Event;
+import io.appform.conductor.model.events.analytics.EventFilters;
 import io.appform.conductor.model.events.analytics.EventQueryResponseVisitor;
+import io.appform.conductor.model.events.analytics.ObjectReference;
 import io.appform.conductor.model.events.analytics.impl.EventGroupResponse;
 import io.appform.conductor.model.events.analytics.impl.EventListRequest;
-import io.appform.conductor.server.auth.ConductorUser;
-import io.appform.conductor.model.events.Event;
-import io.appform.conductor.server.eventmanagement.EventStore;
-import io.appform.conductor.model.events.impl.ReferredObjectType;
-import io.appform.conductor.model.events.analytics.EventFilters;
 import io.appform.conductor.model.events.analytics.impl.EventListResponse;
-import io.appform.conductor.model.events.analytics.ObjectReference;
+import io.appform.conductor.model.events.impl.ReferredObjectType;
+import io.appform.conductor.server.auth.ConductorUser;
+import io.appform.conductor.server.eventmanagement.EventStore;
 import io.appform.conductor.server.ui.views.common.EventsListFragment;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.utils.Pair;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.hibernate.validator.constraints.Length;
+import ru.vyarus.guicey.gsp.views.template.ManualErrorHandling;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
@@ -48,10 +50,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.fail;
 import static io.appform.conductor.server.utils.ConductorServerUtils.render;
@@ -65,6 +65,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.render;
 @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
 @PermitAll
 @RequiredArgsConstructor(onConstructor_ = @Inject)
+@ManualErrorHandling
 public class Events {
     private final EventStore eventStore;
     private final ObjectMapper mapper;
@@ -79,7 +80,7 @@ public class Events {
         val filters = EventFilters.builder()
                 .referenceType(type)
                 .build();
-        return eventStore.query(new EventListRequest(UUID.randomUUID().toString(),
+        return eventStore.query(new EventListRequest(ConductorServerUtils.generateEventRequestId(),
                                                      filters,
                                                      next,
                                                      10))
@@ -108,7 +109,7 @@ public class Events {
         val filters = EventFilters.builder()
                 .reference(new ObjectReference(type, objectId))
                 .build();
-        return eventStore.query(new EventListRequest(UUID.randomUUID().toString(),
+        return eventStore.query(new EventListRequest(ConductorServerUtils.generateEventRequestId(),
                                                      filters,
                                                      next,
                                                      10))

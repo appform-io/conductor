@@ -23,6 +23,7 @@ import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.model.usermgmt.UserSessionDetails;
 import io.appform.conductor.server.usermanagement.SessionStore;
 import io.appform.conductor.server.usermanagement.impl.models.StoredUserSessionDetails;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.SneakyThrows;
@@ -58,7 +59,7 @@ public class DBSessionStore implements SessionStore {
     public Optional<UserSessionDetails> create(@Throws.RuntimeParam("id") String userId, SessionType type, Date expiry) {
         return sessionDetailsDao.save(userId,
                                       new StoredUserSessionDetails(
-                                              UUID.randomUUID().toString(),
+                                              ConductorServerUtils.generateSessionId(),
                                               userId,
                                               SessionState.ACTIVE,
                                               type,

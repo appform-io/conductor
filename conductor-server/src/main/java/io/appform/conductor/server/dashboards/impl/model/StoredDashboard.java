@@ -17,11 +17,13 @@
 package io.appform.conductor.server.dashboards.impl.model;
 
 import io.appform.conductor.server.dashboards.model.SpecVersion;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -42,35 +44,34 @@ public class StoredDashboard {
     public static final String DASHBOARD_TABLE_NAME = "dashboards";
 
     @Id
-    @Column(name = "dashboard_id", nullable = false, length = 45)
+    @Column(name = "dashboard_id", nullable = false, length = Constants.MAX_DASHBOARD_ID_LENGTH)
     @LookupKey
     private String dashboardId;
 
-    @Column
+    @Column(name = "name", length = Constants.MAX_DASHBOARD_ID_LENGTH)
     private String name;
 
-    @Column
+    @Column(name = "description", length = Constants.MAX_DESCRIPTION_LENGTH)
     private String description;
 
-    @Column(columnDefinition = "longtext")
+    @Column(name = "spec", columnDefinition = "text", length = Constants.MAX_SPEC_LENGTH)
     private String spec;
 
-    @Column(name = "spec_version")
+    @Column(name = "spec_version", length = 45)
     @Enumerated(EnumType.STRING)
     private SpecVersion specVersion;
 
-    @Column(name = "provisioned_by")
+    @Column(name = "provisioned_by", length = Constants.MAX_USER_ID_LENGTH)
     String lastUpdatedBy;
 
-    @Column
+    @Column(name = "deleted")
     boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp default current_timestamp", updatable = false, insertable = false)
-    @org.hibernate.annotations.Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp on update current_timestamp",
-            updatable = false, insertable = false)
-    @org.hibernate.annotations.Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 }

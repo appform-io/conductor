@@ -47,6 +47,7 @@ import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
 import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.fields.impl.*;
 import io.appform.conductor.server.auth.ConductorUser;
+import io.appform.conductor.server.id.IdGenerator;
 import io.appform.conductor.server.parser.CQLEngine;
 import io.appform.conductor.server.ticketmanagement.statemachine.models.TicketStateMachineContext;
 import io.appform.conductor.server.usermanagement.CurrentUserSessionStore;
@@ -137,6 +138,50 @@ public class ConductorServerUtils {
         return CurrentUserSessionStore.get()
                 .map(user -> user.getUser().getSummary().getId())
                 .orElse(null);
+    }
+
+    public static String generateCommentId() {
+        return IdGenerator.generate("C").getId();
+    }
+
+    public static String generateActionId() {
+        return IdGenerator.generate("AC").getId();
+    }
+
+    public static String generateAddressId() {
+        return IdGenerator.generate("AD").getId();
+    }
+
+    public static String generateDashboardWidgetId() {
+        return IdGenerator.generate("DW").getId();
+    }
+
+    public static String generateEventRequestId() {
+        return IdGenerator.generate("ER").getId();
+    }
+
+    public static String generateGlobalSubjectId() {
+        return IdGenerator.generate("GS").getId();
+    }
+
+    public static String generateSubjectExtId() {
+        return IdGenerator.generate("SE").getId();
+    }
+
+    public static String generateTicketId() {
+        return IdGenerator.generate("T").getId();
+    }
+
+    public static String generateSessionId() {
+        return IdGenerator.generate("SS").getId();
+    }
+
+    public static String generateRuleId() {
+        return IdGenerator.generate("R").getId();
+    }
+
+    public static String generateToken() {
+        return UUID.randomUUID().toString();
     }
 
     public static void configureMapper(ObjectMapper objectMapper) {

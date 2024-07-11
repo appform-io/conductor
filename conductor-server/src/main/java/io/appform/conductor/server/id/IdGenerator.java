@@ -253,7 +253,7 @@ public class IdGenerator {
         long time;
         do {
             time = System.currentTimeMillis();
-            randomGen = SECURE_RANDOM.nextInt(Constants.MAX_ID_PER_MS);
+            randomGen = SECURE_RANDOM.nextInt(IdConstants.MAX_ID_PER_MS);
         } while (!COLLISION_CHECKER.check(time, randomGen));
         return new IdInfo(randomGen, time);
     }

@@ -1,85 +1,89 @@
-<div class="row">
-    <div class="col-12">
-        <h4>Additional Information</h4>
-    </div>
-</div>
-<form method="post" action="{{attributeUrl}}">
-    {{#each attributes}}
-    <div class="row mb-3">
-        <div class="col-12 col-md-3">
-            <label for="{{definition/id}}" class="col-form-label fw-bold">
-                {{definition/displayName}}
-            </label>
+{{#empty attributeUrl}}
+{{else}}
+    <div class="row">
+        <div class="col-12">
+            <h4>Additional Information</h4>
         </div>
-        <div class="col-12 col-md-9">
-            {{#attrTypeEquals definition/type "STRING"}}
-                <input type="text" class="form-control border border-dark"
-                       id="{{definition/id}}" name="{{definition/id}}" aria-describedby="{{definition/id}}Help"
-                    {{#gt definition/maxLength 0}}
-                       maxlength="{{definition/maxLength}}"
-                    {{/gt}}
-                    {{#empty definition/pattern}}
-                    {{else}}
-                       pattern="{{definition/pattern}}"
-                    {{/empty}}
-                    {{#empty value/value}}{{else}}
-                       value="{{value/value}}"
-                    {{/empty}}>
-            {{/attrTypeEquals}}
-            {{#attrTypeEquals definition/type "CHOICE"}}
-                <select class="form-control selectpicker border border-dark"
-                        data-live-search="true" data-selected-text-format="count > 2"
-                        id="{{definition/id}}" name="{{definition/id}}" aria-describedby="{{definition/id}}Help"
-                        {{#eq definition/allowMultiple true}}multiple{{/eq}}>
-                    {{#empty value}}
-                        <option disabled>Select an option</option>
-                    {{/empty}}
-                    {{#each definition/options}}
-                        <option value="{{this}}"
-                            {{#empty value/value}}
+    </div>
+    <form method="post" action="{{attributeUrl}}">
+        {{#each attributes}}
+            <div class="row mb-3">
+                <div class="col-12 col-md-3">
+                    <label for="{{definition/id}}" class="col-form-label fw-bold">
+                        {{definition/displayName}}
+                    </label>
+                </div>
+                <div class="col-12 col-md-9">
+                    {{#attrTypeEquals definition/type "STRING"}}
+                        <input type="text" class="form-control border border-dark"
+                               id="{{definition/id}}" name="{{definition/id}}" aria-describedby="{{definition/id}}Help"
+                            {{#gt definition/maxLength 0}}
+                               maxlength="{{definition/maxLength}}"
+                            {{/gt}}
+                            {{#empty definition/pattern}}
                             {{else}}
-                                {{#contains value/value this}}selected{{/contains}}
+                               pattern="{{definition/pattern}}"
+                            {{/empty}}
+                            {{#empty value/value}}{{else}}
+                               value="{{value/value}}"
                             {{/empty}}>
-                            {{readable this}}
-                        </option>
-                    {{/each}}
-                </select>
-            {{/attrTypeEquals}}
-            {{#attrTypeEquals definition/type "DATE"}}
-                <input type="date"
-                       class="form-control border border-dark"
-                       id="{{definition/id}}" name="{{definition/id}}" aria-describedby="{{definition/id}}Help"
-                    {{#empty value/value}}{{else}}
-                       value="{{htmlDate value/value false}}"
-                    {{/empty}}>
-            {{/attrTypeEquals}}
-            {{#attrTypeEquals definition/type "NUMBER"}}
-                <input type="number"
-                       class="form-control border border-dark"
-                       id="{{definition/id}}" name="{{definition/id}}" aria-describedby="{{definition/id}}Help"
-                    {{#neq definition/max 0}}max="{{definition/max}}" {{/neq}}
-                    {{#neq definition/min 0}}min="{{definition/min}}" {{/neq}}
-                    {{#empty value/value}}{{else}}
-                       value="{{value/value}}"
-                    {{/empty}}>
-            {{/attrTypeEquals}}
-            {{#attrTypeEquals definition/type "LINK"}}
-                <input type="url"
-                       class="form-control border border-dark"
-                       id="{{definition/id}}" name="{{definition/id}}" aria-describedby="{{definition/id}}Help"
-                    {{#empty value/value}}{{else}}
-                       value="{{value/value}}"
-                    {{/empty}}>
-            {{/attrTypeEquals}}
-            <div id="{{definition/id}}Help" class="form-text">
-                {{definition/description}}
+                    {{/attrTypeEquals}}
+                    {{#attrTypeEquals definition/type "CHOICE"}}
+                        <select class="form-control selectpicker border border-dark"
+                                data-live-search="true" data-selected-text-format="count > 2"
+                                id="{{definition/id}}" name="{{definition/id}}" aria-describedby="{{definition/id}}Help"
+                                {{#eq definition/allowMultiple true}}multiple{{/eq}}>
+                            {{#empty value}}
+                                <option disabled>Select an option</option>
+                            {{/empty}}
+                            {{#each definition/options}}
+                                <option value="{{this}}"
+                                    {{#empty value/value}}
+                                    {{else}}
+                                        {{#contains value/value this}}selected{{/contains}}
+                                    {{/empty}}>
+                                    {{readable this}}
+                                </option>
+                            {{/each}}
+                        </select>
+                    {{/attrTypeEquals}}
+                    {{#attrTypeEquals definition/type "DATE"}}
+                        <input type="date"
+                               class="form-control border border-dark"
+                               id="{{definition/id}}" name="{{definition/id}}" aria-describedby="{{definition/id}}Help"
+                            {{#empty value/value}}{{else}}
+                               value="{{htmlDate value/value false}}"
+                            {{/empty}}>
+                    {{/attrTypeEquals}}
+                    {{#attrTypeEquals definition/type "NUMBER"}}
+                        <input type="number"
+                               class="form-control border border-dark"
+                               id="{{definition/id}}" name="{{definition/id}}" aria-describedby="{{definition/id}}Help"
+                            {{#neq definition/max 0}}max="{{definition/max}}" {{/neq}}
+                            {{#neq definition/min 0}}min="{{definition/min}}" {{/neq}}
+                            {{#empty value/value}}{{else}}
+                               value="{{value/value}}"
+                            {{/empty}}>
+                    {{/attrTypeEquals}}
+                    {{#attrTypeEquals definition/type "LINK"}}
+                        <input type="url"
+                               class="form-control border border-dark"
+                               id="{{definition/id}}" name="{{definition/id}}" aria-describedby="{{definition/id}}Help"
+                            {{#empty value/value}}{{else}}
+                               value="{{value/value}}"
+                            {{/empty}}>
+                    {{/attrTypeEquals}}
+                    <div id="{{definition/id}}Help" class="form-text">
+                        {{definition/description}}
+                    </div>
+                </div>
+            </div>
+        {{/each}}
+        <div class="row">
+            <div class="col-12 d-flex justify-content-center">
+                <button type="submit" class="btn btn-success"><b class="bi bi-save me-2"></b> Save</button>
             </div>
         </div>
-    </div>
-    {{/each}}
-    <div class="row">
-        <div class="col-12 d-flex justify-content-center">
-            <button type="submit" class="btn btn-success"><b class="bi bi-save me-2"></b> Save</button>
-        </div>
-    </div>
-</form>
+    </form>
+
+{{/empty}}

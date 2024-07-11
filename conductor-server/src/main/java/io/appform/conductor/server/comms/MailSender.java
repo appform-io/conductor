@@ -16,7 +16,10 @@
 
 package io.appform.conductor.server.comms;
 
+import com.google.common.base.Strings;
 import io.appform.conductor.server.config.MailConfig;
+import io.appform.functionmetrics.MonitoredFunction;
+import io.appform.signals.signals.ConsumingFireForgetSignal;
 import jakarta.activation.FileDataSource;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -49,6 +52,8 @@ public class MailSender {
     private final MailConfig mailConfig;
     private final Mailer mailer;
 
+    private final ConsumingFireForgetSignal<Mail> contentReceived = new ConsumingFireForgetSignal<>();
+
     @Inject
     public MailSender(@NonNull MailConfig mailConfig) {
         this.mailConfig = mailConfig;
@@ -61,9 +66,16 @@ public class MailSender {
                                        ? TransportStrategy.SMTP_TLS
                                        : TransportStrategy.SMTP)
                 .buildMailer();
+        this.contentReceived.connect(this::send);
+    }
+
+    @MonitoredFunction
+    public void sendAsync(final Mail mail) {
+        contentReceived.dispatch(mail);
     }
 
     @SneakyThrows //TODO
+    @MonitoredFunction
     public void send(final Mail mail) {
         val emails = mail.emailIds();
         if (emails.isEmpty()) {
@@ -71,9 +83,11 @@ public class MailSender {
         }
         val mailBuilder = EmailBuilder.startingBlank()
                 .toMultiple(emails)
-                .withSubject(mail.subject())
+                .withSubject((!Strings.isNullOrEmpty(mailConfig.getSubjectPrefix())
+                                     ? (mailConfig.getSubjectPrefix() + " ") : "")
+                                     + mail.subject())
                 .withPlainText(mail.body()) //TODO::TEMPLATE
-                .from(mailConfig.getFrom());
+                .from(Objects.requireNonNullElse(mailConfig.getSenderName(), mailConfig.getFrom()), mailConfig.getFrom());
         Objects.requireNonNullElse(mail.attachments, List.<Attachment>of())
                 .forEach(attachment -> mailBuilder.withAttachment(attachment.name(),
                                                               new FileDataSource(attachment.datafile())));

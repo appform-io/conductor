@@ -33,6 +33,7 @@ import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.ui.views.manage.*;
 import io.appform.conductor.server.usermanagement.UserLifecycleManager;
 import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.workflowmanagement.WorkflowManager;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
@@ -42,6 +43,7 @@ import lombok.val;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.hibernate.validator.constraints.Length;
+import ru.vyarus.guicey.gsp.views.template.ManualErrorHandling;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
@@ -67,6 +69,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 @Produces(MediaType.TEXT_HTML)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 @PermitAll
+@ManualErrorHandling
 public class Manage {
     private final SchemaStore schemaStore;
     private final WorkflowStore workflowStore;
@@ -95,8 +98,8 @@ public class Manage {
     @RolesAllowed(Permission.Values.MANAGE_SCHEMA)
     public Response createSchema(
             @Auth ConductorUser user,
-            @FormParam("name") @NotEmpty @Length(max = 45) final String name,
-            @FormParam("description") @Length(max = 255) final String description) {
+            @FormParam("name") @NotEmpty @Length(max = Constants.MAX_SCHEMA_ID_LENGTH) final String name,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description) {
         return schemaStore.create(name, description)
                 .flatMap(schemaSummary -> schemaStore.updateState(schemaSummary.getId(), SchemaState.ACTIVE))
                 .map(schemaSummary -> redirect("/manage/schema/" + schemaSummary.getId()))
@@ -111,7 +114,7 @@ public class Manage {
     public Response updateSchemaDescription(
             @Auth ConductorUser user,
             @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId,
-            @FormParam("description") @Length(max = 255) final String description) {
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description) {
         return schemaStore.updateDescription(schemaId, description)
                 .map(schemaSummary -> redirect("/manage/schema/" + schemaSummary.getId()))
                 .orElseThrow(() -> fail("Failed to update schema " + schemaId, "/manage/schema"));
@@ -151,8 +154,8 @@ public class Manage {
     @RolesAllowed(Permission.Values.MANAGE_SCHEMA)
     public Response addField(
             @Auth ConductorUser user,
-            @PathParam("schemaId") @NotEmpty @Length(max = 45) final String schemaId,
-            @FormParam("fieldName") @NotEmpty @Length(max = 45) final String fieldName,
+            @PathParam("schemaId") @NotEmpty @Length(max = Constants.MAX_SCHEMA_ID_LENGTH) final String schemaId,
+            @FormParam("fieldName") @NotEmpty @Length(max = Constants.MAX_FIELD_NAME_LENGTH) final String fieldName,
             @FormParam("fieldDisplayName") @Length(max = 45) final String fieldDisplayName,
             @FormParam("fieldDescription") @Length(max = 255) final String fieldDescription,
             @FormParam("fieldType") @NotNull final FieldType fieldType,
@@ -314,9 +317,9 @@ public class Manage {
     @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response createWorkflow(
             @Auth ConductorUser user,
-            @FormParam("name") @NotEmpty @Length(max = 45) final String name,
-            @FormParam("description") @Length(max = 255) final String description,
-            @FormParam("schemaId") @NotEmpty @Length(max = 255) final String schemaId) {
+            @FormParam("name") @NotEmpty @Length(max = Constants.MAX_WORKFLOW_ID_LENGTH) final String name,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
+            @FormParam("schemaId") @NotEmpty @Length(max = Constants.MAX_SCHEMA_ID_LENGTH) final String schemaId) {
         return workflowStore.create(lowerSnake(name),
                                     name,
                                     description,
@@ -345,6 +348,26 @@ public class Manage {
                                 workflowActions(workflow))))
                 .map(ConductorServerUtils::render)
                 .orElseThrow(() -> fail("Failed to find workflow " + workflowId, "/manage/workflow"));
+    }
+
+    @POST
+    @Path("/workflow/{workflowId}/activate")
+    public Response activateWorkflow(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
+        return workflowManager.activate(workflowId)
+                .map(wf -> redirect("/manage/workflow"))
+                .orElseThrow(() -> fail("Failed to update workflow " + workflowId, "/manage/workflow"));
+    }
+
+    @POST
+    @Path("/workflow/{workflowId}/deactivate")
+    public Response deactivateWorkflow(
+            @Auth ConductorUser user,
+            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId) {
+        return workflowManager.deactivate(workflowId)
+                .map(wf -> redirect("/manage/workflow"))
+                .orElseThrow(() -> fail("Failed to update workflow " + workflowId, "/manage/workflow"));
     }
 
     @GET
@@ -394,7 +417,7 @@ public class Manage {
     public Response updateWorkflowDescription(
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
-            @FormParam("description") @Length(max = 255) final String description) {
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description) {
         return workflowManager.updateDescription(workflowId, description)
                 .map(wf -> redirect("/manage/workflow/" + wf.getId()))
                 .orElseThrow(() -> fail("Failed to update workflow " + workflowId, "/manage/workflow"));
@@ -502,8 +525,8 @@ public class Manage {
     @RolesAllowed(Permission.Values.MANAGE_WORKFLOW)
     public Response createState(
             @Auth ConductorUser user,
-            @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
-            @FormParam("stateName") @NotEmpty @Length(max = 45) final String stateName,
+            @PathParam("workflowId") @NotEmpty @Length(max = Constants.MAX_WORKFLOW_ID_LENGTH) final String workflowId,
+            @FormParam("stateName") @NotEmpty @Length(max = Constants.MAX_WORKFLOW_STATE_NAME_LENGTH) final String stateName,
             @FormParam("stateDescription") @Length(max = 255) final String stateDescription,
             @FormParam("stateIsTerminal") @DefaultValue("false") final boolean stateIsTerminal,
             @FormParam("allowedActions") final List<String> allowedActions,
@@ -717,8 +740,8 @@ public class Manage {
     @RolesAllowed(Permission.Values.MANAGE_GROUPS)
     public Response createGroups(
             @Auth ConductorUser user,
-            @FormParam("name") @NotEmpty @Length(max = 45) final String name,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("name") @NotEmpty @Length(max = Constants.MAX_GROUP_ID_LENGTH) final String name,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("type") @DefaultValue("MANUALLY_ASSIGNED") @NotNull final GroupType type,
             @FormParam("skillValueId") @Size(max = 8) final Set<String> skillValueId) {
         return userLifecycleManager.createGroup(name, description, type, skillValueId)
@@ -745,7 +768,7 @@ public class Manage {
     public Response updateGroup(
             @Auth ConductorUser user,
             @PathParam("groupId") @NotEmpty @Length(max = 45) final String groupId,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("type") @DefaultValue("MANUALLY_ASSIGNED") @NotNull final GroupType type,
             @FormParam("skillValueId") @Size(max = 8) final Set<String> skillValueId) {
         return userLifecycleManager.updateGroup(groupId,
@@ -858,7 +881,7 @@ public class Manage {
     @RolesAllowed(Permission.Values.MANAGE_GROUPS)
     public Response updateSkill(
             @Auth final ConductorUser user,
-            @FormParam("name") @NotEmpty @Length(max = 45) final String name) {
+            @FormParam("name") @NotEmpty @Length(max = Constants.MAX_SKILL_ID_LENGTH) final String name) {
         return userLifecycleManager.createSkill(name)
                 .map(skill -> redirect("/manage/skills/" + skill.getId()))
                 .orElseThrow(() -> fail("Could not create skill", "/manage/skills"));
@@ -893,8 +916,8 @@ public class Manage {
     @RolesAllowed(Permission.Values.MANAGE_GROUPS)
     public Response createSkillValue(
             @Auth final ConductorUser user,
-            @PathParam("skillId") @NotEmpty @Length(max = 45) final String skillId,
-            @FormParam("value") @NotEmpty @Length(max = 45) final String value) {
+            @PathParam("skillId") @NotEmpty @Length(max = Constants.MAX_SCHEMA_ID_LENGTH) final String skillId,
+            @FormParam("value") @NotEmpty @Length(max = Constants.MAX_SKILL_VALUE_LENGTH) final String value) {
         return userLifecycleManager.addSkillValue(skillId, value)
                 .map(skill -> redirect("/manage/skills/" + skill.getId()))
                 .orElseThrow(() -> fail("Could not create skill", "/manage/skills"));

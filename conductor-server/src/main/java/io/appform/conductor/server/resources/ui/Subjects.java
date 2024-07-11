@@ -24,10 +24,12 @@ import io.appform.conductor.server.subjectmanagement.SubjectStore;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
 import io.appform.conductor.server.ui.views.subjects.SubjectDetailsView;
 import io.appform.conductor.server.ui.views.subjects.SubjectListView;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.hibernate.validator.constraints.Length;
+import ru.vyarus.guicey.gsp.views.template.ManualErrorHandling;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
@@ -38,7 +40,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.util.List;
-import java.util.UUID;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 
@@ -50,6 +51,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 @Produces(MediaType.TEXT_HTML)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 @PermitAll
+@ManualErrorHandling
 public class Subjects {
     private static final String SUBJECTS_LIST_PAGE = "/subjects/search";
 
@@ -117,7 +119,7 @@ public class Subjects {
             @FormParam("name") @Length(max = 45) final String name,
             @FormParam("dob") final String dob,
             @FormParam("gender") final Gender gender) {
-        val sId = UUID.randomUUID().toString();
+        val sId = ConductorServerUtils.generateGlobalSubjectId();
         return subjectStore.saveSubject(List.of(), sId, name, htmlDateToDate(dob), gender)
                 .map(s -> redirect("/subjects/" + sId + "/details"))
                 .orElseThrow(() -> fail("Could not create subject", SUBJECTS_LIST_PAGE));
@@ -147,7 +149,7 @@ public class Subjects {
             @Auth ConductorUser user,
             @PathParam("subjectId") @Length(max = 45) final String subjectId,
             @FormParam("subjectIdType") @NotNull final SubjectIDType type,
-            @FormParam("subIdSubType") final String subIdSubType,
+            @FormParam("subIdSubType") @Length(max = 45) final String subIdSubType,
             @FormParam("subIdValue") @NotNull @Length(max = 45) final String value,
             @FormParam("verificationStatus") @DefaultValue("UNVERIFIED") final SubjectIDVerificationStatus verificationStatus) {
         return subjectStore.saveIdentifier(subjectId,

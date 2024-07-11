@@ -98,7 +98,7 @@ public class CachingWorkflowStore implements WorkflowStore {
     @Override
     @MonitoredFunction
     public Optional<Workflow> read(String workflowId) {
-        return Optional.of(cacheProvider.get().get(workflowId));
+        return Optional.ofNullable(cacheProvider.get().get(workflowId));
     }
 
     @Override

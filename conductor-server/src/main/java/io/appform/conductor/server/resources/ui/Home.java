@@ -32,6 +32,7 @@ import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import ru.vyarus.guicey.gsp.views.template.ManualErrorHandling;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
@@ -56,6 +57,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.render;
 @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
 @PermitAll
 @RequiredArgsConstructor(onConstructor_ = @Inject)
+@ManualErrorHandling
 public class Home {
 
     private final TicketManager ticketManager;

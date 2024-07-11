@@ -133,7 +133,7 @@ public class TicketManager {
     }
 
     public Optional<Comment> addComment(final String ticketId, final String comment, final String inReplyTo) {
-        return ticketStore.addComment(ticketId, UUID.randomUUID().toString(), comment, inReplyTo);
+        return ticketStore.addComment(ticketId, ConductorServerUtils.generateCommentId(), comment, inReplyTo);
     }
 
     public List<Comment> listComments(final String ticketId, final int from, final int size) {
@@ -537,7 +537,7 @@ public class TicketManager {
 
     private SubjectSummary createEmptySubject(SubjectID sId) {
         return subjectStore.saveSubject(List.of(sId),
-                                        UUID.randomUUID().toString(),
+                                        ConductorServerUtils.generateGlobalSubjectId(),
                                         "",
                                         null,
                                         Gender.OTHER)
@@ -817,7 +817,7 @@ public class TicketManager {
                 ticketStateMachineContext.getFieldMappingResult().getData(),
                 List.<TicketFieldData>of());
         validateTicketFieldUpdate(startState, editedFields);
-        ticketStore.create(IdGenerator.generate("T").getId(),
+        ticketStore.create(ConductorServerUtils.generateTicketId(),
                            title(metaDataFetchStrategy, payload, ticketStateMachineContext),
                            description(metaDataFetchStrategy, payload, ticketStateMachineContext),
                            workflow.getId(),

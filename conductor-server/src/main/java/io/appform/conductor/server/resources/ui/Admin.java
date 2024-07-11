@@ -31,10 +31,12 @@ import io.appform.conductor.server.ui.views.admin.UserAdminView;
 import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.usermanagement.UserLifecycleManager;
 import io.appform.conductor.server.usermanagement.UserStore;
+import io.appform.conductor.server.utils.Constants;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.hibernate.validator.constraints.Length;
+import ru.vyarus.guicey.gsp.views.template.ManualErrorHandling;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
@@ -62,6 +64,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 @Produces(MediaType.TEXT_HTML)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 @PermitAll
+@ManualErrorHandling
 public class Admin {
     private static final String ROLES_LIST_PATH = "/admin/roles";
     private static final String USER_SEARCH_PATH = "/admin/users/search";
@@ -93,8 +96,8 @@ public class Admin {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @RolesAllowed(Permission.Values.ADMIN)
     public Response createRole(
-            @FormParam("name") @Length(min = 1, max = 45) final String name,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("name") @Length(min = 1, max = Constants.MAX_ROLE_ID_LENGTH) final String name,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("permissions") @NotEmpty List<Permission> permissions) {
         return roleStore.create(lowerSnake(name), name, description, Set.copyOf(permissions))
                 .map(role -> redirect(ROLES_LIST_PATH))
@@ -126,7 +129,7 @@ public class Admin {
     @RolesAllowed(Permission.Values.ADMIN)
     public Response updateRole(
             @PathParam("roleId") @Length(min = 1, max = 45) final String roleId,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("permissions") @NotEmpty Set<Permission> permissions) {
         return roleStore.update(roleId,
                                 role -> role.withDescription(description)
@@ -178,7 +181,7 @@ public class Admin {
     @Path("/users/userid")
     public Response searchUserByUserId(
             @Auth ConductorUser user,
-            @FormParam("searchUserId") @NotEmpty @Length(max = 255) final String userId) {
+            @FormParam("searchUserId") @NotEmpty @Length(max = Constants.MAX_USER_ID_LENGTH) final String userId) {
         return userStore.getById(userId)
                 .map(userSummary -> redirect("/admin/users/" + userSummary.getId()))
                 .orElseThrow(() -> fail("No user found for " + userId, USER_SEARCH_PATH));

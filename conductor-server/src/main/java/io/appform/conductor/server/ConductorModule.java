@@ -111,6 +111,7 @@ import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflow
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
+import io.appform.dropwizard.sharding.utils.ShardCalculator;
 import io.dropwizard.setup.Environment;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
@@ -257,6 +258,12 @@ public class ConductorModule extends AbstractModule {
     @Singleton
     public LookupDao<StoredGroup> groupDao() {
         return dbBundle.createParentObjectDao(StoredGroup.class);
+    }
+
+    @Provides
+    @Singleton
+    public ShardCalculator<String> shardCalculator(LookupDao<StoredUser> storedUserLookupDao) {
+        return storedUserLookupDao.getShardCalculator();
     }
 
     @Provides

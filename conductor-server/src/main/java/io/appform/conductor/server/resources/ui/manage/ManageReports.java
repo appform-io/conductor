@@ -22,9 +22,11 @@ import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.reporting.ReportManager;
 import io.appform.conductor.server.ui.views.reports.ReportListView;
 import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.server.utils.Constants;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.Length;
+import ru.vyarus.guicey.gsp.views.template.ManualErrorHandling;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
@@ -47,6 +49,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 @Produces(MediaType.TEXT_HTML)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 @PermitAll
+@ManualErrorHandling
 public class ManageReports {
 
     private final ReportManager reportManager;
@@ -62,11 +65,11 @@ public class ManageReports {
     @POST
     @RolesAllowed(Permission.Values.MANAGE_REPORT)
     public Response createReport(
-            @FormParam("name") @NotEmpty @Length(max = 45) final String name,
-            @FormParam("description") @Length(max = 255) final String description,
-            @FormParam("cqlQuery") @NotEmpty @Length(max = 4096) final String cqlQuery,
-            @FormParam("cron") @NotEmpty @Length(max = 45) final String cron,
-            @FormParam("recipients") @NotEmpty @Length(max = 2048) final String recipients) {
+            @FormParam("name") @NotEmpty @Length(max = Constants.MAX_REPORT_ID_LENGTH) final String name,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
+            @FormParam("cqlQuery") @NotEmpty @Length(max = Constants.MAX_CQL_LENGTH) final String cqlQuery,
+            @FormParam("cron") @NotEmpty @Length(max = Constants.MAX_CRON_LENGTH) final String cron,
+            @FormParam("recipients") @NotEmpty @Length(max = Constants.MAX_RECIPIENTS_LENGTH) final String recipients) {
         return reportManager.create(ConductorServerUtils.lowerSnake(name),
                                     name,
                                     description,
@@ -83,7 +86,7 @@ public class ManageReports {
     @RolesAllowed(Permission.Values.MANAGE_REPORT)
     public Response updateReport(
             @PathParam("reportId") @NotEmpty @Length(max = 45) final String reportId,
-            @FormParam("description") @Length(max = 255) final String description,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("cqlQuery") @NotEmpty @Length(max = 4096) final String cqlQuery,
             @FormParam("cron") @NotEmpty @Length(max = 45) final String cron,
             @FormParam("recipients") @NotEmpty @Length(max = 2048) final String recipients) {

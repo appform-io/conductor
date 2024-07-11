@@ -17,17 +17,19 @@
 package io.appform.conductor.server.subjectmanagement.impl.models;
 
 import io.appform.conductor.model.subject.AddressType;
+import io.appform.conductor.server.utils.Constants;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import lombok.val;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
-import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import java.util.Date;
 import java.util.Objects;
 
@@ -36,7 +38,7 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = StoredAddress.SUBJECT_ADDRESS_TABLE_NAME, indexes = {
-        @Index(name = "idx_addr_sub_global", columnList = "subject_global_id")
+        @Index(name = "idx_subject_global_id", columnList = "subject_global_id")
 })
 @Getter
 @Setter
@@ -47,47 +49,46 @@ public class StoredAddress {
     public static final String SUBJECT_ADDRESS_TABLE_NAME = "addresses";
 
     @Id
-    @Column(name = "address_id", unique = true)
+    @Column(name = "address_id", nullable = false, unique = true, length = Constants.MAX_ADDRESS_ID_LENGTH)
     private String addressId;
 
-    @Column
+    @Column(name = "type", length = 45)
     @Enumerated(EnumType.STRING)
     private AddressType type;
 
-    @Column(name = "house_number")
+    @Column(name = "house_number", length = 255)
     private String houseNumber;
 
-    @Column(name = "street")
+    @Column(name = "street", length = 255)
     private String street;
 
-    @Column
+    @Column(name = "locality", length = 255)
     private String locality;
 
-    @Column
+    @Column(name = "city", length = 255)
     private String city;
 
-    @Column
+    @Column(name = "state", length = 255)
     private String state;
 
-    @Column
+    @Column(name = "country", length = 255)
     private String country;
 
-    @Column(name = "pin_code")
+    @Column(name = "pin_code", length = 255)
     private String pinCode;
 
-    @Column(name = "subject_global_id", nullable = false)
+    @Column(name = "subject_global_id", nullable = false, length = Constants.MAX_SUBJECT_GLOBAL_ID_LENGTH)
     String subjectGlobalId;
 
-    @Column
+    @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override

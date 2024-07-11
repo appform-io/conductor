@@ -33,12 +33,14 @@ import io.appform.conductor.server.ui.views.tasks.RunActionOnCQLSelectView;
 import io.appform.conductor.server.ui.views.tasks.RunActionOnSelectedTicketsView;
 import io.appform.conductor.server.ui.views.tasks.TaskListView;
 import io.appform.conductor.server.usermanagement.GroupStore;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
 import io.dropwizard.util.Duration;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.hibernate.validator.constraints.Length;
+import ru.vyarus.guicey.gsp.views.template.ManualErrorHandling;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
@@ -64,6 +66,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 @Produces(MediaType.TEXT_HTML)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 @PermitAll
+@ManualErrorHandling
 public class ManageTasks {
     private final WorkflowStore workflowStore;
     private final GroupStore groupStore;
@@ -268,7 +271,7 @@ public class ManageTasks {
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @FormParam("name") @NotEmpty @Length(max = 45) final String name,
-            @FormParam("description") @NotEmpty @Length(max = 255) final String description,
+            @FormParam("description") @NotEmpty @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("cron") @NotEmpty @Length(max = 255) final String cron,
             @FormParam("stateIds") Set<String> stateIds,
             @FormParam("updatedBeforeInMins") @Max(50000) long updatedBeforeInMins,
@@ -303,7 +306,7 @@ public class ManageTasks {
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @PathParam("taskId") @NotEmpty @Length(max = 45) final String taskId,
-            @FormParam("description") @NotEmpty @Length(max = 255) final String description,
+            @FormParam("description") @NotEmpty @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("cron") @NotEmpty @Length(max = 255) final String cron,
             @FormParam("stateIds") Set<String> stateIds,
             @FormParam("updatedBeforeInMins") @Max(50000) long updatedBeforeInMins,
@@ -332,7 +335,7 @@ public class ManageTasks {
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @FormParam("name") @NotEmpty @Length(max = 45) final String name,
-            @FormParam("description") @NotEmpty @Length(max = 255) final String description,
+            @FormParam("description") @NotEmpty @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("cron") @NotEmpty @Length(max = 255) final String cron,
             @FormParam("query") @NotEmpty @Length(max = 1024) final String query,
             @FormParam("selectedActions") List<String> actionIds) {
@@ -364,7 +367,7 @@ public class ManageTasks {
             @Auth ConductorUser user,
             @PathParam("workflowId") @NotEmpty @Length(max = 45) final String workflowId,
             @PathParam("taskId") @NotEmpty @Length(max = 45) final String taskId,
-            @FormParam("description") @NotEmpty @Length(max = 255) final String description,
+            @FormParam("description") @NotEmpty @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("cron")@NotEmpty @Length(max = 255) final String cron,
             @FormParam("query") @NotEmpty @Length(max = 1024) final String query,
             @FormParam("selectedActions") List<String> actionIds) {

@@ -17,6 +17,7 @@
 package io.appform.conductor.server.subjectmanagement.impl.models;
 
 import io.appform.conductor.model.subject.Gender;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,8 +25,9 @@ import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import lombok.val;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -47,29 +49,28 @@ public class StoredSubjectSummary {
 
     @Id
     @LookupKey
-    @Column(name = "global_id", unique = true)
+    @Column(name = "global_id", nullable = false, unique = true, length = Constants.MAX_SUBJECT_GLOBAL_ID_LENGTH)
     private String globalId;
 
-    @Column
+    @Column(name = "name", length = 45)
     private String name;
 
-    @Column(columnDefinition = "timestamp")
+    @Column(name = "dob", columnDefinition = "timestamp")
     private Date dob;
 
-    @Column
+    @Column(name = "gender", length = 45)
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @Column
+    @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @org.hibernate.annotations.Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @org.hibernate.annotations.Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Transient

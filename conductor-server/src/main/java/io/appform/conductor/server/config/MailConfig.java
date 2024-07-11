@@ -38,6 +38,10 @@ public class MailConfig {
     @Email
     String from;
 
+    String senderName;
+
+    String subjectPrefix;
+
     int port;
 
     boolean tls;

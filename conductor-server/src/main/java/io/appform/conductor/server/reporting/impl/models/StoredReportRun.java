@@ -17,14 +17,16 @@
 package io.appform.conductor.server.reporting.impl.models;
 
 import io.appform.conductor.model.reporting.ReportRun;
+import io.appform.conductor.server.utils.Constants;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
-import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
@@ -36,8 +38,9 @@ import java.util.Objects;
 @Entity
 @Table(name = StoredReportRun.REPORT_RUN_TABLE_NAME,
         indexes = {
-            @Index(name = "report_run_report_id_idx", columnList = "report_id"),
-            @Index(name = "report_run_run_date_idx", columnList = "run_date")
+            @Index(name = "idx_report_id", columnList = "report_id"),
+            @Index(name = "idx_run_date", columnList = "run_date"),
+            @Index(name = "idx_current_state", columnList = "current_state"),
         }
 
 )
@@ -55,32 +58,31 @@ public class StoredReportRun implements Serializable {
     private static final long serialVersionUID = 3448236804714127769L;
 
     @Id
-    @Column(name = "run_id", nullable = false)
+    @Column(name = "run_id", nullable = false, length = Constants.MAX_REPORT_RUN_ID_LENGTH)
     private String runId;
 
-    @Column(name = "report_id")
+    @Column(name = "report_id", length = Constants.MAX_REPORT_ID_LENGTH)
     private String reportId;
 
     @Column(name = "run_date")
     private Date runDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "current_state")
+    @Column(name = "current_state", length = 45)
     ReportRun.State currentState;
 
-    @Column
+    @Column(name = "message", length = 255)
     private String message;
 
-    @Column
+    @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp default current_timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp on update current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override

@@ -22,6 +22,7 @@ import io.appform.conductor.model.actions.impl.AddCommentAction;
 import io.appform.conductor.server.actionmanagement.ActionExecutor;
 import io.appform.conductor.server.templateengines.TemplateEngine;
 import io.appform.conductor.server.ticketmanagement.TicketStore;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -45,7 +46,7 @@ public class AddCommentActionExecutor {
         val comment = templateEngine.evaluateToText(action.getContentTemplate(),
                                                           evalData.getTicketJson()).orElse(null);
         if(!Strings.isNullOrEmpty(comment)
-        && ticketStore.addComment(ticketId, UUID.randomUUID().toString(), comment, null).isPresent()) {
+        && ticketStore.addComment(ticketId, ConductorServerUtils.generateCommentId(), comment, null).isPresent()) {
             return ActionExecutionResult.SUCCESS;
         }
         log.error("Failed to add comment to ticket {}", ticketId);

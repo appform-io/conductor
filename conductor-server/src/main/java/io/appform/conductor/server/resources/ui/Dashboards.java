@@ -29,11 +29,14 @@ import io.appform.conductor.server.dashboards.model.SpecVersion;
 import io.appform.conductor.server.ui.views.manage.DashboardListView;
 import io.appform.conductor.server.ui.views.manage.DashboardView;
 import io.appform.conductor.server.ui.views.manage.NewDashboardView;
+import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.server.utils.Constants;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.hibernate.validator.constraints.Length;
+import ru.vyarus.guicey.gsp.views.template.ManualErrorHandling;
 import ru.vyarus.guicey.gsp.views.template.Template;
 
 import javax.annotation.security.PermitAll;
@@ -56,6 +59,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 @Produces(MediaType.TEXT_HTML)
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 @PermitAll
+@ManualErrorHandling
 public class Dashboards {
 
     private final DashboardStore dashboardStore;
@@ -78,8 +82,8 @@ public class Dashboards {
     @Path("/create")
     @RolesAllowed(Permission.Values.MANAGE_DASHBOARD)
     public Response createDashboard(
-            @FormParam("name") @NotEmpty @Length(max = 45) final String name,
-            @FormParam("description") @Length(max = 255) final String description) {
+            @FormParam("name") @NotEmpty @Length(max = Constants.MAX_DASHBOARD_ID_LENGTH) final String name,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description) {
         val id = lowerSnake(name);
         return dashboardStore.create(id, name, description)
                 .map(dashboard -> redirect("/dashboards/" + dashboard.getId()))
@@ -91,9 +95,9 @@ public class Dashboards {
     @RolesAllowed(Permission.Values.MANAGE_DASHBOARD)
     @SneakyThrows
     public Response updateDashboard(
-            @PathParam("dashboardId") @NotEmpty @Length(max = 45) final String dashboardId,
-            @FormParam("description") @Length(max = 255) final String description,
-            @FormParam("spec") @NotEmpty @Length(max = 4096) final String specRepresentation) {
+            @PathParam("dashboardId") @NotEmpty @Length(max = Constants.MAX_DASHBOARD_ID_LENGTH) final String dashboardId,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
+            @FormParam("spec") @NotEmpty @Length(max = Constants.MAX_SPEC_LENGTH ) final String specRepresentation) {
         return dashboardStore.update(
                         dashboardId,
                         description,
@@ -137,7 +141,7 @@ public class Dashboards {
         if(null == existing) {
             throw fail("Could not find dashboard " + dashboardId, "/dashboards");
         }
-        val widget = new DashboardWidget(UUID.randomUUID().toString(),
+        val widget = new DashboardWidget(ConductorServerUtils.generateDashboardWidgetId(),
                                          widgetTitle,
                                          DashboardWidget.QueryType.CQL,
                                          widgetCql,

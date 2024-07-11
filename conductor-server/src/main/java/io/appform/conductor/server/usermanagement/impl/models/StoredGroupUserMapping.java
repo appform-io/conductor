@@ -16,10 +16,11 @@
 
 package io.appform.conductor.server.usermanagement.impl.models;
 
+import io.appform.conductor.server.utils.Constants;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.proxy.HibernateProxy;
 
 import javax.persistence.*;
@@ -34,7 +35,10 @@ import java.util.Objects;
 @Entity
 @Table(name = StoredGroupUserMapping.GROUP_USERS_TABLE_NAME,
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_user_group", columnNames = {"group_id", "user_id"})
+                @UniqueConstraint(name = "uk_group_id_user_id", columnNames = {"group_id", "user_id"})
+        },
+        indexes = {
+            @Index(name = "idx_user_id", columnList = "user_id")
         })
 @Getter
 @Setter
@@ -51,22 +55,21 @@ public class StoredGroupUserMapping implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "group_id", length = 45, nullable = false)
+    @Column(name = "group_id", length = Constants.MAX_GROUP_ID_LENGTH, nullable = false)
     private String groupId;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id", nullable = false, length = Constants.MAX_USER_ID_LENGTH)
     private String userId;
 
-    @Column
+    @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     public StoredGroupUserMapping(String groupId, String userId) {

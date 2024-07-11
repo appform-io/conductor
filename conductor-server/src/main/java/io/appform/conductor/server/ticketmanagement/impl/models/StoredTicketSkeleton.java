@@ -18,6 +18,7 @@ package io.appform.conductor.server.ticketmanagement.impl.models;
 
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,6 +30,7 @@ import org.hibernate.annotations.*;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
+import javax.persistence.Index;
 import javax.persistence.Table;
 import java.io.Serial;
 import java.io.Serializable;
@@ -40,7 +42,18 @@ import java.util.Objects;
  * Storage model for {@link io.appform.conductor.server.ticketmanagement.TicketSkeleton}
  */
 @Entity
-@Table(name = StoredTicketSkeleton.TICKET_SKELETON_TABLE_NAME)
+@Table(name = StoredTicketSkeleton.TICKET_SKELETON_TABLE_NAME, indexes = {
+        @Index(name = "idx_workflow_id", columnList = "workflow_id"),
+        @Index(name = "idx_created_by_user_id", columnList = "created_by_user_id"),
+        @Index(name = "idx_assigned_to_group_id", columnList = "assigned_to_group_id"),
+        @Index(name = "idx_assigned_to_user_id", columnList = "assigned_to_user_id"),
+        @Index(name = "idx_subject_id", columnList = "subject_id"),
+        @Index(name = "idx_ext_ref", columnList = "ext_ref_source,ext_ref_id"),
+        @Index(name = "idx_ticket_state_id", columnList = "ticket_state_id"),
+        @Index(name = "idx_priority", columnList = "priority"),
+        @Index(name = "idx_created", columnList = "created"),
+        @Index(name = "idx_updated", columnList = "updated"),
+})
 @DynamicUpdate
 @Getter
 @Setter
@@ -57,41 +70,41 @@ public class StoredTicketSkeleton implements Serializable {
 
     @Id
     @LookupKey
-    @Column(name = "ticket_id", unique = true, length = 45)
+    @Column(name = "ticket_id", nullable = false, unique = true, length = Constants.MAX_TICKET_ID_LENGTH)
     private String ticketId;
 
-    @Column
+    @Column(name = "title", length = 255)
     private String title;
 
-    @Column
+    @Column(name = "description", length = Constants.MAX_DESCRIPTION_LENGTH)
     private String description;
 
-    @Column(name = "workflow_id", nullable = false)
+    @Column(name = "workflow_id", nullable = false, length = Constants.MAX_WORKFLOW_ID_LENGTH)
     private String workflowId;
 
-    @Column(name = "created_by_user_id")
+    @Column(name = "created_by_user_id", length = Constants.MAX_USER_ID_LENGTH)
     private String createdByUserId;
 
-    @Column(name = "assigned_to_group_id")
+    @Column(name = "assigned_to_group_id", length = Constants.MAX_GROUP_ID_LENGTH)
     private String assignedToGroupId;
 
-    @Column(name = "assigned_to_user_id")
+    @Column(name = "assigned_to_user_id", length = Constants.MAX_USER_ID_LENGTH)
     private String assignedToUserId;
 
-    @Column(name = "subject_id")
+    @Column(name = "subject_id", length = Constants.MAX_SUBJECT_GLOBAL_ID_LENGTH)
     private String subjectId;
 
-    @Column(name = "ticket_state_id")
+    @Column(name = "ticket_state_id", length = Constants.MAX_WORKFLOW_STATE_ID_LENGTH)
     private String ticketStateId;
 
-    @Column
+    @Column(name = "priority", length = 45)
     @Enumerated(EnumType.STRING)
     private TicketPriority priority;
 
-    @Column(name = "ext_ref_source", length = 128)
+    @Column(name = "ext_ref_source", length = 127)
     private String externalReferenceSource;
 
-    @Column(name = "ext_ref_id",  length = 128)
+    @Column(name = "ext_ref_id",  length = 127)
     private String externalReferenceId;
 
     @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
@@ -102,11 +115,11 @@ public class StoredTicketSkeleton implements Serializable {
     private boolean deleted;
 
     @CreationTimestamp
-    @Column(name = "`created`", columnDefinition = "timestamp")
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
     @UpdateTimestamp
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp")
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override

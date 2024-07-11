@@ -16,13 +16,15 @@
 
 package io.appform.conductor.server.ticketmanagement.impl.models.comments;
 
+import io.appform.conductor.server.utils.Constants;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.GenerationTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -36,8 +38,7 @@ import java.util.Objects;
 @Entity
 @Table(name = StoredComment.TICKET_COMMENTS_TABLE_NAME,
     indexes = {
-        @Index(name = "idx_comment_for_ticket", columnList = "ticket_id, deleted"),
-        @Index(name = "idx_replies_for_ticket_comment", columnList = "ticket_id, reply_to_id, deleted"),
+        @Index(name = "idx_ticket_id_reply_to_id", columnList = "ticket_id, reply_to_id"),
     })
 @Getter
 @Setter
@@ -51,31 +52,30 @@ public class StoredComment implements Serializable {
    private static final long serialVersionUID = -5044362079995936712L;
 
     @Id
-    @Column(name = "comment_id", unique = true)
+    @Column(name = "comment_id", nullable = false, unique = true, length = Constants.MAX_COMMENT_ID_LENGTH)
     private String commentId;
 
-    @Column(name = "ticket_id", nullable = false)
+    @Column(name = "ticket_id", nullable = false, length = Constants.MAX_TICKET_ID_LENGTH)
     private String ticketId;
 
-    @Column
+    @Column(name = "author", length = Constants.MAX_USER_ID_LENGTH)
     private String author;
 
-    @Column(columnDefinition = "longtext")
+    @Column(name = "content", columnDefinition = "text", length = Constants.MAX_COMMENT_LENGTH)
     private String content;
 
-    @Column(name = "reply_to_id")
+    @Column(name = "reply_to_id", length = Constants.MAX_TICKET_ID_LENGTH)
     private String replyToId;
 
     @Column(name = "deleted")
     private boolean deleted;
 
-    @Column(name = "created", columnDefinition = "timestamp", updatable = false, insertable = false)
-    @org.hibernate.annotations.Generated(value = GenerationTime.INSERT)
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
     private Date created;
 
-    @Column(name = "updated", columnDefinition = "timestamp default current_timestamp",
-            updatable = false, insertable = false)
-    @org.hibernate.annotations.Generated(value = GenerationTime.ALWAYS)
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
     private Date updated;
 
     @Override
