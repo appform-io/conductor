@@ -21,5 +21,7 @@ package io.appform.conductor.model.usermgmt;
  */
 public enum GroupType {
     MANUALLY_ASSIGNED,
-    AUTOMATICALLY_ASSIGNED
+    AUTOMATICALLY_ASSIGNED,
+    SYSTEM_RESERVED,
+    ;
 }

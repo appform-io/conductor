@@ -929,7 +929,7 @@ public class Manage {
 
     private static Rule createAssignmentRule(GroupType type, List<String> skillValueId) {
         return switch (type) {
-            case MANUALLY_ASSIGNED -> null;
+            case MANUALLY_ASSIGNED, SYSTEM_RESERVED -> null;
             case AUTOMATICALLY_ASSIGNED -> new Rule(Rule.RuleType.HOPE,
                                                     String.format("arr.contains_all([%s], '/skills') == true",
                                                                   String.join(",",
