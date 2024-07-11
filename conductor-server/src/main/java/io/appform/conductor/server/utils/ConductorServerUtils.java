@@ -46,6 +46,8 @@ import io.appform.conductor.model.ticket.fields.FieldValue;
 import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
 import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.fields.impl.*;
+import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.server.actionmanagement.ActionExecutor;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.id.IdGenerator;
 import io.appform.conductor.server.parser.CQLEngine;
@@ -248,6 +250,42 @@ public class ConductorServerUtils {
         return Arrays.stream(lists).flatMap(Collection::stream).toList();
     }
 
+    public static JsonNode evalDataJson(ObjectMapper mapper,
+                                        TicketStateMachineContext stateMachineContext,
+                                        JsonNode payload) {
+        return evalDataJson(mapper,
+                ticketDetails(stateMachineContext),
+                stateMachineContext.getSchema(),
+                stateMachineContext.getTicketAssignedToUser(),
+                payload);
+    }
+
+    public static JsonNode evalDataJson(ObjectMapper mapper,
+                                      ActionExecutor.ActionEvalData evalData) {
+        return evalDataJson(mapper,
+                evalData.getTicket(),
+                evalData.getSchema(),
+                evalData.getRequester(),
+                evalData.getPayload());
+    }
+
+    public static JsonNode evalDataJson(ObjectMapper mapper,
+                                        TicketDetails ticketDetails,
+                                        Schema schema,
+                                        User requester,
+                                        JsonNode payload) {
+        val evalDataJson = mapper.createObjectNode();
+        evalDataJson.set("ticket", ConductorServerUtils.ticketToJsonNode(mapper,
+                ticketDetails, schema));
+        if(payload != null) {
+            evalDataJson.set("payload", payload);
+        }
+        if(requester != null) {
+            evalDataJson.set("requester", mapper.valueToTree(requester));
+        }
+        return evalDataJson;
+    }
+
     public static JsonNode ticketToJsonNode(
             final ObjectMapper mapper,
             final TicketDetails ticket,
@@ -396,7 +434,9 @@ public class ConductorServerUtils {
                                                    skeleton.getWorkflowId(),
                                                    ticketStateMachineContext.getTicketCreatedBy(),
                                                    ticketStateMachineContext.getTicketAssignedToGroup(),
-                                                   ticketStateMachineContext.getTicketAssignedToUser(),
+                                                   Optional.ofNullable(ticketStateMachineContext.getTicketAssignedToUser())
+                                                           .map(User::getSummary)
+                                                           .orElse(null),
                                                    ticketStateMachineContext.getSubject(),
                                                    ticketStateMachineContext.getWorkflow()
                                                            .getStates()
@@ -764,6 +804,8 @@ public class ConductorServerUtils {
     private static Date toDate(Object element, int divisor) {
         return new Date(1000L * divisor * (Long) element);
     }
+
+
 }
 
 

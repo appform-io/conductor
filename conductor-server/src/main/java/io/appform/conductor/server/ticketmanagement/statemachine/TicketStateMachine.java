@@ -92,11 +92,7 @@ public class TicketStateMachine {
     private TicketStateTransition selectTransition(TriggerData event) {
         //TODO: fix move this out along with mapper and schema
         val currentState = this.context.currentState();
-        val evalDataJson = mapper.createObjectNode();
-        evalDataJson.set("ticket", ConductorServerUtils.ticketToJsonNode(mapper, 
-                ConductorServerUtils.ticketDetails(this.context),
-                this.context.getSchema()));
-        evalDataJson.set("payload", event.getPayload());
+        val evalDataJson = ConductorServerUtils.evalDataJson(mapper, this.context, event.getPayload());
 
         log.debug("Evaluating transitions for ticket: {} with data: {}",
                 this.context.ticketId(),

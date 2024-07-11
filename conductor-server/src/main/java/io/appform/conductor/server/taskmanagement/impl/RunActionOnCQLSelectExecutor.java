@@ -83,7 +83,7 @@ public class RunActionOnCQLSelectExecutor {
                                         .forEach(actionId -> {
                                             log.info("Applying action {} on ticket {}",
                                                      actionId, gist.getTicketId());
-                                            ticketManager.triggerTicketAction(gist.getTicketId(), actionId);
+                                            ticketManager.triggerTicketAction(gist.getTicketId(), actionId, null);
                                         }));
                         return null;
                     }

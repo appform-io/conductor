@@ -23,9 +23,7 @@ import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.schema.fields.StringFieldSchema;
-import io.appform.conductor.model.usermgmt.UserState;
-import io.appform.conductor.model.usermgmt.UserSummary;
-import io.appform.conductor.model.usermgmt.UserType;
+import io.appform.conductor.model.usermgmt.*;
 import io.appform.conductor.model.workflow.*;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.TestConfig;
@@ -47,6 +45,7 @@ import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredA
 import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredComment;
 import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
 import io.appform.conductor.server.usermanagement.GroupStore;
+import io.appform.conductor.server.usermanagement.UserLifecycleManager;
 import io.appform.conductor.server.usermanagement.UserStore;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.workflowmanagement.WorkflowSelector;
@@ -83,6 +82,13 @@ class TicketManagerTest {
                                       UserState.ACTIVE,
                                       new Date(),
                                       new Date());
+
+        val creatorDetails = new User(creator,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null);
 
         val schema = new Schema("TS1",
                                 "Test Schema",
@@ -133,6 +139,8 @@ class TicketManagerTest {
         when(sStore.read(anyString())).thenReturn(Optional.of(schema));
         val uStore = mock(UserStore.class);
         when(uStore.getById(anyString())).thenReturn(Optional.of(creator));
+        val userLifeCycleManager = mock(UserLifecycleManager.class);
+        when(userLifeCycleManager.userDetails(anyString())).thenReturn(Optional.of(creatorDetails));
         val gStore = mock(GroupStore.class);
         when(gStore.read(anyString())).thenReturn(Optional.empty());
         val aStore = mock(ActionStore.class);
@@ -165,6 +173,7 @@ class TicketManagerTest {
                                               re,
                                               te,
                                               actionExecutor,
+                                              userLifeCycleManager,
                                               mapper);
         val res = ticketManager.processRaw(mapper.readTree("""
                                                                    {

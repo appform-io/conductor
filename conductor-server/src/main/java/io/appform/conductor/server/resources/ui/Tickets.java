@@ -359,7 +359,7 @@ public class Tickets {
             @PathParam("ticketId") @NotEmpty @Length(max = 45) final String ticketId,
             @PathParam("actionId") @NotEmpty @Length(max = 45) final String actionId) {
         try {
-            if (ticketManager.triggerTicketAction(ticketId, actionId)) {
+            if (ticketManager.triggerTicketAction(ticketId, actionId, user)) {
                 return redirect("/tickets/" + ticketId + "/details");
             }
         } catch (ConductorException ce) {
