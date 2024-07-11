@@ -712,7 +712,9 @@ public class DBTicketStore implements TicketStore {
             public Void visit(TicketsUpdatedBeforeTimeWindow ticketsUpdatedBeforeTimeWindow) {
                 criteria.add(Property.forName(StoredTicketSkeleton.Fields.updated)
                         .lt(new Date(
-                                new Date().getTime() - ticketsUpdatedBeforeTimeWindow.getDuration().toMilliseconds())));
+                                Optional.ofNullable(ticketsUpdatedBeforeTimeWindow.getStart())
+                                        .orElse(new Date())
+                                        .getTime() - ticketsUpdatedBeforeTimeWindow.getDuration().toMilliseconds())));
                 return null;
             }
         }));

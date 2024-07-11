@@ -397,7 +397,7 @@ public class ManageTasks {
             tfs.add(new TicketStateIn(stateIds, false));
         }
         if( updatedBeforeInMins > 0 ) {
-            tfs.add(new TicketsUpdatedBeforeTimeWindow(Duration.minutes(updatedBeforeInMins)));
+            tfs.add(new TicketsUpdatedBeforeTimeWindow(Duration.minutes(updatedBeforeInMins), null));
         }
         if (null != groupIds && !groupIds.isEmpty()) {
             tfs.add(new TicketAssignedToGroup(groupIds, false));

@@ -10,6 +10,7 @@ import lombok.ToString;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
+import java.util.Date;
 
 
 @Value
@@ -17,13 +18,15 @@ import lombok.extern.jackson.Jacksonized;
 @ToString(callSuper = true)
 public class TicketsUpdatedBeforeTimeWindow extends TicketFilter {
 
+    Date start;
     Duration duration;
 
     @Builder
     @Jacksonized
-    public TicketsUpdatedBeforeTimeWindow(Duration duration) {
+    public TicketsUpdatedBeforeTimeWindow(Duration duration, Date start) {
         super(TicketFilterType.UPDATED_BEFORE_TIME_WINDOW);
         this.duration = duration;
+        this.start = start;
     }
 
     @Override
