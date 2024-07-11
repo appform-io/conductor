@@ -18,10 +18,12 @@ package io.appform.conductor.server.usermanagement;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.google.common.base.Strings;
+import io.appform.conductor.model.attributes.AttributeScopeType;
 import io.appform.conductor.model.auth.Role;
 import io.appform.conductor.model.skills.SkillDefinition;
 import io.appform.conductor.model.skills.SkillValue;
 import io.appform.conductor.model.usermgmt.*;
+import io.appform.conductor.server.attributes.values.AttributeManager;
 import io.appform.conductor.server.auth.RoleStore;
 import io.appform.conductor.server.auth.UserAuthValidator;
 import io.appform.conductor.server.auth.UserRoleMappingStore;
@@ -41,6 +43,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * User lifecycle manager
@@ -74,6 +77,7 @@ public class UserLifecycleManager {
     private final Provider<GroupStore> groupStore;
     private final Provider<SkillStore> skillStore;
     private final Provider<IdUtils> idUtils;
+    private final Provider<AttributeManager> attributeManager;
     private final MailSender mailSender;
 
     public Optional<User> userDetails(@NonNull final String userId) {
@@ -83,11 +87,16 @@ public class UserLifecycleManager {
                     val role = Strings.isNullOrEmpty(roleId)
                                ? Optional.<Role>empty()
                                : roleStore.get().read(roleId);
+                    val attributes = attributeManager.get().read(AttributeScopeType.USER, userId)
+                            .stream()
+                            .collect(Collectors.toMap(attribute -> attribute.getDefinition().getName(),
+                                                        AttributeManager.MaterializedAttributeValue::getValue));
                     return new User(userSummary,
                                     role.orElse(null),
                                     role.map(Role::getPermissions).orElse(Set.of()),
                                     groupStore.get().findGroupsForUser(userSummary.getId()),
-                                    skillStore.get().listSkillsForUser(userId));
+                                    skillStore.get().listSkillsForUser(userId),
+                                    attributes);
                 });
     }
 
