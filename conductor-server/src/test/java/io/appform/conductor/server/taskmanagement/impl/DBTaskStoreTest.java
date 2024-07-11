@@ -52,7 +52,7 @@ class DBTaskStoreTest {
                                                   TaskType.RUN_ACTION_ON_SELECTED_TICKETS,
                                                   "Test",
                                                   "Blah",
-                                                  Duration.ofMinutes(1),
+                                                  "0 * * ? * *",
                                                   Scope.GLOBAL,
                                                   TaskState.ACTIVE,
                                                   new RunActionOnSelectedTicketsTaskSpec(List.of(),

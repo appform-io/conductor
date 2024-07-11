@@ -69,7 +69,7 @@ class ConductorTaskSchedulerTest {
                             TaskType.RUN_ACTION_ON_SELECTED_TICKETS,
                             "Test Task",
                             "",
-                            Duration.ofSeconds(1),
+                            "* * * ? * *",
                             Scope.GLOBAL,
                             TaskState.ACTIVE,
                             taskSpec,
