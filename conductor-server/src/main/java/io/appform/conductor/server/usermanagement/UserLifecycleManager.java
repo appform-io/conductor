@@ -39,10 +39,7 @@ import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -87,8 +84,11 @@ public class UserLifecycleManager {
                     val role = Strings.isNullOrEmpty(roleId)
                                ? Optional.<Role>empty()
                                : roleStore.get().read(roleId);
-                    val attributes = attributeManager.get().read(AttributeScopeType.USER, userId)
+                    val attributes = attributeManager.get()
+                            .read(AttributeScopeType.USER, userId)
                             .stream()
+                            .filter(attribute -> Objects.nonNull(attribute.getDefinition()))
+                            .filter(attribute -> Objects.nonNull(attribute.getValue()))
                             .collect(Collectors.toMap(attribute -> attribute.getDefinition().getName(),
                                                         AttributeManager.MaterializedAttributeValue::getValue));
                     return new User(userSummary,
