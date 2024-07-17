@@ -72,6 +72,7 @@ public class WebhookActionExecutor {
 
     private HttpUriRequestBase buildRequest(WebhookAction webhookAction, ActionExecutor.ActionEvalData evalData) {
         val evalDataJson = ConductorServerUtils.evalDataJson(mapper, evalData);
+        log.info("Action:{}, Eval Data:{}", webhookAction.getId(), evalDataJson);
         String url = templateEngine.evaluateToText(webhookAction.getUrlTemplate(), evalDataJson).orElse(null);
         //Creating Http request
         val request = switch (webhookAction.getCallType()) {

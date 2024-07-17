@@ -101,7 +101,7 @@ public class TicketStateMachine {
         //filter out transitions already transitioned to avoid loops
         List<TicketStateTransition> eligibleTransitions =  context.getWorkflow()
                 .getTicketStateTransitions()
-                .get(currentState.getId())
+                .getOrDefault(currentState.getId(), List.of())
                 .stream()
                 .filter(transition -> !transitionAuditLog.contains(transition.getId()))
                 .collect(Collectors.toList());
