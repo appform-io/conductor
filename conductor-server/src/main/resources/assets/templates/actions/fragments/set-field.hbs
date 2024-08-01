@@ -1,0 +1,77 @@
+{{#partial "page_css_includes"}}
+    <link href="/css/bootstrap-select.min.css" rel="stylesheet">
+{{/partial}}
+{{#partial "page_js_includes"}}
+    <script type="text/javascript" src="/js/bootstrap-select.min.js"></script>
+{{/partial}}
+{{#partial "content"}}
+    <div class="row">
+        <div class="col-12">
+            {{#empty currentAction}}
+                <h4>Creating Set Field Action</h4>
+            {{else}}
+                <h4>Updating Set Field Action: <b>{{currentAction.name}}</b></h4>
+            {{/empty}}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12 col-md-6">
+            <form method="post"
+                {{#with currentAction}}
+                  action="/actions/{{scope.type}}/{{scope.referenceId}}/{{id}}/SET_FIELD/update"
+                {{else}}
+                  action="/actions/{{scope.type}}/{{scope.referenceId}}/SET_FIELD/create"
+                {{/with}}>
+                <div class="mb-3">
+                    <label for="name" class="col-form-label fw-bold">Name</label>
+                    <input type="text" id="name" name="name" class="form-control border border-dark"
+                           maxlength="45" placeholder="Action Name" aria-describedby="nameHelp"
+                           value="{{currentAction.name}}" required>
+                    <div id="nameHelp" class="form-text">Name for the action. Max Length: 45</div>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="col-form-label fw-bold">Description</label>
+                    <textarea id="description" name="description"
+                              class="form-control border border-dark" rows="5" maxlength="255"
+                              placeholder="A description for the action" aria-describedby="descriptionHelp"
+                              aria-describedby="descriptionHelp">{{currentAction.description}}</textarea>
+                    <div id="descriptionHelp" class="form-text">Optional. Max Length: 255</div>
+                </div>
+                <div class="mb-3">
+                    <label for="fieldSchemaId" class="col-form-label fw-bold">Field To Be Set</label>
+                    <input type="text" class="form-control border border-dark"
+                            id="fieldSchemaId" name="fieldSchemaId"
+                            aria-describedby="fieldSchemaIdHelp" required
+                            value="{{currentAction.fieldSchemaId}}">
+                    <div id="fieldSchemaIdHelp" class="form-text">Field to be set</div>
+                </div>
+                <div class="mb-3">
+                    <label for="fieldValueTemplate" class="col-form-label fw-bold">Field Value</label>
+                    <input type="text" id="fieldValueTemplate" name="fieldValueTemplate" class="form-control border border-dark"
+                           maxlength="1024" placeholder="Template for Field Value"
+                           aria-describedby="fieldValueTemplate"
+                           value="{{currentAction.fieldValueTemplate.template}}" required>
+                    <div id="fieldValueTemplate" class="form-text">This is a Handlebars template. Use <b>\{{}}</b> to refer to
+                        variables. Max length: 1024
+                    </div>
+                </div>
+                <div class="mb-3 d-flex justify-content-center">
+                    <button type="submit" class="btn btn-success"><i class="bi bi-save me-2"></i>Save</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-sm-0 col-md-1"></div>
+        <div class="col-sm-0 col-md-4">
+            <div class="alert alert-light note" role="alert">
+                <div class="row note-header">
+                    What is a Set Field Action?
+                </div>
+                <div class="row note-body">
+                    A Set field action is used to set/update any field in the ticket.
+                </div>
+            </div>
+        </div>
+    </div>
+{{/partial}}
+
+{{> common/base}}

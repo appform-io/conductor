@@ -20,7 +20,7 @@ import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.actions.ActionVisitor;
-import io.appform.conductor.model.ticket.fields.FieldValue;
+import io.appform.conductor.model.workflow.Template;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -45,7 +45,7 @@ public class SetFieldAction extends Action {
     /**
      * The fieldValue to be set.
      */
-    FieldValue fieldValue;
+    Template fieldValueTemplate;
 
     @Builder
     @Jacksonized
@@ -57,10 +57,10 @@ public class SetFieldAction extends Action {
             Date created,
             Date updated,
             String fieldSchemaId,
-            FieldValue fieldValue) {
+            Template fieldValueTemplate) {
         super(ActionType.SET_FIELD, id, name, description, scope, created, updated);
         this.fieldSchemaId = fieldSchemaId;
-        this.fieldValue = fieldValue;
+        this.fieldValueTemplate = fieldValueTemplate;
     }
 
     @Override
