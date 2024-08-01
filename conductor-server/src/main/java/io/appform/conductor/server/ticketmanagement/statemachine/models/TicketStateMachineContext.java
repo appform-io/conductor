@@ -4,6 +4,7 @@ import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.subject.SubjectSummary;
 import io.appform.conductor.model.usermgmt.Group;
+import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.server.schemamanagement.SchemaOpValidationResult;
@@ -23,7 +24,7 @@ public class TicketStateMachineContext {
     private SchemaOpValidationResult<List<TicketFieldData>> fieldMappingResult;
     private UserSummary ticketCreatedBy;
     private Group ticketAssignedToGroup;
-    private UserSummary ticketAssignedToUser;
+    private User ticketAssignedToUser;
 
     public String ticketId() {
         return this.ticketSkeleton.getTicketId();

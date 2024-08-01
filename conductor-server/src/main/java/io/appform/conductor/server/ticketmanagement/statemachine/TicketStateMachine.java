@@ -92,11 +92,7 @@ public class TicketStateMachine {
     private TicketStateTransition selectTransition(TriggerData event) {
         //TODO: fix move this out along with mapper and schema
         val currentState = this.context.currentState();
-        val evalDataJson = mapper.createObjectNode();
-        evalDataJson.set("ticket", ConductorServerUtils.ticketToJsonNode(mapper, 
-                ConductorServerUtils.ticketDetails(this.context),
-                this.context.getSchema()));
-        evalDataJson.set("payload", event.getPayload());
+        val evalDataJson = ConductorServerUtils.evalDataJson(mapper, this.context, event.getPayload());
 
         log.debug("Evaluating transitions for ticket: {} with data: {}",
                 this.context.ticketId(),
@@ -105,7 +101,7 @@ public class TicketStateMachine {
         //filter out transitions already transitioned to avoid loops
         List<TicketStateTransition> eligibleTransitions =  context.getWorkflow()
                 .getTicketStateTransitions()
-                .get(currentState.getId())
+                .getOrDefault(currentState.getId(), List.of())
                 .stream()
                 .filter(transition -> !transitionAuditLog.contains(transition.getId()))
                 .collect(Collectors.toList());

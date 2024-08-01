@@ -23,6 +23,7 @@ import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.actions.impl.*;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.ticket.TicketDetails;
+import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.server.actionmanagement.executors.*;
 import lombok.RequiredArgsConstructor;
@@ -50,8 +51,8 @@ public class ActionExecutor {
         Workflow workflow;
         Schema schema;
         TicketDetails ticket;
-        JsonNode ticketJson;
         JsonNode payload;
+        User requester;
     }
 
     public ActionExecutionResult execute(final Action action, final ActionEvalData evalData) {

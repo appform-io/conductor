@@ -1,10 +1,12 @@
 package io.appform.conductor.server.actionmanagement.executors;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.actions.ActionExecutionResult;
 import io.appform.conductor.model.actions.impl.WebhookAction;
 import io.appform.conductor.server.actionmanagement.ActionExecutor;
 import io.appform.conductor.server.templateengines.TemplateEngine;
+import io.appform.conductor.server.utils.ConductorServerUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -35,6 +37,7 @@ public class WebhookActionExecutor {
 
     private final TemplateEngine templateEngine;
     private final CloseableHttpClient httpClient;
+    private final ObjectMapper mapper;
 
     public ActionExecutionResult run(WebhookAction webhookAction, ActionExecutor.ActionEvalData evalData) {
         val request = buildRequest(webhookAction, evalData);
@@ -68,8 +71,9 @@ public class WebhookActionExecutor {
     }
 
     private HttpUriRequestBase buildRequest(WebhookAction webhookAction, ActionExecutor.ActionEvalData evalData) {
-        String url = templateEngine.evaluateToText(webhookAction.getUrlTemplate(),
-                evalData.getTicketJson()).orElse(null);
+        val evalDataJson = ConductorServerUtils.evalDataJson(mapper, evalData);
+        log.info("Action:{}, Eval Data:{}", webhookAction.getId(), evalDataJson);
+        String url = templateEngine.evaluateToText(webhookAction.getUrlTemplate(), evalDataJson).orElse(null);
         //Creating Http request
         val request = switch (webhookAction.getCallType()) {
             case GET -> new HttpGet(url);
@@ -82,13 +86,13 @@ public class WebhookActionExecutor {
         //Adding headers only if value is not null
         webhookAction.getHeaderTemplates()
                 .forEach((key, value) -> templateEngine.evaluateToText(value,
-                        evalData.getTicketJson()).ifPresent(headerValue -> request.setHeader(key, headerValue)));
+                        evalDataJson).ifPresent(headerValue -> request.setHeader(key, headerValue)));
 
         //Adding payload to non GET calls
         if (webhookAction.getCallType() != GET
                 && webhookAction.getPayloadTemplate() != null) {
             templateEngine.evaluateToText(webhookAction.getPayloadTemplate(),
-                    evalData.getTicketJson()).ifPresent(payload ->
+                    evalDataJson).ifPresent(payload ->
                     request.setEntity(new StringEntity(payload)));
         }
 

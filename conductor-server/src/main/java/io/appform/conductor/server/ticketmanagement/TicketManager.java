@@ -46,13 +46,14 @@ import io.appform.conductor.model.ticket.filter.ticketfilters.TicketStateIn;
 import io.appform.conductor.model.ticket.filter.ticketfilters.TicketSubjectEquals;
 import io.appform.conductor.model.ticket.filter.ticketfilters.TicketWorkflowEquals;
 import io.appform.conductor.model.usermgmt.Group;
+import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.workflow.TicketStateTransition;
 import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.server.actionmanagement.ActionExecutor;
 import io.appform.conductor.server.actionmanagement.ActionStore;
-import io.appform.conductor.server.id.IdGenerator;
+import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.ruleengines.RuleEngine;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.subjectmanagement.SubjectStore;
@@ -65,6 +66,7 @@ import io.appform.conductor.server.ticketmanagement.statemachine.models.strategy
 import io.appform.conductor.server.ticketmanagement.statemachine.models.strategy.TicketStateMachineContextBuilderStrategy;
 import io.appform.conductor.server.ticketmanagement.statemachine.models.strategy.TriggerStrategy;
 import io.appform.conductor.server.usermanagement.GroupStore;
+import io.appform.conductor.server.usermanagement.UserLifecycleManager;
 import io.appform.conductor.server.usermanagement.UserStore;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.utils.TriConsumer;
@@ -114,6 +116,7 @@ public class TicketManager {
     private final RuleEngine ruleEngine;
     private final TemplateEngine templateEngine;
     private final ActionExecutor actionExecutor;
+    private final UserLifecycleManager userLifecycleManager;
     private final ObjectMapper mapper;
 
     public Optional<TicketDetails> readTicket(final String ticketId) {
@@ -434,7 +437,7 @@ public class TicketManager {
                 .isPresent();
     }
 
-    public boolean triggerTicketAction(String ticketId, String actionId) {
+    public boolean triggerTicketAction(String ticketId, String actionId, ConductorUser conductorUser) {
         val ticket = ticketStore.read(ticketId, true)
                 .orElseThrow(() -> ConductorException.builder()
                         .errorCode(ConductorErrorCode.TICKET_MGMT_NO_TICKET)
@@ -484,8 +487,10 @@ public class TicketManager {
                 workflow,
                 schema,
                 ticketDetails,
-                ConductorServerUtils.ticketToJsonNode(mapper, ticketDetails, schema),
-                mapper.createObjectNode());
+                mapper.createObjectNode(),
+                Optional.ofNullable(conductorUser)
+                        .map(user -> user.getUserSession().getUser())
+                        .orElse(null));
 
         val action = actionStore.read(actionId)
                 .orElseThrow(() -> ConductorException.builder()
@@ -588,6 +593,17 @@ public class TicketManager {
                 .orElse(null);
     }
 
+    private User userDetails(String userId) {
+        return userLifecycleManager.userDetails(userId)
+                .orElse(null);
+    }
+
+    private User assignedToUserDetails(TicketSkeleton skeleton) {
+        return Objects.nonNull(skeleton.getAssignedToUserId())
+               ? userDetails(skeleton.getAssignedToUserId())
+               : null;
+    }
+
     private UserSummary assignedToUser(TicketSkeleton skeleton) {
         return Objects.nonNull(skeleton.getAssignedToUserId())
                ? userSummary(skeleton.getAssignedToUserId())
@@ -629,8 +645,8 @@ public class TicketManager {
 
         ticketStateMachineContext.setTicketAssignedToGroup(assignedToGroup(ticketStateMachineContext
                                                                                    .getTicketSkeleton()))
-                .setTicketAssignedToUser(assignedToUser(ticketStateMachineContext
-                                                                .getTicketSkeleton()))
+                .setTicketAssignedToUser(assignedToUserDetails(ticketStateMachineContext
+                        .getTicketSkeleton()))
                 .setTicketCreatedBy(userSummary(ticketStateMachineContext
                                                         .getTicketSkeleton().getCreatedByUserId()));
 
@@ -720,8 +736,9 @@ public class TicketManager {
                                     workflow,
                                     schema,
                                     ticketDetails,
-                                    ConductorServerUtils.ticketToJsonNode(mapper, ticketDetails, schema),
-                                    event.getPayload());
+                                    event.getPayload(),
+                                    ticketStateMachineContext.getTicketAssignedToUser()
+                                    );
                             val action = actionStore.read(actionId)
                                     .orElseThrow(() -> ConductorException.builder()
                                             .errorCode(ConductorErrorCode.TICKET_MGMT_NO_ACTION)

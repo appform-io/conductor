@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.actionmanagement.executors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import io.appform.conductor.model.actions.ActionExecutionResult;
 import io.appform.conductor.model.actions.impl.AddCommentAction;
@@ -40,11 +41,13 @@ import java.util.UUID;
 public class AddCommentActionExecutor {
     private final TicketStore ticketStore;
     private final TemplateEngine templateEngine;
+    private final ObjectMapper mapper;
 
     public ActionExecutionResult run(AddCommentAction action, final ActionExecutor.ActionEvalData evalData) {
         val ticketId = evalData.getTicket().getSummary().getId();
         val comment = templateEngine.evaluateToText(action.getContentTemplate(),
-                                                          evalData.getTicketJson()).orElse(null);
+                                                          ConductorServerUtils.evalDataJson(mapper,
+                                                                  evalData)).orElse(null);
         if(!Strings.isNullOrEmpty(comment)
         && ticketStore.addComment(ticketId, ConductorServerUtils.generateCommentId(), comment, null).isPresent()) {
             return ActionExecutionResult.SUCCESS;

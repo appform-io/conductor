@@ -58,7 +58,7 @@ public class RunActionOnSelectedTicketsExecutor {
                             .forEach(actionId -> {
                                 log.info("Applying action {} on ticket {}",
                                         actionId, gist.getTicketId());
-                                ticketManager.triggerTicketAction(gist.getTicketId(), actionId);
+                                ticketManager.triggerTicketAction(gist.getTicketId(), actionId, null);
                             }));
         } while (hasMore);
         return new ConductorTaskScheduler.TaskResult(

@@ -16,12 +16,15 @@
 
 package io.appform.conductor.model.usermgmt;
 
+import io.appform.conductor.model.attributes.value.AttributeValue;
 import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.auth.Role;
 import io.appform.conductor.model.skills.SkillValue;
 import lombok.Value;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -34,4 +37,5 @@ public class User {
     Set<Permission> permissions;
     List<Group> groups;
     List<SkillValue> skills;
+    Map<String, AttributeValue> attributes;
 }
