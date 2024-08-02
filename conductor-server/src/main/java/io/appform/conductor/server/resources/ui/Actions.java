@@ -22,18 +22,22 @@ import io.appform.conductor.model.actions.impl.AddTicketAction;
 import io.appform.conductor.model.actions.impl.ChangePriorityAction;
 import io.appform.conductor.model.actions.impl.RouteToGroupAction;
 import io.appform.conductor.model.actions.impl.WebhookAction;
+import io.appform.conductor.model.actions.impl.SetFieldAction;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.auth.ConductorUser;
+import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.ui.views.actions.ActionListView;
 import io.appform.conductor.server.ui.views.actions.fragments.AddTicketActionFragment;
 import io.appform.conductor.server.ui.views.actions.fragments.ChangePriorityActionFragment;
 import io.appform.conductor.server.ui.views.actions.fragments.RouteToGroupActionFragment;
 import io.appform.conductor.server.ui.views.actions.fragments.WebHookActionFragment;
+import io.appform.conductor.server.ui.views.actions.fragments.SetFieldActionFragment;
 import io.appform.conductor.server.usermanagement.GroupStore;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.utils.Pair;
+import io.appform.conductor.server.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +70,8 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 @ManualErrorHandling
 public class Actions {
     private final ActionStore actionStore;
+    private final WorkflowStore workflowStore;
+    private final SchemaStore schemaStore;
     private final GroupStore groupStore;
 
     @GET
@@ -112,7 +118,7 @@ public class Actions {
                                                                   scope,
                                                                   null);
             case CHANGE_PRIORITY -> new ChangePriorityActionFragment(scope, null);
-            case SET_FIELD -> null;
+            case SET_FIELD -> new SetFieldActionFragment(scope, null);
         };
         return render(fragment);
     }
@@ -137,7 +143,7 @@ public class Actions {
                                                                   scope,
                                                                   action);
             case CHANGE_PRIORITY -> new ChangePriorityActionFragment(scope, action);
-            case SET_FIELD -> null;
+            case SET_FIELD -> new SetFieldActionFragment(scope, action);
         };
         return render(view);
     }
@@ -356,6 +362,58 @@ public class Actions {
                                                            3000,
                                                            WebhookAction.RetryStrategy.FIXED_INTERVAL,
                                                            3))) {
+            return redirect(actionList(scopeType, referenceId));
+        }
+        throw fail("Could not create action", actionList(scopeType, referenceId));
+    }
+
+
+    @POST
+    @Path("{scopeType}/{referenceId}/SET_FIELD/create")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response createSetFieldAction(
+            @Auth final ConductorUser user,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
+            @PathParam("referenceId") @Length(max = 45) final String referenceId,
+            @FormParam("name") @Length(min = 1, max = 45) final String name,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
+            @FormParam("fieldSchemaId") @NotNull String fieldSchemaId,
+            @FormParam("fieldValueTemplate") @NotEmpty @Length(max = 1024) String fieldValueTemplate) {
+        val scope = Scope.create(scopeType, referenceId);
+        return actionStore.save(new SetFieldAction(ConductorServerUtils.generateActionId(),
+                        name,
+                        description,
+                        scope,
+                        null,
+                        null,
+                        fieldSchemaId,
+                        handlebarsTemplate(fieldValueTemplate)))
+                .map(a -> redirect(actionList(scopeType, referenceId)))
+                .orElseThrow(() -> fail("Could not create action", actionList(scopeType, referenceId)));
+    }
+
+    @POST
+    @Path("{scopeType}/{referenceId}/{actionId}/SET_FIELD/update")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public Response updateSetFieldAction(
+            @Auth final ConductorUser user,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
+            @PathParam("referenceId") @Length(max = 45) final String referenceId,
+            @PathParam("actionId") @Length(max = 45) final String actionId,
+            @FormParam("name") @Length(min = 1, max = 45) final String name,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
+            @FormParam("fieldSchemaId") @NotNull String fieldSchemaId,
+            @FormParam("fieldValueTemplate") @NotEmpty @Length(max = 1024) String fieldValueTemplate) {
+        val scope = Scope.create(scopeType, referenceId);
+        if (actionStore.update(actionId,
+                action -> new SetFieldAction(action.getId(),
+                        name,
+                        description,
+                        scope,
+                        action.getCreated(),
+                        null,
+                        fieldSchemaId,
+                        handlebarsTemplate(fieldValueTemplate)))) {
             return redirect(actionList(scopeType, referenceId));
         }
         throw fail("Could not create action", actionList(scopeType, referenceId));
