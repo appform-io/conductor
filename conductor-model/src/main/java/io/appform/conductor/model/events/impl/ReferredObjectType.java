@@ -29,6 +29,7 @@ public enum ReferredObjectType {
     SKILL,
     USER,
     WORKFLOW,
+    INGRESS_TRANSLATOR,
 
     TASK,
     DASHBOARD,

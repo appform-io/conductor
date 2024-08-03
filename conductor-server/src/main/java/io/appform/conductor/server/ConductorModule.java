@@ -58,6 +58,11 @@ import io.appform.conductor.server.eventmanagement.EventStore;
 import io.appform.conductor.server.eventmanagement.bus.SignalDrivenEventBus;
 import io.appform.conductor.server.eventmanagement.store.DBEventStore;
 import io.appform.conductor.server.eventmanagement.store.models.StoredEvent;
+import io.appform.conductor.server.ingressmanagement.EventGeneratingIngressTranslatorStore;
+import io.appform.conductor.server.ingressmanagement.IngressTranslatorStore;
+import io.appform.conductor.server.ingressmanagement.impl.CachingIngressTranslatorStore;
+import io.appform.conductor.server.ingressmanagement.impl.DBIngressTranslatorStore;
+import io.appform.conductor.server.ingressmanagement.impl.models.StoredIngressTranslator;
 import io.appform.conductor.server.reporting.EventGeneratingReportStore;
 import io.appform.conductor.server.reporting.ReportStore;
 import io.appform.conductor.server.reporting.impl.DBReportStore;
@@ -210,6 +215,10 @@ public class ConductorModule extends AbstractModule {
                 .to(CachingAttributeDefinitionStore.class);
         bind(AttributeDefinitionStore.class).to(EventGeneratingAttributeDefinitionStore.class);
 
+        bind(IngressTranslatorStore.class).annotatedWith(Names.named(ROOT_IMPLEMENTATION_NAME)).to(DBIngressTranslatorStore.class);
+        bind(IngressTranslatorStore.class).annotatedWith(Names.named(CACHED_IMPLEMENTATION_NAME)).to(CachingIngressTranslatorStore.class);
+        bind(IngressTranslatorStore.class).to(EventGeneratingIngressTranslatorStore.class);
+
         bind(AttributeValueStore.class).to(DBAttributeValueStore.class);
 
         bind(EventStore.class).to(DBEventStore.class);
@@ -258,6 +267,12 @@ public class ConductorModule extends AbstractModule {
     @Singleton
     public LookupDao<StoredGroup> groupDao() {
         return dbBundle.createParentObjectDao(StoredGroup.class);
+    }
+
+    @Provides
+    @Singleton
+    public LookupDao<StoredIngressTranslator> ingressTranslatorLookupDao() {
+        return dbBundle.createParentObjectDao(StoredIngressTranslator.class);
     }
 
     @Provides

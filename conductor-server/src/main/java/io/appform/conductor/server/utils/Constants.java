@@ -61,6 +61,7 @@ public class Constants {
     public static final int MAX_SKILL_VALUE_LENGTH = 45; //Derived from name
     public static final int MAX_SKILL_VALUE_ID_LENGTH = MAX_SKILL_ID_LENGTH + MAX_SKILL_VALUE_LENGTH + 2; //Derived from skillId,value
     public static final int MAX_SKILL_ASSOCIATION_ID_LENGTH = MAX_USER_ID_LENGTH + MAX_SKILL_ID_LENGTH + MAX_SKILL_VALUE_ID_LENGTH + 3; //Derived from userId,skillId,valueId"
+    public static final int MAX_INGRESS_TRANSLATOR_NAME_LENGTH = 45;
     public static final int MAX_TASK_ID_LENGTH = 45; //Derived from name
     public static final int MAX_TICKET_RELATED_ID_LENGTH =  2 * MAX_TICKET_ID_LENGTH + 2; //Derived from ticketId, relatedToTicketId
     public static final int MAX_EMAIL_ID_LENGTH = 255;
