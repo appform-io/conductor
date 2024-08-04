@@ -3,6 +3,7 @@ package io.appform.conductor.server.ingressmanagement;
 import io.appform.conductor.model.events.impl.ingress.IngressTranslatorCreatedEvent;
 import io.appform.conductor.model.events.impl.ingress.IngressTranslatorDeletedEvent;
 import io.appform.conductor.model.ingress.IngressTranslator;
+import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
 import lombok.val;
@@ -39,11 +40,25 @@ public class EventGeneratingIngressTranslatorStore implements IngressTranslatorS
     }
 
     @Override
-    public Optional<IngressTranslator> createOrUpdate(IngressTranslator translator) {
-        val res =  ingressTranslatorStore.createOrUpdate(translator);
+    public List<IngressTranslator> list() {
+        return ingressTranslatorStore.list();
+    }
+
+    @Override
+    public Optional<IngressTranslator> createOrUpdate(String name, String description, Template template) {
+        val res =  ingressTranslatorStore.createOrUpdate(name, description, template);
         res.ifPresent(newTask -> eventBus.publish(new IngressTranslatorCreatedEvent(newTask.getId())));
         return res;
     }
+
+
+    @Override
+    public Optional<IngressTranslator> update(String id, String description, Template template) {
+        val res =  ingressTranslatorStore.update(id, description, template);
+        res.ifPresent(newTask -> eventBus.publish(new IngressTranslatorCreatedEvent(newTask.getId())));
+        return res;
+    }
+
 
     @Override
     public boolean delete(String id) {

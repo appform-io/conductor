@@ -21,6 +21,7 @@ import io.appform.conductor.model.events.impl.attributes.AttributeDefinitionSave
 import io.appform.conductor.model.events.impl.attributes.AttributeValueSavedEvent;
 import io.appform.conductor.model.events.impl.ingress.IngressTranslatorCreatedEvent;
 import io.appform.conductor.model.events.impl.ingress.IngressTranslatorDeletedEvent;
+import io.appform.conductor.model.events.impl.ingress.IngressTranslatorUpdatedEvent;
 import io.appform.conductor.model.events.impl.reporting.ReportCreatedEvent;
 import io.appform.conductor.model.events.impl.reporting.ReportDeletedEvent;
 import io.appform.conductor.model.events.impl.reporting.ReportStateUpdatedEvent;
@@ -212,4 +213,6 @@ public interface EventVisitor<T> {
     T visit(IngressTranslatorDeletedEvent ingressTranslatorDeletedEvent);
 
     T visit(IngressTranslatorCreatedEvent ingressTranslatorCreatedEvent);
+
+    T visit(IngressTranslatorUpdatedEvent ingressTranslatorUpdatedEvent);
 }

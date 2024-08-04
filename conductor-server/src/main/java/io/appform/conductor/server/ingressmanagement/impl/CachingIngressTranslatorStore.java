@@ -1,6 +1,7 @@
 package io.appform.conductor.server.ingressmanagement.impl;
 
 import io.appform.conductor.model.ingress.IngressTranslator;
+import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.hazelcast.HazelcastClient;
 import io.appform.conductor.server.ingressmanagement.IngressTranslatorStore;
@@ -63,8 +64,19 @@ public class CachingIngressTranslatorStore implements IngressTranslatorStore {
     }
 
     @Override
-    public Optional<IngressTranslator> createOrUpdate(IngressTranslator translator) {
-        return root.createOrUpdate(translator)
+    public List<IngressTranslator> list() {
+        return root.list();
+    }
+
+    @Override
+    public Optional<IngressTranslator> createOrUpdate(String name, String description, Template template) {
+        return root.createOrUpdate(name, description, template)
+                .flatMap(this::refreshData);
+    }
+
+    @Override
+    public Optional<IngressTranslator> update(String id, String description, Template template) {
+        return root.update(id, description, template)
                 .flatMap(this::refreshData);
     }
 

@@ -13,6 +13,7 @@ public class IngressTranslator implements Serializable {
     private static final long serialVersionUID = 3557840487483176051L;
     String id;
     String name;
+    String description;
     Template template;
     Date created;
     Date updated;

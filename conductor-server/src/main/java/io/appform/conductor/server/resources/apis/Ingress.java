@@ -1,4 +1,4 @@
-package io.appform.conductor.server.resources;
+package io.appform.conductor.server.resources.apis;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
@@ -29,10 +29,11 @@ public class Ingress {
 
 
     @POST
-    @Path("/callback/{ticketId}")
-    public Response rawProcessing(@NotNull @PathParam("ticketId") String ticketId,
+    @Path("/callback/{translatorId}/{ticketId}")
+    public Response rawProcessing(@NotNull @PathParam("translatorId") String translatorId,
+                                  @NotNull @PathParam("ticketId") String ticketId,
                                   @NotNull JsonNode payload) {
-        return  ticketManager.processCallback(ticketId, payload)
+        return  ticketManager.processCallback(translatorId, ticketId, payload)
                         .map(ticketDetails -> Response.accepted().build())
                         .orElse(Response.notModified().build());
 

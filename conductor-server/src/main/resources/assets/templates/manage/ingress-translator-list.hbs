@@ -1,0 +1,50 @@
+{{#partial "content"}}
+    <section>
+        <div class="row mb-2">
+            <div class="col-sm-12 col-md-7"><h4>Ingress Translators</h4></div>
+            <div class="col-sm-12 col-md-5 d-flex justify-content-end">
+                <div class="btn-toolbar" role="toolbar">
+                    <div class="btn-group me-2" role="group">
+                        <div class="input-group border border-dark col-3">
+                            <span class="input-group-text" id="search-box"><i class="bi fs2 bi-search"></i></span>
+                            <input type="text" class="form-control form-control-sm  data-table-search"
+                                   id="ingress-translator-search"
+                                   placeholder="Search Ingress Translator" aria-label="Search Ingress Translator" aria-describedby="search-box">
+                        </div>
+                    </div>
+                    <div class="btn-group pt-1 pb-1" role="group">
+                        <a href="/manage/ingress/translator/create" class="btn btn-sm btn-success" role="button">
+                            <i class="bi fs2 bi-plus-lg me-1"></i>Create</a>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col table-responsive">
+                <table class="table table-bordered border-dark data-table" data-table-search="#ingress-translator-search">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Created</th>
+                        <th>Last Updated</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#each translators}}
+                        <tr>
+                            <td><a href="/manage/ingress/translator/{{id}}">{{name}}</td>
+                            <td>{{description}}</td>
+                            <td>{{created}}</td>
+                            <td>{{updated}}</td>
+                        </tr>
+                    {{/each}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+{{/partial}}
+{{> common/base}}

@@ -35,11 +35,14 @@ public class StoredIngressTranslator implements Serializable {
 
     @Id
     @LookupKey
-    @Column(name = "id", length = Constants.MAX_INGRESS_TRANSLATOR_NAME_LENGTH, nullable = false, unique = true)
+    @Column(name = "id", length = Constants.MAX_INGRESS_TRANSLATOR_ID_LENGTH, nullable = false, unique = true)
     private String id;
 
-    @Column(name = "name", nullable = false, length = Constants.MAX_INGRESS_TRANSLATOR_NAME_LENGTH)
+    @Column(name = "name", nullable = false, length = Constants.MAX_INGRESS_TRANSLATOR_ID_LENGTH)
     private String name;
+
+    @Column(name = "description", nullable = false, length = Constants.MAX_DESCRIPTION_LENGTH)
+    private String description;
 
     @SuppressWarnings("java:S1948")
     @Convert(converter = TemplateConverter.class)
@@ -78,7 +81,8 @@ public class StoredIngressTranslator implements Serializable {
         }
 
         return deleted == that.deleted && Objects.equals(id, that.id)
-                && Objects.equals(name, that.name) && Objects.equals(template, that.template);
+                && Objects.equals(name, that.name) && Objects.equals(description, that.description)
+                && Objects.equals(template, that.template);
     }
 
     @Override

@@ -1,0 +1,71 @@
+{{#partial "content"}}
+    <section>
+        <div class="row">
+            {{#empty translator}}
+                <div class="col-auto"><h4>Create A New Ingress Translator</h4></div>
+            {{else}}
+                <div class="col-auto"><h4>Details for Ingress Translator: <b>{{translator.name}}</b></h4></div>
+            {{/empty}}
+        </div>
+        <form method="post"
+            {{#empty translator}}
+              action="/manage/ingress/translator/create"
+            {{else}}
+              action="/manage/ingress/translator/update/{{translator.id}}"
+            {{/empty}}>
+            <div class="row">
+                <div class="col-sm-12 col-md-6">
+                    <div class="mb-3">
+                        <label for="name" class="col-form-label fw-bold">Name</label>
+                        <input type="text" id="name" name="name"
+                               class="form-control border border-dark"
+                               maxlength="45" placeholder="Ingress Translator Name" aria-describedby="nameHelp"
+                               value="{{translator.name}}" {{#empty translator}}required{{else}}disabled{{/empty}}>
+                        <div id="nameHelp" class="form-text">Name <i>can not</i> be changed</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="col-form-label fw-bold">Description</label>
+                        <textarea id="description" name="description"
+                                  class="form-control border border-dark"
+                                  aria-describedby="descriptionHelp"
+                                  placeholder="A description for the ingress translator">{{translator.description}}</textarea>
+                        <div id="descriptionHelp" class="form-text">Optional, can be upto 255 characters long</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="template" class="col-form-label fw-bold">Translator template</label>
+                        <input type="text" id="template" name="template" class="form-control border border-dark"
+                               maxlength="10240" placeholder="Template for ingress to workflow schema translator"
+                               aria-describedby="templateHelp"
+                               value="{{translator.template.template}}" required>
+                        <div id="templateHelp" class="form-text">Ingress data to workflow schema handlebar template.
+                            The template output should be a json. Use <b>\{{}}</b> to refer to variables.
+                            <br>
+                            Max length: 10240
+                        </div>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-center">
+                        <button type="submit" class="btn btn-success mb-3"><i class="bi bi-save"></i> Save</button>
+                    </div>
+                </div>
+
+                <div class="col-sm-0 col-md-1">
+                </div>
+                <div class="col-sm-0 col-md-4">
+                    <div class="alert alert-light note" role="alert">
+                        <div class="row note-header">
+                            What Is A Ingress Translator?
+                        </div>
+                        <div class="row note-body">
+                            A ingress translator is used to translate ingress data from various sources like
+                            inbound/outbound call from the telecom providers to valid ticket schema.
+                            <br>
+                            Note: The template output should be a json
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </section>
+{{/partial}}
+
+{{> common/base}}
