@@ -398,7 +398,7 @@ public class TicketManager {
                     } catch (JsonProcessingException e) {
                         log.error("Error while translating ingress input by translator:" + translatorId, e);
                         throw ConductorException.builder()
-                                .errorCode(ConductorErrorCode.UNHANDLED_SERVER_ERROR)
+                                .errorCode(ConductorErrorCode.TICKET_MGNT_INVALID_INPUT)
                                 .build();
                     }
                 })

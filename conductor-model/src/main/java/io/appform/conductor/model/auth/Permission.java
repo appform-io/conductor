@@ -37,9 +37,9 @@ public enum Permission implements Displayable {
     MANAGE_DASHBOARD(Values.MANAGE_DASHBOARD, "Manage dashboards"),
     MANAGE_ATTRIBUTE_DEFINITIONS(Values.MANAGE_ATTRIBUTE_DEFINITIONS, "Manage attribute definitions"),
 //    MANAGE_TASK(Values.MANAGE_TASK, "Manage scheduled tasks"),
+    MANAGE_INGRESS_TRANSLATOR(Values.MANAGE_INGRESS_TRANSLATOR, "Manage ingress translator"),
     TICKET_READ(Values.TICKET_READ, "See ticket details"),
-    TICKET_WRITE(Values.TICKET_WRITE, "Create/Update a ticket"),
-    MANAGE_INGRESS_TRANSLATOR(Values.MANAGE_INGRESS_TRANSLATOR, "Manage ingress translator")
+    TICKET_WRITE(Values.TICKET_WRITE, "Create/Update a ticket")
     ;
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)

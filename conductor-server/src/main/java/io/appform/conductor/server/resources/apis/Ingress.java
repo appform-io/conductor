@@ -5,6 +5,7 @@ import io.appform.conductor.server.ticketmanagement.TicketManager;
 import lombok.RequiredArgsConstructor;
 
 import javax.inject.Inject;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -30,8 +31,8 @@ public class Ingress {
 
     @POST
     @Path("/callback/{translatorId}/{ticketId}")
-    public Response rawProcessing(@NotNull @PathParam("translatorId") String translatorId,
-                                  @NotNull @PathParam("ticketId") String ticketId,
+    public Response rawProcessing(@NotEmpty @PathParam("translatorId") String translatorId,
+                                  @NotEmpty @PathParam("ticketId") String ticketId,
                                   @NotNull JsonNode payload) {
         return  ticketManager.processCallback(translatorId, ticketId, payload)
                         .map(ticketDetails -> Response.accepted().build())

@@ -55,6 +55,7 @@ public class DBIngressTranslatorStore implements IngressTranslatorStore {
     public List<IngressTranslator> list() {
         return ingressTranslatorLookupDao.scatterGather(DetachedCriteria.forClass(StoredIngressTranslator.class))
                 .stream()
+                .filter(translator -> !translator.isDeleted())
                 .map(this::toWired)
                 .toList();
     }
