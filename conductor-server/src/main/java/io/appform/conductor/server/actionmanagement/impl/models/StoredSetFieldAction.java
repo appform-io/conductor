@@ -1,8 +1,9 @@
 package io.appform.conductor.server.actionmanagement.impl.models;
 
 import io.appform.conductor.model.actions.ActionType;
-import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredEmbeddedFieldValue;
+import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.server.utils.Constants;
+import io.appform.conductor.server.utils.persistence.TemplateConverter;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;
@@ -25,8 +26,9 @@ public class StoredSetFieldAction extends StoredAction {
     @Column(name = "field_schema_id", length = Constants.MAX_FIELD_SCHEMA_ID_LENGTH)
     private String fieldSchemaId;
 
-    @Embedded
-    private StoredEmbeddedFieldValue storedFieldValue;
+    @Convert(converter = TemplateConverter.class)
+    @Column(name = "field_value_template", columnDefinition = "text", length = Constants.MAX_TEMPLATE_LENGTH)
+    private Template fieldValueTemplate;
 
     @Builder
     public StoredSetFieldAction() {

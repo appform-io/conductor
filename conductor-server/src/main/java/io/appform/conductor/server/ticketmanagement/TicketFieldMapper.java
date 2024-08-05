@@ -139,8 +139,8 @@ public class TicketFieldMapper {
             public Pair<List<String>, FieldValue> visit(LocationFieldSchema locationField) {
                 val latNode = fieldData.get("lat");
                 val lonNode = fieldData.get("lon");
-                if (latNode.isEmpty() || latNode.isNull() || !latNode.isDouble()
-                        || lonNode.isEmpty() || lonNode.isNull() || !lonNode.isDouble()) {
+                if (latNode.isNull() || !latNode.isDouble()
+                        || lonNode.isNull() || !lonNode.isDouble()) {
                     return new Pair<>(List.of("Field " + fieldName + " is not locations with {lat,lon} fields"), null);
 
                 }

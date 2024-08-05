@@ -184,7 +184,7 @@ public class DBActionStore implements ActionStore {
             public StoredAction visit(SetFieldAction setFieldAction) {
                 return safeCast(existing, new StoredSetFieldAction())
                         .setFieldSchemaId(setFieldAction.getFieldSchemaId())
-                        .setStoredFieldValue(new StoredEmbeddedFieldValue(setFieldAction.getFieldValue()));
+                        .setFieldValueTemplate(setFieldAction.getFieldValueTemplate());
 
             }
         });
@@ -217,7 +217,7 @@ public class DBActionStore implements ActionStore {
                         .scope(Scope.create(storedSetFieldAction.getScopeType(),
                                             storedSetFieldAction.getScopeReferenceId()))
                         .fieldSchemaId(storedSetFieldAction.getFieldSchemaId())
-                        .fieldValue(storedSetFieldAction.getStoredFieldValue().toFieldValue())
+                        .fieldValueTemplate(storedSetFieldAction.getFieldValueTemplate())
                         .created(storedSetFieldAction.getCreated())
                         .updated(storedSetFieldAction.getUpdated())
                         .build();
