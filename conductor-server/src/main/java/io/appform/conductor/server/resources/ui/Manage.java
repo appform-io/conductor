@@ -938,56 +938,73 @@ public class Manage {
     }
 
     @GET
-    @Path("/ingress/translator")
-    public Response renderIngressTranslatorList(@Auth ConductorUser user) {
-        return render(new IngressTranslatorListView(user.getUserSession().getUser(), ingressTranslatorStore.list()));
+    @Path("/ingress/translator/{scopeType}/{scopeReferenceId}")
+    public Response renderIngressTranslatorList(@Auth ConductorUser user,
+                                                @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
+                                                @PathParam("scopeReferenceId") @Length(max = 45) final String scopeReferenceId) {
+        val scope = Scope.create(scopeType, scopeReferenceId);
+        return render(new IngressTranslatorListView(user.getUserSession().getUser(), ingressTranslatorStore.list(scope), scope));
     }
 
     @GET
-    @Path("/ingress/translator/create")
+    @Path("/ingress/translator/{scopeType}/{scopeReferenceId}/create")
     @RolesAllowed(Permission.Values.MANAGE_INGRESS_TRANSLATOR)
-    public Response renderIngressTranslatorCreate(@Auth ConductorUser user) {
-        return render(new IngressTranslatorView(user.getUserSession().getUser(), null));
+    public Response renderIngressTranslatorCreate(@Auth ConductorUser user,
+                                                  @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
+                                                  @PathParam("scopeReferenceId") @Length(max = 45) final String scopeReferenceId) {
+        val scope = Scope.create(scopeType, scopeReferenceId);
+        return render(new IngressTranslatorView(user.getUserSession().getUser(), null, scope));
     }
 
     @POST
-    @Path("/ingress/translator/create")
+    @Path("/ingress/translator/{scopeType}/{scopeReferenceId}/create")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @RolesAllowed(Permission.Values.MANAGE_INGRESS_TRANSLATOR)
     public Response createIngressTranslator(
             @Auth ConductorUser user,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
+            @PathParam("scopeReferenceId") @Length(max = 45) final String scopeReferenceId,
             @FormParam("name") @NotEmpty @Length(max = Constants.MAX_INGRESS_TRANSLATOR_ID_LENGTH) final String name,
             @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
+            @FormParam("ticketIdPath") @Length(max = 255) final String ticketIdPath,
             @FormParam("template") @Length(max = 10240) String template) {
-        return ingressTranslatorStore.createOrUpdate(name, description,
-                new io.appform.conductor.model.workflow.Template(io.appform.conductor.model.workflow.Template.Type.HANDLEBARS, template))
-                .map(ingressTranslator -> redirect("/manage/ingress/translator/" + ingressTranslator.getId()))
-                .orElseThrow(() -> fail("Could not create ingress translator", "/ingress/translator"));
+        val scope = Scope.create(scopeType, scopeReferenceId);
+        return ingressTranslatorStore.createOrUpdate(name, description, ticketIdPath,
+                new io.appform.conductor.model.workflow.Template(io.appform.conductor.model.workflow.Template.Type.HANDLEBARS, template),
+                        scope)
+                .map(ingressTranslator -> redirect(String.format("/manage/ingress/translator/%s/%s/%s", scopeType, scopeReferenceId, ingressTranslator.getId())))
+                .orElseThrow(() -> fail("Could not create ingress translator", String.format("/manage/ingress/translator/%s/%s", scopeType, scopeReferenceId)));
     }
 
 
     @POST
-    @Path("/ingress/translator/update/{id}")
+    @Path("/ingress/translator/update/{scopeType}/{scopeReferenceId}/{id}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @RolesAllowed(Permission.Values.MANAGE_SCHEMA)
     public Response updateIngressTranslator(
             @Auth ConductorUser user,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
+            @PathParam("scopeReferenceId") @Length(max = 45) final String scopeReferenceId,
             @PathParam("id") @NotEmpty @Length(max = Constants.MAX_INGRESS_TRANSLATOR_ID_LENGTH) final String id,
             @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
+            @FormParam("ticketIdPath") @Length(max = 255) final String ticketIdPath,
             @FormParam("template") @Length(max = 10240) String template) {
-        return ingressTranslatorStore.update(id, description,
+        return ingressTranslatorStore.update(id, description, ticketIdPath,
                         new io.appform.conductor.model.workflow.Template(io.appform.conductor.model.workflow.Template.Type.HANDLEBARS, template))
-                .map(ingressTranslator -> redirect("/manage/ingress/translator/" + ingressTranslator.getId()))
-                .orElseThrow(() -> fail("Could not update ingress translator", "/ingress/translator"));
+                .map(ingressTranslator -> redirect(String.format("/manage/ingress/translator/%s/%s/%s", scopeType, scopeReferenceId, ingressTranslator.getId())))
+                .orElseThrow(() -> fail("Could not update ingress translator", String.format("/manage/ingress/translator/%s/%s", scopeType, scopeReferenceId)));
     }
 
     @GET
-    @Path("/ingress/translator/{id}")
+    @Path("/ingress/translator/{scopeType}/{scopeReferenceId}/{id}")
     public Response renderIngressTranslatorDetails(
             @Auth ConductorUser user,
+            @PathParam("scopeType") @NotNull final Scope.ScopeType scopeType,
+            @PathParam("scopeReferenceId") @Length(max = 45) final String scopeReferenceId,
             @PathParam("id") @NotEmpty @Length(max = Constants.MAX_INGRESS_TRANSLATOR_ID_LENGTH) final String id) {
+        val scope = Scope.create(scopeType, scopeReferenceId);
         return ingressTranslatorStore.read(id)
-                .map(translator -> render(new IngressTranslatorView(user.getUserSession().getUser(), translator)))
+                .map(translator -> render(new IngressTranslatorView(user.getUserSession().getUser(), translator, scope)))
                 .orElseThrow(() -> fail("Failed to find ingress translator " + id, "/ingress/translator"));
     }
 

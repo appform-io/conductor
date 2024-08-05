@@ -1,5 +1,6 @@
 package io.appform.conductor.model.ingress;
 
+import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.workflow.Template;
 import lombok.Value;
 
@@ -14,7 +15,10 @@ public class IngressTranslator implements Serializable {
     String id;
     String name;
     String description;
+    String ticketIdPath;
     Template template;
+    Scope.ScopeType scopeType;
+    String scopeReferenceId;
     Date created;
     Date updated;
 }

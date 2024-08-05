@@ -13,7 +13,7 @@
                         </div>
                     </div>
                     <div class="btn-group pt-1 pb-1" role="group">
-                        <a href="/manage/ingress/translator/create" class="btn btn-sm btn-success" role="button">
+                        <a href="/manage/ingress/translator/{{scope.type}}/{{scope.referenceId}}/create" class="btn btn-sm btn-success" role="button">
                             <i class="bi fs2 bi-plus-lg me-1"></i>Create</a>
                     </div>
 
@@ -35,7 +35,7 @@
                     <tbody>
                     {{#each translators}}
                         <tr>
-                            <td><a href="/manage/ingress/translator/{{id}}">{{name}}</td>
+                            <td><a href="/manage/ingress/translator/{{scope.type}}/{{scope.referenceId}}/{{id}}">{{name}}</td>
                             <td>{{description}}</td>
                             <td>{{created}}</td>
                             <td>{{updated}}</td>

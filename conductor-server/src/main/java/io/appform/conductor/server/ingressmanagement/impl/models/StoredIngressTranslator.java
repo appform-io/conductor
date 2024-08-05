@@ -1,5 +1,6 @@
 package io.appform.conductor.server.ingressmanagement.impl.models;
 
+import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.utils.persistence.TemplateConverter;
@@ -44,6 +45,16 @@ public class StoredIngressTranslator implements Serializable {
     @Column(name = "description", nullable = false, length = Constants.MAX_DESCRIPTION_LENGTH)
     private String description;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "scope_type", nullable = false, length = 45)
+    private Scope.ScopeType scopeType;
+
+    @Column(name = "scope_reference_id", length = 255)
+    private String scopeReferenceId;
+
+    @Column(name = "ticket_id_path", nullable = false, length = 255)
+    private String ticketIdPath;
+
     @SuppressWarnings("java:S1948")
     @Convert(converter = TemplateConverter.class)
     @Column(name = "template", columnDefinition = "text", length = Constants.MAX_TEMPLATE_LENGTH)
@@ -80,8 +91,9 @@ public class StoredIngressTranslator implements Serializable {
             return false;
         }
 
-        return deleted == that.deleted && Objects.equals(id, that.id)
+        return deleted == that.deleted && Objects.equals(id, that.id) && Objects.equals(ticketIdPath, that.ticketIdPath)
                 && Objects.equals(name, that.name) && Objects.equals(description, that.description)
+                && Objects.equals(scopeType, that.scopeType) && Objects.equals(scopeReferenceId, that.scopeReferenceId)
                 && Objects.equals(template, that.template);
     }
 

@@ -9,9 +9,9 @@
         </div>
         <form method="post"
             {{#empty translator}}
-              action="/manage/ingress/translator/create"
+              action="/manage/ingress/translator/{{scope.type}}/{{scope.referenceId}}/create"
             {{else}}
-              action="/manage/ingress/translator/update/{{translator.id}}"
+              action="/manage/ingress/translator/update/{{scope.type}}/{{scope.referenceId}}/{{translator.id}}"
             {{/empty}}>
             <div class="row">
                 <div class="col-sm-12 col-md-6">
@@ -30,6 +30,15 @@
                                   aria-describedby="descriptionHelp"
                                   placeholder="A description for the ingress translator">{{translator.description}}</textarea>
                         <div id="descriptionHelp" class="form-text">Optional, can be upto 255 characters long</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ticketIdPath" class="col-form-label fw-bold">Ticket ID Path</label>
+                        <input type="text" id="ticketIdPath" name="ticketIdPath" class="form-control border border-dark"
+                               maxlength="10240" placeholder="Json path of ticketId"
+                               aria-describedby="ticketIdPathHelp"
+                               value="{{translator.ticketIdPath}}" required>
+                        <div id="ticketIdPathHelp" class="form-text">Json path to extract ticketId from the ingress data
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label for="template" class="col-form-label fw-bold">Translator template</label>

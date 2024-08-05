@@ -39,4 +39,14 @@ public class Ingress {
                         .orElse(Response.notModified().build());
 
     }
+
+    @POST
+    @Path("/callback/kaleyra/{translatorId}")
+    public Response kaleyraCallbackProcessing(@NotEmpty @PathParam("translatorId") String translatorId,
+                                  @NotNull JsonNode payload) {
+        return  ticketManager.processCallback(translatorId, payload)
+                .map(ticketDetails -> Response.accepted().build())
+                .orElse(Response.notModified().build());
+
+    }
 }
