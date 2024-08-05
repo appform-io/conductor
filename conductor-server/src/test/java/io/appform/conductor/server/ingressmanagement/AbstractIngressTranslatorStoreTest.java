@@ -1,0 +1,33 @@
+package io.appform.conductor.server.ingressmanagement;
+
+import io.appform.conductor.model.workflow.Template;
+import io.appform.conductor.server.utils.ConductorServerUtils;
+import lombok.val;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+public abstract class AbstractIngressTranslatorStoreTest {
+
+    protected void storeFunctionality(IngressTranslatorStore ingressTranslatorStore) {
+        val name = "id1";
+        val id = ConductorServerUtils.readableId(name);
+        val handlerbarsTemplate = new Template(Template.Type.HANDLEBARS, "{{phone}}");
+        val fixedTemplate = new Template(Template.Type.FIXED, "XXXXXXXX");
+        val ingressTranslatorWithHandlebars = ingressTranslatorStore.createOrUpdate(name, "description", handlerbarsTemplate ).orElse(null);
+        assertNotNull(ingressTranslatorWithHandlebars);
+        assertEquals(Template.Type.HANDLEBARS, ingressTranslatorWithHandlebars.getTemplate().getType());
+
+        val outputIngressTranslatorWithHandlebars = ingressTranslatorStore.read(id).orElse(null);
+        assertNotNull(outputIngressTranslatorWithHandlebars);
+        assertEquals(Template.Type.HANDLEBARS, outputIngressTranslatorWithHandlebars.getTemplate().getType());
+
+        val ingressTranslatorWithFixed = ingressTranslatorStore.createOrUpdate(name, "description2", fixedTemplate).orElse(null);
+        assertNotNull(ingressTranslatorWithFixed);
+        assertEquals(Template.Type.FIXED,ingressTranslatorWithFixed.getTemplate().getType());
+
+        val outputIngressTranslatorWithFixed= ingressTranslatorStore.read(id).orElse(null);
+        assertNotNull(outputIngressTranslatorWithFixed);
+        assertEquals(Template.Type.FIXED, outputIngressTranslatorWithFixed.getTemplate().getType());
+    }
+}

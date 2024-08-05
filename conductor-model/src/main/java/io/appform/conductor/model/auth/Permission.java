@@ -37,6 +37,7 @@ public enum Permission implements Displayable {
     MANAGE_DASHBOARD(Values.MANAGE_DASHBOARD, "Manage dashboards"),
     MANAGE_ATTRIBUTE_DEFINITIONS(Values.MANAGE_ATTRIBUTE_DEFINITIONS, "Manage attribute definitions"),
 //    MANAGE_TASK(Values.MANAGE_TASK, "Manage scheduled tasks"),
+    MANAGE_INGRESS_TRANSLATOR(Values.MANAGE_INGRESS_TRANSLATOR, "Manage ingress translator"),
     TICKET_READ(Values.TICKET_READ, "See ticket details"),
     TICKET_WRITE(Values.TICKET_WRITE, "Create/Update a ticket")
     ;
@@ -52,6 +53,7 @@ public enum Permission implements Displayable {
         public static final String MANAGE_REPORT = "MANAGE_REPORT";
         public static final String MANAGE_DASHBOARD = "MANAGE_DASHBOARD";
         public static final String MANAGE_ATTRIBUTE_DEFINITIONS = "MANAGE_ATTRIBUTE_DEFINITIONS";
+        public static final String MANAGE_INGRESS_TRANSLATOR = "MANAGE_INGRESS_TRANSLATOR";
         public static final String TICKET_READ = "TICKET_READ";
         public static final String TICKET_WRITE = "TICKET_WRITE";
     }

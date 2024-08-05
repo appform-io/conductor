@@ -1,0 +1,31 @@
+package io.appform.conductor.model.events.impl.ingress;
+
+import io.appform.conductor.model.events.Event;
+import io.appform.conductor.model.events.EventSubType;
+import io.appform.conductor.model.events.EventType;
+import io.appform.conductor.model.events.EventVisitor;
+import io.appform.conductor.model.events.impl.ReferredObjectType;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.Value;
+import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
+
+
+@Value
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@EventSubType(EventType.INGRESS_TRANSLATOR_DELETED)
+@SuperBuilder
+@Jacksonized
+public class IngressTranslatorDeletedEvent extends Event {
+
+    public IngressTranslatorDeletedEvent(String id) {
+        super(EventType.INGRESS_TRANSLATOR_DELETED, ReferredObjectType.INGRESS_TRANSLATOR, id);
+    }
+
+    @Override
+    public <T> T accept(EventVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+}

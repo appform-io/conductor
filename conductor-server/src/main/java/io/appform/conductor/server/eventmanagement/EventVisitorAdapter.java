@@ -26,6 +26,9 @@ import io.appform.conductor.model.events.impl.attributes.AttributeValueSavedEven
 import io.appform.conductor.model.events.impl.group.GroupCreatedEvent;
 import io.appform.conductor.model.events.impl.group.GroupDeletedEvent;
 import io.appform.conductor.model.events.impl.group.GroupUpdatedEvent;
+import io.appform.conductor.model.events.impl.ingress.IngressTranslatorCreatedEvent;
+import io.appform.conductor.model.events.impl.ingress.IngressTranslatorDeletedEvent;
+import io.appform.conductor.model.events.impl.ingress.IngressTranslatorUpdatedEvent;
 import io.appform.conductor.model.events.impl.reporting.ReportCreatedEvent;
 import io.appform.conductor.model.events.impl.reporting.ReportDeletedEvent;
 import io.appform.conductor.model.events.impl.reporting.ReportExecutionCompletedEvent;
@@ -448,6 +451,21 @@ public abstract class EventVisitorAdapter<T> implements EventVisitor<T> {
 
     @Override
     public T visit(AttributeValueSavedEvent attributeValueSavedEvent) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(IngressTranslatorDeletedEvent ingressTranslatorDeletedEvent) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(IngressTranslatorCreatedEvent ingressTranslatorCreatedEvent) {
+        return defaultValue;
+    }
+
+    @Override
+    public T visit(IngressTranslatorUpdatedEvent ingressTranslatorUpdatedEvent) {
         return defaultValue;
     }
 }

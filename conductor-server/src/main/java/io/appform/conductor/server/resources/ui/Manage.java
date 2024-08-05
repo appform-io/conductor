@@ -29,6 +29,7 @@ import io.appform.conductor.model.workflow.*;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.auth.ConductorUser;
 import io.appform.conductor.server.config.AuthConfig;
+import io.appform.conductor.server.ingressmanagement.IngressTranslatorStore;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.ui.views.manage.*;
 import io.appform.conductor.server.usermanagement.UserLifecycleManager;
@@ -74,6 +75,7 @@ public class Manage {
     private final SchemaStore schemaStore;
     private final WorkflowStore workflowStore;
     private final WorkflowManager workflowManager;
+    private final IngressTranslatorStore ingressTranslatorStore;
     private final UserLifecycleManager userLifecycleManager;
     private final ActionStore actionStore;
     private final AuthConfig authConfig;
@@ -933,6 +935,60 @@ public class Manage {
         return userLifecycleManager.removeSkillValue(skillId, skillValueId)
                 .map(skill -> redirect("/manage/skills/" + skill.getId()))
                 .orElseThrow(() -> fail("Could not create skill", "/manage/skills"));
+    }
+
+    @GET
+    @Path("/ingress/translator")
+    public Response renderIngressTranslatorList(@Auth ConductorUser user) {
+        return render(new IngressTranslatorListView(user.getUserSession().getUser(), ingressTranslatorStore.list()));
+    }
+
+    @GET
+    @Path("/ingress/translator/create")
+    @RolesAllowed(Permission.Values.MANAGE_INGRESS_TRANSLATOR)
+    public Response renderIngressTranslatorCreate(@Auth ConductorUser user) {
+        return render(new IngressTranslatorView(user.getUserSession().getUser(), null));
+    }
+
+    @POST
+    @Path("/ingress/translator/create")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_INGRESS_TRANSLATOR)
+    public Response createIngressTranslator(
+            @Auth ConductorUser user,
+            @FormParam("name") @NotEmpty @Length(max = Constants.MAX_INGRESS_TRANSLATOR_ID_LENGTH) final String name,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
+            @FormParam("template") @Length(max = 10240) String template) {
+        return ingressTranslatorStore.createOrUpdate(name, description,
+                new io.appform.conductor.model.workflow.Template(io.appform.conductor.model.workflow.Template.Type.HANDLEBARS, template))
+                .map(ingressTranslator -> redirect("/manage/ingress/translator/" + ingressTranslator.getId()))
+                .orElseThrow(() -> fail("Could not create ingress translator", "/ingress/translator"));
+    }
+
+
+    @POST
+    @Path("/ingress/translator/update/{id}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.MANAGE_SCHEMA)
+    public Response updateIngressTranslator(
+            @Auth ConductorUser user,
+            @PathParam("id") @NotEmpty @Length(max = Constants.MAX_INGRESS_TRANSLATOR_ID_LENGTH) final String id,
+            @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
+            @FormParam("template") @Length(max = 10240) String template) {
+        return ingressTranslatorStore.update(id, description,
+                        new io.appform.conductor.model.workflow.Template(io.appform.conductor.model.workflow.Template.Type.HANDLEBARS, template))
+                .map(ingressTranslator -> redirect("/manage/ingress/translator/" + ingressTranslator.getId()))
+                .orElseThrow(() -> fail("Could not update ingress translator", "/ingress/translator"));
+    }
+
+    @GET
+    @Path("/ingress/translator/{id}")
+    public Response renderIngressTranslatorDetails(
+            @Auth ConductorUser user,
+            @PathParam("id") @NotEmpty @Length(max = Constants.MAX_INGRESS_TRANSLATOR_ID_LENGTH) final String id) {
+        return ingressTranslatorStore.read(id)
+                .map(translator -> render(new IngressTranslatorView(user.getUserSession().getUser(), translator)))
+                .orElseThrow(() -> fail("Failed to find ingress translator " + id, "/ingress/translator"));
     }
 
     private List<Action> workflowActions(Workflow workflow) {

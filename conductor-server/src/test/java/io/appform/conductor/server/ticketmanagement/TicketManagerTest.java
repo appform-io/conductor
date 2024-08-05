@@ -29,6 +29,7 @@ import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.actionmanagement.ActionExecutor;
 import io.appform.conductor.server.actionmanagement.ActionStore;
+import io.appform.conductor.server.ingressmanagement.IngressTranslatorStore;
 import io.appform.conductor.server.ruleengines.HopeRuleEvaluator;
 import io.appform.conductor.server.ruleengines.JsonRuleEvaluator;
 import io.appform.conductor.server.ruleengines.RuleEngine;
@@ -147,6 +148,7 @@ class TicketManagerTest {
         when(aStore.read(anyString())).thenReturn(Optional.empty());
         val wStore = mock(WorkflowStore.class);
         when(wStore.list(anySet())).thenReturn(List.of(workflow));
+        val iStore = mock(IngressTranslatorStore.class);
         val suStore = new DBSubjectStore(bundle.createParentObjectDao(StoredSubjectSummary.class),
                                          bundle.createRelatedObjectDao(StoredSubjectID.class),
                                          bundle.createRelatedObjectDao(StoredAddress.class));
@@ -168,6 +170,7 @@ class TicketManagerTest {
                                               suStore,
                                               aStore,
                                               wStore,
+                                              iStore,
                                               workflowSelector,
                                               new TicketFieldMapper(),
                                               re,

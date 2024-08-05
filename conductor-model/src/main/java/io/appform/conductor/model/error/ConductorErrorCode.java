@@ -60,6 +60,7 @@ public enum ConductorErrorCode {
     TICKET_MGMT_NO_STATE_ACTION(4009, "No action found for ${ticketId}/${stateId}/${actionId}"),
     TICKET_MGMT_MISSING_FIELDS(4010, "Missing fields for ${ticketId} in state ${state}"),
     TICKET_MGMT_NON_EDITABLE_FIELDS_UPDATED(4011, "Updating non editable fields in state ${state}"),
+    TICKET_MGNT_INVALID_INPUT(4012, "Ingress data is not valid"),
 
 
 

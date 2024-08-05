@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.ticketmanagement;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -54,6 +55,7 @@ import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.server.actionmanagement.ActionExecutor;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.auth.ConductorUser;
+import io.appform.conductor.server.ingressmanagement.IngressTranslatorStore;
 import io.appform.conductor.server.ruleengines.RuleEngine;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.server.subjectmanagement.SubjectStore;
@@ -111,6 +113,7 @@ public class TicketManager {
     private final SubjectStore subjectStore;
     private final ActionStore actionStore;
     private final WorkflowStore workflowStore;
+    private final IngressTranslatorStore ingressTranslatorStore;
     private final WorkflowSelector workflowSelector;
     private final TicketFieldMapper fieldMapper;
     private final RuleEngine ruleEngine;
@@ -386,10 +389,23 @@ public class TicketManager {
     }
 
     @SneakyThrows
-    public Optional<TicketDetails> processCallback(final String ticketId, final JsonNode payload) {
-        ((ObjectNode) payload).put(INTERNAL_TICKET_FIELD, ticketId);
+    public Optional<TicketDetails> processCallback(final String translatorId, final String ticketId, final JsonNode payload) {
+        val ingressTranslator = ingressTranslatorStore.read(translatorId);
+        val inputPayload = ingressTranslator.flatMap(translator -> templateEngine.evaluateToText(translator.getTemplate(), payload))
+                .map(translatedString -> {
+                    try {
+                        return mapper.readTree(translatedString);
+                    } catch (JsonProcessingException e) {
+                        log.error("Error while translating ingress input by translator:" + translatorId, e);
+                        throw ConductorException.builder()
+                                .errorCode(ConductorErrorCode.TICKET_MGNT_INVALID_INPUT)
+                                .build();
+                    }
+                })
+                .orElse(payload);
+        ((ObjectNode) inputPayload).put(INTERNAL_TICKET_FIELD, ticketId);
         return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CALLBACK,
-                                         payload, (node, fields, schema) -> {
+                payload, (node, fields, schema) -> {
                 });
     }
 
