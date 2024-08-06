@@ -3,6 +3,8 @@ package io.appform.conductor.server.resources.apis;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.appform.conductor.server.ticketmanagement.TicketManager;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.validation.constraints.NotEmpty;
@@ -17,11 +19,13 @@ import javax.ws.rs.core.Response;
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 public class Ingress {
 
+    private static final Logger log = LoggerFactory.getLogger(Ingress.class);
     private final TicketManager ticketManager;
 
     @POST
     @Path("/raw/data")
     public Response rawProcessing(@NotNull JsonNode payload) {
+        log.info("Got new data with payload:{}", payload);
         return ticketManager.processRaw(payload)
                         .map(ticketDetails -> Response.accepted().build())
                         .orElse(Response.notModified().build());
@@ -34,9 +38,21 @@ public class Ingress {
     public Response rawProcessing(@NotEmpty @PathParam("translatorId") String translatorId,
                                   @NotEmpty @PathParam("ticketId") String ticketId,
                                   @NotNull JsonNode payload) {
+        log.info("Got callabck with for ticketId:{} translator:{} payload:{}",  ticketId, translatorId, payload);
         return  ticketManager.processCallback(translatorId, ticketId, payload)
                         .map(ticketDetails -> Response.accepted().build())
                         .orElse(Response.notModified().build());
+
+    }
+
+    @POST
+    @Path("/callback/{translatorId}")
+    public Response obdCallbackProcessing(@NotEmpty @PathParam("translatorId") String translatorId,
+                                  @NotNull JsonNode payload) {
+        log.info("Got callabck with translator:{} payload:{}", translatorId, payload);
+        return  ticketManager.processCallback(translatorId, payload)
+                .map(ticketDetails -> Response.accepted().build())
+                .orElse(Response.notModified().build());
 
     }
 }

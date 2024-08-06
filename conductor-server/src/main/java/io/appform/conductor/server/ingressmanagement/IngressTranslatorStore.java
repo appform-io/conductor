@@ -1,5 +1,6 @@
 package io.appform.conductor.server.ingressmanagement;
 
+import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.ingress.IngressTranslator;
 import io.appform.conductor.model.workflow.Template;
 
@@ -12,11 +13,13 @@ public interface IngressTranslatorStore {
 
     List<IngressTranslator> read(final List<String> ids);
 
-    Optional<IngressTranslator> createOrUpdate(final String name, String description, Template template);
+    Optional<IngressTranslator> createOrUpdate(final String name, String description,  String ticketIdPath,
+                                               Template template, Scope scope);
 
-    Optional<IngressTranslator> update(final String id, String description, Template template);
+    Optional<IngressTranslator> update(final String id, String description,
+                                       String ticketIdPath, Template template);
 
-    List<IngressTranslator> list();
+    List<IngressTranslator> list(final Scope scope);
 
     boolean delete(final String id);
 }

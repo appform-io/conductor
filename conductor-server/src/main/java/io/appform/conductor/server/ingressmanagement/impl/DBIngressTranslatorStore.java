@@ -1,9 +1,11 @@
 package io.appform.conductor.server.ingressmanagement.impl;
 
+import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.ingress.IngressTranslator;
 import io.appform.conductor.model.workflow.Template;
+import io.appform.conductor.server.actionmanagement.impl.models.StoredAction;
 import io.appform.conductor.server.ingressmanagement.IngressTranslatorStore;
 import io.appform.conductor.server.ingressmanagement.impl.models.StoredIngressTranslator;
 import io.appform.dropwizard.sharding.dao.LookupDao;
@@ -12,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Property;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -52,8 +55,10 @@ public class DBIngressTranslatorStore implements IngressTranslatorStore {
     @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_LIST_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredIngressTranslator.INGRESS_TRANSLATOR_TABLE_NAME))
-    public List<IngressTranslator> list() {
-        return ingressTranslatorLookupDao.scatterGather(DetachedCriteria.forClass(StoredIngressTranslator.class))
+    public List<IngressTranslator> list(Scope scope) {
+        return ingressTranslatorLookupDao.scatterGather(DetachedCriteria.forClass(StoredIngressTranslator.class)
+                                                            .add(Property.forName(StoredAction.Fields.scopeType).eq(scope.getType()))
+                                                            .add(Property.forName(StoredAction.Fields.scopeReferenceId).in(scope.getReferenceId())))
                 .stream()
                 .filter(translator -> !translator.isDeleted())
                 .map(this::toWired)
@@ -66,14 +71,17 @@ public class DBIngressTranslatorStore implements IngressTranslatorStore {
     @SneakyThrows
     @Throws(value = STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredIngressTranslator.INGRESS_TRANSLATOR_TABLE_NAME))
-    public Optional<IngressTranslator> createOrUpdate(String name, String description, Template template) {
+    public Optional<IngressTranslator> createOrUpdate(String name, String description, String ticketIdPath,
+                                                      Template template, Scope scope) {
         val id = readableId(name);
         return ingressTranslatorLookupDao.createOrUpdate(
                         id,
                         existing -> existing.setTemplate(template)
+                                .setTicketIdPath(ticketIdPath)
                                 .setDescription(description)
                                 .setDeleted(false),
-                        () -> toStored(new IngressTranslator(id, name, description, template, null, null)))
+                        () -> toStored(new IngressTranslator(id, name, description, ticketIdPath,
+                                template, scope.getType(), scope.getReferenceId(), null, null)))
                 .map(this::toWired);
     }
 
@@ -83,9 +91,12 @@ public class DBIngressTranslatorStore implements IngressTranslatorStore {
     @Throws(value = STORE_UPDATE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredIngressTranslator.INGRESS_TRANSLATOR_TABLE_NAME))
     public Optional<IngressTranslator> update(@Throws.RuntimeParam("id") String id,
-                                              String description, Template template) {
+                                              String description,
+                                              String ticketIdPath,
+                                              Template template) {
         ingressTranslatorLookupDao.update(id,
                 storedIngressTranslator -> storedIngressTranslator.map(s -> s.setTemplate(template)
+                                .setTicketIdPath(ticketIdPath)
                                 .setDescription(description))
                         .orElse(null));
         return read(id);
@@ -107,14 +118,20 @@ public class DBIngressTranslatorStore implements IngressTranslatorStore {
                 .setId(translator.getId())
                 .setName(translator.getName())
                 .setDescription(translator.getDescription())
-                .setTemplate(translator.getTemplate());
+                .setTicketIdPath(translator.getTicketIdPath())
+                .setTemplate(translator.getTemplate())
+                .setScopeReferenceId(translator.getScopeReferenceId())
+                .setScopeType(translator.getScopeType());
     }
 
     private IngressTranslator toWired(StoredIngressTranslator translator) {
         return new IngressTranslator(translator.getId(),
                 translator.getName(),
                 translator.getDescription(),
+                translator.getTicketIdPath(),
                 translator.getTemplate(),
+                translator.getScopeType(),
+                translator.getScopeReferenceId(),
                 translator.getCreated(),
                 translator.getUpdated());
     }

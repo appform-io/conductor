@@ -1,5 +1,6 @@
 package io.appform.conductor.server.ingressmanagement;
 
+import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import lombok.val;
@@ -14,7 +15,8 @@ public abstract class AbstractIngressTranslatorStoreTest {
         val id = ConductorServerUtils.readableId(name);
         val handlerbarsTemplate = new Template(Template.Type.HANDLEBARS, "{{phone}}");
         val fixedTemplate = new Template(Template.Type.FIXED, "XXXXXXXX");
-        val ingressTranslatorWithHandlebars = ingressTranslatorStore.createOrUpdate(name, "description", handlerbarsTemplate ).orElse(null);
+        val scope = Scope.create(Scope.ScopeType.WORKFLOW, "WF1");
+        val ingressTranslatorWithHandlebars = ingressTranslatorStore.createOrUpdate(name, "description", "/ticketId", handlerbarsTemplate, scope).orElse(null);
         assertNotNull(ingressTranslatorWithHandlebars);
         assertEquals(Template.Type.HANDLEBARS, ingressTranslatorWithHandlebars.getTemplate().getType());
 
@@ -22,7 +24,7 @@ public abstract class AbstractIngressTranslatorStoreTest {
         assertNotNull(outputIngressTranslatorWithHandlebars);
         assertEquals(Template.Type.HANDLEBARS, outputIngressTranslatorWithHandlebars.getTemplate().getType());
 
-        val ingressTranslatorWithFixed = ingressTranslatorStore.createOrUpdate(name, "description2", fixedTemplate).orElse(null);
+        val ingressTranslatorWithFixed = ingressTranslatorStore.createOrUpdate(name, "description2", "/ticketId", fixedTemplate, scope).orElse(null);
         assertNotNull(ingressTranslatorWithFixed);
         assertEquals(Template.Type.FIXED,ingressTranslatorWithFixed.getTemplate().getType());
 

@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 import io.appform.conductor.model.actions.ActionExecutionResult;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
+import io.appform.conductor.model.ingress.IngressTranslator;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.TicketState;
@@ -388,22 +389,54 @@ public class TicketManager {
         return triggerTicketStateMachine(ticketId);
     }
 
-    @SneakyThrows
-    public Optional<TicketDetails> processCallback(final String translatorId, final String ticketId, final JsonNode payload) {
+    public Optional<TicketDetails> processCallback(final String translatorId,
+                                                   final JsonNode payload) {
         val ingressTranslator = ingressTranslatorStore.read(translatorId);
-        val inputPayload = ingressTranslator.flatMap(translator -> templateEngine.evaluateToText(translator.getTemplate(), payload))
+        val ticketId = ingressTranslator.map(translator -> payload.at(translator.getTicketIdPath()))
+                .filter(node -> !node.isNull())
+                .filter(JsonNode::isTextual)
+                .map(JsonNode::asText)
+                .orElse(null);
+        if (Strings.isNullOrEmpty(ticketId)) {
+            log.error("Error while extracting ticketId from translator:" + translatorId);
+            throw ConductorException.builder()
+                    .errorCode(ConductorErrorCode.TICKET_MGNT_INVALID_INPUT)
+                    .build();
+        }
+        return processCallback(ingressTranslator.get(), ticketId, payload);
+    }
+
+    public Optional<TicketDetails> processCallback(final String translatorId,
+                                                   final String ticketId,
+                                                   final JsonNode payload) {
+        val ingressTranslator = ingressTranslatorStore.read(translatorId);
+        return processCallback(ingressTranslator.orElse(null), ticketId, payload);
+
+    }
+
+    public Optional<TicketDetails> processCallback(final IngressTranslator ingressTranslator,
+                                                   final String ticketId,
+                                                   final JsonNode payload) {
+        val inputPayload = Optional.ofNullable(ingressTranslator)
+                .flatMap(translator -> templateEngine.evaluateToText(translator.getTemplate(), payload))
                 .map(translatedString -> {
                     try {
                         return mapper.readTree(translatedString);
                     } catch (JsonProcessingException e) {
-                        log.error("Error while translating ingress input by translator:" + translatorId, e);
+                        log.error("Error while translating ingress input by translator:" + ingressTranslator.getId(), e);
                         throw ConductorException.builder()
                                 .errorCode(ConductorErrorCode.TICKET_MGNT_INVALID_INPUT)
                                 .build();
                     }
                 })
                 .orElse(payload);
-        ((ObjectNode) inputPayload).put(INTERNAL_TICKET_FIELD, ticketId);
+        return processCallbackForTicket(ticketId, inputPayload);
+
+    }
+
+    @SneakyThrows
+    public Optional<TicketDetails> processCallbackForTicket(final String ticketId, final JsonNode payload) {
+        ((ObjectNode) payload).put(INTERNAL_TICKET_FIELD, ticketId);
         return triggerTicketStateMachine(TicketStateMachineContextBuilderStrategy.CALLBACK,
                 payload, (node, fields, schema) -> {
                 });

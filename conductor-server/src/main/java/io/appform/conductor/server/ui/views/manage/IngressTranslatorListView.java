@@ -1,5 +1,6 @@
 package io.appform.conductor.server.ui.views.manage;
 
+import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.events.analytics.ObjectReference;
 import io.appform.conductor.model.events.impl.ReferredObjectType;
 import io.appform.conductor.model.ingress.IngressTranslator;
@@ -16,10 +17,12 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class IngressTranslatorListView extends BaseLoggedInView {
+    Scope scope;
     List<IngressTranslator> translators;
 
-    public IngressTranslatorListView(User currentUser, List<IngressTranslator> translators) {
+    public IngressTranslatorListView(User currentUser, List<IngressTranslator> translators, Scope scope) {
         super("templates/manage/ingress-translator-list.hbs", currentUser, new ObjectReference(ReferredObjectType.INGRESS_TRANSLATOR, null));
         this.translators = translators;
+        this.scope = scope;
     }
 }
