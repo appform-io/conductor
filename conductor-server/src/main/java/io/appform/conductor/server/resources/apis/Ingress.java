@@ -41,8 +41,8 @@ public class Ingress {
     }
 
     @POST
-    @Path("/callback/kaleyra/{translatorId}")
-    public Response kaleyraCallbackProcessing(@NotEmpty @PathParam("translatorId") String translatorId,
+    @Path("/callback/obd/{translatorId}")
+    public Response obdCallbackProcessing(@NotEmpty @PathParam("translatorId") String translatorId,
                                   @NotNull JsonNode payload) {
         return  ticketManager.processCallback(translatorId, payload)
                 .map(ticketDetails -> Response.accepted().build())
