@@ -106,6 +106,13 @@ public class UserAuthValidator {
                 .orElse(false);
     }
 
+    public Optional<UserSession> createSystemUserSession(final UserSummary summary) {
+        return switch (summary.getType()) {
+            case HUMAN -> Optional.empty();
+            case SYSTEM -> createSession(summary);
+        };
+    }
+
     private record AuthenticationVisitor<T>(UserStore userStore,
                                             GroupStore groupStore,
                                             UserPasswordAuthStore passwordAuthStore,
@@ -145,6 +152,7 @@ public class UserAuthValidator {
                 return userStore.getById(userId)
                         .filter(AuthenticationVisitor::isUserActionable)
                         .flatMap(userSummary -> sessionStore.getById(userId, sessionId)
+                                .filter(session -> session.getState().equals(SessionState.ACTIVE))
                                 .map(session -> sessionRetriever.apply(session, token)));
             }
             catch (InvalidJwtException e) {
@@ -239,7 +247,7 @@ public class UserAuthValidator {
     }
 
     @SneakyThrows
-    private String tokenFromSession(final UserSessionDetails session, UserSummary userSummary) {
+    public String tokenFromSession(final UserSessionDetails session, UserSummary userSummary) {
         val claims = new JwtClaims();
         claims.setIssuer("Conductor");
         claims.setAudience(userSummary.getType().name());

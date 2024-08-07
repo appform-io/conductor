@@ -1,19 +1,22 @@
 package io.appform.conductor.server.usermanagement;
 
+import io.appform.conductor.model.events.impl.user.UserSessionCreatedEvent;
+import io.appform.conductor.model.events.impl.user.UserSessionUpdatedEvent;
+import io.appform.conductor.model.usermgmt.SessionState;
 import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.model.usermgmt.UserSessionDetails;
 import io.appform.conductor.server.ConductorModule;
 import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.model.events.impl.user.UserSessionCreatedEvent;
-import io.appform.conductor.model.events.impl.user.UserSessionUpdatedEvent;
 import lombok.val;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.Set;
+import java.util.function.UnaryOperator;
 
 @Singleton
 public class EventGeneratingSessionStore implements SessionStore {
@@ -43,7 +46,12 @@ public class EventGeneratingSessionStore implements SessionStore {
     }
 
     @Override
-    public Optional<UserSessionDetails> update(String userId, String sessionId, Function<UserSessionDetails, UserSessionDetails> handler) {
+    public List<UserSessionDetails> list(String userId, Set<SessionState> requiredStates) {
+        return sessionStore.list(userId, requiredStates);
+    }
+
+    @Override
+    public Optional<UserSessionDetails> update(String userId, String sessionId, UnaryOperator<UserSessionDetails> handler) {
         val res = sessionStore.update(userId, sessionId, handler);
         res.ifPresent(userSessionDetails -> eventBus.publish(new UserSessionUpdatedEvent(
                 userSessionDetails.getId(),

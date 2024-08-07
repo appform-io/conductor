@@ -29,11 +29,13 @@ import io.appform.conductor.server.skillmanagement.SkillStore;
 import io.appform.conductor.server.ui.views.admin.RolesListView;
 import io.appform.conductor.server.ui.views.admin.UserAdminView;
 import io.appform.conductor.server.usermanagement.GroupStore;
+import io.appform.conductor.server.usermanagement.SessionStore;
 import io.appform.conductor.server.usermanagement.UserLifecycleManager;
 import io.appform.conductor.server.usermanagement.UserStore;
 import io.appform.conductor.server.utils.Constants;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.hibernate.validator.constraints.Length;
 import ru.vyarus.guicey.gsp.views.template.ManualErrorHandling;
@@ -49,10 +51,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 
@@ -65,6 +64,7 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
 @PermitAll
 @ManualErrorHandling
+@Slf4j
 public class Admin {
     private static final String ROLES_LIST_PATH = "/admin/roles";
     private static final String USER_SEARCH_PATH = "/admin/users/search";
@@ -77,6 +77,7 @@ public class Admin {
     private final UserLifecycleManager userLifecycleManager;
     private final AuthConfig authConfig;
     private final AttributeManager attributeManager;
+    private final SessionStore sessionStore;
 
     @GET
     @Path("/roles")
@@ -158,6 +159,7 @@ public class Admin {
                                         List.of(),
                                         List.of(),
                                         List.of(),
+                                        List.of(),
                                         List.of()));
     }
 
@@ -201,7 +203,8 @@ public class Admin {
                                                                              group.getType()))
                                                                      .toList(),
                                                              skillStore.listSkillValues(),
-                                                             attributeManager.read(AttributeScopeType.USER, userDetails.getSummary().getId()))))
+                                                             attributeManager.read(AttributeScopeType.USER, userDetails.getSummary().getId()),
+                                                             sessionStore.list(userId))))
                 .orElseThrow(() -> fail("No user found for " + userId, USER_SEARCH_PATH));
     }
 
@@ -254,5 +257,53 @@ public class Admin {
             return redirect("/admin/users/" + userId);
         }
         throw fail("Failed to validate attributes: " + failures, "/admin/users/" + userId);
+    }
+
+    @POST
+    @Path("/users/system")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.ADMIN)
+    public Response createSystemUser(
+            @Auth ConductorUser user,
+            @FormParam("sysUserName") @NotEmpty @Length(min = 1, max = 30) final String name,
+            @FormParam("sysEmail") @Email @Length(min = 1, max = 30) final String email) {
+        return userLifecycleManager.createSystemUser(name, email)
+                .map(userDetails -> redirect("/admin/users/" + userDetails.getId()))
+                .orElseThrow(() -> fail("Could not create user", USER_SEARCH_PATH));
+    }
+
+    @POST
+    @Path("/users/system/{userId}/session/create")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @RolesAllowed(Permission.Values.ADMIN)
+    public Response createSystemUserSession( @Auth ConductorUser user,
+                                             @PathParam("userId") @NotEmpty final String userId) {
+        return userLifecycleManager.startSystemUserSession(userId)
+                .map(session -> redirect("/admin/users/" + userId))
+                .orElseThrow(() -> fail("Could not start session", "/admin/users/" + userId));
+    }
+
+    @GET
+    @Path("/users/system/{userId}/session/{sessionId}/jwt")
+    @RolesAllowed(Permission.Values.ADMIN)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response jwtForSession(@Auth ConductorUser user,
+                                  @PathParam("userId") @NotEmpty final String userId,
+                                  @PathParam("sessionId") @NotEmpty final String sessionId) {
+        return userLifecycleManager.jwtForSession(userId, sessionId)
+                .map(jwt -> Response.ok(Map.of("jwt", jwt)).build())
+                .orElse(Response.noContent().build());
+    }
+
+    @POST
+    @Path("/users/system/{userId}/session/{sessionId}/end")
+    @RolesAllowed(Permission.Values.ADMIN)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response endSystemUserSession(@Auth ConductorUser user,
+                                  @PathParam("userId") @NotEmpty final String userId,
+                                  @PathParam("sessionId") @NotEmpty final String sessionId) {
+        val status = userLifecycleManager.completeUserSession(userId, sessionId);
+        log.info("status for completion: {}/{} -> {}", userId, sessionId, status);
+        return redirect("/admin/users/" + userId);
     }
 }

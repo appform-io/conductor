@@ -7,31 +7,76 @@
 {{#partial "content"}}
     <section>
         <div class="row m-4 p-4 border border-dark">
-            <div class="col-sm-12 col-md-6">
-                <form class="row" method="post" action="/admin/users/email">
+            <div class="col-12 col-md-6 border-end border-dark">
+                <div class="row">
                     <div class="col-12">
-                        <div class="input-group border border-dark">
-                            <span class="input-group-text" id="search-box"><i class="bi fs2 bi-envelope-at"></i></span>
-                            <input type="email" class="form-control form-control-sm  data-table-search"
-                                   id="email" name="email" maxlength="255"
-                                   placeholder="Find by email" aria-label="Search email"
-                                   title="Find user by Email ID" aria-describedby="emailSearchBoxHelp">
-                        </div>
-                        <div id="emailSearchBoxHelp" class="form-text">Email ID for the user you want to find</div>
+                        <form class="row" method="post" action="/admin/users/email">
+                            <div class="col-12">
+                                <div class="input-group border border-dark">
+                                    <span class="input-group-text" id="search-box"><i class="bi fs2 bi-envelope-at"></i></span>
+                                    <input type="email" class="form-control form-control-sm  data-table-search"
+                                           id="email" name="email" maxlength="255"
+                                           placeholder="Find by email" aria-label="Search email"
+                                           title="Find user by Email ID" aria-describedby="emailSearchBoxHelp">
+                                </div>
+                                <div id="emailSearchBoxHelp" class="form-text">Email ID for the user you want to find
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                </form>
-            </div>
-            <div class="col-sm-12 col-md-6">
-                <form class="row" method="post" action="/admin/users/userid">
+                </div>
+                <div class="row">
                     <div class="col-12">
-                        <div class="input-group border border-dark">
-                            <span class="input-group-text" id="search-box"><i class="bi fs2 bi-person"></i></span>
-                            <input type="text" class="form-control form-control-sm  data-table-search"
-                                   id="searchUserId" name="searchUserId"
-                                   placeholder="Find by user id" aria-label="Search User ID"
-                                   title="Find user by user ID" aria-describedby="searchUserIdHelp">
+                        <form class="row" method="post" action="/admin/users/userid">
+                            <div class="col-12">
+                                <div class="input-group border border-dark">
+                                    <span class="input-group-text" id="search-box"><i
+                                            class="bi fs2 bi-person"></i></span>
+                                    <input type="text" class="form-control form-control-sm  data-table-search"
+                                           id="searchUserId" name="searchUserId"
+                                           placeholder="Find by user id" aria-label="Search User ID"
+                                           title="Find user by user ID" aria-describedby="searchUserIdHelp">
+                                </div>
+                                <div id="searchUserIdHelp" class="form-text">User ID for the user you want to find</div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <form method="post" action="/admin/users/system">
+                    <div class="row">
+                        <div class="col-12 col-md-3 float-end">
+                            <label for="sysUserName" class="col-form-label fw-bold">Username</label>
                         </div>
-                        <div id="searchUserIdHelp" class="form-text">User ID for the user you want to find</div>
+                        <div class="col-12 col-md-9">
+                            <input type="text" class="form-control"
+                                   id="sysUserName" name="sysUserName" placeholder="Human readable name"
+                                   aria-describedby="sysUserNameHelp" required maxlength="120">
+                            <div id="sysUserNameHelp" class="form-text">
+                                A human-readable name for the user. Max length: 120
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 col-md-3 float-end">
+                            <label for="sysEmail" class="col-form-label fw-bold">Email</label>
+                        </div>
+                        <div class="col-12 col-md-9">
+                            <input type="email" class="form-control"
+                                   id="sysEmail" name="sysEmail" placeholder="Email"
+                                   aria-describedby="sysEmailHelp" maxlength="30" required>
+                            <div id="sysEmailHelp" class="form-text">
+                                Management email id for this system. Max length: 30.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-sm btn-outline-success float-end" role="button">
+                                Create System User
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -133,13 +178,70 @@
                                     </div>
                                 </td>
                             </tr>
-
                         {{/with}}
                         </tbody>
                     </table>
                 </div>
             </div>
         </section>
+        {{#eqEnum userDetails.summary.type "SYSTEM"}}
+            <section>
+                <div class="row mb-2">
+                    <div class="col-12 col-md-10">
+                        <h4>System User Sessions</h4>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <form action="/admin/users/system/{{userDetails.summary.id}}/session/create" method="post">
+                            <button class="btn btn-sm btn-success float-end">Start New Session</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="row">
+                            <div class="col-12">
+                                <table class="table table-bordered border-dark">
+                                    <tr>
+                                        <th>Session ID</th>
+                                        <th>State</th>
+                                        <th>Created</th>
+                                        <th>Last Updated</th>
+                                        <th></th>
+                                        <th></th>
+                                    </tr>
+                                    {{#each sessions}}
+                                        <tr>
+                                            <td>{{id}}</td>
+                                            <td>
+                                                <span class="badge {{#eqEnum state "COMPLETED"}}bg-secondary{{else}}bg-success{{/eqEnum}} ms-2">
+                                                    {{readable state}}
+                                                </span>
+                                            </td>
+                                            <td>{{htmlDateTime created}}</td>
+                                            <td>{{htmlDateTime updated}}</td>
+                                            <td>
+                                                <button role="button" class="btn btn-sm btn-outline-success jwt-getter"
+                                                   data-session-id="{{id}}" {{#eqEnum state "COMPLETED"}}disabled{{/eqEnum}}>Copy JWT</button>
+                                            </td>
+                                            <td>
+                                                <form class="confirmed-form"
+                                                      data-cnf-title="Ending session for {{../userDetails.summary.name}}"
+                                                      data-cnf-text="Are you sure? All JWT for this session will stop working."
+                                                      action="/admin/users/system/{{../userDetails.summary.id}}/session/{{id}}/end"
+                                                      method="post">
+                                                    <button class="btn btn-sm btn-danger" data-session-id="{{id}}">End
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {{/each}}
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        {{/eqEnum}}
         <section>
             <div class="row">
                 <div class="col-sm-12 col-md-6">
@@ -229,7 +331,8 @@
                                                 data-live-search="true"
                                                 aria-describedby="skillValueIdHelp" required>
                                             {{#each ../availableSkills}}
-                                                <option value="{{skillId}}/{{skillValueId}}">{{name}} - {{value}}</option>
+                                                <option value="{{skillId}}/{{skillValueId}}">{{name}}
+                                                    - {{value}}</option>
                                             {{/each}}
                                         </select>
                                         <div id="skillValueIdHelp" class="form-text">Skills that the user has. Dynamic
@@ -280,8 +383,26 @@
             </div>
         </section>
     {{/with}}
-<section>
-    {{> assets/templates/common/fragments/attributes}}
-</section>
+    <section>
+        {{> assets/templates/common/fragments/attributes}}
+    </section>
+{{/partial}}
+
+{{#partial "page_js"}}
+    $(document).on("click", ".jwt-getter",  function() {
+    const sessionId = $(this).closest("button").attr("data-session-id");
+    $.get("/admin/users/system/{{userDetails.summary.id}}/session/" + sessionId + "/jwt",
+    function(data) {
+    navigator.clipboard.writeText(data.jwt)
+    .then(
+    function () {
+    alert('It worked! Do a CTRL - V to paste')
+    },
+    function () {
+    alert('Failure to copy. Check permissions for clipboard')
+    });
+
+    });
+    });
 {{/partial}}
 {{> common/base}}

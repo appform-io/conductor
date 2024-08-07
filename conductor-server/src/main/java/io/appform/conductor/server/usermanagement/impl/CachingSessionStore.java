@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.usermanagement.impl;
 
+import io.appform.conductor.model.usermgmt.SessionState;
 import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.model.usermgmt.UserSessionDetails;
 import io.appform.conductor.server.ConductorModule;
@@ -33,11 +34,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -108,10 +107,16 @@ public class CachingSessionStore implements SessionStore {
 
     @Override
     @MonitoredFunction
+    public List<UserSessionDetails> list(String userId, Set<SessionState> requiredStates) {
+        return root.list(userId, requiredStates);
+    }
+
+    @Override
+    @MonitoredFunction
     public Optional<UserSessionDetails> update(
             String userId,
             String sessionId,
-            Function<UserSessionDetails, UserSessionDetails> handler) {
+            UnaryOperator<UserSessionDetails> handler) {
         return root.update(userId, sessionId, handler)
                 .flatMap(this::refreshCache);
     }

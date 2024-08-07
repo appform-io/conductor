@@ -20,9 +20,8 @@ import io.appform.conductor.model.usermgmt.SessionState;
 import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.model.usermgmt.UserSessionDetails;
 
-import java.util.Date;
-import java.util.Optional;
-import java.util.function.Function;
+import java.util.*;
+import java.util.function.UnaryOperator;
 
 /**
  * A store for {@link UserSessionDetails}
@@ -31,7 +30,14 @@ public interface SessionStore {
 
     Optional<UserSessionDetails> create(String userId, SessionType type, Date expiry);
     Optional<UserSessionDetails> getById(String userId, String sessionId);
-    Optional<UserSessionDetails> update(String userId, String sessionId, Function<UserSessionDetails, UserSessionDetails> handler);
+
+    default List<UserSessionDetails> list(String userId) {
+        return list(userId, EnumSet.allOf(SessionState.class));
+    }
+
+    List<UserSessionDetails> list(String userId, Set<SessionState> requiredStates);
+
+    Optional<UserSessionDetails> update(String userId, String sessionId, UnaryOperator<UserSessionDetails> handler);
 
     default boolean complete(String userId, String sessionId) {
         return update(userId, sessionId,

@@ -30,13 +30,17 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Property;
 
 import javax.inject.Inject;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Function;
+import java.util.Set;
+import java.util.function.UnaryOperator;
+
+import static io.appform.conductor.model.error.ConductorErrorCode.STORE_LIST_ERROR;
 
 /**
  * Stores {@link io.appform.conductor.model.usermgmt.UserSessionDetails} in RDBMS
@@ -85,10 +89,28 @@ public class DBSessionStore implements SessionStore {
 
     @Override
     @MonitoredFunction
+    @SneakyThrows
+    @Throws(value = STORE_LIST_ERROR,
+            fixedParams = @Throws.Param(name = "type", value = StoredUserSessionDetails.SESSION_TABLE_NAME))
+    public List<UserSessionDetails> list(String userId, Set<SessionState> requiredStates) {
+        return sessionDetailsDao.select(userId,
+                                        DetachedCriteria.forClass(StoredUserSessionDetails.class)
+                                                .add(Property.forName(StoredUserSessionDetails.Fields.userId).eq(userId))
+                                                .add(Property.forName(StoredUserSessionDetails.Fields.state).in(requiredStates))
+                                                .addOrder(Order.desc(StoredUserSessionDetails.Fields.created)),
+                                        0,
+                                        Integer.MAX_VALUE)
+                .stream()
+                .map(DBSessionStore::toWire)
+                .toList();
+    }
+
+    @Override
+    @MonitoredFunction
     @Throws(value = ConductorErrorCode.STORE_WRITE_ERROR,
             fixedParams = @Throws.Param(name = "type", value = StoredUserSessionDetails.SESSION_TABLE_NAME))
     public Optional<UserSessionDetails> update(
-            String userId, @Throws.RuntimeParam("id") String sessionId, Function<UserSessionDetails, UserSessionDetails> handler) {
+            String userId, @Throws.RuntimeParam("id") String sessionId, UnaryOperator<UserSessionDetails> handler) {
         val status = sessionDetailsDao.update(userId, sessionCriteria(userId, sessionId), storedSession -> {
             val session = handler.apply(toWire(storedSession));
             storedSession.setState(session.getState());

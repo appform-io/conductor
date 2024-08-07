@@ -90,7 +90,7 @@ public class UserLifecycleManager {
                             .filter(attribute -> Objects.nonNull(attribute.getDefinition()))
                             .filter(attribute -> Objects.nonNull(attribute.getValue()))
                             .collect(Collectors.toMap(attribute -> attribute.getDefinition().getName(),
-                                                        AttributeManager.MaterializedAttributeValue::getValue));
+                                                      AttributeManager.MaterializedAttributeValue::getValue));
                     return new User(userSummary,
                                     role.orElse(null),
                                     role.map(Role::getPermissions).orElse(Set.of()),
@@ -118,6 +118,26 @@ public class UserLifecycleManager {
             createToken(user);
         });
         return userDetails;
+    }
+
+    public Optional<UserSummary> createSystemUser(String name, String email) {
+        val userDetails = userStore.get()
+                .create(idUtils.get().createUserInSameShard(email), name, UserType.SYSTEM, email)
+                .orElse(null);
+        if (null == userDetails) {
+            log.error("Could not create user: {}", name);
+            return Optional.empty();
+        }
+        return userStore.get().updateState(userDetails.getId(), UserState.ACTIVE);
+    }
+
+    public Optional<String> jwtForSession(String userId, String sessionId) {
+        return userStore.get()
+                .getById(userId)
+                .filter(userSummary -> userSummary.getState().equals(UserState.ACTIVE))
+                .flatMap(userSummary -> sessionStore.get()
+                        .getById(userId, sessionId)
+                        .map(session -> userAuthValidator.tokenFromSession(session, userSummary)));
     }
 
     public Optional<UserActivationToken> openToken(String userId) {
@@ -217,6 +237,23 @@ public class UserLifecycleManager {
     public Optional<UserSession> loginUser(String email, String password) {
         //Get a validated user
         return userAuthValidator.authenticatedSession(new PasswordAuthData(null, email, password));
+    }
+
+    /**
+     * Start a new session for a system user
+     *
+     * @param userId The user id for the system user
+     * @return A session for active system user or empty otherwise
+     */
+    public Optional<UserSession> startSystemUserSession(final String userId) {
+        return userStore.get()
+                .getById(userId)
+                .filter(user -> user.getType().equals(UserType.SYSTEM) && user.getState().equals(UserState.ACTIVE))
+                .flatMap(userAuthValidator::createSystemUserSession);
+    }
+
+    public boolean completeUserSession(final String userId, final String sessionId) {
+        return sessionStore.get().complete(userId, sessionId);
     }
 
     /**
@@ -440,9 +477,9 @@ public class UserLifecycleManager {
         }
         else {
             mailSender.sendAsync(new MailSender.Mail(List.of(user.getEmail()),
-                                                "Activate your Conductor Account",
-                                                "Activation Token: " + token.getToken(),
-                                                List.of()));
+                                                     "Activate your Conductor Account",
+                                                     "Activation Token: " + token.getToken(),
+                                                     List.of()));
             log.info("Token for user: {} is [{}]", user, token);
         }
         //TODO::SEND EVENT TO BUS
