@@ -22,6 +22,7 @@ import io.appform.conductor.model.events.impl.ReferredObjectType;
 import io.appform.conductor.model.skills.SkillValue;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.User;
+import io.appform.conductor.model.usermgmt.UserSessionDetails;
 import io.appform.conductor.server.attributes.values.AttributeManager.MaterializedAttributeValue;
 import io.appform.conductor.server.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
@@ -43,10 +44,16 @@ public class UserAdminView extends BaseLoggedInView {
     List<SkillValue> availableSkills;
     List<MaterializedAttributeValue> attributes;
     String attributeUrl;
+    List<UserSessionDetails> sessions;
 
     public UserAdminView(
-            User currentUser, User userDetails, List<Role> availableRoles, List<Group> availableGroups,
-            List<SkillValue> availableSkills, List<MaterializedAttributeValue> attributes) {
+            User currentUser,
+            User userDetails,
+            List<Role> availableRoles,
+            List<Group> availableGroups,
+            List<SkillValue> availableSkills,
+            List<MaterializedAttributeValue> attributes,
+            List<UserSessionDetails> sessions) {
         super("templates/admin/user-admin.hbs",
               currentUser,
               null != userDetails
@@ -57,8 +64,9 @@ public class UserAdminView extends BaseLoggedInView {
         this.availableGroups = availableGroups;
         this.availableSkills = availableSkills;
         this.attributes = attributes;
-        attributeUrl = null != userDetails
+        this.attributeUrl = null != userDetails
                        ? "/admin/users/" + userDetails.getSummary().getId() + "/attributes"
                        : "";
+        this.sessions = sessions;
     }
 }
