@@ -1,0 +1,1 @@
+ALTER TABLE actions CHANGE field_schema_id  field_schema_name varchar(139) DEFAULT NULL;
