@@ -140,6 +140,7 @@ public class DBTaskStore implements TaskStore {
                 .setScopeType(task.getScope().getType())
                 .setScopeReferenceId(task.getScope().getReferenceId())
                 .setState(task.getState())
+                .setMode(task.getMode())
                 .setSpec(mapper.writeValueAsString(task.getSpec()))
                 .setLastExecutionCompletionTime(task.getLastExecutionCompletionTime())
                 .setLastRunStatus(task.getLastRunStatus())
@@ -156,6 +157,7 @@ public class DBTaskStore implements TaskStore {
                 task.getCron(),
                 Scope.create(task.getScopeType(), task.getScopeReferenceId()),
                 task.getState(),
+                task.getMode(),
                 mapper.readValue(task.getSpec(), TaskSpec.class),
                 task.getLastExecutionCompletionTime(),
                 task.getLastRunStatus(),

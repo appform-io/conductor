@@ -57,6 +57,19 @@
                                 </div>
                             </div>
                             <div class="mb-3">
+                                <label for="mode" class="col-form-label fw-bold">Execution Mode</label>
+                                <select id="mode" name="mode"
+                                        class="form-control selectpicker border border-dark" aria-describedby="modeHelp" required>
+                                    <option disabled value="">Select Mode</option>
+                                    {{#each modes}}
+                                        <option value="{{this}}" {{#eq ../mode this}}selected{{/eq}}>{{readable
+                                                this}}</option>
+                                    {{/each}}
+                                </select>
+                                <div id="modeHelp" class="form-text">Execution mode: Absolute if task mutate tickets, Resumable otherwise
+                                </div>
+                            </div>
+                            <div class="mb-3">
                                 <label for="query" class="col-form-label fw-bold">CQL Query</label>
                                 <input type="text" id="query" name="query"
                                        class="form-control border border-dark"

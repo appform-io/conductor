@@ -17,6 +17,7 @@
 package io.appform.conductor.server.ui.views.tasks;
 
 import io.appform.conductor.model.actions.Action;
+import io.appform.conductor.model.tasks.TaskMode;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.events.impl.ReferredObjectType;
 import io.appform.conductor.model.events.analytics.ObjectReference;
@@ -26,7 +27,9 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -38,6 +41,7 @@ public class RunActionOnCQLSelectView extends BaseLoggedInView {
     String workflowId;
     String query;
     List<Action> availableActions;
+    Set<TaskMode> modes = EnumSet.allOf(TaskMode.class);
     Task task;
 
     public RunActionOnCQLSelectView(

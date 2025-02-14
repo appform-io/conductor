@@ -16,6 +16,7 @@
 
 package io.appform.conductor.server.taskmanagement.impl;
 
+import io.appform.conductor.model.tasks.TaskMode;
 import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
 import io.appform.conductor.model.tasks.RunActionOnSelectedTicketsTaskSpec;
 import io.appform.conductor.model.tasks.Task;
@@ -64,6 +65,7 @@ public class RunActionOnSelectedTicketsExecutor {
         return new ConductorTaskScheduler.TaskResult(
                 TaskRunStatus.SUCCESS,
                 task,
-                Map.of(TASK_META_CURSOR, nextPtr));
+                TaskMode.RESUMABLE == task.getMode()  ? Map.of(TASK_META_CURSOR, nextPtr)
+                        :  Map.of());
     }
 }

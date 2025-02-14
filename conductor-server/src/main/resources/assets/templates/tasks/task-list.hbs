@@ -43,6 +43,7 @@
                         <th>Scope Reference</th>
                         <th>Execution Cron Expression</th>
                         <th>State</th>
+                        <th>Mode</th>
                         <th>Last Execution Time</th>
                         <th>Last Run Status</th>
                         <th>Last Updated</th>
@@ -67,6 +68,7 @@
                                 <span class="badge bg-secondary ms-2">Paused</span>
                             {{/eqEnum}}
                         </td>
+                        <td>{{readable mode}}</td>
                         <td>{{lastExecutionCompletionTime}}</td>
                         <td>{{readable status}}</td>
                         <td>{{updated}}</td>
