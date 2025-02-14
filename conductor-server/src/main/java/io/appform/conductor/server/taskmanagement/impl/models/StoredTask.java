@@ -17,6 +17,7 @@
 package io.appform.conductor.server.taskmanagement.impl.models;
 
 import io.appform.conductor.model.actions.Scope;
+import io.appform.conductor.model.tasks.TaskMode;
 import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.model.tasks.TaskState;
 import io.appform.conductor.model.tasks.TaskType;
@@ -81,6 +82,10 @@ public class StoredTask implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "state", length = 45)
     private TaskState state;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "mode", length = 45)
+    private TaskMode mode;
 
     @Column(name = "last_execution_time")
     private Date lastExecutionCompletionTime;

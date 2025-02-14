@@ -1,0 +1,1 @@
+Alter table tasks add column `mode` varchar(45) DEFAULT NULL;

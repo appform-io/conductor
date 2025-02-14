@@ -276,6 +276,7 @@ public class ManageTasks {
             @FormParam("stateIds") Set<String> stateIds,
             @FormParam("updatedBeforeInMins") @Max(50000) long updatedBeforeInMins,
             @FormParam("groupIds") Set<String> groupIds,
+            @FormParam("mode") TaskMode mode,
             @FormParam("priorities") Set<TicketPriority> priorities,
             @FormParam("selectedActions") List<String> actionIds) {
         val workFlow = workflowStore.read(workflowId).orElse(null);
@@ -288,6 +289,7 @@ public class ManageTasks {
                 .description(description)
                 .cron(cron)
                 .type(spec.getType())
+                .mode(mode)
                 .scope(Scope.create(Scope.ScopeType.WORKFLOW, workflowId))
                 .state(TaskState.ACTIVE)
                 .spec(spec)
@@ -338,6 +340,7 @@ public class ManageTasks {
             @FormParam("description") @NotEmpty @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
             @FormParam("cron") @NotEmpty @Length(max = 255) final String cron,
             @FormParam("query") @NotEmpty @Length(max = 1024) final String query,
+            @FormParam("mode") @NotEmpty @Length(max = 45) final TaskMode mode,
             @FormParam("selectedActions") List<String> actionIds) {
         val workFlow = workflowStore.read(workflowId).orElse(null);
         if (null == workFlow) {
@@ -349,6 +352,7 @@ public class ManageTasks {
                 .description(description)
                 .cron(cron)
                 .type(spec.getType())
+                .mode(mode)
                 .scope(Scope.create(Scope.ScopeType.WORKFLOW, workflowId))
                 .state(TaskState.ACTIVE)
                 .spec(spec)

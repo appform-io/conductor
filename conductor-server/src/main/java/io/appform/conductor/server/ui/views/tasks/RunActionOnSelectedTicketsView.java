@@ -18,6 +18,7 @@ package io.appform.conductor.server.ui.views.tasks;
 
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.schema.TicketState;
+import io.appform.conductor.model.tasks.TaskMode;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.User;
@@ -46,6 +47,7 @@ public class RunActionOnSelectedTicketsView extends BaseLoggedInView {
     List<Group> groups;
     List<Action> availableActions;
     Set<TicketPriority> priorities = EnumSet.allOf(TicketPriority.class);
+    Set<TaskMode> modes = EnumSet.allOf(TaskMode.class);
     Task task;
     List<String> selectedStates;
     long updatedBeforeInMins;

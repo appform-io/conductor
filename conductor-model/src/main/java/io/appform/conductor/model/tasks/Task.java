@@ -19,7 +19,6 @@ package io.appform.conductor.model.tasks;
 import io.appform.conductor.model.actions.Scope;
 import lombok.*;
 
-import java.time.Duration;
 import java.util.Date;
 import java.util.Map;
 
@@ -38,6 +37,7 @@ public class Task {
     String cron;
     Scope scope;
     TaskState state;
+    TaskMode mode;
     TaskSpec spec;
     Date lastExecutionCompletionTime;
     TaskRunStatus lastRunStatus;
