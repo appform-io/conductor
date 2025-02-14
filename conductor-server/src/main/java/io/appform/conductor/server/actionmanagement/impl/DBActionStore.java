@@ -10,7 +10,6 @@ import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.actionmanagement.impl.models.*;
-import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredEmbeddedFieldValue;
 import io.appform.conductor.server.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.functionmetrics.MonitoredFunction;
@@ -183,7 +182,7 @@ public class DBActionStore implements ActionStore {
             @Override
             public StoredAction visit(SetFieldAction setFieldAction) {
                 return safeCast(existing, new StoredSetFieldAction())
-                        .setFieldSchemaId(setFieldAction.getFieldSchemaId())
+                        .setFieldSchemaName(setFieldAction.getFieldSchemaName())
                         .setFieldValueTemplate(setFieldAction.getFieldValueTemplate());
 
             }
@@ -216,7 +215,7 @@ public class DBActionStore implements ActionStore {
                         .description(storedSetFieldAction.getDescription())
                         .scope(Scope.create(storedSetFieldAction.getScopeType(),
                                             storedSetFieldAction.getScopeReferenceId()))
-                        .fieldSchemaId(storedSetFieldAction.getFieldSchemaId())
+                        .fieldSchemaName(storedSetFieldAction.getFieldSchemaName())
                         .fieldValueTemplate(storedSetFieldAction.getFieldValueTemplate())
                         .created(storedSetFieldAction.getCreated())
                         .updated(storedSetFieldAction.getUpdated())

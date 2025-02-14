@@ -377,7 +377,7 @@ public class Actions {
             @PathParam("referenceId") @Length(max = 45) final String referenceId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
-            @FormParam("fieldSchemaId") @NotNull String fieldSchemaId,
+            @FormParam("fieldSchemaName") @NotNull String fieldSchemaName,
             @FormParam("fieldValueTemplate") @NotEmpty @Length(max = 1024) String fieldValueTemplate) {
         val scope = Scope.create(scopeType, referenceId);
         return actionStore.save(new SetFieldAction(ConductorServerUtils.generateActionId(),
@@ -386,7 +386,7 @@ public class Actions {
                         scope,
                         null,
                         null,
-                        fieldSchemaId,
+                        fieldSchemaName,
                         handlebarsTemplate(fieldValueTemplate)))
                 .map(a -> redirect(actionList(scopeType, referenceId)))
                 .orElseThrow(() -> fail("Could not create action", actionList(scopeType, referenceId)));
@@ -402,7 +402,7 @@ public class Actions {
             @PathParam("actionId") @Length(max = 45) final String actionId,
             @FormParam("name") @Length(min = 1, max = 45) final String name,
             @FormParam("description") @Length(max = Constants.MAX_DESCRIPTION_LENGTH) final String description,
-            @FormParam("fieldSchemaId") @NotNull String fieldSchemaId,
+            @FormParam("fieldSchemaName") @NotNull String fieldSchemaName,
             @FormParam("fieldValueTemplate") @NotEmpty @Length(max = 1024) String fieldValueTemplate) {
         val scope = Scope.create(scopeType, referenceId);
         if (actionStore.update(actionId,
@@ -412,7 +412,7 @@ public class Actions {
                         scope,
                         action.getCreated(),
                         null,
-                        fieldSchemaId,
+                        fieldSchemaName,
                         handlebarsTemplate(fieldValueTemplate)))) {
             return redirect(actionList(scopeType, referenceId));
         }

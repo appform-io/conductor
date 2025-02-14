@@ -56,35 +56,35 @@ public class SetFieldActionExecutor {
         val schema = evalData.getSchema();
         val evalDataJson = ConductorServerUtils.evalDataJson(mapper, evalData);
         val fieldSchema = schema.getFields().stream()
-                .filter(field -> field.getId().equals(action.getFieldSchemaId()))
+                .filter(field -> field.getName().equals(action.getFieldSchemaName()))
                 .findFirst()
                 .orElse(null);
 
         if (fieldSchema == null) {
-            log.error("No such field {} for ticket {}", action.getFieldSchemaId(), ticketId);
+            log.error("No such field {} for ticket {}", action.getFieldSchemaName(), ticketId);
             return ActionExecutionResult.FAILURE;
         }
 
         log.info("Action:{}, Eval Data:{}", action.getId(), evalDataJson);
         String fieldValueString = templateEngine.evaluateToText(action.getFieldValueTemplate(), evalDataJson).orElse(null);
         if (fieldValueString == null) {
-            log.error("No data post translation field {} for ticket {}", action.getFieldSchemaId(), ticketId);
+            log.error("No data post translation field {} for ticket {}", action.getFieldSchemaName(), ticketId);
             return ActionExecutionResult.FAILURE;
         }
 
         val fieldValue = toFieldValue(fieldSchema, fieldValueString);
         if (fieldValue == null) {
-            log.error("No value not valid post translation field {} for ticket {}", action.getFieldSchemaId(), ticketId);
+            log.error("No value not valid post translation field {} for ticket {}", action.getFieldSchemaName(), ticketId);
             return ActionExecutionResult.FAILURE;
         }
 
         if (ticketStore.setField(ticketId,
-                        new TicketFieldData(action.getFieldSchemaId(), fieldValue))
+                        new TicketFieldData(action.getFieldSchemaName(), fieldValue))
                             .filter(ticket -> ticket.getFields()
                             .stream()
-                            .anyMatch(field -> field.getFieldSchemaId().equals(action.getFieldSchemaId())))
+                            .anyMatch(field -> field.getFieldSchemaId().equals(action.getFieldSchemaName())))
                 .isEmpty()) {
-            log.error("Failed to add field {} to ticket {}", action.getFieldSchemaId(), ticketId);
+            log.error("Failed to add field {} to ticket {}", action.getFieldSchemaName(), ticketId);
             return ActionExecutionResult.FAILURE;
         }
         return ActionExecutionResult.SUCCESS;
