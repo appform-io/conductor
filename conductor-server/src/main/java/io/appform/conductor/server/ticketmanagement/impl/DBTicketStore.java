@@ -615,7 +615,8 @@ public class DBTicketStore implements TicketStore {
             @Override
             public Void visit(TicketAssignedToUser assignedToUser) {
                 if (Strings.isNullOrEmpty(assignedToUser.getAssignedUserId())) {
-                    criteria.add(Property.forName(StoredTicketSkeleton.Fields.assignedToUserId).isNull());
+                        //It should check if any user is assigned, TicketUnAssignedToUser.class to be used for null user
+                        criteria.add(Property.forName(StoredTicketSkeleton.Fields.assignedToUserId).isNotNull());
                 }
                 else {
                     if (assignedToUser.isNegate()) {

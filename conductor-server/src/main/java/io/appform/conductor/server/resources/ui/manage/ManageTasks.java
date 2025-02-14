@@ -22,6 +22,7 @@ import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.tasks.*;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.analytics.TicketUserAssignmentStatus;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilterType;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
@@ -54,6 +55,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
@@ -110,7 +112,8 @@ public class ManageTasks {
                                                                 List.of(),
                                                                 0L,
                                                                 List.of(),
-                                                   null));
+                                                                null,
+                                                                null));
             }
             case RUN_ACTION_ON_CQL_SELECT -> {
                 val workFlow = workflowStore.read(workflowId).orElse(null);
@@ -197,7 +200,20 @@ public class ManageTasks {
                                                                                 TicketFilterType.PRIORITY_IN))
                                                                         .map(TicketPriorityIn.class::cast)
                                                                         .flatMap(tag -> tag.getPriorities().stream())
-                                                                        .toList()));
+                                                                        .toList(),
+                                                                spec.getTicketFilters()
+                                                                        .stream()
+                                                                        .map(tf -> {
+                                                                            if (tf.getType() == TicketFilterType.ASSIGNED_TO_USER) {
+                                                                                return TicketUserAssignmentStatus.ASSIGNED;
+                                                                            } else if (tf.getType() == TicketFilterType.UNASSIGNED_TO_USER) {
+                                                                                return TicketUserAssignmentStatus.UNASSIGNED;
+                                                                            }
+                                                                            return null;
+                                                                        })
+                                                                        .filter(Objects::nonNull)
+                                                                        .findAny()
+                                                                        .orElse(null)));
             }
             case RUN_ACTION_ON_CQL_SELECT -> {
                 val spec = task.getSpec().accept(new TaskSpecVisitor<RunActionOnCQLSelectTaskSpec>() {
@@ -278,12 +294,13 @@ public class ManageTasks {
             @FormParam("groupIds") Set<String> groupIds,
             @FormParam("mode") TaskMode mode,
             @FormParam("priorities") Set<TicketPriority> priorities,
-            @FormParam("selectedActions") List<String> actionIds) {
+            @FormParam("selectedActions") List<String> actionIds,
+            @FormParam("userAssignmentStatus") TicketUserAssignmentStatus userAssignmentStatus) {
         val workFlow = workflowStore.read(workflowId).orElse(null);
         if (null == workFlow) {
             throw fail("No such workflow found: " + workflowId, "/manage/tasks/" + workflowId);
         }
-        val spec = buildSpec(workflowId, stateIds, updatedBeforeInMins, groupIds, priorities, actionIds);
+        val spec = buildSpec(workflowId, stateIds, updatedBeforeInMins, groupIds, priorities, actionIds, userAssignmentStatus);
         val task = Task.builder()
                 .name(name)
                 .description(description)
@@ -314,12 +331,13 @@ public class ManageTasks {
             @FormParam("updatedBeforeInMins") @Max(50000) long updatedBeforeInMins,
             @FormParam("groupIds") Set<String> groupIds,
             @FormParam("priorities") Set<TicketPriority> priorities,
-            @FormParam("selectedActions") List<String> actionIds) {
+            @FormParam("selectedActions") List<String> actionIds,
+            @FormParam("userAssignmentStatus") TicketUserAssignmentStatus userAssignmentStatus) {
         val workFlow = workflowStore.read(workflowId).orElse(null);
         if (null == workFlow) {
             throw fail("No such workflow found: " + workflowId, "/manage/tasks/" + workflowId);
         }
-        val spec = buildSpec(workflowId, stateIds, updatedBeforeInMins, groupIds, priorities, actionIds);
+        val spec = buildSpec(workflowId, stateIds, updatedBeforeInMins, groupIds, priorities, actionIds, userAssignmentStatus);
         val updated = scheduler.updateTask(taskId,
                                            task -> task.withDescription(description)
                                                    .withCron(cron)
@@ -396,7 +414,8 @@ public class ManageTasks {
             long updatedBeforeInMins,
             Set<String> groupIds,
             Set<TicketPriority> priorities,
-            List<String> actionIds) {
+            List<String> actionIds,
+            TicketUserAssignmentStatus userAssignmentStatus) {
         final var specBuilder = RunActionOnSelectedTicketsTaskSpec.builder();
         val tfs = new ArrayList<TicketFilter>();
         tfs.add(new TicketWorkflowEquals(workflowId));
@@ -411,6 +430,12 @@ public class ManageTasks {
         }
         if (null != priorities && !priorities.isEmpty()) {
             tfs.add(new TicketPriorityIn(priorities, false));
+        }
+        if(null != userAssignmentStatus) {
+            switch (userAssignmentStatus) {
+                case ASSIGNED -> tfs.add(new TicketAssignedToUser(null, false));
+                case UNASSIGNED -> tfs.add(new TicketUnAssignedToUser());
+            }
         }
         return specBuilder.ticketFilters(tfs)
                 .actionIds(actionIds)

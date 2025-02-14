@@ -20,6 +20,7 @@ import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.tasks.TaskMode;
 import io.appform.conductor.model.ticket.TicketPriority;
+import io.appform.conductor.model.ticket.analytics.TicketUserAssignmentStatus;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.events.impl.ReferredObjectType;
@@ -47,12 +48,14 @@ public class RunActionOnSelectedTicketsView extends BaseLoggedInView {
     List<Group> groups;
     List<Action> availableActions;
     Set<TicketPriority> priorities = EnumSet.allOf(TicketPriority.class);
+    Set<TicketUserAssignmentStatus> userAssignmentStatuses = EnumSet.allOf(TicketUserAssignmentStatus.class);
     Set<TaskMode> modes = EnumSet.allOf(TaskMode.class);
     Task task;
     List<String> selectedStates;
     long updatedBeforeInMins;
     List<String> selectedGroups;
     List<TicketPriority> selectedPriorities;
+    TicketUserAssignmentStatus userAssignmentStatus;
 
     public RunActionOnSelectedTicketsView(
             User currentUser,
@@ -64,7 +67,8 @@ public class RunActionOnSelectedTicketsView extends BaseLoggedInView {
             List<String> selectedStates,
             Long updatedBeforeInMins,
             List<String> selectedGroups,
-            List<TicketPriority> selectedPriorities) {
+            List<TicketPriority> selectedPriorities,
+            TicketUserAssignmentStatus userAssignmentStatus) {
         super("templates/tasks/run-action-on-tickets.hbs", currentUser,
               null != task
               ? new ObjectReference(ReferredObjectType.TASK, task.getId())
@@ -78,5 +82,6 @@ public class RunActionOnSelectedTicketsView extends BaseLoggedInView {
         this.updatedBeforeInMins = updatedBeforeInMins;
         this.selectedGroups = selectedGroups;
         this.selectedPriorities = selectedPriorities;
+        this.userAssignmentStatus = userAssignmentStatus;
     }
 }
