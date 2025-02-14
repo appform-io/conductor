@@ -374,7 +374,7 @@
                                                             disabled
                                                         {{/eq}}>
                                                         {{#empty value}}
-                                                            <option disabled>Select an option</option>
+                                                            <option {{#eq schema/allowMultiple false}}selected{{/eq}} disabled>Select an option</option>
                                                         {{/empty}}
                                                         {{#each schema/choices}}
                                                             <option value="{{value}}" {{#empty
