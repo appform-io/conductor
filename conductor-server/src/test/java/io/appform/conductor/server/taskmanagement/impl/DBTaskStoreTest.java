@@ -18,14 +18,11 @@ package io.appform.conductor.server.taskmanagement.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.actions.Scope;
+import io.appform.conductor.model.tasks.*;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
 import io.appform.conductor.server.taskmanagement.impl.models.StoredTask;
-import io.appform.conductor.model.tasks.RunActionOnSelectedTicketsTaskSpec;
-import io.appform.conductor.model.tasks.Task;
-import io.appform.conductor.model.tasks.TaskState;
-import io.appform.conductor.model.tasks.TaskType;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.val;
 import org.junit.jupiter.api.Test;
@@ -55,7 +52,8 @@ class DBTaskStoreTest {
                                                   "0 * * ? * *",
                                                   Scope.GLOBAL,
                                                   TaskState.ACTIVE,
-                                                  new RunActionOnSelectedTicketsTaskSpec(List.of(),
+                                                 TaskMode.ABSOLUTE,
+                                                 new RunActionOnSelectedTicketsTaskSpec(List.of(),
                                                                                          List.of(),
                                                                                          List.of()),
                                                   new Date(),
