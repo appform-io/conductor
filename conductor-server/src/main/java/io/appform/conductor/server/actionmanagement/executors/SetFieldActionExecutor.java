@@ -68,23 +68,23 @@ public class SetFieldActionExecutor {
         log.info("Action:{}, Eval Data:{}", action.getId(), evalDataJson);
         String fieldValueString = templateEngine.evaluateToText(action.getFieldValueTemplate(), evalDataJson).orElse(null);
         if (fieldValueString == null) {
-            log.error("No data post translation field {} for ticket {}", action.getFieldSchemaName(), ticketId);
+            log.error("No data post translation fieldId {} for ticket {}", fieldSchema.getId(), ticketId);
             return ActionExecutionResult.FAILURE;
         }
 
         val fieldValue = toFieldValue(fieldSchema, fieldValueString);
         if (fieldValue == null) {
-            log.error("No value not valid post translation field {} for ticket {}", action.getFieldSchemaName(), ticketId);
+            log.error("No value not valid post translation fieldId {} for ticket {}", fieldSchema.getId(), ticketId);
             return ActionExecutionResult.FAILURE;
         }
 
         if (ticketStore.setField(ticketId,
-                        new TicketFieldData(action.getFieldSchemaName(), fieldValue))
+                        new TicketFieldData(fieldSchema.getId(), fieldValue))
                             .filter(ticket -> ticket.getFields()
                             .stream()
-                            .anyMatch(field -> field.getFieldSchemaId().equals(action.getFieldSchemaName())))
+                            .anyMatch(field -> field.getFieldSchemaId().equals(fieldSchema.getId())))
                 .isEmpty()) {
-            log.error("Failed to add field {} to ticket {}", action.getFieldSchemaName(), ticketId);
+            log.error("Failed to add fieldId {} to ticket {}", fieldSchema.getId(), ticketId);
             return ActionExecutionResult.FAILURE;
         }
         return ActionExecutionResult.SUCCESS;
