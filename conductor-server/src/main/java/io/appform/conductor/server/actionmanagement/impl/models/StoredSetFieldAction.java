@@ -23,8 +23,8 @@ public class StoredSetFieldAction extends StoredAction {
     @Serial
     private static final long serialVersionUID = 3846412829595254898L;
 
-    @Column(name = "field_schema_id", length = Constants.MAX_FIELD_SCHEMA_ID_LENGTH)
-    private String fieldSchemaId;
+    @Column(name = "field_schema_name", length = Constants.MAX_FIELD_SCHEMA_ID_LENGTH)
+    private String fieldSchemaName;
 
     @Convert(converter = TemplateConverter.class)
     @Column(name = "field_value_template", columnDefinition = "text", length = Constants.MAX_TEMPLATE_LENGTH)

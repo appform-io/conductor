@@ -40,7 +40,7 @@ public class SetFieldAction extends Action {
     /**
      * The schema for the field that the fieldValue will be set in
      */
-    String fieldSchemaId;
+    String fieldSchemaName;
 
     /**
      * The fieldValue to be set.
@@ -56,10 +56,10 @@ public class SetFieldAction extends Action {
             Scope scope,
             Date created,
             Date updated,
-            String fieldSchemaId,
+            String fieldSchemaName,
             Template fieldValueTemplate) {
         super(ActionType.SET_FIELD, id, name, description, scope, created, updated);
-        this.fieldSchemaId = fieldSchemaId;
+        this.fieldSchemaName = fieldSchemaName;
         this.fieldValueTemplate = fieldValueTemplate;
     }
 
