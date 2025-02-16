@@ -329,6 +329,7 @@ public class ManageTasks {
             @FormParam("cron") @NotEmpty @Length(max = 255) final String cron,
             @FormParam("stateIds") Set<String> stateIds,
             @FormParam("updatedBeforeInMins") @Max(50000) long updatedBeforeInMins,
+            @FormParam("mode") TaskMode mode,
             @FormParam("groupIds") Set<String> groupIds,
             @FormParam("priorities") Set<TicketPriority> priorities,
             @FormParam("selectedActions") List<String> actionIds,
@@ -340,6 +341,7 @@ public class ManageTasks {
         val spec = buildSpec(workflowId, stateIds, updatedBeforeInMins, groupIds, priorities, actionIds, userAssignmentStatus);
         val updated = scheduler.updateTask(taskId,
                                            task -> task.withDescription(description)
+                                                   .withMode(mode)
                                                    .withCron(cron)
                                                    .withSpec(spec));
         if (!updated) {

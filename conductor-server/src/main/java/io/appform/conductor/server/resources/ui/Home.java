@@ -20,6 +20,7 @@ import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.ticket.filter.ticketfilters.TicketAssignedToGroup;
 import io.appform.conductor.model.ticket.filter.ticketfilters.TicketAssignedToUser;
 import io.appform.conductor.model.ticket.filter.ticketfilters.TicketStateIn;
+import io.appform.conductor.model.ticket.filter.ticketfilters.TicketUnAssignedToUser;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.workflow.WorkflowState;
 import io.appform.conductor.server.auth.ConductorUser;
@@ -82,7 +83,7 @@ public class Home {
                                   ? List.<TicketGist>of()
                                   : ticketManager.search(List.of(new TicketAssignedToGroup(groups, false),
                                                                  new TicketStateIn(terminalStates, true),
-                                                                 new TicketAssignedToUser(null, false)),
+                                                                 new TicketUnAssignedToUser()),
                                                          List.of(), null, 10).getResults();
         val myTickets = groups.isEmpty()
                         ? List.<TicketGist>of()
