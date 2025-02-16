@@ -72,6 +72,7 @@ class ConductorTaskSchedulerTest {
                             "* * * ? * *",
                             Scope.GLOBAL,
                             TaskState.ACTIVE,
+                            TaskMode.RESUMABLE,
                             taskSpec,
                             null,
                             null,
