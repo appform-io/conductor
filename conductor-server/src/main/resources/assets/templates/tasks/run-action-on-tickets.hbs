@@ -121,6 +121,17 @@
                                     {{/each}}
                                 </select>
                             </div>
+                            <div class="mb-3">
+                                <label for="userAssignmentStatus" class="col-form-label fw-bold">User Assignment Status</label>
+                                <select id="userAssignmentStatus" name="userAssignmentStatus"
+                                        class="form-control selectpicker border border-dark">
+                                    <option value="">None</option>
+                                    {{#each userAssignmentStatuses}}
+                                        <option value="{{this}}" {{#eq ../userAssignmentStatus this}}selected{{/eq}}>{{readable
+                                                this}}</option>
+                                    {{/each}}
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
