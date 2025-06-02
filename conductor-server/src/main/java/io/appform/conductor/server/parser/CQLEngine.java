@@ -965,7 +965,7 @@ public class CQLEngine {
                 switch (elementType) {
 
                     case TICKET_ATTRIBUTE -> Preconditions.checkNotNull(KNOWN_TICKET_ATTRIBUTES.get(name),
-                            "Unknown ticket attribute");
+                                                            "Unknown ticket attribute");
                     case TICKET_FIELD -> {
                         Preconditions.checkNotNull(fieldSchema, "Invalid field name " + name);
                         Preconditions.checkArgument(COMPARABLE_TICKET_FIELD_TYPES.contains(fieldSchema.getType()));
@@ -981,13 +981,13 @@ public class CQLEngine {
                         ? Set.<Class<?>>of(KNOWN_TICKET_ATTRIBUTES.get(name))
                         : Set.<Class<?>>of();
                 val startValue = ticketExpressionValue(expr.getBetweenExpressionStart(),
-                        elementType,
-                        schema.get(name),
-                        ticketAttributeTypeSet);
+                                                       elementType,
+                                                       schema.get(name),
+                                                       ticketAttributeTypeSet);
                 val endValue = ticketExpressionValue(expr.getBetweenExpressionEnd(),
-                        elementType,
-                        schema.get(name),
-                        ticketAttributeTypeSet);
+                                                     elementType,
+                                                     schema.get(name),
+                                                     ticketAttributeTypeSet);
                 val start = readDateNumericValue(fieldSchema, elementType, name, startValue);
                 val end = readDateNumericValue(fieldSchema, elementType, name, endValue);
                 switch (elementType) {
