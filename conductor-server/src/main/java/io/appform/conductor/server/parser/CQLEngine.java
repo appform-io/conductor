@@ -558,7 +558,8 @@ public class CQLEngine {
                 if ((elementType == ElementType.TICKET_ATTRIBUTE && ticketAttrType.contains(Date.class))
                         || (elementType == ElementType.TICKET_FIELD && fieldSchema.getType() == FieldType.DATE)) {
                     response.set(value.getValue());
-                } else {
+                }
+                else {
                     throw new IllegalArgumentException("Expected value of type " + fieldSchema.getType());
                 }
             }
@@ -568,7 +569,8 @@ public class CQLEngine {
                 if ((elementType == ElementType.TICKET_ATTRIBUTE && ticketAttrType.contains(Double.class))
                         || (elementType == ElementType.TICKET_FIELD && fieldSchema.getType() == FieldType.NUMBER)) {
                     response.set(value.getValue());
-                } else {
+                }
+                else {
                     throw new IllegalArgumentException("Expected value of type " + fieldSchema.getType());
                 }
             }
@@ -578,7 +580,8 @@ public class CQLEngine {
                 if ((elementType == ElementType.TICKET_ATTRIBUTE && ticketAttrType.contains(Double.class))
                         || (elementType == ElementType.TICKET_FIELD && fieldSchema.getType() == FieldType.NUMBER)) {
                     response.set((double) value.getValue());
-                } else {
+                }
+                else {
                     throw new IllegalArgumentException("Expected value of type " + fieldSchema.getType());
                 }
             }
@@ -589,7 +592,8 @@ public class CQLEngine {
                 if ((elementType == ElementType.TICKET_ATTRIBUTE && ticketAttrType.contains(Date.class))
                         || (elementType == ElementType.TICKET_FIELD && fieldSchema.getType() == FieldType.DATE)) {
                     response.set(value.getValue());
-                } else {
+                }
+                else {
                     throw new IllegalArgumentException("Expected value of type " + fieldSchema.getType());
                 }
             }
@@ -599,7 +603,8 @@ public class CQLEngine {
                 if ((elementType == ElementType.TICKET_ATTRIBUTE && ticketAttrType.contains(Date.class))
                         || (elementType == ElementType.TICKET_FIELD && fieldSchema.getType() == FieldType.DATE)) {
                     response.set(value.getValue());
-                } else {
+                }
+                else {
                     throw new IllegalArgumentException("Expected value of type " + fieldSchema.getType());
                 }
             }
