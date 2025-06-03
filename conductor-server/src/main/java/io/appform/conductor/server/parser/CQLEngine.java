@@ -714,13 +714,16 @@ public class CQLEngine {
                         val from = readDateValue(name, startValue);
                         val to = readDateValue(name, endValue);
                         filtersBuilder.timeWindow(EventTimeWindow.builder()
-                                                          .from(from)
-                                                          .duration(Duration.milliseconds(to.getTime() - from.getTime()))
+                                                          .from(from.before(to) ?  from
+                                                                                : to)
+                                                          .duration(Duration.milliseconds(Math.abs(from.getTime() - to.getTime())))
                                                           .build());
                     }
                     case Event.EventTime.Fields.day -> {
-                        val from = readLongValue(name, startValue);
-                        val to = readLongValue(name, endValue);
+                        val start = readLongValue(name, startValue);
+                        val end = readLongValue(name, endValue);
+                        val from = Math.min(start, end);
+                        val to = Math.max(start, end);
                         Preconditions.checkArgument(from > 0 && from < 31 && to > 0 && to < 31,
                                                     "Day values can be from 1-31 only");
                         filtersBuilder.dayRange(Range.between(from, to));
@@ -992,21 +995,26 @@ public class CQLEngine {
                 val end = readDateNumericValue(fieldSchema, elementType, name, endValue);
                 switch (elementType) {
                     case TICKET_ATTRIBUTE -> {
-                        val duration =  Duration.milliseconds(((Date)end).getTime() - ((Date)start).getTime());
+                        val startDate = (Date) start;
+                        val endDate = (Date) end;
+                        val from =  startDate.before(endDate) ? startDate:  endDate;
+                        val duration =  Duration.milliseconds(Math.abs(startDate.getTime() - endDate.getTime()));
                         tfs.add(switch(name) {
-                            case TicketSkeleton.Fields.created -> new TicketsCreatedTimeWindow(duration, (Date)start);
-                            case TicketSkeleton.Fields.updated -> new TicketsUpdatedTimeWindow(duration, (Date)start);
+                            case TicketSkeleton.Fields.created -> new TicketsCreatedTimeWindow(duration, from);
+                            case TicketSkeleton.Fields.updated -> new TicketsUpdatedTimeWindow(duration, from);
                             default ->
                                     throw new UnsupportedOperationException("Between operation unsupported for field " + name );
                         });
                     }
                     case TICKET_FIELD -> {
-                        ffs.add(switch (fieldSchema.getType()) {
-                            case NUMBER, DATE -> new TicketFieldBetween(name, start, end);
-                            default ->
-                                    throw new UnsupportedOperationException("Between operation unsupported for field " + name + " of type " + lowerSnake(
-                                            fieldSchema.getType().getDisplayName()));
-                        });
+                            val from = minComparable(start, end);
+                            val to = maxComparable(start, end);
+                            ffs.add(switch (fieldSchema.getType()) {
+                                case NUMBER, DATE -> new TicketFieldBetween(name, from, to);
+                                default ->
+                                        throw new UnsupportedOperationException("Between operation unsupported for field " + name + " of type " + lowerSnake(
+                                                fieldSchema.getType().getDisplayName()));
+                            });
                     }
                 }
             }
@@ -1303,5 +1311,23 @@ public class CQLEngine {
 
     private static String fieldName(final String name) {
         return name.substring(name.indexOf(".") + 1);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static <T> T minComparable(T a, T b) {
+        if (a == null) return b;
+        if (b == null) return a;
+
+        Comparable compA = (Comparable) a;
+        return (compA.compareTo(b) <= 0) ? a : b;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static <T> T maxComparable(T a, T b) {
+        if (a == null) return b;
+        if (b == null) return a;
+
+        Comparable compA = (Comparable) a;
+        return (compA.compareTo(b) >= 0) ? a : b;
     }
 }
