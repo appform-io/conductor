@@ -985,9 +985,9 @@ public class CQLEngine {
                         throw new UnsupportedOperationException("Functions are unsupported in between operation");
                     }
                 }
-                val ticketAttributeTypeSet = KNOWN_TICKET_ATTRIBUTES.get(name) != null
-                        ? Set.<Class<?>>of(KNOWN_TICKET_ATTRIBUTES.get(name))
-                        : Set.<Class<?>>of();
+                val ticketAttributeTypeSet = Stream.<Class<?>>ofNullable(KNOWN_TICKET_ATTRIBUTES.get(name))
+                                                        .filter(Objects::nonNull)
+                                                        .collect(Collectors.toSet());
                 val startValue = ticketExpressionValue(expr.getBetweenExpressionStart(),
                                                        elementType,
                                                        schema.get(name),
@@ -1107,9 +1107,9 @@ public class CQLEngine {
                 ensureTicketAttributeOrTicketField(elementType);
                 assert null != elementType;
                 val fieldSchema = schema.get(fieldName(name));
-                val ticketAttributeTypeSet = KNOWN_TICKET_ATTRIBUTES.get(name) != null
-                                             ? Set.<Class<?>>of(KNOWN_TICKET_ATTRIBUTES.get(name))
-                                             : Set.<Class<?>>of();
+                val ticketAttributeTypeSet = Stream.<Class<?>>ofNullable(KNOWN_TICKET_ATTRIBUTES.get(name))
+                                                        .filter(Objects::nonNull)
+                                                        .collect(Collectors.toSet());
                 val values = new ArrayList<>();
                 expr.getRightExpression().accept(new ExpressionVisitorAdapter() {
 
