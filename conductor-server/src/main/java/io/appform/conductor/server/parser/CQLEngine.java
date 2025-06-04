@@ -1012,10 +1012,9 @@ public class CQLEngine {
                         });
                     }
                     case TICKET_FIELD -> {
-                            val from = minComparable(start, end);
-                            val to = maxComparable(start, end);
+                            val sortedValue = sortComparable(start, end);
                             ffs.add(switch (fieldSchema.getType()) {
-                                case NUMBER, DATE -> new TicketFieldBetween(name, from, to);
+                                case NUMBER, DATE -> new TicketFieldBetween(name, sortedValue.getFirst(), sortedValue.getSecond());
                                 default ->
                                         throw new UnsupportedOperationException("Between operation unsupported for field " + name + " of type " + lowerSnake(
                                                 fieldSchema.getType().getDisplayName()));
@@ -1319,20 +1318,8 @@ public class CQLEngine {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static <T> T minComparable(T a, T b) {
-        if (a == null) return b;
-        if (b == null) return a;
-
-        Comparable compA = (Comparable) a;
-        return (compA.compareTo(b) <= 0) ? a : b;
+    private static  Pair<Comparable<?>,Comparable<?>> sortComparable(Comparable<?> a, Comparable<?> b) {
+        return (((Comparable) a).compareTo(b) <= 0) ? new Pair<>(a,b) : new Pair<>(b,a);
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static <T> T maxComparable(T a, T b) {
-        if (a == null) return b;
-        if (b == null) return a;
-
-        Comparable compA = (Comparable) a;
-        return (compA.compareTo(b) >= 0) ? a : b;
-    }
 }
