@@ -1319,7 +1319,8 @@ public class CQLEngine {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static  Pair<Comparable<?>,Comparable<?>> sortComparable(Comparable<?> a, Comparable<?> b) {
-        return (((Comparable) a).compareTo(b) <= 0) ? new Pair<>(a,b) : new Pair<>(b,a);
+        return (((Comparable) a).compareTo(b) <= 0) ? new Pair<>(a,b)
+                                        : new Pair<>(b,a);
     }
 
 }
