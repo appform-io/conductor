@@ -23,7 +23,7 @@ import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
-import io.appform.conductor.model.tasks.Task;
+import io.appform.conductor.model.tasks.*;
 import io.appform.conductor.model.workflow.*;
 import io.appform.conductor.server.actionmanagement.ActionStore;
 import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
@@ -41,6 +41,7 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.appform.conductor.server.utils.ConductorServerUtils.*;
 
@@ -425,11 +426,19 @@ public class WorkflowManager {
                 .flatMap(Collection::stream)
                 .flatMap(transition -> transition.getActionIds().stream())
                 .collect(Collectors.toSet());
-        val actionIds = new ArrayList<>(Sets.union(workflowActionIds, transitionActionsIds));
+        val tasks = taskStore.listByScopes(List.of(Scope.create(Scope.ScopeType.WORKFLOW, workflowId)));
+        val taskActionIds = tasks.stream()
+                .map(task -> taskActionIds(task.getSpec()))
+                .flatMap(Collection::stream)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        val actionIds = Stream.of(workflowActionIds, transitionActionsIds, taskActionIds)
+                                    .flatMap(Collection::stream)
+                                    .collect(Collectors.toSet());
         return new WorkflowDetails(workflow,
                                    schema,
                                    actionStore.listActionsForIds(actionIds),
-                                   taskStore.listByScopes(List.of(Scope.create(Scope.ScopeType.WORKFLOW, workflowId))));
+                                   tasks);
     }
 
     public ImportWorkflowResult importWorkflow(WorkflowDetails workflowDetails,
@@ -470,6 +479,20 @@ public class WorkflowManager {
                     .context(Map.of("id", workflowId))
                     .build();
         }
+    }
+
+    private List<String> taskActionIds(TaskSpec taskSpec) {
+        return taskSpec.accept(new TaskSpecVisitor<>() {
+            @Override
+            public List<String> visit(RunActionOnSelectedTicketsTaskSpec runActionOnSelectedTicketsTaskSpec) {
+                return runActionOnSelectedTicketsTaskSpec.getActionIds();
+            }
+
+            @Override
+            public List<String> visit(RunActionOnCQLSelectTaskSpec runActionOnCQLSelectTaskSpec) {
+                return runActionOnCQLSelectTaskSpec.getActionIds();
+            }
+        });
     }
 
     private ImportResult<Workflow> importWorkflow(Workflow inWorkflow) {
