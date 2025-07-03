@@ -559,7 +559,9 @@ public class CQLEngine {
                         || (elementType == ElementType.TICKET_FIELD && fieldSchema.getType() == FieldType.DATE)) {
                     response.set(value.getValue());
                 }
-                throw new IllegalArgumentException("Expected value of type " + fieldSchema.getType());
+                else {
+                    throw new IllegalArgumentException("Expected value of type " + fieldSchema.getType());
+                }
             }
 
             @Override
@@ -568,7 +570,9 @@ public class CQLEngine {
                         || (elementType == ElementType.TICKET_FIELD && fieldSchema.getType() == FieldType.NUMBER)) {
                     response.set(value.getValue());
                 }
-                throw new IllegalArgumentException("Expected value of type " + fieldSchema.getType());
+                else {
+                    throw new IllegalArgumentException("Expected value of type " + fieldSchema.getType());
+                }
             }
 
             @Override
@@ -577,7 +581,9 @@ public class CQLEngine {
                         || (elementType == ElementType.TICKET_FIELD && fieldSchema.getType() == FieldType.NUMBER)) {
                     response.set((double) value.getValue());
                 }
-                throw new IllegalArgumentException("Expected value of type " + fieldSchema.getType());
+                else {
+                    throw new IllegalArgumentException("Expected value of type " + fieldSchema.getType());
+                }
             }
 
 
@@ -587,7 +593,9 @@ public class CQLEngine {
                         || (elementType == ElementType.TICKET_FIELD && fieldSchema.getType() == FieldType.DATE)) {
                     response.set(value.getValue());
                 }
-                throw new IllegalArgumentException("Expected value of type " + fieldSchema.getType());
+                else {
+                    throw new IllegalArgumentException("Expected value of type " + fieldSchema.getType());
+                }
             }
 
             @Override
@@ -596,7 +604,9 @@ public class CQLEngine {
                         || (elementType == ElementType.TICKET_FIELD && fieldSchema.getType() == FieldType.DATE)) {
                     response.set(value.getValue());
                 }
-                throw new IllegalArgumentException("Expected value of type " + fieldSchema.getType());
+                else {
+                    throw new IllegalArgumentException("Expected value of type " + fieldSchema.getType());
+                }
             }
         });
         Preconditions.checkNotNull(response.get(), "Please provide value in rhs of where clause");
@@ -709,13 +719,16 @@ public class CQLEngine {
                         val from = readDateValue(name, startValue);
                         val to = readDateValue(name, endValue);
                         filtersBuilder.timeWindow(EventTimeWindow.builder()
-                                                          .from(from)
-                                                          .duration(Duration.milliseconds(to.getTime() - from.getTime()))
+                                                          .from(from.before(to) ?  from
+                                                                                : to)
+                                                          .duration(Duration.milliseconds(Math.abs(from.getTime() - to.getTime())))
                                                           .build());
                     }
                     case Event.EventTime.Fields.day -> {
-                        val from = readLongValue(name, startValue);
-                        val to = readLongValue(name, endValue);
+                        val start = readLongValue(name, startValue);
+                        val end = readLongValue(name, endValue);
+                        val from = Math.min(start, end);
+                        val to = Math.max(start, end);
                         Preconditions.checkArgument(from > 0 && from < 31 && to > 0 && to < 31,
                                                     "Day values can be from 1-31 only");
                         filtersBuilder.dayRange(Range.between(from, to));
@@ -960,7 +973,7 @@ public class CQLEngine {
                 switch (elementType) {
 
                     case TICKET_ATTRIBUTE -> Preconditions.checkNotNull(KNOWN_TICKET_ATTRIBUTES.get(name),
-                                                                        "Unknown ticket attribute");
+                                                            "Unknown ticket attribute");
                     case TICKET_FIELD -> {
                         Preconditions.checkNotNull(fieldSchema, "Invalid field name " + name);
                         Preconditions.checkArgument(COMPARABLE_TICKET_FIELD_TYPES.contains(fieldSchema.getType()));
@@ -972,22 +985,42 @@ public class CQLEngine {
                         throw new UnsupportedOperationException("Functions are unsupported in between operation");
                     }
                 }
+                val ticketAttributeTypeSet = Stream.<Class<?>>ofNullable(KNOWN_TICKET_ATTRIBUTES.get(name))
+                                                        .filter(Objects::nonNull)
+                                                        .collect(Collectors.toSet());
                 val startValue = ticketExpressionValue(expr.getBetweenExpressionStart(),
                                                        elementType,
                                                        schema.get(name),
-                                                       Set.of());
+                                                       ticketAttributeTypeSet);
                 val endValue = ticketExpressionValue(expr.getBetweenExpressionEnd(),
                                                      elementType,
                                                      schema.get(name),
-                                                     Set.of());
+                                                     ticketAttributeTypeSet);
                 val start = readDateNumericValue(fieldSchema, elementType, name, startValue);
                 val end = readDateNumericValue(fieldSchema, elementType, name, endValue);
-                ffs.add(switch (fieldSchema.getType()) {
-                    case NUMBER, DATE -> new TicketFieldBetween(name, start, end);
-                    default ->
-                            throw new UnsupportedOperationException("Between operation unsupported for field " + name + " of type " + lowerSnake(
-                                    fieldSchema.getType().getDisplayName()));
-                });
+                switch (elementType) {
+                    case TICKET_ATTRIBUTE -> {
+                        val startDate = (Date) start;
+                        val endDate = (Date) end;
+                        val from =  startDate.before(endDate) ? startDate:  endDate;
+                        val duration =  Duration.milliseconds(Math.abs(startDate.getTime() - endDate.getTime()));
+                        tfs.add(switch(name) {
+                            case TicketSkeleton.Fields.created -> new TicketsCreatedTimeWindow(duration, from);
+                            case TicketSkeleton.Fields.updated -> new TicketsUpdatedTimeWindow(duration, from);
+                            default ->
+                                    throw new UnsupportedOperationException("Between operation unsupported for field " + name );
+                        });
+                    }
+                    case TICKET_FIELD -> {
+                            val sortedValue = sortComparable(start, end);
+                            ffs.add(switch (fieldSchema.getType()) {
+                                case NUMBER, DATE -> new TicketFieldBetween(name, sortedValue.getFirst(), sortedValue.getSecond());
+                                default ->
+                                        throw new UnsupportedOperationException("Between operation unsupported for field " + name + " of type " + lowerSnake(
+                                                fieldSchema.getType().getDisplayName()));
+                            });
+                    }
+                }
             }
 
             record ComparisonParsedOutput(
@@ -1073,9 +1106,9 @@ public class CQLEngine {
                 ensureTicketAttributeOrTicketField(elementType);
                 assert null != elementType;
                 val fieldSchema = schema.get(fieldName(name));
-                val ticketAttributeTypeSet = KNOWN_TICKET_ATTRIBUTES.get(name) != null
-                                             ? Set.<Class<?>>of(KNOWN_TICKET_ATTRIBUTES.get(name))
-                                             : Set.<Class<?>>of();
+                val ticketAttributeTypeSet = Stream.<Class<?>>ofNullable(KNOWN_TICKET_ATTRIBUTES.get(name))
+                                                        .filter(Objects::nonNull)
+                                                        .collect(Collectors.toSet());
                 val values = new ArrayList<>();
                 expr.getRightExpression().accept(new ExpressionVisitorAdapter() {
 
@@ -1283,4 +1316,11 @@ public class CQLEngine {
     private static String fieldName(final String name) {
         return name.substring(name.indexOf(".") + 1);
     }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static  Pair<Comparable<?>,Comparable<?>> sortComparable(Comparable<?> a, Comparable<?> b) {
+        return (((Comparable) a).compareTo(b) <= 0) ? new Pair<>(a,b)
+                                        : new Pair<>(b,a);
+    }
+
 }
