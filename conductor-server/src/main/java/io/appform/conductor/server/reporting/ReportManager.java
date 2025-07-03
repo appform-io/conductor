@@ -64,6 +64,9 @@ import static io.appform.conductor.server.utils.ConductorServerUtils.tabulateTic
 @Order(200)
 public class ReportManager implements Managed {
     private static final String HANDLER_NAME = "REPORT_POLLER";
+    private static final String REPORT_PREFIX = "conductor-report-";
+    private static final String REPORT_EXTENSION = ".csv" ;
+
 
     private final ReportStore reportStore;
     private final ScheduledSignal poller = new ScheduledSignal(java.time.Duration.ofMinutes(1));
@@ -279,8 +282,8 @@ public class ReportManager implements Managed {
                                                "Parsing error for CQL: " + report.getCqlQuery());
                 }
                 var responseCount = 0;
-                val file = File.createTempFile("conductor-report-" + run.getRunId(),
-                                               reportNameDateFormat.format(date));
+                val file = File.createTempFile( REPORT_PREFIX + run.getRunId(),
+                                               reportNameDateFormat.format(date) + REPORT_EXTENSION);
                 var printer = (CSVPrinter) null;
                 try (val writer = new FileWriter(file)) {
                     do {
