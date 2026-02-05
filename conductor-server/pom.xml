@@ -42,7 +42,7 @@
         <commons-csv.version>1.10.0</commons-csv.version>
         <cronutils.version>9.2.0</cronutils.version>
         <hazelcast.version>5.3.6</hazelcast.version>
-        <jsoup.version>1.13.1</jsoup.version>
+        <jsoup.version>1.15.3</jsoup.version>
     </properties>
 
     <dependencies>
