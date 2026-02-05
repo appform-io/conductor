@@ -150,6 +150,8 @@ class WorkflowManagerTest {
                             .anyMatch(actionImportResult -> !actionImportResult.isSuccess()));
         assertFalse(result.getActions().stream()
                             .anyMatch(actionImportResult -> !actionImportResult.isSuccess()));
+        assertEquals("Subject", result.getWorkflow().getData().getSubjectIdTemplate().getTemplate());
+        assertEquals("Description", result.getWorkflow().getData().getDescriptionTemplate().getTemplate());
 
         {
             val idempotentResult = wfm.importWorkflow(workflowDetails, false, false);
@@ -159,6 +161,8 @@ class WorkflowManagerTest {
                                 .noneMatch(ImportResult::isSuccess)); //Actions can't be overwritten
             assertTrue(idempotentResult.getTasks().stream()
                                 .noneMatch(ImportResult::isSuccess)); //Tasks can't be overwritten
+            assertEquals("Subject", idempotentResult.getWorkflow().getData().getSubjectIdTemplate().getTemplate());
+            assertEquals("Description", idempotentResult.getWorkflow().getData().getDescriptionTemplate().getTemplate());
         }
         {
             val idempotentResult = wfm.importWorkflow(workflowDetails, true, true);
