@@ -16,7 +16,6 @@
 
 package io.appform.conductor.server.workflowmanagement;
 
-import com.google.common.collect.Sets;
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.error.ConductorErrorCode;
@@ -538,8 +537,8 @@ public class WorkflowManager {
                                                inWorkflow.getDescription(),
                                                inWorkflow.getSchemaId(),
                                                inWorkflow.getTitleTemplate(),
-                                               inWorkflow.getSubjectIdTemplate(),
-                                               inWorkflow.getDescriptionTemplate())
+                                               inWorkflow.getDescriptionTemplate(),
+                                               inWorkflow.getSubjectIdTemplate())
                         .flatMap(wf -> workflowStore.update(wf.getId(),
                                                             existing -> existing.setStartStateId(inWorkflow.getStartStateId()))))
                 .map(workflow -> {
@@ -564,7 +563,7 @@ public class WorkflowManager {
                                                                                                      transition.getType(),
                                                                                                      transition.getRule(),
                                                                                                      transition.getActionIds())));
-                    return inWorkflow;
+                    return workflow;
                 })
                 .map(workflow -> new ImportResult<>(workflow, true, null))
                 .orElse(new ImportResult<>(inWorkflow, false, ConductorErrorCode.STORE_WRITE_ERROR.name()));

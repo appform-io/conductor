@@ -4,6 +4,14 @@
     "displayName" : "TestWorkflow",
     "description" : "Description",
     "schemaId" : "testingschema",
+    "descriptionTemplate" : {
+      "type" : "FIXED",
+      "template" : "Description"
+    },
+    "subjectIdTemplate" : {
+       "type" : "FIXED",
+      "template" : "Subject"
+    },
     "states" : {
       "TESTWORKFLOW_FIRST_STATE" : {
         "id" : "TESTWORKFLOW_FIRST_STATE",
