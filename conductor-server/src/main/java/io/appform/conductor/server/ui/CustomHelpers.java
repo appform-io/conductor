@@ -705,6 +705,30 @@ public class CustomHelpers {
         return "";
     }
 
+    /**
+     * Extract a String value from a JSON object using a JSON Pointer path.
+     * Converts the context object to a JsonNode and navigates using the pointer parameter.
+     * 
+     * Usage: {{valueFromJson pointer='/message/0/id'}}
+     * 
+     * @param context the object to convert to JSON
+     * @param options Handlebars options containing the 'pointer' parameter with JSON Pointer path
+     * @return the string value at the pointer location, or empty string if not found or null
+     */
+    @SneakyThrows
+    public String valueFromJson(Object context, Options options) {
+        val node = MAPPER.valueToTree(context);
+        val pointer = (String) options.hash(POINTER);
+        if (!Strings.isNullOrEmpty(pointer) ) {
+            val valueNode = node.at(pointer);
+            if (Objects.isNull(valueNode) || valueNode.isNull()) {
+                return "";
+            }
+            return valueNode.asText();
+        }
+        return "";
+    }
+
     public long toIntPtr(Object context, Options options) {
         val node = MAPPER.valueToTree(context);
         final String pointer = options.hash(POINTER);

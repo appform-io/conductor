@@ -40,11 +40,13 @@ public class TemplateEngine {
             FixedTextTemplateEvaluator fixedTextTemplateEvaluator,
             StringSubstitutionTextTemplateEvaluator stringSubstitutionTemplateEvaluator,
             HandlebarsTextTemplateEvaluator handlebarsTextTemplateEvaluator,
-            FixedObjectTemplateEvaluator fixedObjectTemplateEvaluator) {
+            FixedObjectTemplateEvaluator fixedObjectTemplateEvaluator,
+            HandlebarsObjectTemplateEvaluator handlebarsObjectTemplateEvaluator) {
         textEvaluators = Map.of(Template.Type.FIXED, fixedTextTemplateEvaluator,
                                   Template.Type.STRING_SUBSTITUTION, stringSubstitutionTemplateEvaluator,
                                   Template.Type.HANDLEBARS, handlebarsTextTemplateEvaluator);
-        objectEvaluators = Map.of(Template.Type.FIXED, fixedObjectTemplateEvaluator);
+        objectEvaluators = Map.of(Template.Type.FIXED, fixedObjectTemplateEvaluator,
+                Template.Type.HANDLEBARS, handlebarsObjectTemplateEvaluator);
     }
 
 

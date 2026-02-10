@@ -955,6 +955,20 @@ public class HandlebarsTextTemplateEvaluatorTest {
     }
 
     @Test
+    public void testValueFromJson() {
+        val mapper = Jackson.newObjectMapper();
+
+        val node = mapper.createObjectNode()
+                .set("message", mapper.createArrayNode().add(mapper.createObjectNode().set("id", TextNode.valueOf("893649f5-9cf9-4422-87d1-a9c4258045e7"))));
+
+        val transformed = handlebarTextTemplateEvaluator.evaluate(new Template(Template.Type.HANDLEBARS, "{{valueFromJson pointer='/message/0/id'}}"), node).get();
+        assertEquals("893649f5-9cf9-4422-87d1-a9c4258045e7", transformed);
+
+        val incorrectPointer = handlebarTextTemplateEvaluator.evaluate(new Template(Template.Type.HANDLEBARS, "{{valueFromJson pointer='/message/1/id'}}"), node).get();
+        assertEquals("", incorrectPointer);
+    }
+
+    @Test
     public void testStringEqualsIgnoreCase() {
 
 
