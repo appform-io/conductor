@@ -40,7 +40,8 @@ public class WebhookActionExecutorTest {
         val templateEngine = new TemplateEngine(new FixedTextTemplateEvaluator(),
                 new StringSubstitutionTextTemplateEvaluator(mapper),
                 new HandlebarsTextTemplateEvaluator(mapper),
-                new FixedObjectTemplateEvaluator(mapper));
+                new FixedObjectTemplateEvaluator(mapper),
+                new HandlebarsObjectTemplateEvaluator(mapper));
         val httpClient = ConductorServerUtils.createHttpClient();
         //create webhookActionExecutor
         WebhookActionExecutor webhookActionExecutor = new WebhookActionExecutor(templateEngine, httpClient, mapper);
@@ -79,7 +80,8 @@ public class WebhookActionExecutorTest {
         val templateEngine = new TemplateEngine(new FixedTextTemplateEvaluator(),
                 new StringSubstitutionTextTemplateEvaluator(mapper),
                 new HandlebarsTextTemplateEvaluator(mapper),
-                new FixedObjectTemplateEvaluator(mapper));
+                new FixedObjectTemplateEvaluator(mapper),
+                new HandlebarsObjectTemplateEvaluator(mapper));
         val httpClient = ConductorServerUtils.createHttpClient();
         //create webhookActionExecutor
         WebhookActionExecutor webhookActionExecutor = new WebhookActionExecutor(templateEngine, httpClient, mapper);

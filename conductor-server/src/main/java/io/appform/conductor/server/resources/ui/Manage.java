@@ -438,7 +438,7 @@ public class Manage {
         return workflowManager.updateTemplates(workflowId,
                                                template(titleTemplate),
                                                template(descriptionTemplate),
-                                               template(subjectTemplate))
+                                               templateHandlebars(subjectTemplate))
                 .map(wf -> redirect("/manage/workflow/" + wf.getId()))
                 .orElseThrow(() -> fail("Failed to update workflow " + workflowId, "/manage/workflow"));
     }
@@ -1021,6 +1021,12 @@ public class Manage {
     private static io.appform.conductor.model.workflow.Template template(String templateValue) {
         return new io.appform.conductor.model.workflow.Template(io.appform.conductor.model.workflow.Template.Type.STRING_SUBSTITUTION,
                                                                 templateValue);
+    }
+
+
+    private static io.appform.conductor.model.workflow.Template templateHandlebars(String templateValue) {
+        return new io.appform.conductor.model.workflow.Template(io.appform.conductor.model.workflow.Template.Type.HANDLEBARS,
+                templateValue);
     }
 
     private static Rule createAssignmentRule(GroupType type, List<String> skillValueId) {

@@ -20,9 +20,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.workflow.Template;
+import io.appform.conductor.server.utils.HandlebarsUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.apache.commons.text.StringSubstitutor;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -34,13 +34,21 @@ import java.util.Optional;
  */
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = {@Inject})
-public class StringSubstitutionTextTemplateEvaluator implements TextTemplateEvaluator {
+public class HandlebarsObjectTemplateEvaluator implements ObjectTemplateEvaluator {
     private final ObjectMapper mapper;
 
     @Override
     @SneakyThrows
-    public Optional<String> evaluate(Template template, JsonNode payload) {
-        return Optional.of(StringSubstitutor.replace(
-                template.getTemplate(), mapper.convertValue(payload, new TypeReference<Map<String, Object>>() {})));
+    public <T> Optional<T> evaluate(Template template, JsonNode payload, Class<T> clazz) {
+        return Optional.of(HandlebarsUtils.handlebars().compileInline(template.getTemplate())
+                        .apply(mapper.convertValue(payload, new TypeReference<Map<String, Object>>() {
+                        })))
+                .map(s -> {
+                    try {
+                        return mapper.readValue(s, clazz);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to parse substituted string to object", e);
+                    }
+                });
     }
 }

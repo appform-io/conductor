@@ -157,7 +157,8 @@ class TicketManagerTest {
         val te = new TemplateEngine(new FixedTextTemplateEvaluator(),
                                     new StringSubstitutionTextTemplateEvaluator(mapper),
                                     new HandlebarsTextTemplateEvaluator(mapper),
-                                    new FixedObjectTemplateEvaluator(mapper));
+                                    new FixedObjectTemplateEvaluator(mapper),
+                                    new HandlebarsObjectTemplateEvaluator(mapper));
         val workflowSelector = new WorkflowSelector(wStore, re);
         workflowSelector.start();
         val actionExecutor = mock(ActionExecutor.class);
