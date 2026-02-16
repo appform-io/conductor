@@ -4,6 +4,7 @@ import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.ticket.fields.FieldValue;
 import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
 import io.appform.conductor.model.ticket.fields.impl.*;
+import io.appform.conductor.server.utils.Constants;
 import io.appform.conductor.server.utils.persistence.StringListConverter;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
@@ -34,7 +35,7 @@ public class StoredEmbeddedFieldValue implements Serializable {
     @Enumerated(EnumType.STRING)
     private FieldType type;
 
-    @Column(name = "string_value", length = 512)
+    @Column(name = "string_value", length = Constants.MAX_STRING_FIELD_VALUE_LENGTH)
     private String stringValue;
 
     @Column(name = "boolean_value")
