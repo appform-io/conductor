@@ -3,7 +3,7 @@ package io.appform.conductor.server.errorhandlers;
 import io.appform.conductor.model.apis.ConductorApiResponse;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import ru.vyarus.dropwizard.guice.module.installer.feature.jersey.JerseyManaged;

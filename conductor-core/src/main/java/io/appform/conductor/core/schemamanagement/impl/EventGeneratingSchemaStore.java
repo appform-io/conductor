@@ -1,0 +1,90 @@
+package io.appform.conductor.core.schemamanagement.impl;
+
+import io.appform.conductor.model.schema.FieldSchema;
+import io.appform.conductor.model.schema.Schema;
+import io.appform.conductor.model.schema.SchemaState;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.eventmanagement.EventBus;
+import io.appform.conductor.model.events.impl.schema.*;
+import lombok.val;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+import java.util.List;
+import java.util.Optional;
+
+@Singleton
+public class EventGeneratingSchemaStore implements SchemaStore {
+    private final EventBus eventBus;
+    private final SchemaStore schemaStore;
+
+    @Inject
+    public EventGeneratingSchemaStore(EventBus eventBus, @Named(Constants.CACHED_IMPLEMENTATION_NAME) SchemaStore schemaStore) {
+        this.eventBus = eventBus;
+        this.schemaStore = schemaStore;
+    }
+
+    @Override
+    public Optional<Schema> create(String name, String description) {
+        val res = schemaStore.create(name, description);
+        res.ifPresent(schemaSummary -> eventBus.publish(new SchemaCreatedEvent(schemaSummary.getId())));
+        return res;
+    }
+
+    @Override
+    public Optional<Schema> read(String schemaId) {
+        return schemaStore.read(schemaId);
+    }
+
+    @Override
+    public List<Schema> list() {
+        return schemaStore.list();
+    }
+
+    @Override
+    public Optional<Schema> updateDescription(String schemaId, String description) {
+        val res = schemaStore.updateDescription(schemaId, description);
+        res.filter(schemaSummary -> schemaSummary.getDescription().equals(description))
+                .ifPresent(schemaSummary -> eventBus.publish(new SchemaDescriptionUpdatedEvent(schemaSummary.getId(),
+                        schemaSummary.getDescription())));
+        return res;
+    }
+
+    @Override
+    public Optional<Schema> updateState(String schemaId, SchemaState state) {
+        val res = schemaStore.updateState(schemaId, state);
+        res.filter(schemaSummary -> schemaSummary.getState() == state)
+                .ifPresent(schemaSummary -> eventBus.publish(new SchemaStateUpdatedEvent(schemaSummary.getId(),
+                                                                                         schemaSummary.getState())));
+        return res;
+    }
+
+    @Override
+    public Optional<FieldSchema> addField(String schemaId, String fieldId, FieldSchema schema) {
+        val res = schemaStore.addField(schemaId, fieldId, schema);
+        res.ifPresent(fieldSchema -> eventBus.publish(new SchemaFieldAddedEvent(schemaId, fieldSchema.getId())));
+        return res;
+    }
+
+    @Override
+    public Optional<FieldSchema> getField(String schemaId, String fieldId) {
+        return schemaStore.getField(schemaId, fieldId);
+    }
+
+    @Override
+    public Optional<FieldSchema> updateField(String schemaId, String fieldId, FieldSchema updated) {
+        val res = schemaStore.updateField(schemaId, fieldId, updated);
+        res.ifPresent(fieldSchema -> eventBus.publish(new SchemaFieldUpdatedEvent(schemaId, fieldSchema.getId())));
+        return res;
+    }
+
+    @Override
+    public boolean deleteField(String schemaId, String fieldId) {
+        val res = schemaStore.deleteField(schemaId, fieldId);
+        if(res) {
+            eventBus.publish(new SchemaFieldDeletedEvent(schemaId, fieldId));
+        }
+        return res;
+    }
+}

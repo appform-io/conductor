@@ -17,6 +17,7 @@
 package io.appform.conductor.server.schemamanagement.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.appform.conductor.core.schemamanagement.impl.SchemaStore;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.FieldSchema;
@@ -24,7 +25,7 @@ import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.schema.fields.*;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.junit.jupiter.api.BeforeAll;
@@ -32,7 +33,7 @@ import org.junit.jupiter.api.BeforeAll;
 import java.util.Date;
 import java.util.List;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.configureMapper;
+import static io.appform.conductor.core.utils.ConductorServerUtils.configureMapper;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**

@@ -24,20 +24,20 @@ import io.appform.conductor.model.actions.impl.RouteToGroupAction;
 import io.appform.conductor.model.actions.impl.WebhookAction;
 import io.appform.conductor.model.actions.impl.SetFieldAction;
 import io.appform.conductor.model.ticket.TicketPriority;
-import io.appform.conductor.server.actionmanagement.ActionStore;
-import io.appform.conductor.server.auth.ConductorUser;
-import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
-import io.appform.conductor.server.ui.views.actions.ActionListView;
-import io.appform.conductor.server.ui.views.actions.fragments.AddTicketActionFragment;
-import io.appform.conductor.server.ui.views.actions.fragments.ChangePriorityActionFragment;
-import io.appform.conductor.server.ui.views.actions.fragments.RouteToGroupActionFragment;
-import io.appform.conductor.server.ui.views.actions.fragments.WebHookActionFragment;
-import io.appform.conductor.server.ui.views.actions.fragments.SetFieldActionFragment;
-import io.appform.conductor.server.usermanagement.GroupStore;
-import io.appform.conductor.server.utils.ConductorServerUtils;
-import io.appform.conductor.server.utils.Constants;
-import io.appform.conductor.server.utils.Pair;
-import io.appform.conductor.server.workflowmanagement.WorkflowStore;
+import io.appform.conductor.core.actionmanagement.ActionStore;
+import io.appform.conductor.core.auth.ConductorUser;
+import io.appform.conductor.core.schemamanagement.impl.SchemaStore;
+import io.appform.conductor.console.ui.views.actions.ActionListView;
+import io.appform.conductor.console.ui.views.actions.fragments.AddTicketActionFragment;
+import io.appform.conductor.console.ui.views.actions.fragments.ChangePriorityActionFragment;
+import io.appform.conductor.console.ui.views.actions.fragments.RouteToGroupActionFragment;
+import io.appform.conductor.console.ui.views.actions.fragments.WebHookActionFragment;
+import io.appform.conductor.console.ui.views.actions.fragments.SetFieldActionFragment;
+import io.appform.conductor.core.interfaces.GroupStore;
+import io.appform.conductor.core.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.utils.Pair;
+import io.appform.conductor.core.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +56,7 @@ import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.*;
+import static io.appform.conductor.core.utils.ConductorServerUtils.*;
 
 /**
  *

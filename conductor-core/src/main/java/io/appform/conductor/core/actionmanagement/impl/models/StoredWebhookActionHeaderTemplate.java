@@ -1,0 +1,77 @@
+package io.appform.conductor.core.actionmanagement.impl.models;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.appform.conductor.model.workflow.Template;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.utils.persistence.TemplateConverter;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.FieldNameConstants;
+import org.hibernate.Hibernate;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import javax.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Objects;
+
+@Entity
+@Table(name = StoredWebhookActionHeaderTemplate.WEBHOOK_ACTION_HEADER_TEMPLATE_TABLE,
+        uniqueConstraints = @UniqueConstraint(name = "uk_action_id_name", columnNames = {"action_id", "name"}))
+@Getter
+@Setter
+@ToString
+@FieldNameConstants
+@NoArgsConstructor
+public class StoredWebhookActionHeaderTemplate implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = -2573719655378348497L;
+
+    public static final String WEBHOOK_ACTION_HEADER_TEMPLATE_TABLE = "webhook_action_header_templates";
+
+    @Id
+    private String id;
+
+    @JsonIgnore
+    @ToString.Exclude
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "action_id")
+    private StoredWebhookAction action;
+
+    @Column(name = "name", length = 45)
+    private String name;
+
+    @SuppressWarnings("java:S1948")
+    @Convert(converter = TemplateConverter.class)
+    @Column(name = "template" , columnDefinition = "text", length = Constants.MAX_TEMPLATE_LENGTH)
+    private Template template;
+
+    @Column(name = "active")
+    private boolean active;
+
+    @CreationTimestamp
+    @Column(name = "created", columnDefinition = Constants.CREATED_DATE_DEFINITION)
+    private Date created;
+
+    @UpdateTimestamp
+    @Column(name = "updated", columnDefinition = Constants.UPDATED_DATE_DEFINITION)
+    private Date updated;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        StoredWebhookActionHeaderTemplate that = (StoredWebhookActionHeaderTemplate) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+}

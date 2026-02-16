@@ -1,7 +1,7 @@
 package io.appform.conductor.server.resources.apis;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.appform.conductor.server.ticketmanagement.TicketManager;
+import io.appform.conductor.core.ticketmanagement.TicketManager;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

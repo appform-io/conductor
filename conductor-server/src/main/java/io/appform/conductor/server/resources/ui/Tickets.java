@@ -26,17 +26,17 @@ import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
 import io.appform.conductor.model.workflow.WorkflowState;
-import io.appform.conductor.server.actionmanagement.ActionStore;
-import io.appform.conductor.server.auth.ConductorUser;
-import io.appform.conductor.server.parser.CQLEngine;
-import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
-import io.appform.conductor.server.ticketmanagement.TicketManager;
-import io.appform.conductor.server.ticketmanagement.TicketSkeletonListResult;
-import io.appform.conductor.server.ui.views.tickets.*;
-import io.appform.conductor.server.ui.views.tickets.fragments.CommentsFragment;
-import io.appform.conductor.server.usermanagement.GroupStore;
-import io.appform.conductor.server.utils.Constants;
-import io.appform.conductor.server.workflowmanagement.WorkflowStore;
+import io.appform.conductor.core.actionmanagement.ActionStore;
+import io.appform.conductor.core.auth.ConductorUser;
+import io.appform.conductor.core.parser.CQLEngine;
+import io.appform.conductor.core.schemamanagement.impl.SchemaStore;
+import io.appform.conductor.core.ticketmanagement.TicketManager;
+import io.appform.conductor.core.ticketmanagement.TicketSkeletonListResult;
+import io.appform.conductor.console.ui.views.tickets.*;
+import io.appform.conductor.console.ui.views.tickets.fragments.CommentsFragment;
+import io.appform.conductor.core.interfaces.GroupStore;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +63,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.*;
+import static io.appform.conductor.core.utils.ConductorServerUtils.*;
 
 /**
  * Ticket management UI

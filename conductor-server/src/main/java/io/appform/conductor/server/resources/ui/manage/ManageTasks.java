@@ -26,16 +26,16 @@ import io.appform.conductor.model.ticket.analytics.TicketUserAssignmentStatus;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilterType;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
-import io.appform.conductor.server.actionmanagement.ActionStore;
-import io.appform.conductor.server.auth.ConductorUser;
-import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
-import io.appform.conductor.server.taskmanagement.TaskStore;
-import io.appform.conductor.server.ui.views.tasks.RunActionOnCQLSelectView;
-import io.appform.conductor.server.ui.views.tasks.RunActionOnSelectedTicketsView;
-import io.appform.conductor.server.ui.views.tasks.TaskListView;
-import io.appform.conductor.server.usermanagement.GroupStore;
-import io.appform.conductor.server.utils.Constants;
-import io.appform.conductor.server.workflowmanagement.WorkflowStore;
+import io.appform.conductor.core.actionmanagement.ActionStore;
+import io.appform.conductor.core.auth.ConductorUser;
+import io.appform.conductor.core.taskmanagement.ConductorTaskScheduler;
+import io.appform.conductor.core.taskmanagement.TaskStore;
+import io.appform.conductor.console.ui.views.tasks.RunActionOnCQLSelectView;
+import io.appform.conductor.console.ui.views.tasks.RunActionOnSelectedTicketsView;
+import io.appform.conductor.console.ui.views.tasks.TaskListView;
+import io.appform.conductor.core.interfaces.GroupStore;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
 import io.dropwizard.util.Duration;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +58,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.*;
+import static io.appform.conductor.core.utils.ConductorServerUtils.*;
 
 /**
  *

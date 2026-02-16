@@ -16,6 +16,8 @@
 
 package io.appform.conductor.server.parser;
 
+import io.appform.conductor.core.parser.CQLEngine;
+import io.appform.conductor.core.parser.CQLFilterFunctionRegistry;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.schema.TicketState;
@@ -23,8 +25,8 @@ import io.appform.conductor.model.schema.fields.StringFieldSchema;
 import io.appform.conductor.model.ticket.filter.TicketFilterType;
 import io.appform.conductor.model.ticket.filter.ticketfilters.TicketExternalReferenceEquals;
 import io.appform.conductor.model.workflow.*;
-import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
-import io.appform.conductor.server.workflowmanagement.WorkflowStore;
+import io.appform.conductor.core.schemamanagement.impl.SchemaStore;
+import io.appform.conductor.core.workflowmanagement.WorkflowStore;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 

@@ -16,9 +16,9 @@
 
 package io.appform.conductor.server;
 
-import io.appform.conductor.server.config.hz.ClusterConfig;
-import io.appform.conductor.server.config.hz.SimpleClusterDiscoveryConfig;
-import io.appform.conductor.server.hazelcast.HazelcastClient;
+import io.appform.conductor.core.config.hz.ClusterConfig;
+import io.appform.conductor.core.config.hz.SimpleClusterDiscoveryConfig;
+import io.appform.conductor.core.hazelcast.HazelcastClient;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.junit.jupiter.api.extension.*;

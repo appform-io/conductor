@@ -18,11 +18,11 @@ package io.appform.conductor.server.resources.ui.manage;
 
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.auth.Permission;
-import io.appform.conductor.server.auth.ConductorUser;
-import io.appform.conductor.server.reporting.ReportManager;
-import io.appform.conductor.server.ui.views.reports.ReportListView;
-import io.appform.conductor.server.utils.ConductorServerUtils;
-import io.appform.conductor.server.utils.Constants;
+import io.appform.conductor.core.auth.ConductorUser;
+import io.appform.conductor.console.reporting.ReportManager;
+import io.appform.conductor.console.ui.views.reports.ReportListView;
+import io.appform.conductor.core.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.Constants;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.Length;
@@ -39,7 +39,7 @@ import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.*;
+import static io.appform.conductor.core.utils.ConductorServerUtils.*;
 
 /**
  *

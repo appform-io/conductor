@@ -20,17 +20,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import io.appform.conductor.model.auth.Permission;
-import io.appform.conductor.server.auth.ConductorUser;
-import io.appform.conductor.server.dashboards.DashboardStore;
-import io.appform.conductor.server.dashboards.model.DashboardRow;
-import io.appform.conductor.server.dashboards.model.DashboardSpec;
-import io.appform.conductor.server.dashboards.model.DashboardWidget;
-import io.appform.conductor.server.dashboards.model.SpecVersion;
-import io.appform.conductor.server.ui.views.manage.DashboardListView;
-import io.appform.conductor.server.ui.views.manage.DashboardView;
-import io.appform.conductor.server.ui.views.manage.NewDashboardView;
-import io.appform.conductor.server.utils.ConductorServerUtils;
-import io.appform.conductor.server.utils.Constants;
+import io.appform.conductor.core.auth.ConductorUser;
+import io.appform.conductor.console.dashboards.DashboardStore;
+import io.appform.conductor.console.dashboards.model.DashboardRow;
+import io.appform.conductor.console.dashboards.model.DashboardSpec;
+import io.appform.conductor.console.dashboards.model.DashboardWidget;
+import io.appform.conductor.console.dashboards.model.SpecVersion;
+import io.appform.conductor.console.ui.views.manage.DashboardListView;
+import io.appform.conductor.console.ui.views.manage.DashboardView;
+import io.appform.conductor.console.ui.views.manage.NewDashboardView;
+import io.appform.conductor.core.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.Constants;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -49,7 +49,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.util.*;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.*;
+import static io.appform.conductor.core.utils.ConductorServerUtils.*;
 
 /**
  *

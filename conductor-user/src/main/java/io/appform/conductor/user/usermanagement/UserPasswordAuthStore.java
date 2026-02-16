@@ -1,0 +1,47 @@
+/*
+ * Copyright (c) 2023 Santanu Sinha
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package io.appform.conductor.user.usermanagement;
+
+import io.appform.conductor.user.internalmodels.auth.UserPasswordAuthDetails;
+
+import java.util.Optional;
+import java.util.function.ToIntFunction;
+import java.util.function.UnaryOperator;
+
+/**
+ *
+ */
+public interface UserPasswordAuthStore {
+    Optional<UserPasswordAuthDetails> set(final String userId, final String password);
+
+    Optional<UserPasswordAuthDetails> update(final String userId, final UnaryOperator<UserPasswordAuthDetails> updater);
+
+    default Optional<UserPasswordAuthDetails> updatePassword(final String userId, final String password) {
+        return update(userId, user -> user.withPassword(password)
+                .withFailedPasswordAttempts(0));
+    }
+
+    default Optional<UserPasswordAuthDetails> updateFailedPasswordAttempt(
+            final String userId,
+            final ToIntFunction<Integer> attempts) {
+        return update(userId,
+                      passwordDetails -> passwordDetails.withFailedPasswordAttempts(
+                              attempts.applyAsInt(passwordDetails.getFailedPasswordAttempts())));
+    }
+
+    Optional<UserPasswordAuthDetails> get(final String userId);
+}

@@ -19,7 +19,7 @@ package io.appform.conductor.server.workflowmanagement.impl;
 import io.appform.conductor.model.workflow.Rule;
 import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.model.workflow.TicketStateTransition;
-import io.appform.conductor.server.workflowmanagement.WorkflowStore;
+import io.appform.conductor.core.workflowmanagement.WorkflowStore;
 import lombok.val;
 
 import java.util.List;

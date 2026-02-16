@@ -1,8 +1,9 @@
 package io.appform.conductor.server.ingressmanagement;
 
+import io.appform.conductor.core.ingressmanagement.IngressTranslatorStore;
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.workflow.Template;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import lombok.val;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

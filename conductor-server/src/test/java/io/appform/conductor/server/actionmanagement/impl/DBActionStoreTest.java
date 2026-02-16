@@ -1,5 +1,6 @@
 package io.appform.conductor.server.actionmanagement.impl;
 
+import io.appform.conductor.core.actionmanagement.impl.DBActionStore;
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.actions.impl.*;
 import io.appform.conductor.model.error.ConductorErrorCode;
@@ -8,7 +9,7 @@ import io.appform.conductor.model.workflow.Template;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
-import io.appform.conductor.server.actionmanagement.impl.models.StoredAction;
+import io.appform.conductor.core.actionmanagement.impl.models.StoredAction;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import lombok.val;

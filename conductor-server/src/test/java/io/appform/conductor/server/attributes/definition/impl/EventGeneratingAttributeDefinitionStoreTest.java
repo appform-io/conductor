@@ -17,6 +17,9 @@
 package io.appform.conductor.server.attributes.definition.impl;
 
 import com.google.common.collect.Sets;
+import io.appform.conductor.core.attributes.definition.impl.CachingAttributeDefinitionStore;
+import io.appform.conductor.core.attributes.definition.impl.DBAttributeDefinitionStore;
+import io.appform.conductor.core.attributes.definition.impl.EventGeneratingAttributeDefinitionStore;
 import io.appform.conductor.model.attributes.definition.AttributeDefinition;
 import io.appform.conductor.model.attributes.definition.impl.StringAttributeDefinition;
 import io.appform.conductor.model.events.EventType;
@@ -24,9 +27,9 @@ import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.HazelcastTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
-import io.appform.conductor.server.attributes.definition.impl.models.StoredAttributeDefinition;
-import io.appform.conductor.server.eventmanagement.bus.SignalDrivenEventBus;
-import io.appform.conductor.server.hazelcast.HazelcastClient;
+import io.appform.conductor.core.attributes.definition.impl.models.StoredAttributeDefinition;
+import io.appform.conductor.core.eventmanagement.bus.SignalDrivenEventBus;
+import io.appform.conductor.core.hazelcast.HazelcastClient;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.val;
 import org.junit.jupiter.api.Test;

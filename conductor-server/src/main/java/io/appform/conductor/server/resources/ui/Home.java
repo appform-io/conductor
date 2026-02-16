@@ -23,12 +23,12 @@ import io.appform.conductor.model.ticket.filter.ticketfilters.TicketStateIn;
 import io.appform.conductor.model.ticket.filter.ticketfilters.TicketUnAssignedToUser;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.workflow.WorkflowState;
-import io.appform.conductor.server.auth.ConductorUser;
+import io.appform.conductor.core.auth.ConductorUser;
 import io.appform.conductor.model.ticket.analytics.TicketGist;
-import io.appform.conductor.server.ticketmanagement.TicketManager;
-import io.appform.conductor.server.ui.views.HomeView;
-import io.appform.conductor.server.usermanagement.GroupStore;
-import io.appform.conductor.server.workflowmanagement.WorkflowStore;
+import io.appform.conductor.core.ticketmanagement.TicketManager;
+import io.appform.conductor.console.ui.views.HomeView;
+import io.appform.conductor.core.interfaces.GroupStore;
+import io.appform.conductor.core.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.render;
+import static io.appform.conductor.core.utils.ConductorServerUtils.render;
 
 /**
  *

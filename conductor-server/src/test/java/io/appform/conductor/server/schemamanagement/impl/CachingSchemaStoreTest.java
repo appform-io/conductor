@@ -17,6 +17,8 @@
 package io.appform.conductor.server.schemamanagement.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.appform.conductor.core.schemamanagement.impl.CachingSchemaStore;
+import io.appform.conductor.core.schemamanagement.impl.DBSchemaStore;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.schema.Schema;
@@ -26,10 +28,10 @@ import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.HazelcastTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
-import io.appform.conductor.server.hazelcast.HazelcastClient;
-import io.appform.conductor.server.schemamanagement.impl.models.StoredFieldSchema;
-import io.appform.conductor.server.schemamanagement.impl.models.StoredSchemaSummary;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.hazelcast.HazelcastClient;
+import io.appform.conductor.core.schemamanagement.impl.models.StoredFieldSchema;
+import io.appform.conductor.core.schemamanagement.impl.models.StoredSchemaSummary;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -40,7 +42,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Date;
 import java.util.List;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.configureMapper;
+import static io.appform.conductor.core.utils.ConductorServerUtils.configureMapper;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**

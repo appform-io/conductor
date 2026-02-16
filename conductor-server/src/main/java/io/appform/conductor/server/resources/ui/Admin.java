@@ -16,23 +16,24 @@
 
 package io.appform.conductor.server.resources.ui;
 
+import io.appform.conductor.core.auth.RoleStore;
+import io.appform.conductor.core.auth.UserRoleMappingStore;
+import io.appform.conductor.core.interfaces.UserLifecycleManager;
+import io.appform.conductor.core.interfaces.UserStore;
 import io.appform.conductor.model.attributes.AttributeScopeType;
 import io.appform.conductor.model.auth.Permission;
 import io.appform.conductor.model.usermgmt.GroupType;
 import io.appform.conductor.model.usermgmt.UserState;
-import io.appform.conductor.server.attributes.values.AttributeManager;
-import io.appform.conductor.server.auth.ConductorUser;
-import io.appform.conductor.server.auth.RoleStore;
-import io.appform.conductor.server.auth.UserRoleMappingStore;
-import io.appform.conductor.server.config.AuthConfig;
-import io.appform.conductor.server.skillmanagement.SkillStore;
-import io.appform.conductor.server.ui.views.admin.RolesListView;
-import io.appform.conductor.server.ui.views.admin.UserAdminView;
-import io.appform.conductor.server.usermanagement.GroupStore;
-import io.appform.conductor.server.usermanagement.SessionStore;
-import io.appform.conductor.server.usermanagement.UserLifecycleManager;
-import io.appform.conductor.server.usermanagement.UserStore;
-import io.appform.conductor.server.utils.Constants;
+import io.appform.conductor.core.attributes.values.AttributeManager;
+import io.appform.conductor.core.auth.ConductorUser;
+
+import io.appform.conductor.core.config.AuthConfig;
+import io.appform.conductor.console.ui.views.admin.RolesListView;
+import io.appform.conductor.console.ui.views.admin.UserAdminView;
+import io.appform.conductor.core.interfaces.GroupStore;
+import io.appform.conductor.user.skillmanagement.SkillStore;
+import io.appform.conductor.user.usermanagement.SessionStore;
+import io.appform.conductor.core.utils.Constants;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +54,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.util.*;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.*;
+import static io.appform.conductor.core.utils.ConductorServerUtils.*;
 
 /**
  * Administration ui

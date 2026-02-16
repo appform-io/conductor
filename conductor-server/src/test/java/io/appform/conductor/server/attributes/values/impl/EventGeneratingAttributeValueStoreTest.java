@@ -17,6 +17,8 @@
 package io.appform.conductor.server.attributes.values.impl;
 
 import com.google.common.util.concurrent.MoreExecutors;
+import io.appform.conductor.core.attributes.values.impl.DBAttributeValueStore;
+import io.appform.conductor.core.attributes.values.impl.EventGeneratingAttributeValueStore;
 import io.appform.conductor.model.attributes.AttributeScopeType;
 import io.appform.conductor.model.attributes.definition.impl.*;
 import io.appform.conductor.model.attributes.value.impl.*;
@@ -24,8 +26,8 @@ import io.appform.conductor.model.events.impl.attributes.AttributeValueSavedEven
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
-import io.appform.conductor.server.attributes.values.impl.models.StoredAttributeValue;
-import io.appform.conductor.server.eventmanagement.bus.SignalDrivenEventBus;
+import io.appform.conductor.core.attributes.values.impl.models.StoredAttributeValue;
+import io.appform.conductor.core.eventmanagement.bus.SignalDrivenEventBus;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.SneakyThrows;
 import lombok.val;

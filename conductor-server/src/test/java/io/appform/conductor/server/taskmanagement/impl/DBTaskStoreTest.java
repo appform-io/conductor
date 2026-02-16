@@ -17,12 +17,13 @@
 package io.appform.conductor.server.taskmanagement.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.appform.conductor.core.taskmanagement.impl.DBTaskStore;
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.tasks.*;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
-import io.appform.conductor.server.taskmanagement.impl.models.StoredTask;
+import io.appform.conductor.core.taskmanagement.impl.models.StoredTask;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.val;
 import org.junit.jupiter.api.Test;

@@ -23,7 +23,7 @@ import io.appform.conductor.model.events.EventSubType;
 import io.appform.conductor.model.reporting.ReportRun;
 import io.appform.conductor.model.reporting.ReportRunResult;
 import io.appform.conductor.model.events.impl.reporting.ReportExecutionCompletedEvent;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;

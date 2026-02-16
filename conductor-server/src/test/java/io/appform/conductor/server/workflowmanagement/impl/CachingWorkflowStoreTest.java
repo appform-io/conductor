@@ -16,15 +16,17 @@
 
 package io.appform.conductor.server.workflowmanagement.impl;
 
+import io.appform.conductor.core.workflowmanagement.impl.CachingWorkflowStore;
+import io.appform.conductor.core.workflowmanagement.impl.DBWorkflowStore;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.HazelcastTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
-import io.appform.conductor.server.hazelcast.HazelcastClient;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketState;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketStateTransition;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflow;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflowSelectionRule;
+import io.appform.conductor.core.hazelcast.HazelcastClient;
+import io.appform.conductor.core.workflowmanagement.impl.models.StoredTicketState;
+import io.appform.conductor.core.workflowmanagement.impl.models.StoredTicketStateTransition;
+import io.appform.conductor.core.workflowmanagement.impl.models.StoredWorkflow;
+import io.appform.conductor.core.workflowmanagement.impl.models.StoredWorkflowSelectionRule;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.SneakyThrows;
 import lombok.val;

@@ -18,6 +18,8 @@ package io.appform.conductor.server.resources.ui;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+import io.appform.conductor.core.interfaces.UserLifecycleManager;
+import io.appform.conductor.core.workflowmanagement.WorkflowManager;
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.auth.Permission;
@@ -26,17 +28,15 @@ import io.appform.conductor.model.schema.fields.*;
 import io.appform.conductor.model.usermgmt.GroupType;
 import io.appform.conductor.model.usermgmt.Skill;
 import io.appform.conductor.model.workflow.*;
-import io.appform.conductor.server.actionmanagement.ActionStore;
-import io.appform.conductor.server.auth.ConductorUser;
-import io.appform.conductor.server.config.AuthConfig;
-import io.appform.conductor.server.ingressmanagement.IngressTranslatorStore;
-import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
-import io.appform.conductor.server.ui.views.manage.*;
-import io.appform.conductor.server.usermanagement.UserLifecycleManager;
-import io.appform.conductor.server.utils.ConductorServerUtils;
-import io.appform.conductor.server.utils.Constants;
-import io.appform.conductor.server.workflowmanagement.WorkflowManager;
-import io.appform.conductor.server.workflowmanagement.WorkflowStore;
+import io.appform.conductor.core.actionmanagement.ActionStore;
+import io.appform.conductor.core.auth.ConductorUser;
+import io.appform.conductor.core.config.AuthConfig;
+import io.appform.conductor.core.ingressmanagement.IngressTranslatorStore;
+import io.appform.conductor.core.schemamanagement.impl.SchemaStore;
+import io.appform.conductor.console.ui.views.manage.*;
+import io.appform.conductor.core.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.workflowmanagement.WorkflowStore;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -60,7 +60,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.*;
+import static io.appform.conductor.core.utils.ConductorServerUtils.*;
 
 /**
  * Administration ui
