@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.eventmanagement.bus;
+package io.appform.conductor.core.eventmanagement.bus;
 
 import io.appform.conductor.model.events.Event;
 import io.appform.conductor.model.events.EventType;
-import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.EventHandler;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.eventmanagement.EventBus;
+import io.appform.conductor.core.eventmanagement.EventHandler;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.appform.signals.signals.ConsumingFireForgetSignal;
 
 import javax.inject.Inject;

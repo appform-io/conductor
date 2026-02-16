@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.usermanagement.impl;
+package io.appform.conductor.user.usermanagement.impl;
 
+import io.appform.conductor.core.interfaces.UserStore;
+import io.appform.conductor.core.utils.Constants;
 import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.usermgmt.UserType;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.hazelcast.HazelcastClient;
-import io.appform.conductor.server.usermanagement.UserStore;
+import io.appform.conductor.core.hazelcast.HazelcastClient;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -53,7 +53,7 @@ public class CachingUserStore implements UserStore {
 
     @Inject
     public CachingUserStore(
-            @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) final UserStore root,
+            @Named(Constants.ROOT_IMPLEMENTATION_NAME) final UserStore root,
             final HazelcastClient hazelcastClient) {
         this.root = root;
         val cacheName = getClass().getSimpleName();

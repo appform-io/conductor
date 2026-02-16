@@ -1,4 +1,4 @@
-package io.appform.conductor.server.id.formatter;
+package io.appform.conductor.core.id.formatter;
 
 import lombok.experimental.UtilityClass;
 

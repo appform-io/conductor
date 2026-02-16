@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.eventmanagement.store.models;
+package io.appform.conductor.core.eventmanagement.store.models;
 
 import io.appform.conductor.model.events.EventType;
 import io.appform.conductor.model.events.impl.ReferredObjectType;
-import io.appform.conductor.server.utils.Constants;
+import io.appform.conductor.core.utils.Constants;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

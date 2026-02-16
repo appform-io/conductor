@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.schemamanagement.impl.models;
+package io.appform.conductor.core.schemamanagement.impl.models;
 
 import io.appform.conductor.model.schema.SchemaState;
-import io.appform.conductor.server.utils.Constants;
+import io.appform.conductor.core.utils.Constants;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

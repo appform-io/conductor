@@ -1,9 +1,9 @@
-package io.appform.conductor.server.actionmanagement;
+package io.appform.conductor.core.actionmanagement;
 
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.Scope;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.eventmanagement.EventBus;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.eventmanagement.EventBus;
 import io.appform.conductor.model.events.impl.actions.ActionCreatedEvent;
 import io.appform.conductor.model.events.impl.actions.ActionDeletedEvent;
 import io.appform.conductor.model.events.impl.actions.ActionUpdatedEvent;
@@ -23,7 +23,7 @@ public class EventGeneratingActionStore implements ActionStore {
     private final ActionStore actionStore;
 
     @Inject
-    public EventGeneratingActionStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) ActionStore actionStore) {
+    public EventGeneratingActionStore(EventBus eventBus, @Named(Constants.ROOT_IMPLEMENTATION_NAME) ActionStore actionStore) {
         this.eventBus = eventBus;
         this.actionStore = actionStore;
     }

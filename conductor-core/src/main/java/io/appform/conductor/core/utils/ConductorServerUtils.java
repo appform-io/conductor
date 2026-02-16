@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.utils;
+package io.appform.conductor.core.utils;
 
 import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
@@ -47,12 +47,12 @@ import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
 import io.appform.conductor.model.ticket.fields.TicketField;
 import io.appform.conductor.model.ticket.fields.impl.*;
 import io.appform.conductor.model.usermgmt.User;
-import io.appform.conductor.server.actionmanagement.ActionExecutor;
-import io.appform.conductor.server.auth.ConductorUser;
-import io.appform.conductor.server.id.IdGenerator;
-import io.appform.conductor.server.parser.CQLEngine;
-import io.appform.conductor.server.ticketmanagement.statemachine.models.TicketStateMachineContext;
-import io.appform.conductor.server.usermanagement.CurrentUserSessionStore;
+import io.appform.conductor.core.actionmanagement.ActionExecutor;
+import io.appform.conductor.core.auth.ConductorUser;
+import io.appform.conductor.core.id.IdGenerator;
+import io.appform.conductor.core.parser.CQLEngine;
+import io.appform.conductor.core.ticketmanagement.statemachine.models.TicketStateMachineContext;
+import io.appform.conductor.core.auth.CurrentUserSessionStore;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;

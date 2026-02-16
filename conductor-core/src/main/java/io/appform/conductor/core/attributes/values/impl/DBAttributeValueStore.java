@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.attributes.values.impl;
+package io.appform.conductor.core.attributes.values.impl;
 
 import io.appform.conductor.model.attributes.AttributeScopeType;
 import io.appform.conductor.model.attributes.value.AttributeValue;
 import io.appform.conductor.model.attributes.value.AttributeValueVisitor;
 import io.appform.conductor.model.attributes.value.impl.*;
 import io.appform.conductor.model.error.Throws;
-import io.appform.conductor.server.attributes.values.AttributeValueStore;
-import io.appform.conductor.server.attributes.values.impl.models.*;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.attributes.values.AttributeValueStore;
+import io.appform.conductor.core.attributes.values.impl.models.*;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.RequiredArgsConstructor;

@@ -1,12 +1,12 @@
-package io.appform.conductor.server.id;
+package io.appform.conductor.core.id;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
-import io.appform.conductor.server.id.constraints.impl.SameShardConstraint;
-import io.appform.conductor.server.id.constraints.impl.ShardProvider;
+import io.appform.conductor.core.id.constraints.impl.SameShardConstraint;
+import io.appform.conductor.core.id.constraints.impl.ShardProvider;
 import io.appform.dropwizard.sharding.utils.ShardCalculator;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.extern.slf4j.Slf4j;

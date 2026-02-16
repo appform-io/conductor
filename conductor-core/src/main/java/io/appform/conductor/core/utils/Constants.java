@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.utils;
+package io.appform.conductor.core.utils;
 
 import lombok.experimental.UtilityClass;
 
@@ -23,6 +23,10 @@ import lombok.experimental.UtilityClass;
  */
 @UtilityClass
 public class Constants {
+
+    public static final String ROOT_IMPLEMENTATION_NAME = "root";
+    public static final String CACHED_IMPLEMENTATION_NAME = "cached";
+    public static final String BACKGROUND_JOBS_POOL_NAME = "backgroundJobsPool";
 
     public static final String CREATED_DATE_DEFINITION = "datetime(3) DEFAULT current_timestamp(3)";
     public static final String UPDATED_DATE_DEFINITION = "datetime(3) DEFAULT current_timestamp(3) ON UPDATE current_timestamp(3)";

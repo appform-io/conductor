@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.workflowmanagement.impl;
+package io.appform.conductor.core.workflowmanagement.impl;
 
 import io.appform.conductor.model.workflow.*;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.eventmanagement.EventBus;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.eventmanagement.EventBus;
 import io.appform.conductor.model.events.impl.workflow.*;
-import io.appform.conductor.server.workflowmanagement.WorkflowStore;
+import io.appform.conductor.core.workflowmanagement.WorkflowStore;
 import lombok.val;
 
 import javax.inject.Inject;
@@ -37,7 +37,7 @@ public class EventGeneratingWorkflowStore implements WorkflowStore {
     private final WorkflowStore workflowStore;
 
     @Inject
-    public EventGeneratingWorkflowStore(EventBus eventBus, @Named(ConductorModule.CACHED_IMPLEMENTATION_NAME) WorkflowStore workflowStore) {
+    public EventGeneratingWorkflowStore(EventBus eventBus, @Named(Constants.CACHED_IMPLEMENTATION_NAME) WorkflowStore workflowStore) {
         this.eventBus = eventBus;
         this.workflowStore = workflowStore;
     }

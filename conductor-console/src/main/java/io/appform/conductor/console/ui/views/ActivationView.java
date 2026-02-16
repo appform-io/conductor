@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views;
+package io.appform.conductor.console.ui.views;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;

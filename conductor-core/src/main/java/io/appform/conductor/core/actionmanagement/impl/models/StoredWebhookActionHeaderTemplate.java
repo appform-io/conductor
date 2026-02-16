@@ -1,9 +1,9 @@
-package io.appform.conductor.server.actionmanagement.impl.models;
+package io.appform.conductor.core.actionmanagement.impl.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.appform.conductor.model.workflow.Template;
-import io.appform.conductor.server.utils.Constants;
-import io.appform.conductor.server.utils.persistence.TemplateConverter;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.utils.persistence.TemplateConverter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

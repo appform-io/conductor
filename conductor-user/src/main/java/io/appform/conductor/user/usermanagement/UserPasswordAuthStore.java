@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.usermanagement;
+package io.appform.conductor.user.usermanagement;
 
-import io.appform.conductor.server.internalmodels.auth.UserPasswordAuthDetails;
+import io.appform.conductor.user.internalmodels.auth.UserPasswordAuthDetails;
 
 import java.util.Optional;
 import java.util.function.ToIntFunction;

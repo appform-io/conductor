@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.usermanagement.support;
+package io.appform.conductor.user.usermanagement.support;
 
+import io.appform.conductor.core.interfaces.UserLifecycleManager;
 import io.appform.conductor.model.events.Event;
 import io.appform.conductor.model.events.EventType;
 import io.appform.conductor.model.skills.SkillValue;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.GroupType;
-import io.appform.conductor.server.eventmanagement.*;
+import io.appform.conductor.core.eventmanagement.*;
 import io.appform.conductor.model.events.impl.user.UserSkillAssociatedEvent;
 import io.appform.conductor.model.events.impl.user.UserSkillDisasocciatedEvent;
-import io.appform.conductor.server.usermanagement.UserLifecycleManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;

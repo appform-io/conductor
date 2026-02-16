@@ -1,8 +1,8 @@
-package io.appform.conductor.server.actionmanagement.impl.models;
+package io.appform.conductor.core.actionmanagement.impl.models;
 
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.actions.ActionType;
-import io.appform.conductor.server.utils.Constants;
+import io.appform.conductor.core.utils.Constants;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;

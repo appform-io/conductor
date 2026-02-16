@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ticketmanagement.impl;
+package io.appform.conductor.core.ticketmanagement.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,15 +37,15 @@ import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilterVisitor;
 import io.appform.conductor.model.ticket.filter.fieldfilters.*;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
-import io.appform.conductor.server.ticketmanagement.*;
-import io.appform.conductor.server.ticketmanagement.impl.models.StoredRelatedTicket;
-import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
-import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredAttachment;
-import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredComment;
-import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredEmbeddedFieldValue;
-import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
-import io.appform.conductor.server.utils.ConductorServerUtils;
-import io.appform.conductor.server.utils.Pair;
+import io.appform.conductor.core.ticketmanagement.*;
+import io.appform.conductor.core.ticketmanagement.impl.models.StoredRelatedTicket;
+import io.appform.conductor.core.ticketmanagement.impl.models.StoredTicketSkeleton;
+import io.appform.conductor.core.ticketmanagement.impl.models.comments.StoredAttachment;
+import io.appform.conductor.core.ticketmanagement.impl.models.comments.StoredComment;
+import io.appform.conductor.core.ticketmanagement.impl.models.fields.StoredEmbeddedFieldValue;
+import io.appform.conductor.core.ticketmanagement.impl.models.fields.StoredFieldValue;
+import io.appform.conductor.core.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.Pair;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.functionmetrics.MonitoredFunction;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.manage;
+package io.appform.conductor.console.ui.views.manage;
 
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.schema.Schema;
@@ -23,7 +23,7 @@ import io.appform.conductor.model.workflow.TicketStateTransition;
 import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.model.events.impl.ReferredObjectType;
 import io.appform.conductor.model.events.analytics.ObjectReference;
-import io.appform.conductor.server.ui.views.BaseLoggedInView;
+import io.appform.conductor.console.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;

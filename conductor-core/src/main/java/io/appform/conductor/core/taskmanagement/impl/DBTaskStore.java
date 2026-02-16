@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.taskmanagement.impl;
+package io.appform.conductor.core.taskmanagement.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
-import io.appform.conductor.server.taskmanagement.TaskStore;
-import io.appform.conductor.server.taskmanagement.impl.models.StoredTask;
+import io.appform.conductor.core.taskmanagement.TaskStore;
+import io.appform.conductor.core.taskmanagement.impl.models.StoredTask;
 import io.appform.conductor.model.tasks.Task;
 import io.appform.conductor.model.tasks.TaskSpec;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;

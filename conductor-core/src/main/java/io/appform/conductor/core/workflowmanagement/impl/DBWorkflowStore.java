@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.workflowmanagement.impl;
+package io.appform.conductor.core.workflowmanagement.impl;
 
 import com.google.common.base.Strings;
 import io.appform.conductor.model.error.ConductorErrorCode;
@@ -22,11 +22,11 @@ import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.workflow.*;
-import io.appform.conductor.server.workflowmanagement.WorkflowStore;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketState;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketStateTransition;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflow;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflowSelectionRule;
+import io.appform.conductor.core.workflowmanagement.WorkflowStore;
+import io.appform.conductor.core.workflowmanagement.impl.models.StoredTicketState;
+import io.appform.conductor.core.workflowmanagement.impl.models.StoredTicketStateTransition;
+import io.appform.conductor.core.workflowmanagement.impl.models.StoredWorkflow;
+import io.appform.conductor.core.workflowmanagement.impl.models.StoredWorkflowSelectionRule;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.functionmetrics.MonitoredFunction;

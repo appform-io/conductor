@@ -1,10 +1,10 @@
-package io.appform.conductor.server.usermanagement;
+package io.appform.conductor.user.usermanagement;
 
 import io.appform.conductor.model.events.impl.user.UserPasswordFailedAttemptUpdatedEvent;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.eventmanagement.EventBus;
+import static io.appform.conductor.core.utils.Constants.ROOT_IMPLEMENTATION_NAME;
+import io.appform.conductor.core.eventmanagement.EventBus;
 import io.appform.conductor.model.events.impl.user.UserPasswordSetEvent;
-import io.appform.conductor.server.internalmodels.auth.UserPasswordAuthDetails;
+import io.appform.conductor.user.internalmodels.auth.UserPasswordAuthDetails;
 import lombok.val;
 
 import javax.inject.Inject;
@@ -20,7 +20,7 @@ public class EventGeneratingUserPasswordAuthStore implements UserPasswordAuthSto
     private final UserPasswordAuthStore userPasswordAuthStore;
 
     @Inject
-    public EventGeneratingUserPasswordAuthStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) UserPasswordAuthStore userPasswordAuthStore) {
+    public EventGeneratingUserPasswordAuthStore(EventBus eventBus, @Named(ROOT_IMPLEMENTATION_NAME) UserPasswordAuthStore userPasswordAuthStore) {
         this.eventBus = eventBus;
         this.userPasswordAuthStore = userPasswordAuthStore;
     }

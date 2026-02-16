@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.subjectmanagement.impl.models;
+package io.appform.conductor.core.subjectmanagement.impl.models;
 
 import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.subject.SubjectIDVerificationStatus;
-import io.appform.conductor.server.utils.Constants;
+import io.appform.conductor.core.utils.Constants;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

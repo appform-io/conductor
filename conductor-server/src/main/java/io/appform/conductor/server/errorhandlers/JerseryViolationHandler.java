@@ -2,7 +2,7 @@ package io.appform.conductor.server.errorhandlers;
 
 import io.appform.conductor.model.apis.ConductorApiResponse;
 import io.appform.conductor.model.error.ConductorErrorCode;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.dropwizard.jersey.validation.JerseyViolationException;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;

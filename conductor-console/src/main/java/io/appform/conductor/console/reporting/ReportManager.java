@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.reporting;
+package io.appform.conductor.console.reporting;
 
 import com.google.common.base.Strings;
+import io.appform.conductor.core.comms.MailSender;
+import io.appform.conductor.core.eventmanagement.EventStore;
+import io.appform.conductor.core.parser.CQLEngine;
+import io.appform.conductor.core.ticketmanagement.TicketManager;
+import io.appform.conductor.core.utils.Constants;
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.reporting.Report;
 import io.appform.conductor.model.reporting.ReportRun;
@@ -26,13 +31,8 @@ import io.appform.conductor.model.ticket.analytics.TicketGroupResponse;
 import io.appform.conductor.model.ticket.analytics.TicketListResponse;
 import io.appform.conductor.model.ticket.analytics.TicketQueryResponse;
 import io.appform.conductor.model.ticket.analytics.TicketQueryResponseVisitor;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.comms.MailSender;
-import io.appform.conductor.server.eventmanagement.EventBus;
-import io.appform.conductor.server.eventmanagement.EventStore;
-import io.appform.conductor.server.parser.CQLEngine;
-import io.appform.conductor.server.ticketmanagement.TicketManager;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.eventmanagement.EventBus;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.appform.signals.signals.ScheduledSignal;
 import io.dropwizard.lifecycle.Managed;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +53,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.tabulateTicketQueryResponse;
+import static io.appform.conductor.core.utils.ConductorServerUtils.tabulateTicketQueryResponse;
 
 /**
  *
@@ -86,7 +86,7 @@ public class ReportManager implements Managed {
             CQLEngine cqlEngine,
             TicketManager ticketManager,
             EventStore eventStore, MailSender mailSender,
-            @Named(ConductorModule.BACKGROUND_JOBS_POOL_NAME) ExecutorService reportRunnerPool) {
+            @Named(Constants.BACKGROUND_JOBS_POOL_NAME) ExecutorService reportRunnerPool) {
         this.reportStore = reportStore;
         this.eventBus = eventBus;
         this.cqlEngine = cqlEngine;

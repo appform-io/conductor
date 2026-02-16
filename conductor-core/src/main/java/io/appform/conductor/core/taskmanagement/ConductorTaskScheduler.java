@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.taskmanagement;
+package io.appform.conductor.core.taskmanagement;
 
 import io.appform.conductor.model.tasks.*;
-import io.appform.conductor.server.taskmanagement.impl.RunActionOnCQLSelectExecutor;
-import io.appform.conductor.server.taskmanagement.impl.RunActionOnSelectedTicketsExecutor;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.taskmanagement.impl.RunActionOnCQLSelectExecutor;
+import io.appform.conductor.core.taskmanagement.impl.RunActionOnSelectedTicketsExecutor;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.appform.kaal.KaalScheduler;
 import io.appform.kaal.KaalTask;
 import io.appform.kaal.KaalTaskData;

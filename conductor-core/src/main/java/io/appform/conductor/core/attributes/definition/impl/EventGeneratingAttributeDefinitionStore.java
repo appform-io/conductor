@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.attributes.definition.impl;
+package io.appform.conductor.core.attributes.definition.impl;
 
 import io.appform.conductor.model.attributes.AttributeScopeType;
 import io.appform.conductor.model.attributes.definition.AttributeDefinition;
 import io.appform.conductor.model.events.impl.attributes.AttributeDefinitionDeletedEvent;
 import io.appform.conductor.model.events.impl.attributes.AttributeDefinitionSavedEvent;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.attributes.definition.AttributeDefinitionStore;
-import io.appform.conductor.server.eventmanagement.EventBus;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.attributes.definition.AttributeDefinitionStore;
+import io.appform.conductor.core.eventmanagement.EventBus;
 import lombok.val;
 
 import javax.inject.Inject;
@@ -42,7 +42,7 @@ public class EventGeneratingAttributeDefinitionStore implements AttributeDefinit
     @Inject
     public EventGeneratingAttributeDefinitionStore(
             EventBus eventBus,
-            @Named(ConductorModule.CACHED_IMPLEMENTATION_NAME) AttributeDefinitionStore root) {
+            @Named(Constants.CACHED_IMPLEMENTATION_NAME) AttributeDefinitionStore root) {
         this.eventBus = eventBus;
         this.root = root;
     }

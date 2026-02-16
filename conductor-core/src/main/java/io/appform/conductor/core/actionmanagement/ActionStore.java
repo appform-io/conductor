@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.actionmanagement;
+package io.appform.conductor.core.actionmanagement;
 
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.Scope;

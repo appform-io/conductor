@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.taskmanagement.impl;
+package io.appform.conductor.core.taskmanagement.impl;
 
 import io.appform.conductor.model.tasks.TaskMode;
 import io.appform.conductor.model.ticket.analytics.TicketGroupResponse;
 import io.appform.conductor.model.ticket.analytics.TicketListResponse;
 import io.appform.conductor.model.ticket.analytics.TicketQueryResponseVisitor;
-import io.appform.conductor.server.eventmanagement.EventStore;
-import io.appform.conductor.server.parser.CQLEngine;
-import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
+import io.appform.conductor.core.eventmanagement.EventStore;
+import io.appform.conductor.core.parser.CQLEngine;
+import io.appform.conductor.core.taskmanagement.ConductorTaskScheduler;
 import io.appform.conductor.model.tasks.RunActionOnCQLSelectTaskSpec;
 import io.appform.conductor.model.tasks.Task;
 import io.appform.conductor.model.tasks.TaskRunStatus;
-import io.appform.conductor.server.ticketmanagement.TicketManager;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.ticketmanagement.TicketManager;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;

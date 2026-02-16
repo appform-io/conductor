@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.subjectmanagement.impl;
+package io.appform.conductor.core.subjectmanagement.impl;
 
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.subject.*;
-import io.appform.conductor.server.subjectmanagement.SubjectStore;
-import io.appform.conductor.server.subjectmanagement.impl.models.StoredAddress;
-import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectID;
-import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectSummary;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.subjectmanagement.SubjectStore;
+import io.appform.conductor.core.subjectmanagement.impl.models.StoredAddress;
+import io.appform.conductor.core.subjectmanagement.impl.models.StoredSubjectID;
+import io.appform.conductor.core.subjectmanagement.impl.models.StoredSubjectSummary;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.functionmetrics.MonitoredFunction;

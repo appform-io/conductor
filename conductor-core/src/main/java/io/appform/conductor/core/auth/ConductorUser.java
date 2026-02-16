@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.auth;
+package io.appform.conductor.core.auth;
 
 import io.appform.conductor.model.usermgmt.UserSession;
 import lombok.NonNull;

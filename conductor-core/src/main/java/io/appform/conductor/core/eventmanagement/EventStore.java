@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.eventmanagement;
+package io.appform.conductor.core.eventmanagement;
 
 import io.appform.conductor.model.events.Event;
 import io.appform.conductor.model.events.analytics.EventFilters;

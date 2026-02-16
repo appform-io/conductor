@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.eventmanagement.bus;
+package io.appform.conductor.core.eventmanagement.bus;
 
 import io.appform.conductor.model.events.Event;
-import io.appform.conductor.server.eventmanagement.EventHandler;
+import io.appform.conductor.core.eventmanagement.EventHandler;
 import io.appform.conductor.model.events.EventType;
 import io.appform.signals.signalhandlers.SignalConsumer;
 

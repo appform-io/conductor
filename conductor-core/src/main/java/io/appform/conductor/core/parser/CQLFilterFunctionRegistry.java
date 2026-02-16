@@ -1,4 +1,4 @@
-package io.appform.conductor.server.parser;
+package io.appform.conductor.core.parser;
 
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.events.analytics.EventFilters;
@@ -8,8 +8,8 @@ import io.appform.conductor.model.events.impl.ReferredObjectType;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.ticketfilters.TicketExternalReferenceEquals;
-import io.appform.conductor.server.utils.ConductorServerUtils;
-import io.appform.conductor.server.utils.Pair;
+import io.appform.conductor.core.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.Pair;
 import io.dropwizard.util.Duration;
 import lombok.SneakyThrows;
 import lombok.val;

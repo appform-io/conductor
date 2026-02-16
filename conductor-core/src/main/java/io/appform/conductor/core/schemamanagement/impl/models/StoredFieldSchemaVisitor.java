@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.schemamanagement.impl.models;
+package io.appform.conductor.core.schemamanagement.impl.models;
 
 /**
  *

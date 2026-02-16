@@ -1,10 +1,10 @@
-package io.appform.conductor.server.templateengines;
+package io.appform.conductor.core.templateengines;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.workflow.Template;
-import io.appform.conductor.server.utils.HandlebarsUtils;
+import io.appform.conductor.core.utils.HandlebarsUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 

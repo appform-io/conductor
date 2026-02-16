@@ -1,5 +1,6 @@
-package io.appform.conductor.server.reporting;
+package io.appform.conductor.console.reporting;
 
+import io.appform.conductor.core.utils.Constants;
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.events.impl.reporting.ReportCreatedEvent;
 import io.appform.conductor.model.events.impl.reporting.ReportDeletedEvent;
@@ -9,8 +10,7 @@ import io.appform.conductor.model.reporting.Report;
 import io.appform.conductor.model.reporting.ReportRun;
 import io.appform.conductor.model.reporting.ReportRunResult;
 import io.appform.conductor.model.reporting.ReportState;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.eventmanagement.EventBus;
+import io.appform.conductor.core.eventmanagement.EventBus;
 import lombok.val;
 
 import javax.inject.Inject;
@@ -28,7 +28,7 @@ public class EventGeneratingReportStore implements ReportStore {
     private final ReportStore reportStore;
 
     @Inject
-    public EventGeneratingReportStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) ReportStore reportStore) {
+    public EventGeneratingReportStore(EventBus eventBus, @Named(Constants.ROOT_IMPLEMENTATION_NAME) ReportStore reportStore) {
         this.eventBus = eventBus;
         this.reportStore = reportStore;
     }

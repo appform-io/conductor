@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.subjects;
+package io.appform.conductor.console.ui.views.subjects;
 
 import io.appform.conductor.model.events.analytics.ObjectReference;
 import io.appform.conductor.model.events.impl.ReferredObjectType;
@@ -23,8 +23,8 @@ import io.appform.conductor.model.subject.Subject;
 import io.appform.conductor.model.subject.SubjectIDType;
 import io.appform.conductor.model.ticket.analytics.TicketGist;
 import io.appform.conductor.model.usermgmt.User;
-import io.appform.conductor.server.attributes.values.AttributeManager;
-import io.appform.conductor.server.ui.views.BaseLoggedInView;
+import io.appform.conductor.core.attributes.values.AttributeManager;
+import io.appform.conductor.console.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;

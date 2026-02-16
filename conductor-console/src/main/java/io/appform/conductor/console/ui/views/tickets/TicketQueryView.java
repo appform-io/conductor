@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.tickets;
+package io.appform.conductor.console.ui.views.tickets;
 
 import io.appform.conductor.model.ticket.analytics.TicketListResponse;
 import io.appform.conductor.model.usermgmt.User;
-import io.appform.conductor.server.ui.views.BaseLoggedInView;
+import io.appform.conductor.console.ui.views.BaseLoggedInView;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;

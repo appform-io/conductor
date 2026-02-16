@@ -1,13 +1,13 @@
-package io.appform.conductor.server.ticketmanagement.statemachine;
+package io.appform.conductor.core.ticketmanagement.statemachine;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.schema.TicketState;
 import io.appform.conductor.model.workflow.TicketStateTransition;
-import io.appform.conductor.server.ruleengines.RuleEngine;
-import io.appform.conductor.server.ticketmanagement.statemachine.models.TicketStateMachineContext;
-import io.appform.conductor.server.ticketmanagement.statemachine.models.TriggerData;
-import io.appform.conductor.server.ticketmanagement.statemachine.models.strategy.TriggerStrategy;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.ruleengines.RuleEngine;
+import io.appform.conductor.core.ticketmanagement.statemachine.models.TicketStateMachineContext;
+import io.appform.conductor.core.ticketmanagement.statemachine.models.TriggerData;
+import io.appform.conductor.core.ticketmanagement.statemachine.models.strategy.TriggerStrategy;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;

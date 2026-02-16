@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.tickets.fragments;
+package io.appform.conductor.console.ui.views.tickets.fragments;
 
 import io.appform.conductor.model.ticket.TicketSummary;
 import io.appform.conductor.model.ticket.comments.Comment;

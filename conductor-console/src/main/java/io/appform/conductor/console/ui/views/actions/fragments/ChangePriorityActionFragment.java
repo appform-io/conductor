@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.actions.fragments;
+package io.appform.conductor.console.ui.views.actions.fragments;
 
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.Scope;

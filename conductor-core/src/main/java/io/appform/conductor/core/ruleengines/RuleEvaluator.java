@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ruleengines;
+package io.appform.conductor.core.ruleengines;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

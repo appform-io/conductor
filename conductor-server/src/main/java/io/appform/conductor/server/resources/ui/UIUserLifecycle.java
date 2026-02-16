@@ -16,14 +16,14 @@
 
 package io.appform.conductor.server.resources.ui;
 
+import io.appform.conductor.core.interfaces.UserLifecycleManager;
 import io.appform.conductor.model.usermgmt.UserSession;
 import io.appform.conductor.model.usermgmt.UserSummary;
-import io.appform.conductor.server.auth.ConductorAuthFilter;
-import io.appform.conductor.server.auth.ConductorUser;
-import io.appform.conductor.server.ui.views.ActivationView;
-import io.appform.conductor.server.ui.views.user.UserAccountView;
-import io.appform.conductor.server.usermanagement.UserLifecycleManager;
-import io.appform.conductor.server.utils.Constants;
+import io.appform.conductor.user.auth.ConductorAuthFilter;
+import io.appform.conductor.core.auth.ConductorUser;
+import io.appform.conductor.console.ui.views.ActivationView;
+import io.appform.conductor.console.ui.views.user.UserAccountView;
+import io.appform.conductor.core.utils.Constants;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +44,7 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.*;
+import static io.appform.conductor.core.utils.ConductorServerUtils.*;
 
 /**
  *

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.templateengines;
+package io.appform.conductor.core.templateengines;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.workflow.Template;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import lombok.val;
 
 import javax.inject.Inject;

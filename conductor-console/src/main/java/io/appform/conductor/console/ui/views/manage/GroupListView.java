@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.manage;
+package io.appform.conductor.console.ui.views.manage;
 
 import io.appform.conductor.model.skills.SkillValue;
 import io.appform.conductor.model.usermgmt.Group;
@@ -22,7 +22,7 @@ import io.appform.conductor.model.usermgmt.GroupType;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.events.impl.ReferredObjectType;
 import io.appform.conductor.model.events.analytics.ObjectReference;
-import io.appform.conductor.server.ui.views.BaseLoggedInView;
+import io.appform.conductor.console.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;

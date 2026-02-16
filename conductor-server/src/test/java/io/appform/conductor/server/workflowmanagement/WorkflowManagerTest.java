@@ -17,6 +17,7 @@
 package io.appform.conductor.server.workflowmanagement;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.appform.conductor.core.workflowmanagement.WorkflowManager;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
 import io.appform.conductor.model.schema.Schema;
@@ -27,28 +28,28 @@ import io.appform.conductor.model.workflow.WorkflowDetails;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
-import io.appform.conductor.server.actionmanagement.ActionStore;
-import io.appform.conductor.server.actionmanagement.impl.DBActionStore;
-import io.appform.conductor.server.actionmanagement.impl.models.StoredAction;
-import io.appform.conductor.server.schemamanagement.impl.DBSchemaStore;
-import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
-import io.appform.conductor.server.schemamanagement.impl.models.StoredFieldSchema;
-import io.appform.conductor.server.schemamanagement.impl.models.StoredSchemaSummary;
-import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
-import io.appform.conductor.server.taskmanagement.TaskStore;
-import io.appform.conductor.server.taskmanagement.impl.DBTaskStore;
-import io.appform.conductor.server.taskmanagement.impl.RunActionOnCQLSelectExecutor;
-import io.appform.conductor.server.taskmanagement.impl.RunActionOnSelectedTicketsExecutor;
-import io.appform.conductor.server.taskmanagement.impl.models.StoredTask;
-import io.appform.conductor.server.ticketmanagement.TicketStore;
-import io.appform.conductor.server.ticketmanagement.impl.DBTicketStore;
-import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
-import io.appform.conductor.server.utils.ConductorServerUtils;
-import io.appform.conductor.server.workflowmanagement.impl.DBWorkflowStore;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketState;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketStateTransition;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflow;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflowSelectionRule;
+import io.appform.conductor.core.actionmanagement.ActionStore;
+import io.appform.conductor.core.actionmanagement.impl.DBActionStore;
+import io.appform.conductor.core.actionmanagement.impl.models.StoredAction;
+import io.appform.conductor.core.schemamanagement.impl.DBSchemaStore;
+import io.appform.conductor.core.schemamanagement.impl.SchemaStore;
+import io.appform.conductor.core.schemamanagement.impl.models.StoredFieldSchema;
+import io.appform.conductor.core.schemamanagement.impl.models.StoredSchemaSummary;
+import io.appform.conductor.core.taskmanagement.ConductorTaskScheduler;
+import io.appform.conductor.core.taskmanagement.TaskStore;
+import io.appform.conductor.core.taskmanagement.impl.DBTaskStore;
+import io.appform.conductor.core.taskmanagement.impl.RunActionOnCQLSelectExecutor;
+import io.appform.conductor.core.taskmanagement.impl.RunActionOnSelectedTicketsExecutor;
+import io.appform.conductor.core.taskmanagement.impl.models.StoredTask;
+import io.appform.conductor.core.ticketmanagement.TicketStore;
+import io.appform.conductor.core.ticketmanagement.impl.DBTicketStore;
+import io.appform.conductor.core.ticketmanagement.impl.models.StoredTicketSkeleton;
+import io.appform.conductor.core.utils.ConductorServerUtils;
+import io.appform.conductor.core.workflowmanagement.impl.DBWorkflowStore;
+import io.appform.conductor.core.workflowmanagement.impl.models.StoredTicketState;
+import io.appform.conductor.core.workflowmanagement.impl.models.StoredTicketStateTransition;
+import io.appform.conductor.core.workflowmanagement.impl.models.StoredWorkflow;
+import io.appform.conductor.core.workflowmanagement.impl.models.StoredWorkflowSelectionRule;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import io.dropwizard.util.Resources;
 import lombok.val;
@@ -66,7 +67,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link WorkflowManager}
+ * Tests for {@link io.appform.conductor.core.workflowmanagement.WorkflowManager}
  */
 @RelevantDBEntityPackages({"io.appform.conductor.server.workflowmanagement.impl.models",
         "io.appform.conductor.server.schemamanagement.impl.models",

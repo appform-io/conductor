@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.workflowmanagement;
+package io.appform.conductor.core.workflowmanagement;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.appform.conductor.model.workflow.Rule;
 import io.appform.conductor.model.workflow.Workflow;
 import io.appform.conductor.model.workflow.WorkflowState;
-import io.appform.conductor.server.ruleengines.RuleEngine;
-import io.appform.conductor.server.utils.Pair;
+import io.appform.conductor.core.ruleengines.RuleEngine;
+import io.appform.conductor.core.utils.Pair;
 import io.appform.signals.signals.ScheduledSignal;
 import io.dropwizard.lifecycle.Managed;
 import lombok.RequiredArgsConstructor;

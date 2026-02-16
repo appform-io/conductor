@@ -16,20 +16,21 @@
 
 package io.appform.conductor.server.workflowmanagement.impl;
 
+import io.appform.conductor.core.workflowmanagement.impl.DBWorkflowStore;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketState;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredTicketStateTransition;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflow;
-import io.appform.conductor.server.workflowmanagement.impl.models.StoredWorkflowSelectionRule;
+import io.appform.conductor.core.workflowmanagement.impl.models.StoredTicketState;
+import io.appform.conductor.core.workflowmanagement.impl.models.StoredTicketStateTransition;
+import io.appform.conductor.core.workflowmanagement.impl.models.StoredWorkflow;
+import io.appform.conductor.core.workflowmanagement.impl.models.StoredWorkflowSelectionRule;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
- * Tests for {@link DBWorkflowStore}
+ * Tests for {@link io.appform.conductor.core.workflowmanagement.impl.DBWorkflowStore}
  */
 @RelevantDBEntityPackages("io.appform.conductor.server.workflowmanagement.impl.models")
 @ExtendWith(DBTestExtension.class)

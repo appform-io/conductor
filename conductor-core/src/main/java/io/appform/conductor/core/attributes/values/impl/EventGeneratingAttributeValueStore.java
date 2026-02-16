@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.attributes.values.impl;
+package io.appform.conductor.core.attributes.values.impl;
 
 import io.appform.conductor.model.attributes.AttributeScopeType;
 import io.appform.conductor.model.attributes.value.AttributeValue;
 import io.appform.conductor.model.events.impl.attributes.AttributeValueSavedEvent;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.attributes.values.AttributeValueStore;
-import io.appform.conductor.server.eventmanagement.EventBus;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.attributes.values.AttributeValueStore;
+import io.appform.conductor.core.eventmanagement.EventBus;
 import lombok.val;
 
 import javax.inject.Inject;
@@ -40,7 +40,7 @@ public class EventGeneratingAttributeValueStore implements AttributeValueStore {
     @Inject
     public EventGeneratingAttributeValueStore(
             EventBus eventBus,
-            @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) AttributeValueStore root) {
+            @Named(Constants.ROOT_IMPLEMENTATION_NAME) AttributeValueStore root) {
         this.eventBus = eventBus;
         this.root = root;
     }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ticketmanagement;
+package io.appform.conductor.core.ticketmanagement;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.MediaType;

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.common;
+package io.appform.conductor.console.ui.views.common;
 
 import io.appform.conductor.model.events.Event;
-import io.appform.conductor.server.utils.Pair;
+import io.appform.conductor.core.utils.Pair;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;

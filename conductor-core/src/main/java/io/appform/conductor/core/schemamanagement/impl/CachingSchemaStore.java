@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.schemamanagement.impl;
+package io.appform.conductor.core.schemamanagement.impl;
 
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.hazelcast.HazelcastClient;
-import io.appform.conductor.server.schemamanagement.impl.models.StoredSchemaSummary;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.hazelcast.HazelcastClient;
+import io.appform.conductor.core.schemamanagement.impl.models.StoredSchemaSummary;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -53,7 +53,7 @@ public class CachingSchemaStore implements SchemaStore {
 
     @Inject
     public CachingSchemaStore(
-            @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) SchemaStore root,
+            @Named(Constants.ROOT_IMPLEMENTATION_NAME) SchemaStore root,
             HazelcastClient hazelcastClient) {
         this.root = root;
         val cacheName = getClass().getSimpleName();

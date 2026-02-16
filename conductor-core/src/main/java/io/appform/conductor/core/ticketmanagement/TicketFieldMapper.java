@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ticketmanagement;
+package io.appform.conductor.core.ticketmanagement;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
@@ -25,9 +25,9 @@ import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.fields.*;
 import io.appform.conductor.model.ticket.fields.FieldValue;
 import io.appform.conductor.model.ticket.fields.impl.*;
-import io.appform.conductor.server.schemamanagement.SchemaOpValidationResult;
-import io.appform.conductor.server.utils.ConductorServerUtils;
-import io.appform.conductor.server.utils.Pair;
+import io.appform.conductor.core.schemamanagement.SchemaOpValidationResult;
+import io.appform.conductor.core.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;

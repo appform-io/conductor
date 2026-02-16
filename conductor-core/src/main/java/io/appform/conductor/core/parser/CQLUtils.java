@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.parser;
+package io.appform.conductor.core.parser;
 
 import lombok.experimental.UtilityClass;
 

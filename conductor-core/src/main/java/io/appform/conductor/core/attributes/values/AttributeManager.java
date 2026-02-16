@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.attributes.values;
+package io.appform.conductor.core.attributes.values;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
@@ -27,8 +27,8 @@ import io.appform.conductor.model.attributes.definition.impl.StringAttributeDefi
 import io.appform.conductor.model.attributes.value.AttributeValue;
 import io.appform.conductor.model.attributes.value.AttributeValueVisitor;
 import io.appform.conductor.model.attributes.value.impl.*;
-import io.appform.conductor.server.attributes.definition.AttributeDefinitionStore;
-import io.appform.conductor.server.utils.Pair;
+import io.appform.conductor.core.attributes.definition.AttributeDefinitionStore;
+import io.appform.conductor.core.utils.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.Value;
@@ -47,8 +47,8 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static io.appform.conductor.server.attributes.values.AttributeManager.AttributeValidationStatus.AttributeValidationResult.failure;
-import static io.appform.conductor.server.attributes.values.AttributeManager.AttributeValidationStatus.AttributeValidationResult.success;
+import static io.appform.conductor.core.attributes.values.AttributeManager.AttributeValidationStatus.AttributeValidationResult.failure;
+import static io.appform.conductor.core.attributes.values.AttributeManager.AttributeValidationStatus.AttributeValidationResult.success;
 
 /**
  *

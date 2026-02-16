@@ -16,15 +16,15 @@
 
 package io.appform.conductor.server.resources.ui;
 
+import io.appform.conductor.core.attributes.values.AttributeManager;
 import io.appform.conductor.model.attributes.AttributeScopeType;
 import io.appform.conductor.model.subject.*;
-import io.appform.conductor.server.attributes.values.AttributeManager;
-import io.appform.conductor.server.auth.ConductorUser;
-import io.appform.conductor.server.subjectmanagement.SubjectStore;
-import io.appform.conductor.server.ticketmanagement.TicketManager;
-import io.appform.conductor.server.ui.views.subjects.SubjectDetailsView;
-import io.appform.conductor.server.ui.views.subjects.SubjectListView;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.auth.ConductorUser;
+import io.appform.conductor.core.subjectmanagement.SubjectStore;
+import io.appform.conductor.core.ticketmanagement.TicketManager;
+import io.appform.conductor.console.ui.views.subjects.SubjectDetailsView;
+import io.appform.conductor.console.ui.views.subjects.SubjectListView;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
@@ -41,7 +41,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.*;
+import static io.appform.conductor.core.utils.ConductorServerUtils.*;
 
 /**
  *

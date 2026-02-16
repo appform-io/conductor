@@ -1,11 +1,11 @@
-package io.appform.conductor.server.ingressmanagement.impl;
+package io.appform.conductor.core.ingressmanagement.impl;
 
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.ingress.IngressTranslator;
 import io.appform.conductor.model.workflow.Template;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.hazelcast.HazelcastClient;
-import io.appform.conductor.server.ingressmanagement.IngressTranslatorStore;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.hazelcast.HazelcastClient;
+import io.appform.conductor.core.ingressmanagement.IngressTranslatorStore;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
@@ -29,7 +29,7 @@ public class CachingIngressTranslatorStore implements IngressTranslatorStore {
 
     @Inject
     public CachingIngressTranslatorStore(
-            @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) final IngressTranslatorStore root,
+            @Named(Constants.ROOT_IMPLEMENTATION_NAME) final IngressTranslatorStore root,
             final HazelcastClient hazelcastClient) {
         this.root = root;
         this.ingressTranslatorCacheProvider = hazelcastClient.loadingCache(

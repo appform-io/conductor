@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.subjectmanagement;
+package io.appform.conductor.core.subjectmanagement;
 
 import io.appform.conductor.model.subject.SubjectIDVerificationStatus;
 import io.appform.conductor.model.subject.SubjectID;

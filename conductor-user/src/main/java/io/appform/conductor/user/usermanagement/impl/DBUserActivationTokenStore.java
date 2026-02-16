@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.usermanagement.impl;
+package io.appform.conductor.user.usermanagement.impl;
 
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.usermgmt.UserActivationToken;
 import io.appform.conductor.model.usermgmt.UserActivationTokenState;
-import io.appform.conductor.server.usermanagement.UserActivationTokenStore;
-import io.appform.conductor.server.usermanagement.impl.models.StoredUserActivationToken;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.user.usermanagement.UserActivationTokenStore;
+import io.appform.conductor.user.usermanagement.impl.models.StoredUserActivationToken;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.RequiredArgsConstructor;

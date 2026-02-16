@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.dashboards.impl;
+package io.appform.conductor.console.dashboards.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
-import io.appform.conductor.server.dashboards.DashboardStore;
-import io.appform.conductor.server.dashboards.impl.model.StoredDashboard;
-import io.appform.conductor.server.dashboards.model.Dashboard;
-import io.appform.conductor.server.dashboards.model.DashboardSpec;
-import io.appform.conductor.server.dashboards.model.SpecVersion;
-import io.appform.conductor.server.reporting.impl.models.StoredReport;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.console.dashboards.DashboardStore;
+import io.appform.conductor.console.dashboards.impl.model.StoredDashboard;
+import io.appform.conductor.console.dashboards.model.Dashboard;
+import io.appform.conductor.console.dashboards.model.DashboardSpec;
+import io.appform.conductor.console.dashboards.model.SpecVersion;
+import io.appform.conductor.console.reporting.impl.models.StoredReport;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;

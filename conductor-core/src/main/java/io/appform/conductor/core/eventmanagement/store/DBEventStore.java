@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.eventmanagement.store;
+package io.appform.conductor.core.eventmanagement.store;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
@@ -23,12 +23,12 @@ import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.events.analytics.impl.EventGroupResponse;
 import io.appform.conductor.model.ticket.analytics.GroupingElement;
 import io.appform.conductor.model.events.Event;
-import io.appform.conductor.server.eventmanagement.EventStore;
+import io.appform.conductor.core.eventmanagement.EventStore;
 import io.appform.conductor.model.events.analytics.EventFilters;
 import io.appform.conductor.model.events.analytics.impl.EventListResponse;
-import io.appform.conductor.server.eventmanagement.store.models.StoredEvent;
-import io.appform.conductor.server.utils.ConductorServerUtils;
-import io.appform.conductor.server.utils.Pair;
+import io.appform.conductor.core.eventmanagement.store.models.StoredEvent;
+import io.appform.conductor.core.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.Pair;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.dropwizard.sharding.scroll.ScrollPointer;
 import lombok.RequiredArgsConstructor;

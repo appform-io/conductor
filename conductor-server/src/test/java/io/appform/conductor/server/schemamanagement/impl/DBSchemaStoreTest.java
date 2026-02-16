@@ -17,20 +17,21 @@
 package io.appform.conductor.server.schemamanagement.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.appform.conductor.core.schemamanagement.impl.DBSchemaStore;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
-import io.appform.conductor.server.schemamanagement.impl.models.StoredFieldSchema;
-import io.appform.conductor.server.schemamanagement.impl.models.StoredSchemaSummary;
+import io.appform.conductor.core.schemamanagement.impl.models.StoredFieldSchema;
+import io.appform.conductor.core.schemamanagement.impl.models.StoredSchemaSummary;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.configureMapper;
+import static io.appform.conductor.core.utils.ConductorServerUtils.configureMapper;
 
 /**
- * Test for {@link DBSchemaStore}
+ * Test for {@link io.appform.conductor.core.schemamanagement.impl.DBSchemaStore}
  */
 @RelevantDBEntityPackages("io.appform.conductor.server.schemamanagement.impl.models")
 @ExtendWith(DBTestExtension.class)

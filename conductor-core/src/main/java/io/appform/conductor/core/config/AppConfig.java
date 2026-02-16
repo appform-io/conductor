@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.config;
+package io.appform.conductor.core.config;
 
-import io.appform.conductor.server.config.hz.ClusterConfig;
+import io.appform.conductor.core.config.hz.ClusterConfig;
 import io.appform.dropwizard.sharding.config.ShardedHibernateFactory;
 import io.dropwizard.Configuration;
 import lombok.Data;

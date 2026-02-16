@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.usermanagement.impl;
+package io.appform.conductor.user.usermanagement.impl;
 
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.usermgmt.SessionState;
 import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.model.usermgmt.UserSessionDetails;
-import io.appform.conductor.server.usermanagement.SessionStore;
-import io.appform.conductor.server.usermanagement.impl.models.StoredUserSessionDetails;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.user.usermanagement.SessionStore;
+import io.appform.conductor.user.usermanagement.impl.models.StoredUserSessionDetails;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.SneakyThrows;

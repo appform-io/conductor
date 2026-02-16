@@ -15,11 +15,11 @@
  *
  */
 
-package io.appform.conductor.server.id.constraints.impl;
+package io.appform.conductor.core.id.constraints.impl;
 
 import com.google.common.base.Preconditions;
-import io.appform.conductor.server.id.Id;
-import io.appform.conductor.server.id.constraints.IdValidationConstraint;
+import io.appform.conductor.core.id.Id;
+import io.appform.conductor.core.id.constraints.IdValidationConstraint;
 import lombok.extern.slf4j.Slf4j;
 
 /**

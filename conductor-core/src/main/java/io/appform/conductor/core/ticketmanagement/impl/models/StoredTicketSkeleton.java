@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ticketmanagement.impl.models;
+package io.appform.conductor.core.ticketmanagement.impl.models;
 
 import io.appform.conductor.model.ticket.TicketPriority;
-import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
-import io.appform.conductor.server.utils.Constants;
+import io.appform.conductor.core.ticketmanagement.impl.models.fields.StoredFieldValue;
+import io.appform.conductor.core.utils.Constants;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

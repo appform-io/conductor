@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.schemamanagement;
+package io.appform.conductor.core.schemamanagement;
 
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldSchemaVisitor;
 import io.appform.conductor.model.schema.fields.*;
-import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
+import io.appform.conductor.core.schemamanagement.impl.SchemaStore;
 import lombok.val;
 import org.apache.commons.lang3.ClassUtils;
 

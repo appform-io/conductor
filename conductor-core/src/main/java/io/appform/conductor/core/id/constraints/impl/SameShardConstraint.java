@@ -1,8 +1,8 @@
 
-package io.appform.conductor.server.id.constraints.impl;
+package io.appform.conductor.core.id.constraints.impl;
 
-import io.appform.conductor.server.id.Id;
-import io.appform.conductor.server.id.constraints.IdValidationConstraint;
+import io.appform.conductor.core.id.Id;
+import io.appform.conductor.core.id.constraints.IdValidationConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

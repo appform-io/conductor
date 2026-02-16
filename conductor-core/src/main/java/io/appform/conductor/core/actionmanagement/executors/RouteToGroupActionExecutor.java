@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.actionmanagement.executors;
+package io.appform.conductor.core.actionmanagement.executors;
 
 import io.appform.conductor.model.actions.ActionExecutionResult;
 import io.appform.conductor.model.actions.impl.RouteToGroupAction;
-import io.appform.conductor.server.actionmanagement.ActionExecutor;
-import io.appform.conductor.server.ticketmanagement.TicketStore;
-import io.appform.conductor.server.usermanagement.GroupStore;
+import io.appform.conductor.core.actionmanagement.ActionExecutor;
+import io.appform.conductor.core.ticketmanagement.TicketStore;
+import io.appform.conductor.core.interfaces.GroupStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;

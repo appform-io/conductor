@@ -15,14 +15,14 @@
  *
  */
 
-package io.appform.conductor.server.id;
+package io.appform.conductor.core.id;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import io.appform.conductor.server.id.constraints.IdValidationConstraint;
-import io.appform.conductor.server.id.formatter.IdFormatter;
-import io.appform.conductor.server.id.formatter.IdFormatters;
-import io.appform.conductor.server.id.request.IdGenerationRequest;
+import io.appform.conductor.core.id.constraints.IdValidationConstraint;
+import io.appform.conductor.core.id.formatter.IdFormatter;
+import io.appform.conductor.core.id.formatter.IdFormatters;
+import io.appform.conductor.core.id.request.IdGenerationRequest;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.schemamanagement;
+package io.appform.conductor.core.schemamanagement;
 
 import lombok.Value;
 

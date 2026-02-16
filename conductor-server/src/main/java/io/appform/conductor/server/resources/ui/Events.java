@@ -26,11 +26,11 @@ import io.appform.conductor.model.events.analytics.impl.EventGroupResponse;
 import io.appform.conductor.model.events.analytics.impl.EventListRequest;
 import io.appform.conductor.model.events.analytics.impl.EventListResponse;
 import io.appform.conductor.model.events.impl.ReferredObjectType;
-import io.appform.conductor.server.auth.ConductorUser;
-import io.appform.conductor.server.eventmanagement.EventStore;
-import io.appform.conductor.server.ui.views.common.EventsListFragment;
-import io.appform.conductor.server.utils.ConductorServerUtils;
-import io.appform.conductor.server.utils.Pair;
+import io.appform.conductor.core.auth.ConductorUser;
+import io.appform.conductor.core.eventmanagement.EventStore;
+import io.appform.conductor.console.ui.views.common.EventsListFragment;
+import io.appform.conductor.core.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.Pair;
 import io.dropwizard.auth.Auth;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -53,8 +53,8 @@ import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.fail;
-import static io.appform.conductor.server.utils.ConductorServerUtils.render;
+import static io.appform.conductor.core.utils.ConductorServerUtils.fail;
+import static io.appform.conductor.core.utils.ConductorServerUtils.render;
 
 /**
  * {@link Event} related functionality

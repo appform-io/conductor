@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.dashboards;
+package io.appform.conductor.console.dashboards;
 
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
-import io.appform.conductor.server.dashboards.model.Dashboard;
-import io.appform.conductor.server.dashboards.model.DashboardSpec;
-import io.appform.conductor.server.dashboards.model.SpecVersion;
-import io.appform.conductor.server.reporting.impl.models.StoredReport;
+import io.appform.conductor.console.dashboards.model.Dashboard;
+import io.appform.conductor.console.dashboards.model.DashboardSpec;
+import io.appform.conductor.console.dashboards.model.SpecVersion;
+import io.appform.conductor.console.reporting.impl.models.StoredReport;
 
 import java.util.List;
 import java.util.Optional;

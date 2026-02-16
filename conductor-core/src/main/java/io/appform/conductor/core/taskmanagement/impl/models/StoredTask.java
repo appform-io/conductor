@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.taskmanagement.impl.models;
+package io.appform.conductor.core.taskmanagement.impl.models;
 
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.tasks.TaskMode;
-import io.appform.conductor.server.utils.Constants;
+import io.appform.conductor.core.utils.Constants;
 import io.appform.conductor.model.tasks.TaskState;
 import io.appform.conductor.model.tasks.TaskType;
 import io.appform.conductor.model.tasks.TaskRunStatus;

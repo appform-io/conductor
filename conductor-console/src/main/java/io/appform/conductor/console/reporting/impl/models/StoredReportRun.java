@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.reporting.impl.models;
+package io.appform.conductor.console.reporting.impl.models;
 
 import io.appform.conductor.model.reporting.ReportRun;
-import io.appform.conductor.server.utils.Constants;
+import io.appform.conductor.core.utils.Constants;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;

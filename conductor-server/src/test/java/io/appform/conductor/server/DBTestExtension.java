@@ -71,7 +71,7 @@ public class DBTestExtension implements BeforeEachCallback, AfterEachCallback, P
         val entityClassPaths = extensionContext.getTestClass()
                 .map(clazz -> clazz.getAnnotation(RelevantDBEntityPackages.class))
                 .map(annotation -> Arrays.asList(annotation.value()))
-                .orElse(List.of("io.appform.conductor.server"));
+                .orElse(List.of("io.appform.conductor"));
         bundle = new BalancedDBShardingBundle<>(entityClassPaths.toArray(new String[0])) {
             @Override
             protected ShardedHibernateFactory getConfig(TestConfig config) {

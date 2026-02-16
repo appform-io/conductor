@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.actions;
+package io.appform.conductor.console.ui.views.actions;
 
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.usermgmt.User;
-import io.appform.conductor.server.ui.views.BaseLoggedInView;
+import io.appform.conductor.console.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;

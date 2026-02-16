@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.utils.persistence;
+package io.appform.conductor.core.utils.persistence;
 
 import com.google.common.base.Strings;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.workflow.Rule;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import lombok.val;
 
 import javax.persistence.AttributeConverter;

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ticketmanagement.impl.models.comments;
+package io.appform.conductor.core.ticketmanagement.impl.models.comments;
 
 import com.google.common.net.MediaType;
-import io.appform.conductor.server.utils.Constants;
-import io.appform.conductor.server.utils.persistence.MediaTypeConverter;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.utils.persistence.MediaTypeConverter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

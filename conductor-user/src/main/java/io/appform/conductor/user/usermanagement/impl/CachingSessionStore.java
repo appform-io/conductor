@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.usermanagement.impl;
+package io.appform.conductor.user.usermanagement.impl;
 
+import io.appform.conductor.core.utils.Constants;
 import io.appform.conductor.model.usermgmt.SessionState;
 import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.model.usermgmt.UserSessionDetails;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.hazelcast.HazelcastClient;
-import io.appform.conductor.server.usermanagement.SessionStore;
+import static io.appform.conductor.core.utils.Constants.ROOT_IMPLEMENTATION_NAME;
+import io.appform.conductor.core.hazelcast.HazelcastClient;
+import io.appform.conductor.user.usermanagement.SessionStore;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -58,7 +59,7 @@ public class CachingSessionStore implements SessionStore {
 
     @Inject
     public CachingSessionStore(
-            @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) final SessionStore root,
+            @Named(Constants.ROOT_IMPLEMENTATION_NAME) final SessionStore root,
             final HazelcastClient hazelcastClient) {
         this.root = root;
 

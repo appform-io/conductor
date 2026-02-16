@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.reporting.impl;
+package io.appform.conductor.console.reporting.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,12 +27,12 @@ import io.appform.conductor.model.reporting.Report;
 import io.appform.conductor.model.reporting.ReportRun;
 import io.appform.conductor.model.reporting.ReportRunResult;
 import io.appform.conductor.model.reporting.ReportState;
-import io.appform.conductor.server.reporting.ReportContext;
-import io.appform.conductor.server.reporting.ReportStore;
-import io.appform.conductor.server.reporting.impl.models.StoredReport;
-import io.appform.conductor.server.reporting.impl.models.StoredReportContext;
-import io.appform.conductor.server.reporting.impl.models.StoredReportRun;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.console.reporting.ReportContext;
+import io.appform.conductor.console.reporting.ReportStore;
+import io.appform.conductor.console.reporting.impl.models.StoredReport;
+import io.appform.conductor.console.reporting.impl.models.StoredReportContext;
+import io.appform.conductor.console.reporting.impl.models.StoredReportRun;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +48,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_RELATED_ENTITY_LIST_ERROR;
-import static io.appform.conductor.server.utils.ConductorServerUtils.nextExecutionTimeForCron;
+import static io.appform.conductor.core.utils.ConductorServerUtils.nextExecutionTimeForCron;
 
 /**
  *

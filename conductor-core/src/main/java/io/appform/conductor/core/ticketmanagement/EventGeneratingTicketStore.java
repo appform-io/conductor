@@ -1,4 +1,4 @@
-package io.appform.conductor.server.ticketmanagement;
+package io.appform.conductor.core.ticketmanagement;
 
 import com.google.common.base.Strings;
 import com.google.common.net.MediaType;
@@ -13,8 +13,8 @@ import io.appform.conductor.model.ticket.comments.Attachment;
 import io.appform.conductor.model.ticket.comments.Comment;
 import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.eventmanagement.EventBus;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.eventmanagement.EventBus;
 import io.appform.conductor.model.events.impl.ticket.*;
 import lombok.NonNull;
 import lombok.val;
@@ -37,7 +37,7 @@ public class EventGeneratingTicketStore implements TicketStore {
     @Inject
     public EventGeneratingTicketStore(
             EventBus eventBus,
-            @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) TicketStore ticketStore) {
+            @Named(Constants.ROOT_IMPLEMENTATION_NAME) TicketStore ticketStore) {
         this.eventBus = eventBus;
         this.ticketStore = ticketStore;
     }

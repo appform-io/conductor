@@ -1,12 +1,12 @@
-package io.appform.conductor.server.actionmanagement.executors;
+package io.appform.conductor.core.actionmanagement.executors;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.appform.conductor.model.actions.ActionExecutionResult;
 import io.appform.conductor.model.actions.impl.WebhookAction;
-import io.appform.conductor.server.actionmanagement.ActionExecutor;
-import io.appform.conductor.server.templateengines.TemplateEngine;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.actionmanagement.ActionExecutor;
+import io.appform.conductor.core.templateengines.TemplateEngine;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;

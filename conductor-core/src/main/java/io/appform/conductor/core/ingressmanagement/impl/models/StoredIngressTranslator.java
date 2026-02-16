@@ -1,9 +1,9 @@
-package io.appform.conductor.server.ingressmanagement.impl.models;
+package io.appform.conductor.core.ingressmanagement.impl.models;
 
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.workflow.Template;
-import io.appform.conductor.server.utils.Constants;
-import io.appform.conductor.server.utils.persistence.TemplateConverter;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.utils.persistence.TemplateConverter;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

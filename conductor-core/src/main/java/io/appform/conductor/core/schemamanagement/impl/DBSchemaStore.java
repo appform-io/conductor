@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.schemamanagement.impl;
+package io.appform.conductor.core.schemamanagement.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,8 +22,8 @@ import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.schema.*;
 import io.appform.conductor.model.schema.fields.*;
-import io.appform.conductor.server.schemamanagement.impl.models.*;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.schemamanagement.impl.models.*;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.functionmetrics.MonitoredFunction;
@@ -40,8 +40,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import static io.appform.conductor.model.schema.SchemaState.INACTIVE;
-import static io.appform.conductor.server.utils.ConductorServerUtils.lowerSnake;
-import static io.appform.conductor.server.utils.ConductorServerUtils.operatingUserId;
+import static io.appform.conductor.core.utils.ConductorServerUtils.lowerSnake;
+import static io.appform.conductor.core.utils.ConductorServerUtils.operatingUserId;
 
 /**
  * DB based implementation for {@link SchemaStore}

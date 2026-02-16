@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.attributes.definition.impl;
+package io.appform.conductor.core.attributes.definition.impl;
 
 import io.appform.conductor.model.attributes.definition.AttributeDefinition;
 import io.appform.conductor.model.attributes.definition.AttributeDefinitionVisitor;
 import io.appform.conductor.model.attributes.definition.impl.*;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.attributes.AttributeScopeType;
-import io.appform.conductor.server.attributes.definition.AttributeDefinitionStore;
-import io.appform.conductor.server.attributes.definition.impl.models.*;
+import io.appform.conductor.core.attributes.definition.AttributeDefinitionStore;
+import io.appform.conductor.core.attributes.definition.impl.models.*;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;

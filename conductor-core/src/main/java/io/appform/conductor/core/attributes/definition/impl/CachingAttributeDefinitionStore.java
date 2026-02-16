@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.attributes.definition.impl;
+package io.appform.conductor.core.attributes.definition.impl;
 
 import io.appform.conductor.model.attributes.definition.AttributeDefinition;
-import io.appform.conductor.server.ConductorModule;
+import io.appform.conductor.core.utils.Constants;
 import io.appform.conductor.model.attributes.AttributeScopeType;
-import io.appform.conductor.server.attributes.definition.AttributeDefinitionStore;
-import io.appform.conductor.server.hazelcast.HazelcastClient;
-import io.appform.conductor.server.utils.Pair;
+import io.appform.conductor.core.attributes.definition.AttributeDefinitionStore;
+import io.appform.conductor.core.hazelcast.HazelcastClient;
+import io.appform.conductor.core.utils.Pair;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
@@ -50,7 +50,7 @@ public class CachingAttributeDefinitionStore implements AttributeDefinitionStore
 
     @Inject
     public CachingAttributeDefinitionStore(
-            @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) AttributeDefinitionStore root,
+            @Named(Constants.ROOT_IMPLEMENTATION_NAME) AttributeDefinitionStore root,
             final HazelcastClient hazelcastClient) {
         this.root = root;
         this.cacheProvider = hazelcastClient.loadingCache(

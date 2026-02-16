@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.workflowmanagement;
+package io.appform.conductor.core.workflowmanagement;
 
 import com.google.common.collect.Sets;
 import io.appform.conductor.model.actions.Action;
@@ -25,13 +25,13 @@ import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
 import io.appform.conductor.model.tasks.*;
 import io.appform.conductor.model.workflow.*;
-import io.appform.conductor.server.actionmanagement.ActionStore;
-import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
-import io.appform.conductor.server.taskmanagement.ConductorTaskScheduler;
-import io.appform.conductor.server.taskmanagement.TaskStore;
-import io.appform.conductor.server.ticketmanagement.TicketStore;
-import io.appform.conductor.server.utils.ConductorServerUtils;
-import io.appform.conductor.server.utils.Pair;
+import io.appform.conductor.core.actionmanagement.ActionStore;
+import io.appform.conductor.core.schemamanagement.impl.SchemaStore;
+import io.appform.conductor.core.taskmanagement.ConductorTaskScheduler;
+import io.appform.conductor.core.taskmanagement.TaskStore;
+import io.appform.conductor.core.ticketmanagement.TicketStore;
+import io.appform.conductor.core.utils.ConductorServerUtils;
+import io.appform.conductor.core.utils.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 
@@ -43,7 +43,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.*;
+import static io.appform.conductor.core.utils.ConductorServerUtils.*;
 
 /**
  * Manages lifecycle of workflows

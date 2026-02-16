@@ -15,10 +15,10 @@
  *
  */
 
-package io.appform.conductor.server.id.constraints.impl;
+package io.appform.conductor.core.id.constraints.impl;
 
 
-import io.appform.conductor.server.id.Id;
+import io.appform.conductor.core.id.Id;
 
 /**
  *

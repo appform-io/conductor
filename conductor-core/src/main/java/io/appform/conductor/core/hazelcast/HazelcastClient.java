@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.appform.conductor.server.hazelcast;
+package io.appform.conductor.core.hazelcast;
 
 import com.google.common.base.Strings;
 import com.hazelcast.cache.HazelcastCachingProvider;
 import com.hazelcast.config.*;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import io.appform.conductor.server.config.hz.*;
+import io.appform.conductor.core.config.hz.*;
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.lifecycle.ServerLifecycleListener;
 import lombok.Getter;

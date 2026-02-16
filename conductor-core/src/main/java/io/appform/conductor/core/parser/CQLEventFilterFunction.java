@@ -1,4 +1,4 @@
-package io.appform.conductor.server.parser;
+package io.appform.conductor.core.parser;
 
 import io.appform.conductor.model.events.analytics.EventFilters;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;

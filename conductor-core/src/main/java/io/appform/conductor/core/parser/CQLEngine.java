@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.parser;
+package io.appform.conductor.core.parser;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -37,12 +37,12 @@ import io.appform.conductor.model.ticket.filter.TicketFieldFilter;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.fieldfilters.*;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
-import io.appform.conductor.server.eventmanagement.EventStore;
-import io.appform.conductor.server.schemamanagement.impl.SchemaStore;
-import io.appform.conductor.server.ticketmanagement.TicketManager;
-import io.appform.conductor.server.ticketmanagement.TicketSkeleton;
-import io.appform.conductor.server.utils.Pair;
-import io.appform.conductor.server.workflowmanagement.WorkflowStore;
+import io.appform.conductor.core.eventmanagement.EventStore;
+import io.appform.conductor.core.schemamanagement.impl.SchemaStore;
+import io.appform.conductor.core.ticketmanagement.TicketManager;
+import io.appform.conductor.core.ticketmanagement.TicketSkeleton;
+import io.appform.conductor.core.utils.Pair;
+import io.appform.conductor.core.workflowmanagement.WorkflowStore;
 import io.dropwizard.util.Duration;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -68,7 +68,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.lowerSnake;
+import static io.appform.conductor.core.utils.ConductorServerUtils.lowerSnake;
 
 /**
  *

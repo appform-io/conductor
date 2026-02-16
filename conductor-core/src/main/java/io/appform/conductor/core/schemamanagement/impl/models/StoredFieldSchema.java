@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.schemamanagement.impl.models;
+package io.appform.conductor.core.schemamanagement.impl.models;
 
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.workflow.Rule;
-import io.appform.conductor.server.utils.Constants;
-import io.appform.conductor.server.utils.persistence.RuleConverter;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.utils.persistence.RuleConverter;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;

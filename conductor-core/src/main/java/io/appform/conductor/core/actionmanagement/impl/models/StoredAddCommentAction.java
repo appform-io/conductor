@@ -1,9 +1,9 @@
-package io.appform.conductor.server.actionmanagement.impl.models;
+package io.appform.conductor.core.actionmanagement.impl.models;
 
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.workflow.Template;
-import io.appform.conductor.server.utils.Constants;
-import io.appform.conductor.server.utils.persistence.TemplateConverter;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.utils.persistence.TemplateConverter;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;

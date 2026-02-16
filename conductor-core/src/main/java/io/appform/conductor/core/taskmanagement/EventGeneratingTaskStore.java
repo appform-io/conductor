@@ -1,11 +1,11 @@
-package io.appform.conductor.server.taskmanagement;
+package io.appform.conductor.core.taskmanagement;
 
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.events.impl.task.TaskCreatedEvent;
 import io.appform.conductor.model.events.impl.task.TaskDeletedEvent;
 import io.appform.conductor.model.events.impl.task.TaskUpdatedEvent;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.eventmanagement.EventBus;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.eventmanagement.EventBus;
 import io.appform.conductor.model.tasks.Task;
 import lombok.val;
 
@@ -22,7 +22,7 @@ public class EventGeneratingTaskStore implements TaskStore {
     private final TaskStore taskStore;
 
     @Inject
-    public EventGeneratingTaskStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) TaskStore taskStore) {
+    public EventGeneratingTaskStore(EventBus eventBus, @Named(Constants.ROOT_IMPLEMENTATION_NAME) TaskStore taskStore) {
         this.eventBus = eventBus;
         this.taskStore = taskStore;
     }

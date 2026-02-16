@@ -19,10 +19,10 @@ package io.appform.conductor.server;
 import com.google.inject.Stage;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.ConductorException;
-import io.appform.conductor.server.config.AppConfig;
-import io.appform.conductor.server.id.IdGenerator;
-import io.appform.conductor.server.ui.HandlebarsViewRenderer;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.config.AppConfig;
+import io.appform.conductor.core.id.IdGenerator;
+import io.appform.conductor.console.ui.HandlebarsViewRenderer;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import io.appform.dropwizard.sharding.config.ShardedHibernateFactory;
 import io.appform.functionmetrics.FunctionMetricsManager;
@@ -53,7 +53,7 @@ public class App extends Application<AppConfig> {
         bootstrap.setConfigurationSourceProvider(
                 new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(),
                                                new EnvironmentVariableSubstitutor(true)));
-        val dbShardingBundle = new BalancedDBShardingBundle<AppConfig>("io.appform.conductor.server") {
+        val dbShardingBundle = new BalancedDBShardingBundle<AppConfig>("io.appform.conductor") {
             @Override
             protected ShardedHibernateFactory getConfig(AppConfig appConfig) {
                 return appConfig.getDb();
@@ -63,7 +63,7 @@ public class App extends Application<AppConfig> {
         bootstrap.addBundle(new MultiPartBundle());
         bootstrap.addBundle(
                 GuiceBundle.builder()
-                        .enableAutoConfig("io.appform.conductor.server")
+                        .enableAutoConfig("io.appform.conductor")
                         .modules(new ConductorModule(dbShardingBundle))
                         .installers(HealthCheckInstaller.class)
                         .bundles(ServerPagesBundle.builder()

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.tickets;
+package io.appform.conductor.console.ui.views.tickets;
 
 import io.appform.conductor.model.actions.Action;
 import io.appform.conductor.model.events.analytics.ObjectReference;
@@ -26,8 +26,8 @@ import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.workflow.Workflow;
-import io.appform.conductor.server.ticketmanagement.RelatedTicketSummary;
-import io.appform.conductor.server.ui.views.BaseLoggedInView;
+import io.appform.conductor.core.ticketmanagement.RelatedTicketSummary;
+import io.appform.conductor.console.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;

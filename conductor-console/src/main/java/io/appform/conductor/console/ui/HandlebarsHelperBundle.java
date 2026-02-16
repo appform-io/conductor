@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui;
+package io.appform.conductor.console.ui;
 
 import com.github.jknack.handlebars.Helper;
-import io.appform.conductor.server.utils.HandlebarsUtils;
-import io.appform.conductor.server.utils.dev.IgnoreGenerated;
+import io.appform.conductor.core.utils.HandlebarsUtils;
+import io.appform.conductor.core.utils.dev.IgnoreGenerated;
 import io.dropwizard.Configuration;
 import io.dropwizard.ConfiguredBundle;
 import io.dropwizard.setup.Bootstrap;

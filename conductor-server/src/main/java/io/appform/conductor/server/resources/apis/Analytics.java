@@ -32,12 +32,12 @@ import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.model.ticket.analytics.*;
 import io.appform.conductor.model.ticket.filter.TicketFilter;
 import io.appform.conductor.model.ticket.filter.ticketfilters.*;
-import io.appform.conductor.server.auth.ConductorUser;
-import io.appform.conductor.server.dashboards.model.WidgetQueryResponse;
-import io.appform.conductor.server.eventmanagement.EventStore;
-import io.appform.conductor.server.parser.CQLEngine;
-import io.appform.conductor.server.ticketmanagement.TicketManager;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.auth.ConductorUser;
+import io.appform.conductor.console.dashboards.model.WidgetQueryResponse;
+import io.appform.conductor.core.eventmanagement.EventStore;
+import io.appform.conductor.core.parser.CQLEngine;
+import io.appform.conductor.core.ticketmanagement.TicketManager;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.dropwizard.auth.Auth;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +58,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.dateFormatsForTimeResolution;
+import static io.appform.conductor.core.utils.ConductorServerUtils.dateFormatsForTimeResolution;
 
 /**
  *

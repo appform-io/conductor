@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.attributes.definition.impl.models;
+package io.appform.conductor.core.attributes.definition.impl.models;
 
 import io.appform.conductor.model.attributes.AttributeType;
-import io.appform.conductor.server.utils.persistence.StringSetConverter;
+import io.appform.conductor.core.utils.persistence.StringSetConverter;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

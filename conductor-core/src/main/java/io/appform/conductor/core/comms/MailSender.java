@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.comms;
+package io.appform.conductor.core.comms;
 
 import com.google.common.base.Strings;
-import io.appform.conductor.server.config.MailConfig;
+import io.appform.conductor.core.config.MailConfig;
 import io.appform.functionmetrics.MonitoredFunction;
 import io.appform.signals.signals.ConsumingFireForgetSignal;
 import jakarta.activation.FileDataSource;

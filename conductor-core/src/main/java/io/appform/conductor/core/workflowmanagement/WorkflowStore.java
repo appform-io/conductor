@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.workflowmanagement;
+package io.appform.conductor.core.workflowmanagement;
 
 import io.appform.conductor.model.workflow.*;
 

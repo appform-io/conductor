@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views;
+package io.appform.conductor.console.ui.views;
 
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.events.analytics.ObjectReference;

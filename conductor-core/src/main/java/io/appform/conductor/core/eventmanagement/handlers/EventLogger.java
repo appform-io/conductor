@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.eventmanagement.handlers;
+package io.appform.conductor.core.eventmanagement.handlers;
 
 import io.appform.conductor.model.events.Event;
-import io.appform.conductor.server.eventmanagement.EventHandler;
-import io.appform.conductor.server.eventmanagement.EventHandlerImplementation;
+import io.appform.conductor.core.eventmanagement.EventHandler;
+import io.appform.conductor.core.eventmanagement.EventHandlerImplementation;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Singleton;

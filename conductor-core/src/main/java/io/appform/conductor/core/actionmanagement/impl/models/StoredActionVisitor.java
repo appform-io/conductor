@@ -1,4 +1,4 @@
-package io.appform.conductor.server.actionmanagement.impl.models;
+package io.appform.conductor.core.actionmanagement.impl.models;
 
 public interface StoredActionVisitor<T> {
 

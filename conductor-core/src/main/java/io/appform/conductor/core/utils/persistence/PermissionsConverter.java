@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.utils.persistence;
+package io.appform.conductor.core.utils.persistence;
 
 import com.google.common.base.Strings;
 import io.appform.conductor.model.auth.Permission;

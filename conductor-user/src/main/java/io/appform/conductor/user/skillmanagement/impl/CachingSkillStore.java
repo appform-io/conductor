@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.skillmanagement.impl;
+package io.appform.conductor.user.skillmanagement.impl;
 
+import io.appform.conductor.core.utils.Constants;
 import io.appform.conductor.model.skills.SkillDefinition;
 import io.appform.conductor.model.skills.SkillValue;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.hazelcast.HazelcastClient;
-import io.appform.conductor.server.skillmanagement.SkillStore;
-import io.appform.conductor.server.utils.Pair;
+import io.appform.conductor.core.hazelcast.HazelcastClient;
+import io.appform.conductor.user.skillmanagement.SkillStore;
+import io.appform.conductor.core.utils.Pair;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -51,7 +51,7 @@ public class CachingSkillStore implements SkillStore {
 
     @Inject
     public CachingSkillStore(
-            @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) final SkillStore root,
+            @Named(Constants.ROOT_IMPLEMENTATION_NAME) final SkillStore root,
             final HazelcastClient hazelcastClient) {
         this.root = root;
 

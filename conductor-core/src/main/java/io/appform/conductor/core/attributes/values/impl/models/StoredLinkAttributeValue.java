@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.attributes.values.impl.models;
+package io.appform.conductor.core.attributes.values.impl.models;
 
 import io.appform.conductor.model.attributes.AttributeType;
 import lombok.Getter;

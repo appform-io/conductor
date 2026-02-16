@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.usermanagement.impl.models;
+package io.appform.conductor.user.usermanagement.impl.models;
 
 import io.appform.conductor.model.usermgmt.GroupType;
-import io.appform.conductor.server.utils.Constants;
-import io.appform.conductor.server.utils.persistence.StringSetConverter;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.utils.persistence.StringSetConverter;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

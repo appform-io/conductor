@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.usermanagement.impl;
+package io.appform.conductor.user.usermanagement.impl;
 
+import io.appform.conductor.core.hazelcast.HazelcastClient;
+import io.appform.conductor.core.utils.Constants;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.GroupType;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.hazelcast.HazelcastClient;
-import io.appform.conductor.server.usermanagement.GroupStore;
+import io.appform.conductor.core.interfaces.GroupStore;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -51,7 +51,7 @@ public class CachingGroupStore implements GroupStore {
 
     @Inject
     public CachingGroupStore(
-            @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) final GroupStore root,
+            @Named(Constants.ROOT_IMPLEMENTATION_NAME) final GroupStore root,
             final HazelcastClient hazelcastClient) {
         this.root = root;
         this.groupCacheProvider = hazelcastClient.loadingCache(

@@ -1,10 +1,10 @@
-package io.appform.conductor.server.schemamanagement.impl;
+package io.appform.conductor.core.schemamanagement.impl;
 
 import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.SchemaState;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.eventmanagement.EventBus;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.eventmanagement.EventBus;
 import io.appform.conductor.model.events.impl.schema.*;
 import lombok.val;
 
@@ -20,7 +20,7 @@ public class EventGeneratingSchemaStore implements SchemaStore {
     private final SchemaStore schemaStore;
 
     @Inject
-    public EventGeneratingSchemaStore(EventBus eventBus, @Named(ConductorModule.CACHED_IMPLEMENTATION_NAME) SchemaStore schemaStore) {
+    public EventGeneratingSchemaStore(EventBus eventBus, @Named(Constants.CACHED_IMPLEMENTATION_NAME) SchemaStore schemaStore) {
         this.eventBus = eventBus;
         this.schemaStore = schemaStore;
     }

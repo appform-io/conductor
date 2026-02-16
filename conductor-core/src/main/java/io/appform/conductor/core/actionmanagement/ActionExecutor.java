@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.actionmanagement;
+package io.appform.conductor.core.actionmanagement;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.appform.conductor.model.actions.Action;
@@ -25,7 +25,7 @@ import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.ticket.TicketDetails;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.workflow.Workflow;
-import io.appform.conductor.server.actionmanagement.executors.*;
+import io.appform.conductor.core.actionmanagement.executors.*;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 

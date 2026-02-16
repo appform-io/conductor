@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.skillmanagement;
+package io.appform.conductor.user.skillmanagement;
 
+import io.appform.conductor.core.utils.Constants;
 import io.appform.conductor.model.skills.SkillDefinition;
 import io.appform.conductor.model.skills.SkillValue;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.eventmanagement.EventBus;
+import static io.appform.conductor.core.utils.Constants.ROOT_IMPLEMENTATION_NAME;
+import io.appform.conductor.core.eventmanagement.EventBus;
 import io.appform.conductor.model.events.impl.skill.*;
 import io.appform.conductor.model.events.impl.user.UserSkillAssociatedEvent;
 import io.appform.conductor.model.events.impl.user.UserSkillDisasocciatedEvent;
@@ -40,7 +41,7 @@ public class EventGeneratingSkillStore implements SkillStore {
     private final SkillStore skillStore;
 
     @Inject
-    public EventGeneratingSkillStore(EventBus eventBus, @Named(ConductorModule.CACHED_IMPLEMENTATION_NAME) SkillStore skillStore) {
+    public EventGeneratingSkillStore(EventBus eventBus, @Named(Constants.CACHED_IMPLEMENTATION_NAME) SkillStore skillStore) {
         this.eventBus = eventBus;
         this.skillStore = skillStore;
     }

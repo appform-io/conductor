@@ -23,7 +23,8 @@ import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
-import io.appform.conductor.server.usermanagement.impl.models.StoredUserSessionDetails;
+import io.appform.conductor.user.usermanagement.impl.DBSessionStore;
+import io.appform.conductor.user.usermanagement.impl.models.StoredUserSessionDetails;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import lombok.SneakyThrows;
@@ -40,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Tests for {@link DBSessionStore}
+ * Tests for {@link io.appform.conductor.user.usermanagement.impl.DBSessionStore}
  */
 @Slf4j
 @RelevantDBEntityPackages("io.appform.conductor.server.usermanagement.impl.models")

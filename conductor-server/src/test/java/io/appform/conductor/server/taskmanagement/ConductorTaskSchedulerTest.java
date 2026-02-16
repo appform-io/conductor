@@ -17,19 +17,20 @@
 package io.appform.conductor.server.taskmanagement;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.appform.conductor.core.taskmanagement.ConductorTaskScheduler;
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.tasks.*;
 import io.appform.conductor.model.ticket.TicketPriority;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
-import io.appform.conductor.server.taskmanagement.impl.DBTaskStore;
-import io.appform.conductor.server.taskmanagement.impl.RunActionOnCQLSelectExecutor;
-import io.appform.conductor.server.taskmanagement.impl.RunActionOnSelectedTicketsExecutor;
-import io.appform.conductor.server.taskmanagement.impl.models.StoredTask;
+import io.appform.conductor.core.taskmanagement.impl.DBTaskStore;
+import io.appform.conductor.core.taskmanagement.impl.RunActionOnCQLSelectExecutor;
+import io.appform.conductor.core.taskmanagement.impl.RunActionOnSelectedTicketsExecutor;
+import io.appform.conductor.core.taskmanagement.impl.models.StoredTask;
 import io.appform.conductor.model.ticket.analytics.TicketGist;
 import io.appform.conductor.model.ticket.analytics.TicketListResponse;
-import io.appform.conductor.server.ticketmanagement.TicketManager;
+import io.appform.conductor.core.ticketmanagement.TicketManager;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.SneakyThrows;
 import lombok.val;

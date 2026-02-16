@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.skillmanagement.impl;
+package io.appform.conductor.user.skillmanagement.impl;
 
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.skills.SkillDefinition;
 import io.appform.conductor.model.skills.SkillValue;
-import io.appform.conductor.server.skillmanagement.SkillStore;
-import io.appform.conductor.server.skillmanagement.impl.models.StoredSkillDefinition;
-import io.appform.conductor.server.skillmanagement.impl.models.StoredSkillValue;
-import io.appform.conductor.server.skillmanagement.impl.models.StoredUserSkillAssociation;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.user.skillmanagement.SkillStore;
+import io.appform.conductor.user.skillmanagement.impl.models.StoredSkillDefinition;
+import io.appform.conductor.user.skillmanagement.impl.models.StoredSkillValue;
+import io.appform.conductor.user.skillmanagement.impl.models.StoredUserSkillAssociation;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.dropwizard.sharding.dao.RelationalDao;
 import io.appform.functionmetrics.MonitoredFunction;

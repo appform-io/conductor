@@ -1,12 +1,12 @@
-package io.appform.conductor.server.ingressmanagement;
+package io.appform.conductor.core.ingressmanagement;
 
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.events.impl.ingress.IngressTranslatorCreatedEvent;
 import io.appform.conductor.model.events.impl.ingress.IngressTranslatorDeletedEvent;
 import io.appform.conductor.model.ingress.IngressTranslator;
 import io.appform.conductor.model.workflow.Template;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.eventmanagement.EventBus;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.eventmanagement.EventBus;
 import lombok.val;
 
 import javax.inject.Inject;
@@ -24,7 +24,7 @@ public class EventGeneratingIngressTranslatorStore implements IngressTranslatorS
 
     @Inject
     public EventGeneratingIngressTranslatorStore(EventBus eventBus,
-                                                 @Named(ConductorModule.CACHED_IMPLEMENTATION_NAME) IngressTranslatorStore ingressTranslatorStore) {
+                                                 @Named(Constants.CACHED_IMPLEMENTATION_NAME) IngressTranslatorStore ingressTranslatorStore) {
         this.eventBus = eventBus;
         this.ingressTranslatorStore = ingressTranslatorStore;
     }

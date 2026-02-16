@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.auth;
+package io.appform.conductor.core.auth;
 
-import io.appform.conductor.server.usermanagement.CurrentUserSessionStore;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 

@@ -1,4 +1,4 @@
-package io.appform.conductor.server.utils.dev;
+package io.appform.conductor.core.utils.dev;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

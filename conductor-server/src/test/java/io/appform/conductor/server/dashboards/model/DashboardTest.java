@@ -17,7 +17,10 @@
 package io.appform.conductor.server.dashboards.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.console.dashboards.model.DashboardRow;
+import io.appform.conductor.console.dashboards.model.DashboardSpec;
+import io.appform.conductor.console.dashboards.model.DashboardWidget;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.junit.jupiter.api.Test;

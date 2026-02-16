@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.reporting;
+package io.appform.conductor.console.reporting;
 
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.reporting.Report;

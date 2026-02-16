@@ -1,4 +1,4 @@
-package io.appform.conductor.server.ingressmanagement;
+package io.appform.conductor.core.ingressmanagement;
 
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.ingress.IngressTranslator;

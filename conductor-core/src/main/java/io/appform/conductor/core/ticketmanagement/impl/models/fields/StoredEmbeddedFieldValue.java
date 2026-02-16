@@ -1,10 +1,10 @@
-package io.appform.conductor.server.ticketmanagement.impl.models.fields;
+package io.appform.conductor.core.ticketmanagement.impl.models.fields;
 
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.ticket.fields.FieldValue;
 import io.appform.conductor.model.ticket.fields.FieldValueVisitor;
 import io.appform.conductor.model.ticket.fields.impl.*;
-import io.appform.conductor.server.utils.persistence.StringListConverter;
+import io.appform.conductor.core.utils.persistence.StringListConverter;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 

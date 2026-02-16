@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.workflowmanagement.impl;
+package io.appform.conductor.core.workflowmanagement.impl;
 
 import io.appform.conductor.model.workflow.*;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.hazelcast.HazelcastClient;
-import io.appform.conductor.server.workflowmanagement.WorkflowStore;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.hazelcast.HazelcastClient;
+import io.appform.conductor.core.workflowmanagement.WorkflowStore;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -50,7 +50,7 @@ public class CachingWorkflowStore implements WorkflowStore {
 
     @Inject
     public CachingWorkflowStore(
-            @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) final WorkflowStore root,
+            @Named(Constants.ROOT_IMPLEMENTATION_NAME) final WorkflowStore root,
             final HazelcastClient hazelcastClient) {
         this.root = root;
         val cacheName = getClass().getSimpleName();

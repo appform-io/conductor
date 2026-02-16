@@ -1,7 +1,7 @@
-package io.appform.conductor.server.ticketmanagement.impl.models;
+package io.appform.conductor.core.ticketmanagement.impl.models;
 
 import io.appform.conductor.model.ticket.TicketRelationship;
-import io.appform.conductor.server.utils.Constants;
+import io.appform.conductor.core.utils.Constants;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

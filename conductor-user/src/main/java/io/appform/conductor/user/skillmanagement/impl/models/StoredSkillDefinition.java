@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.skillmanagement.impl.models;
+package io.appform.conductor.user.skillmanagement.impl.models;
 
-import io.appform.conductor.server.utils.Constants;
+import io.appform.conductor.core.utils.Constants;
 import io.appform.dropwizard.sharding.sharding.LookupKey;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;

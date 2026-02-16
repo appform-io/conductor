@@ -1,4 +1,4 @@
-package io.appform.conductor.server.actionmanagement.impl.models;
+package io.appform.conductor.core.actionmanagement.impl.models;
 
 import io.appform.conductor.model.actions.ActionType;
 import io.appform.conductor.model.ticket.TicketPriority;

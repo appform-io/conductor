@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.workflowmanagement.impl.models;
+package io.appform.conductor.core.workflowmanagement.impl.models;
 
 import io.appform.conductor.model.workflow.Rule;
 import io.appform.conductor.model.workflow.TicketStateTransition;
-import io.appform.conductor.server.utils.Constants;
-import io.appform.conductor.server.utils.persistence.RuleConverter;
-import io.appform.conductor.server.utils.persistence.StringListConverter;
+import io.appform.conductor.core.utils.Constants;
+import io.appform.conductor.core.utils.persistence.RuleConverter;
+import io.appform.conductor.core.utils.persistence.StringListConverter;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

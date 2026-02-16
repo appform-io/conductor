@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.actionmanagement.executors;
+package io.appform.conductor.core.actionmanagement.executors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,12 +25,12 @@ import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldSchemaVisitor;
 import io.appform.conductor.model.schema.fields.*;
 import io.appform.conductor.model.ticket.fields.FieldValue;
-import io.appform.conductor.server.actionmanagement.ActionExecutor;
-import io.appform.conductor.server.templateengines.TemplateEngine;
-import io.appform.conductor.server.ticketmanagement.TicketFieldData;
-import io.appform.conductor.server.ticketmanagement.TicketFieldMapper;
-import io.appform.conductor.server.ticketmanagement.TicketStore;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.actionmanagement.ActionExecutor;
+import io.appform.conductor.core.templateengines.TemplateEngine;
+import io.appform.conductor.core.ticketmanagement.TicketFieldData;
+import io.appform.conductor.core.ticketmanagement.TicketFieldMapper;
+import io.appform.conductor.core.ticketmanagement.TicketStore;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;

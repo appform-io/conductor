@@ -1,4 +1,4 @@
-package io.appform.conductor.server.ticketmanagement.statemachine.models;
+package io.appform.conductor.core.ticketmanagement.statemachine.models;
 
 import io.appform.conductor.model.schema.Schema;
 import io.appform.conductor.model.schema.TicketState;
@@ -7,9 +7,9 @@ import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.User;
 import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.workflow.Workflow;
-import io.appform.conductor.server.schemamanagement.SchemaOpValidationResult;
-import io.appform.conductor.server.ticketmanagement.TicketFieldData;
-import io.appform.conductor.server.ticketmanagement.TicketSkeleton;
+import io.appform.conductor.core.schemamanagement.SchemaOpValidationResult;
+import io.appform.conductor.core.ticketmanagement.TicketFieldData;
+import io.appform.conductor.core.ticketmanagement.TicketSkeleton;
 import lombok.Data;
 
 import java.util.List;

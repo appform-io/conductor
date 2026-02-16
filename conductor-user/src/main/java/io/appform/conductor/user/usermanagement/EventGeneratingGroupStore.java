@@ -1,5 +1,7 @@
-package io.appform.conductor.server.usermanagement;
+package io.appform.conductor.user.usermanagement;
 
+import io.appform.conductor.core.interfaces.GroupStore;
+import io.appform.conductor.core.utils.Constants;
 import io.appform.conductor.model.events.impl.group.GroupCreatedEvent;
 import io.appform.conductor.model.events.impl.group.GroupDeletedEvent;
 import io.appform.conductor.model.events.impl.group.GroupUpdatedEvent;
@@ -7,8 +9,7 @@ import io.appform.conductor.model.events.impl.user.UserGroupAssignedEvent;
 import io.appform.conductor.model.events.impl.user.UserGroupUnassignedEvent;
 import io.appform.conductor.model.usermgmt.Group;
 import io.appform.conductor.model.usermgmt.GroupType;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.eventmanagement.EventBus;
+import io.appform.conductor.core.eventmanagement.EventBus;
 import lombok.val;
 
 import javax.inject.Inject;
@@ -25,7 +26,7 @@ public class EventGeneratingGroupStore implements GroupStore {
     private final GroupStore groupStore;
 
     @Inject
-    public EventGeneratingGroupStore(EventBus eventBus, @Named(ConductorModule.CACHED_IMPLEMENTATION_NAME) GroupStore groupStore) {
+    public EventGeneratingGroupStore(EventBus eventBus, @Named(Constants.CACHED_IMPLEMENTATION_NAME) GroupStore groupStore) {
         this.eventBus = eventBus;
         this.groupStore = groupStore;
     }

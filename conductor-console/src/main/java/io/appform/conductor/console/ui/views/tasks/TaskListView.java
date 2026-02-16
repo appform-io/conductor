@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui.views.tasks;
+package io.appform.conductor.console.ui.views.tasks;
 
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.usermgmt.User;
@@ -22,7 +22,7 @@ import io.appform.conductor.model.events.impl.ReferredObjectType;
 import io.appform.conductor.model.events.analytics.ObjectReference;
 import io.appform.conductor.model.tasks.Task;
 import io.appform.conductor.model.tasks.TaskType;
-import io.appform.conductor.server.ui.views.BaseLoggedInView;
+import io.appform.conductor.console.ui.views.BaseLoggedInView;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;

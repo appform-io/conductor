@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.eventmanagement.query;
+package io.appform.conductor.core.eventmanagement.query;
 
 /**
  *

@@ -1,13 +1,13 @@
-package io.appform.conductor.server.ingressmanagement.impl;
+package io.appform.conductor.core.ingressmanagement.impl;
 
 import io.appform.conductor.model.actions.Scope;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.ingress.IngressTranslator;
 import io.appform.conductor.model.workflow.Template;
-import io.appform.conductor.server.actionmanagement.impl.models.StoredAction;
-import io.appform.conductor.server.ingressmanagement.IngressTranslatorStore;
-import io.appform.conductor.server.ingressmanagement.impl.models.StoredIngressTranslator;
+import io.appform.conductor.core.actionmanagement.impl.models.StoredAction;
+import io.appform.conductor.core.ingressmanagement.IngressTranslatorStore;
+import io.appform.conductor.core.ingressmanagement.impl.models.StoredIngressTranslator;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ import java.util.Optional;
 
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_UPDATE_ERROR;
 import static io.appform.conductor.model.error.ConductorErrorCode.STORE_WRITE_ERROR;
-import static io.appform.conductor.server.utils.ConductorServerUtils.readableId;
+import static io.appform.conductor.core.utils.ConductorServerUtils.readableId;
 
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = {@Inject})

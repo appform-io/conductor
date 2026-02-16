@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.ui;
+package io.appform.conductor.core.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,8 +33,7 @@ import io.appform.conductor.model.schema.FieldSchema;
 import io.appform.conductor.model.schema.FieldType;
 import io.appform.conductor.model.schema.fields.ChoiceFieldSchema;
 import io.appform.conductor.model.utils.Displayable;
-import io.appform.conductor.server.utils.StringUtils;
-import io.appform.conductor.server.utils.dev.IgnoreGenerated;
+import io.appform.conductor.core.utils.dev.IgnoreGenerated;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;

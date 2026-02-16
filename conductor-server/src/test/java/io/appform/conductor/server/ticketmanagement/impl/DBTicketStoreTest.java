@@ -17,6 +17,7 @@
 package io.appform.conductor.server.ticketmanagement.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.appform.conductor.core.ticketmanagement.impl.DBTicketStore;
 import io.appform.conductor.model.schema.fields.NumberFieldSchema;
 import io.appform.conductor.model.schema.fields.StringFieldSchema;
 import io.appform.conductor.model.ticket.TicketPriority;
@@ -28,12 +29,12 @@ import io.appform.conductor.model.ticket.filter.fieldfilters.TicketFieldEquals;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
-import io.appform.conductor.server.ticketmanagement.TicketFieldData;
-import io.appform.conductor.server.ticketmanagement.impl.models.StoredRelatedTicket;
-import io.appform.conductor.server.ticketmanagement.impl.models.StoredTicketSkeleton;
-import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredAttachment;
-import io.appform.conductor.server.ticketmanagement.impl.models.comments.StoredComment;
-import io.appform.conductor.server.ticketmanagement.impl.models.fields.StoredFieldValue;
+import io.appform.conductor.core.ticketmanagement.TicketFieldData;
+import io.appform.conductor.core.ticketmanagement.impl.models.StoredRelatedTicket;
+import io.appform.conductor.core.ticketmanagement.impl.models.StoredTicketSkeleton;
+import io.appform.conductor.core.ticketmanagement.impl.models.comments.StoredAttachment;
+import io.appform.conductor.core.ticketmanagement.impl.models.comments.StoredComment;
+import io.appform.conductor.core.ticketmanagement.impl.models.fields.StoredFieldValue;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.val;
 import org.junit.jupiter.api.BeforeAll;
@@ -43,7 +44,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.List;
 import java.util.Map;
 
-import static io.appform.conductor.server.utils.ConductorServerUtils.configureMapper;
+import static io.appform.conductor.core.utils.ConductorServerUtils.configureMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 

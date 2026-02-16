@@ -15,10 +15,10 @@
  *
  */
 
-package io.appform.conductor.server.id.constraints.impl;
+package io.appform.conductor.core.id.constraints.impl;
 
 import com.google.common.hash.Hashing;
-import io.appform.conductor.server.id.Id;
+import io.appform.conductor.core.id.Id;
 
 
 import java.nio.charset.StandardCharsets;

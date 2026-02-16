@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.config;
+package io.appform.conductor.core.config;
 
 import lombok.Builder;
 import lombok.Value;

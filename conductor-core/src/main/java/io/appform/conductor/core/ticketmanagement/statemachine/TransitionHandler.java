@@ -1,8 +1,8 @@
-package io.appform.conductor.server.ticketmanagement.statemachine;
+package io.appform.conductor.core.ticketmanagement.statemachine;
 
 import io.appform.conductor.model.workflow.TicketStateTransition;
-import io.appform.conductor.server.ticketmanagement.statemachine.models.TicketStateMachineContext;
-import io.appform.conductor.server.ticketmanagement.statemachine.models.TriggerData;
+import io.appform.conductor.core.ticketmanagement.statemachine.models.TicketStateMachineContext;
+import io.appform.conductor.core.ticketmanagement.statemachine.models.TriggerData;
 
 public interface TransitionHandler {
 

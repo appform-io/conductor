@@ -15,7 +15,7 @@
  *
  */
 
-package io.appform.conductor.server.id;
+package io.appform.conductor.core.id;
 
 import lombok.extern.slf4j.Slf4j;
 

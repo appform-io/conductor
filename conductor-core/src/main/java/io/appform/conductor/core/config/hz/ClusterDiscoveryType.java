@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.appform.conductor.server.config.hz;
+package io.appform.conductor.core.config.hz;
 
 public enum ClusterDiscoveryType {
     SIMPLE,

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.attributes.definition.impl.models;
+package io.appform.conductor.core.attributes.definition.impl.models;
 
 import io.appform.conductor.model.attributes.AttributeType;
 import io.appform.conductor.model.attributes.AttributeScopeType;
-import io.appform.conductor.server.schemamanagement.impl.models.StoredFieldSchema;
+import io.appform.conductor.core.schemamanagement.impl.models.StoredFieldSchema;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.Hibernate;

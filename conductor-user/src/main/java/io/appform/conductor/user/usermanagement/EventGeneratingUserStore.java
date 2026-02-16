@@ -1,10 +1,11 @@
-package io.appform.conductor.server.usermanagement;
+package io.appform.conductor.user.usermanagement;
 
+import io.appform.conductor.core.interfaces.UserStore;
+import io.appform.conductor.core.utils.Constants;
 import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.usermgmt.UserType;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.eventmanagement.EventBus;
+import io.appform.conductor.core.eventmanagement.EventBus;
 import io.appform.conductor.model.events.impl.user.UserCreatedEvent;
 import io.appform.conductor.model.events.impl.user.UserStateChangeEvent;
 import io.appform.conductor.model.events.impl.user.UserUpdatedEvent;
@@ -23,7 +24,7 @@ public class EventGeneratingUserStore implements UserStore {
     private final UserStore userStore;
 
     @Inject
-    public EventGeneratingUserStore(EventBus eventBus, @Named(ConductorModule.CACHED_IMPLEMENTATION_NAME) UserStore userStore) {
+    public EventGeneratingUserStore(EventBus eventBus, @Named(Constants.CACHED_IMPLEMENTATION_NAME) UserStore userStore) {
         this.eventBus = eventBus;
         this.userStore = userStore;
     }

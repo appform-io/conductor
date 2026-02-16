@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.attributes.values;
+package io.appform.conductor.core.attributes.values;
 
 import io.appform.conductor.model.attributes.AttributeScopeType;
 import io.appform.conductor.model.attributes.value.AttributeValue;

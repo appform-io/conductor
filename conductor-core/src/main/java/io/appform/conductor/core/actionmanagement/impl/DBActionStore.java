@@ -1,4 +1,4 @@
-package io.appform.conductor.server.actionmanagement.impl;
+package io.appform.conductor.core.actionmanagement.impl;
 
 import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
@@ -8,9 +8,9 @@ import io.appform.conductor.model.actions.ActionVisitor;
 import io.appform.conductor.model.actions.impl.*;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.workflow.Template;
-import io.appform.conductor.server.actionmanagement.ActionStore;
-import io.appform.conductor.server.actionmanagement.impl.models.*;
-import io.appform.conductor.server.utils.ConductorServerUtils;
+import io.appform.conductor.core.actionmanagement.ActionStore;
+import io.appform.conductor.core.actionmanagement.impl.models.*;
+import io.appform.conductor.core.utils.ConductorServerUtils;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.RequiredArgsConstructor;

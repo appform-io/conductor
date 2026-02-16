@@ -1,4 +1,4 @@
-package io.appform.conductor.server.ticketmanagement;
+package io.appform.conductor.core.ticketmanagement;
 
 import io.appform.conductor.model.ticket.TicketRelationship;
 import lombok.Value;

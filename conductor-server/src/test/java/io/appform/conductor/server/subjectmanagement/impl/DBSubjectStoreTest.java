@@ -16,13 +16,14 @@
 
 package io.appform.conductor.server.subjectmanagement.impl;
 
+import io.appform.conductor.core.subjectmanagement.impl.DBSubjectStore;
 import io.appform.conductor.model.subject.*;
 import io.appform.conductor.server.DBTestExtension;
 import io.appform.conductor.server.RelevantDBEntityPackages;
 import io.appform.conductor.server.TestConfig;
-import io.appform.conductor.server.subjectmanagement.impl.models.StoredAddress;
-import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectID;
-import io.appform.conductor.server.subjectmanagement.impl.models.StoredSubjectSummary;
+import io.appform.conductor.core.subjectmanagement.impl.models.StoredAddress;
+import io.appform.conductor.core.subjectmanagement.impl.models.StoredSubjectID;
+import io.appform.conductor.core.subjectmanagement.impl.models.StoredSubjectSummary;
 import io.appform.dropwizard.sharding.BalancedDBShardingBundle;
 import lombok.val;
 import org.junit.jupiter.api.Test;

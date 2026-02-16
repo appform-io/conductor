@@ -1,4 +1,4 @@
-package io.appform.conductor.server.utils;
+package io.appform.conductor.core.utils;
 
 import java.util.Objects;
 

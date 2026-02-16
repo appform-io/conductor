@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package io.appform.conductor.server.usermanagement.impl;
+package io.appform.conductor.user.usermanagement.impl;
 
 import com.google.common.base.Strings;
+import io.appform.conductor.core.interfaces.UserStore;
 import io.appform.conductor.model.error.ConductorErrorCode;
 import io.appform.conductor.model.error.Throws;
 import io.appform.conductor.model.usermgmt.UserState;
 import io.appform.conductor.model.usermgmt.UserSummary;
 import io.appform.conductor.model.usermgmt.UserType;
-import io.appform.conductor.server.usermanagement.UserStore;
-import io.appform.conductor.server.usermanagement.impl.models.StoredUser;
+import io.appform.conductor.user.usermanagement.impl.models.StoredUser;
 import io.appform.dropwizard.sharding.dao.LookupDao;
 import io.appform.functionmetrics.MonitoredFunction;
 import lombok.SneakyThrows;
@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
-import static io.appform.conductor.server.usermanagement.impl.models.StoredUser.USER_TABLE_NAME;
+import static io.appform.conductor.user.usermanagement.impl.models.StoredUser.USER_TABLE_NAME;
 
 /**
  * RDBMS backend for {@link UserStore}

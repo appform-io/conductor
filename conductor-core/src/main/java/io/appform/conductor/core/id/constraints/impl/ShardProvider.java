@@ -1,4 +1,4 @@
-package io.appform.conductor.server.id.constraints.impl;
+package io.appform.conductor.core.id.constraints.impl;
 
 public interface ShardProvider {
 

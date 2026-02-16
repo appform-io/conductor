@@ -1,12 +1,13 @@
-package io.appform.conductor.server.usermanagement;
+package io.appform.conductor.user.usermanagement;
 
+import io.appform.conductor.core.utils.Constants;
 import io.appform.conductor.model.events.impl.user.UserSessionCreatedEvent;
 import io.appform.conductor.model.events.impl.user.UserSessionUpdatedEvent;
 import io.appform.conductor.model.usermgmt.SessionState;
 import io.appform.conductor.model.usermgmt.SessionType;
 import io.appform.conductor.model.usermgmt.UserSessionDetails;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.eventmanagement.EventBus;
+import static io.appform.conductor.core.utils.Constants.ROOT_IMPLEMENTATION_NAME;
+import io.appform.conductor.core.eventmanagement.EventBus;
 import lombok.val;
 
 import javax.inject.Inject;
@@ -25,7 +26,7 @@ public class EventGeneratingSessionStore implements SessionStore {
     private final SessionStore sessionStore;
 
     @Inject
-    public EventGeneratingSessionStore(EventBus eventBus, @Named(ConductorModule.CACHED_IMPLEMENTATION_NAME) SessionStore sessionStore) {
+    public EventGeneratingSessionStore(EventBus eventBus, @Named(Constants.CACHED_IMPLEMENTATION_NAME) SessionStore sessionStore) {
         this.eventBus = eventBus;
         this.sessionStore = sessionStore;
     }

@@ -1,10 +1,11 @@
-package io.appform.conductor.server.usermanagement;
+package io.appform.conductor.user.usermanagement;
 
+import io.appform.conductor.core.utils.Constants;
 import io.appform.conductor.model.events.impl.user.UserActivationTokenStateUpdatedEvent;
 import io.appform.conductor.model.usermgmt.UserActivationToken;
 import io.appform.conductor.model.usermgmt.UserActivationTokenState;
-import io.appform.conductor.server.ConductorModule;
-import io.appform.conductor.server.eventmanagement.EventBus;
+import static io.appform.conductor.core.utils.Constants.ROOT_IMPLEMENTATION_NAME;
+import io.appform.conductor.core.eventmanagement.EventBus;
 import io.appform.conductor.model.events.impl.user.UserActivationTokenGeneratedEvent;
 import lombok.val;
 
@@ -22,7 +23,7 @@ public class EventGeneratingUserActivationTokenStore implements UserActivationTo
     private UserActivationTokenStore userActivationTokenStore;
 
     @Inject
-    public EventGeneratingUserActivationTokenStore(EventBus eventBus, @Named(ConductorModule.ROOT_IMPLEMENTATION_NAME) UserActivationTokenStore userActivationTokenStore) {
+    public EventGeneratingUserActivationTokenStore(EventBus eventBus, @Named(Constants.ROOT_IMPLEMENTATION_NAME) UserActivationTokenStore userActivationTokenStore) {
         this.eventBus = eventBus;
         this.userActivationTokenStore = userActivationTokenStore;
     }
