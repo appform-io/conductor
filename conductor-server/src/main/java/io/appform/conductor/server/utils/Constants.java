@@ -68,6 +68,6 @@ public class Constants {
     public static final int MAX_PASSWORD_LENGTH = 255;
     public static final int MAX_CQL_LENGTH = 4096;
     public static final int MAX_RECIPIENTS_LENGTH = 2048;
-
+    public static final int MAX_STRING_FIELD_VALUE_LENGTH = 512;
 
 }
